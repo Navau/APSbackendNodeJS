@@ -283,7 +283,7 @@ async function validarArchivosIteraciones(params) {
                 })
                 .finally(async () => {
                   codeCurrentFile = await infoArchivo.codeCurrentFile;
-                  nameTable = await infoArchivo.nameTable;
+                  // nameTable = await infoArchivo.nameTable;
                   headers = await infoArchivo.headers;
 
                   //#region VALIDADORES
@@ -543,7 +543,7 @@ exports.validarArchivo2 = async (req, res, next) => {
       });
       return;
     } else {
-      nameTable = infoTables.table;
+      // nameTable = infoTables.table;
       codeCurrentFile = infoTables.code;
 
       const nroCargaPromise = new Promise(async (resolve, reject) => {
@@ -766,7 +766,7 @@ exports.validarArchivo2 = async (req, res, next) => {
 };
 
 exports.subirArchivo = async (req, res, next) => {
-  nameTable = "";
+  // nameTable = "";
   codeCurrentFile = "";
   nameTableErrors = "APS_aud_errores_carga_archivos";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
