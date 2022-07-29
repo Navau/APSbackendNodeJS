@@ -46,7 +46,7 @@ function refreshAccessToken(req, res) {
             res.status(404).send({
               resultado: 0,
               datos: null,
-              mensaje: "Usuario no encontrado.",
+              mensaje: "Usuario o contraseña incorrecto.",
             });
           } else {
             res.status(200).send({

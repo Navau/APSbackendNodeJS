@@ -467,7 +467,7 @@ async function validarArchivosIteraciones(params) {
                               }
                             } else if (funct === "calificacionRiesgo") {
                               let errFunction = true;
-                              map(calfRiesgo.resultFinal, (item4, index4) => {
+                              map(calfRiesgo?.resultFinal, (item4, index4) => {
                                 if (value === item4.descripcion) {
                                   errFunction = false;
                                 }
