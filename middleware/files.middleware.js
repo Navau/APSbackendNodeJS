@@ -50,7 +50,7 @@ const {
 } = require("../utils/respuesta.utils");
 const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
-var nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 var codeCurrentFile = "";
 var nameTableErrors = "APS_aud_errores_carga_archivos";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
@@ -544,6 +544,7 @@ exports.validarArchivo2 = async (req, res, next) => {
       return;
     } else {
       // nameTable = infoTables.table;
+      respArchivoErroneo200(res, errors, { nameTable });
       codeCurrentFile = infoTables.code;
 
       const nroCargaPromise = new Promise(async (resolve, reject) => {
@@ -734,7 +735,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                     );
                   })
                   .finally(() => {
-                    respArchivoErroneo200(res, errors);
+                    respArchivoErroneo200(res, { errors, nameTable });
                   });
               } else {
                 req.errors = errors;
