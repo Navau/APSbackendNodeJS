@@ -277,7 +277,7 @@ async function validarArchivosIteraciones(params) {
               let headers = null;
               let infoArchivo = null;
 
-              infoArchivo = await obtenerInformacionDeArchivo(item.originalname)
+              await obtenerInformacionDeArchivo(item.originalname)
                 .then((response) => {
                   infoArchivo = response;
                 })
