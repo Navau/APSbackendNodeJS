@@ -50,7 +50,7 @@ const {
 } = require("../utils/respuesta.utils");
 const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
-var nameTable = "";
+var nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 var codeCurrentFile = "";
 var nameTableErrors = "APS_aud_errores_carga_archivos";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
