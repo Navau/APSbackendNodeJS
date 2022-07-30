@@ -41,6 +41,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let codeCurrentFile = null;
       let nameTable = null;
       let paramsInstrumento = null;
+      let paramsInstrumento135 = null;
+      let paramsInstrumento136 = null;
+      let paramsCortoPlazo = null;
+      let paramsLargoPlazo = null;
       let paramsCodOperacion = null;
       let paramsCodValoracion = null;
       let paramsAccionesMO = null;
@@ -255,19 +259,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         codeCurrentFile = "451";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
-        paramsInstrumento = {
-          table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_grupo",
-                valuesWhereIn: [135, 138],
-                whereIn: true,
-              },
-            ],
-          },
-        };
         paramsTipoCuenta = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -305,9 +296,55 @@ async function obtenerInformacionDeArchivo(nameFile) {
         headers = await formatoArchivo(codeCurrentFile);
         paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-          },
+          select: ["sigla"],
+        };
+        paramsInstrumento135 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        };
+        paramsInstrumento136 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        };
+        paramsLargoPlazo = {
+          table: "APS_param_clasificador_comun",
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+            {
+              key: "sigla",
+              value: "LP",
+            },
+          ],
+        };
+        paramsCortoPlazo = {
+          table: "APS_param_clasificador_comun",
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+            {
+              key: "sigla",
+              value: "CP",
+            },
+          ],
         };
         paramsCodValoracion = {
           table: "APS_param_tipo_instrumento",
@@ -317,6 +354,29 @@ async function obtenerInformacionDeArchivo(nameFile) {
               {
                 key: "id_tipo_renta",
                 value: 138,
+              },
+            ],
+          },
+        };
+        paramsCalfRiesgo = {
+          table: "APS_param_clasificador_comun",
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 5,
+            },
+          ],
+        };
+        paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["codigo_valoracion"],
+            where: [
+              {
+                key: "id_moneda",
+                value: 5,
+                operator: "<>",
               },
             ],
           },
@@ -352,6 +412,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsCalfRiesgo,
         paramsCodCustodia,
         paramsCodValoracion,
+        paramsInstrumento135,
+        paramsInstrumento136,
+        paramsCortoPlazo,
+        paramsLargoPlazo,
       });
     }
   );
@@ -1085,10 +1149,10 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion_riesgo",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9,-]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "calificacionRiesgoGrande",
+        function: "calificacionRiesgoMultiple",
       },
       {
         columnName: "fecha_operacion",
@@ -1437,6 +1501,93 @@ async function moneda(table, params) {
   return resultFinal;
 }
 
+async function CortoLargoPlazo(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function calificacionRiesgoConsultaMultiple(params) {
+  const {
+    tipo_instrumento,
+    plazo_valor,
+    calificacion_riesgo,
+    instrumento135,
+    instrumento136,
+    cortoPlazo,
+    largoPlazo,
+    calfRiesgoNormal,
+  } = params;
+  let resultInstrumento135 = await instrumento135.resultFinal;
+  let resultInstrumento136 = await instrumento136.resultFinal;
+  let resultCortoPlazo = await cortoPlazo.resultFinal;
+  let resultLargoPlazo = await largoPlazo.resultFinal;
+  let resultCalfRiesgoNormal = await calfRiesgoNormal.resultFinal;
+
+  let isOkTipoInstrumento = false;
+  let isOkCalfRiesgo = false;
+  console.log("TEST CALF", resultInstrumento135);
+
+  if (calificacion_riesgo) {
+    map(resultInstrumento135, (item, index) => {
+      if (tipo_instrumento === item) {
+        isOkTipoInstrumento = true;
+      }
+    });
+    console.log("TEST 135", isOkTipoInstrumento);
+
+    if (isOkTipoInstrumento === false) {
+      map(resultInstrumento136, (item, index) => {
+        if (tipo_instrumento === item) {
+          isOkTipoInstrumento = true;
+        }
+      });
+      console.log("TEST 136", isOkTipoInstrumento);
+      if (isOkTipoInstrumento === true) {
+        map(resultCalfRiesgoNormal, (item, index) => {
+          if (calificacion_riesgo === item) {
+            isOkCalfRiesgo = true;
+          }
+        });
+        return isOkCalfRiesgo;
+      } else {
+        return false;
+      }
+    } else {
+      if (plazo_valor < 360) {
+        map(resultCortoPlazo, (item, index) => {
+          if (calificacion_riesgo === item) {
+            isOkCalfRiesgo = true;
+          }
+        });
+        return isOkCalfRiesgo;
+      } else if (plazo_valor >= 360) {
+        map(resultLargoPlazo, (item, index) => {
+          if (calificacion_riesgo === item) {
+            isOkCalfRiesgo = true;
+          }
+        });
+        return isOkCalfRiesgo;
+      } else {
+        return isOkCalfRiesgo;
+      }
+    }
+  } else {
+    return false;
+  }
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -1454,4 +1605,6 @@ module.exports = {
   tipoCuenta,
   entidadFinanciera,
   moneda,
+  calificacionRiesgoConsultaMultiple,
+  CortoLargoPlazo,
 };
