@@ -894,6 +894,7 @@ async function obtenerValidaciones(typeFile) {
         positveNegative: true,
         required: true,
         function: null,
+        dependency: "44C",
       },
       {
         columnName: "tasa_interes_variable",
@@ -1267,7 +1268,6 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
   const formatearPromise = new Promise((resolve, reject) => {
     let arrayDataObject = [];
     let errors = [];
-    let isLimitLengthFile = false;
     headers.splice(0, 1); // ELIMINAR ID DE TABLA
 
     map(["id_carga_archivos"], (item, index) => {
@@ -1282,28 +1282,24 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
       if (item.length === 0) {
         return;
       } else if (
-        (rowSplit.length > headers.length ||
-          rowSplit.length < headers.length) &&
-        isLimitLengthFile === false
+        rowSplit.length > headers.length ||
+        rowSplit.length < headers.length
       ) {
         errors.push({
-          msg: `El archivo contiene ${rowSplit.length} columnas y el formato esperado es que tenga ${headers.length} columnas`,
+          msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
+          row: index,
         });
-        isLimitLengthFile = true;
-        return;
       } else {
-        if (isLimitLengthFile === false) {
-          let resultObject = {};
-          let counterAux = 0;
-          map(headers, (item2, index2) => {
-            resultObject = {
-              ...resultObject,
-              [item2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
-            };
-            counterAux++;
-          });
-          arrayDataObject.push(resultObject);
-        }
+        let resultObject = {};
+        let counterAux = 0;
+        map(headers, (item2, index2) => {
+          resultObject = {
+            ...resultObject,
+            [item2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+          };
+          counterAux++;
+        });
+        arrayDataObject.push(resultObject);
       }
     });
 
