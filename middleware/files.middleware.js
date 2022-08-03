@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map, filter } = require("lodash");
+const { map, reduce, findIndex, filter } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -58,6 +58,7 @@ const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
 var nameTable = "";
 var codeCurrentFile = "";
+var codeCurrentFilesArray = [];
 var nameTableErrors = "APS_aud_errores_carga_archivos";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
@@ -97,41 +98,59 @@ async function obtenerInstitucion(params) {
 
 function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
   const verificarArchivos = new Promise((resolve, reject) => {
-    let arrayA = archivosRequeridos.result;
+    const arrayNameFilesToUpperCase = (array, property) => {
+      var newArray = [];
+      map(array, (item, index) => {
+        const myObjLower = { ...item, archivo: item[property].toUpperCase() };
+        newArray.push(myObjLower);
+      });
+      return newArray;
+    };
+
+    let arrayA = arrayNameFilesToUpperCase(
+      archivosRequeridos.result,
+      "archivo"
+    );
     let id_usuario = archivosRequeridos.result[0]?.id_usuario
       ? archivosRequeridos.result[0]?.id_usuario
       : 0;
-    let arrayB = archivosSubidos;
+    let arrayB = arrayNameFilesToUpperCase(archivosSubidos, "originalname");
     let arrayResult = [];
     let arrayResult2 = [];
     let arrayResult3Compare = [];
+
     map(arrayA, (itemR, indexR) => {
-      arrayResult2.push(itemR.archivo);
+      arrayResult2.push(itemR);
       map(arrayB, (itemU, indexU) => {
         if (itemR.archivo === itemU.originalname) {
-          arrayResult.push(itemR.archivo);
+          arrayResult.push(itemR);
         }
       });
     });
     map(arrayResult, (item, index) => {
-      let myIndex = arrayResult2.indexOf(item);
+      let myIndex = findIndex(arrayResult2, (itemFI) => {
+        return itemFI.archivo == item.archivo; // or el.nombre=='T NORTE';
+      });
       if (myIndex !== -1) {
         arrayResult2.splice(myIndex, 1);
       }
     });
     map(arrayResult, (item, index) => {
-      arrayResult3Compare.push({ archivo: item, id_usuario });
+      arrayResult3Compare.push(item);
     });
-
-    // console.log("arrayA", arrayA);
-    // console.log("arrayB", arrayB);
-    // console.log("arrayResult", arrayResult);
-    // console.log("arrayResult3Compare", arrayResult3Compare);
 
     resolve({
       ok: JSON.stringify(arrayA) === JSON.stringify(arrayResult3Compare),
       missingFiles: arrayResult2,
-      currentFiles: arrayResult3Compare,
+      currentFiles: arrayResult3Compare.sort((a, b) => {
+        if (a.archivo.toLowerCase() < b.archivo.toLowerCase()) {
+          return -1;
+        }
+        if (a.archivo.toLowerCase() > b.archivo.toLowerCase()) {
+          return 1;
+        }
+        return 0;
+      }),
     });
   });
 
@@ -156,7 +175,8 @@ async function obtenerListaArchivos(params) {
       'nntt'::text, "APS_seg_institucion".codigo::text || 
       "APS_param_archivos_pensiones_seguros".codigo::text),
       'nn'::text, "APS_seg_institucion".codigo::text) AS archivo, 
-      "APS_seg_usuario".id_usuario 
+      "APS_seg_usuario".id_usuario, 
+      "APS_param_archivos_pensiones_seguros".archivo_vacio 
       FROM "APS_param_archivos_pensiones_seguros" 
       JOIN "APS_param_clasificador_comun" 
       ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
@@ -169,6 +189,7 @@ async function obtenerListaArchivos(params) {
       WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
       AND "APS_param_archivos_pensiones_seguros".status = true;`;
+    // console.log(query);
 
     await pool
       .query(query)
@@ -231,13 +252,33 @@ async function validarArchivosIteraciones(params) {
         console.log(err);
       })
       .finally(() => {
-        if (isAllFiles.currentFiles.length === 0) {
-          reject({
-            message: "No existen archivos disponibles para el usuario.",
+        console.log(isAllFiles);
+        if (archivosRequeridos.result.length >= 1) {
+          let aux = false;
+          map(filesUploaded, (item, index) => {
+            if (!item.originalname.includes(fechaOperacion)) {
+              errors.push({
+                archivo: item.originalname,
+                tipo_error: "NOMBRE ARCHIVO ERRONEO",
+                descripcion:
+                  "El nombre del archivo no coincide con la fecha de operación.",
+              });
+              aux = true;
+            }
+            if (index === filesUploaded.length - 1 && aux === true) {
+              reject(errors);
+            }
           });
-          return;
+        } else {
+          if (isAllFiles.currentFiles.length === 0) {
+            reject({
+              message: "No existen archivos disponibles para el usuario.",
+            });
+            return;
+          }
         }
         map(isAllFiles.currentFiles, async (item, index) => {
+          console.log("TEST PARA VER ASYNC", item.archivo);
           const filePath = `./uploads/tmp/${item.archivo}`;
           const data = fs.readFileSync(filePath, "utf8");
           let dataSplit = null;
@@ -260,7 +301,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === true && isErrorPast === false) {
+          } else if (isAllFiles.ok === false && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item,
@@ -272,173 +313,179 @@ async function validarArchivosIteraciones(params) {
             isOkValidate = true;
             isErrorPast = true;
           } else if (isOkValidate === false && isErrorPast === false) {
-            if (!item.archivo.includes(fechaOperacion)) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "NOMBRE ARCHIVO ERRONEO",
-                descripcion:
-                  "El nombre del archivo no coincide con la fecha de operación.",
-              });
-            } else if (data.length === 0) {
+            if (data.length === 0 && item.archivo_vacio === false) {
+              //TRUE SI EL ARCHIVO PUEDE ESTAR VACIO, FALSE SI EL ARCHIVO NO PUEDE ESTAR VACIO
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "CONTENIDO VACIO",
                 descripcion: "El contenido del archivo esta vacío.",
               });
-            } else if (dataSplit === null) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "FORMATO DE INFORMACION ERRONEO",
-                mensaje:
-                  "Ocurrió un error debido al formato del contenido del archivo.",
+            } else if (data.length === 0) {
+              let myIndex = findIndex(isAllFiles.currentFiles, (itemFI) => {
+                return itemFI.archivo == item.archivo; // or el.nombre=='T NORTE';
               });
+              if (myIndex !== -1) {
+                isAllFiles.currentFiles.splice(myIndex, 1);
+              }
+              return;
             } else {
-              isOkQuerys = true;
-              let headers = null;
-              let infoArchivo = null;
-              let arrayDataObject = null;
+              if (dataSplit === null) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "FORMATO DE INFORMACION ERRONEO",
+                  mensaje:
+                    "Ocurrió un error debido al formato del contenido del archivo.",
+                });
+              } else {
+                isOkQuerys = true;
+                let headers = null;
+                let infoArchivo = null;
+                let arrayDataObject = null;
 
-              await obtenerInformacionDeArchivo(item.archivo)
-                .then((response) => {
-                  infoArchivo = response;
-                })
-                .finally(async () => {
-                  codeCurrentFile = await infoArchivo.codeCurrentFile;
-                  nameTable = await infoArchivo.nameTable;
-                  headers = await infoArchivo.headers;
+                await obtenerInformacionDeArchivo(item.archivo)
+                  .then((response) => {
+                    infoArchivo = response;
+                  })
+                  .finally(async () => {
+                    codeCurrentFile = await infoArchivo.codeCurrentFile;
+                    nameTable = await infoArchivo.nameTable;
+                    headers = await infoArchivo.headers;
+                    codeCurrentFilesArray.push(codeCurrentFile);
 
-                  //#region VALIDADORES
-                  const instrumento = infoArchivo?.paramsInstrumento
-                    ? await tipoInstrumento(
-                        infoArchivo.paramsInstrumento.table,
-                        infoArchivo.paramsInstrumento.params
-                      )
-                    : null;
-                  const codOperacion = infoArchivo?.paramsCodOperacion
-                    ? await codigoOperacion(
-                        infoArchivo.paramsCodOperacion.table,
-                        infoArchivo.paramsCodOperacion.params
-                      )
-                    : null;
-                  const _tipoCuenta = infoArchivo?.paramsTipoCuenta
-                    ? await tipoCuenta(
-                        infoArchivo.paramsTipoCuenta.table,
-                        infoArchivo.paramsTipoCuenta.params
-                      )
-                    : null;
-                  const _entidadFinanciera =
-                    infoArchivo?.paramsEntidadFinanciera
-                      ? await entidadFinanciera(
-                          infoArchivo.paramsEntidadFinanciera.table,
-                          infoArchivo.paramsEntidadFinanciera.params
+                    //#region VALIDADORES
+                    const instrumento = infoArchivo?.paramsInstrumento
+                      ? await tipoInstrumento(
+                          infoArchivo.paramsInstrumento.table,
+                          infoArchivo.paramsInstrumento.params
                         )
                       : null;
-                  const _moneda = infoArchivo?.paramsMoneda
-                    ? await moneda(
-                        infoArchivo.paramsMoneda.table,
-                        infoArchivo.paramsMoneda.params
-                      )
-                    : null;
-                  const codMercado = infoArchivo?.paramsCodMercado
-                    ? await codigoMercado(
-                        infoArchivo.paramsCodMercado.table,
-                        infoArchivo.paramsCodMercado.params
-                      )
-                    : null;
-                  const calfRiesgo = infoArchivo?.paramsCalfRiesgo
-                    ? await calificacionRiesgo(
-                        infoArchivo.paramsCalfRiesgo.table,
-                        infoArchivo.paramsCalfRiesgo.params
-                      )
-                    : null;
-                  const codCustodia = infoArchivo?.paramsCodCustodia
-                    ? await codigoCustodia(
-                        infoArchivo.paramsCodCustodia.table,
-                        infoArchivo.paramsCodCustodia.params
-                      )
-                    : null;
+                    const codOperacion = infoArchivo?.paramsCodOperacion
+                      ? await codigoOperacion(
+                          infoArchivo.paramsCodOperacion.table,
+                          infoArchivo.paramsCodOperacion.params
+                        )
+                      : null;
+                    const _tipoCuenta = infoArchivo?.paramsTipoCuenta
+                      ? await tipoCuenta(
+                          infoArchivo.paramsTipoCuenta.table,
+                          infoArchivo.paramsTipoCuenta.params
+                        )
+                      : null;
+                    const _entidadFinanciera =
+                      infoArchivo?.paramsEntidadFinanciera
+                        ? await entidadFinanciera(
+                            infoArchivo.paramsEntidadFinanciera.table,
+                            infoArchivo.paramsEntidadFinanciera.params
+                          )
+                        : null;
+                    const _moneda = infoArchivo?.paramsMoneda
+                      ? await moneda(
+                          infoArchivo.paramsMoneda.table,
+                          infoArchivo.paramsMoneda.params
+                        )
+                      : null;
+                    const codMercado = infoArchivo?.paramsCodMercado
+                      ? await codigoMercado(
+                          infoArchivo.paramsCodMercado.table,
+                          infoArchivo.paramsCodMercado.params
+                        )
+                      : null;
+                    const calfRiesgo = infoArchivo?.paramsCalfRiesgo
+                      ? await calificacionRiesgo(
+                          infoArchivo.paramsCalfRiesgo.table,
+                          infoArchivo.paramsCalfRiesgo.params
+                        )
+                      : null;
+                    const codCustodia = infoArchivo?.paramsCodCustodia
+                      ? await codigoCustodia(
+                          infoArchivo.paramsCodCustodia.table,
+                          infoArchivo.paramsCodCustodia.params
+                        )
+                      : null;
 
-                  const instrumento135 = infoArchivo?.paramsInstrumento135
-                    ? await tipoInstrumento(
-                        infoArchivo.paramsInstrumento135.table,
-                        infoArchivo.paramsInstrumento135.params
-                      )
-                    : null;
-                  const instrumento136 = infoArchivo?.paramsInstrumento136
-                    ? await tipoInstrumento(
-                        infoArchivo.paramsInstrumento136.table,
-                        infoArchivo.paramsInstrumento136.params
-                      )
-                    : null;
-                  const cortoPlazo = infoArchivo?.paramsCortoPlazo
-                    ? await CortoLargoPlazo(
-                        infoArchivo.paramsCortoPlazo.table,
-                        infoArchivo.paramsCortoPlazo.params
-                      )
-                    : null;
-                  const largoPlazo = infoArchivo?.paramsLargoPlazo
-                    ? await CortoLargoPlazo(
-                        infoArchivo.paramsLargoPlazo.table,
-                        infoArchivo.paramsLargoPlazo.params
-                      )
-                    : null;
-                  const calfRiesgoNormal = infoArchivo?.paramsCalfRiesgo
-                    ? await calificacionRiesgo(
-                        infoArchivo.paramsCalfRiesgo.table,
-                        infoArchivo.paramsCalfRiesgo.params
-                      )
-                    : null;
+                    const instrumento135 = infoArchivo?.paramsInstrumento135
+                      ? await tipoInstrumento(
+                          infoArchivo.paramsInstrumento135.table,
+                          infoArchivo.paramsInstrumento135.params
+                        )
+                      : null;
+                    const instrumento136 = infoArchivo?.paramsInstrumento136
+                      ? await tipoInstrumento(
+                          infoArchivo.paramsInstrumento136.table,
+                          infoArchivo.paramsInstrumento136.params
+                        )
+                      : null;
+                    const cortoPlazo = infoArchivo?.paramsCortoPlazo
+                      ? await CortoLargoPlazo(
+                          infoArchivo.paramsCortoPlazo.table,
+                          infoArchivo.paramsCortoPlazo.params
+                        )
+                      : null;
+                    const largoPlazo = infoArchivo?.paramsLargoPlazo
+                      ? await CortoLargoPlazo(
+                          infoArchivo.paramsLargoPlazo.table,
+                          infoArchivo.paramsLargoPlazo.params
+                        )
+                      : null;
+                    const calfRiesgoNormal = infoArchivo?.paramsCalfRiesgo
+                      ? await calificacionRiesgo(
+                          infoArchivo.paramsCalfRiesgo.table,
+                          infoArchivo.paramsCalfRiesgo.params
+                        )
+                      : null;
 
-                  //#endregion
+                    console.log("TEST AAAAA");
 
-                  await formatearDatosEInsertarCabeceras(headers, dataSplit)
-                    .then(async (response) => {
-                      arrayDataObject = response;
-                    })
-                    .catch((err) => {
-                      // console.log(err);
-                      arrayDataObject = err;
-                      map(err.errors, (itemError, indexError) => {
-                        errors.push({
-                          archivo: item.archivo,
-                          tipo_error: "ERROR DE CONTENIDO",
-                          descripcion: itemError.msg,
-                          fila: itemError.row + 1,
+                    //#endregion
+
+                    await formatearDatosEInsertarCabeceras(headers, dataSplit)
+                      .then(async (response) => {
+                        arrayDataObject = response;
+                      })
+                      .catch((err) => {
+                        // console.log(err);
+                        arrayDataObject = err;
+                        map(err.errors, (itemError, indexError) => {
+                          errors.push({
+                            archivo: item.archivo,
+                            tipo_error: "ERROR DE CONTENIDO",
+                            descripcion: itemError.msg,
+                            fila: itemError.row,
+                          });
                         });
+                      })
+                      .finally(async () => {
+                        if (!arrayDataObject?.err) {
+                          let arrayValidateObject = await obtenerValidaciones(
+                            codeCurrentFile
+                          );
+                          // console.log(arrayValidateObject);
+                          await validacionesCamposArchivosFragmentoCodigo({
+                            arrayDataObject,
+                            arrayValidateObject,
+                            fechaOperacion,
+                            item,
+                            infoArchivo,
+                            instrumento,
+                            siglaClasificador,
+                            codOperacion,
+                            tipoMarcacion,
+                            _tipoCuenta,
+                            _entidadFinanciera,
+                            _moneda,
+                            codMercado,
+                            calfRiesgo,
+                            codCustodia,
+                            instrumento135,
+                            instrumento136,
+                            cortoPlazo,
+                            largoPlazo,
+                            calfRiesgoNormal,
+                          });
+                        }
                       });
-                    })
-                    .finally(async () => {
-                      if (!arrayDataObject?.err) {
-                        let arrayValidateObject = await obtenerValidaciones(
-                          codeCurrentFile
-                        );
-                        // console.log(arrayValidateObject);
-                        validacionesCamposArchivosFragmentoCodigo({
-                          codeCurrentFile,
-                          arrayDataObject,
-                          arrayValidateObject,
-                          fechaOperacion,
-                          item,
-                          infoArchivo,
-                          instrumento,
-                          siglaClasificador,
-                          codOperacion,
-                          tipoMarcacion,
-                          _tipoCuenta,
-                          _entidadFinanciera,
-                          _moneda,
-                          codMercado,
-                          calfRiesgo,
-                          codCustodia,
-                          instrumento135,
-                          instrumento136,
-                          cortoPlazo,
-                          largoPlazo,
-                          calfRiesgoNormal,
-                        });
-                      }
-                    });
-                });
+                  });
+              }
             }
           } else {
             console.log("ELSE TEST");
@@ -457,377 +504,394 @@ async function validarArchivosIteraciones(params) {
 }
 
 async function validacionesCamposArchivosFragmentoCodigo(params) {
-  let arrayDataObject = params.arrayDataObject;
-  let codeCurrentFile = params.codeCurrentFile;
-  let arrayValidateObject = params.arrayValidateObject;
-  let fechaOperacion = params.fechaOperacion;
-  let item = params.item;
-  let infoArchivo = params.infoArchivo;
-  let instrumento = params.instrumento;
-  let siglaClasificador = params.siglaClasificador;
-  let codOperacion = params.codOperacion;
-  let tipoMarcacion = params.tipoMarcacion;
-  let _tipoCuenta = params._tipoCuenta;
-  let _entidadFinanciera = params._entidadFinanciera;
-  let _moneda = params._moneda;
-  let codMercado = params.codMercado;
-  let calfRiesgo = params._entidadFinanciera;
-  let codCustodia = params.codCustodia;
-  let instrumento135 = params.instrumento135;
-  let instrumento136 = params.instrumento136;
-  let cortoPlazo = params.cortoPlazo;
-  let largoPlazo = params.largoPlazo;
-  let calfRiesgoNormal = params.calfRiesgoNormal;
+  const validacionesCamposArchivosFragmentoCodigoPromise = new Promise(
+    (resolve, reject) => {
+      let arrayDataObject = params.arrayDataObject;
+      let arrayValidateObject = params.arrayValidateObject;
+      let fechaOperacion = params.fechaOperacion;
+      let item = params.item;
+      let infoArchivo = params.infoArchivo;
+      let instrumento = params.instrumento;
+      let siglaClasificador = params.siglaClasificador;
+      let codOperacion = params.codOperacion;
+      let tipoMarcacion = params.tipoMarcacion;
+      let _tipoCuenta = params._tipoCuenta;
+      let _entidadFinanciera = params._entidadFinanciera;
+      let _moneda = params._moneda;
+      let codMercado = params.codMercado;
+      let calfRiesgo = params._entidadFinanciera;
+      let codCustodia = params.codCustodia;
+      let instrumento135 = params.instrumento135;
+      let instrumento136 = params.instrumento136;
+      let cortoPlazo = params.cortoPlazo;
+      let largoPlazo = params.largoPlazo;
+      let calfRiesgoNormal = params.calfRiesgoNormal;
+      console.log(codeCurrentFile);
+      console.log(codeCurrentFilesArray);
 
-  console.log(dependenciesArray);
-
-  const validarCampoIndividual = async (
-    value,
-    columnName,
-    pattern,
-    required,
-    funct,
-    dependency,
-    item2,
-    index2,
-    item3
-  ) => {
-    let match = value.match(pattern);
-    if (match === null) {
-      errors.push({
-        archivo: item.archivo,
-        tipo_error: "VALOR INCORRECTO",
-        descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}"`,
-        valor: value,
-        columna: columnName,
-        fila: index2,
-      });
-    } else {
-      if (columnName === "fecha_operacion") {
-        if (value !== fechaOperacion) {
+      const validarCampoIndividual = async (
+        value,
+        columnName,
+        pattern,
+        required,
+        funct,
+        dependency,
+        item2,
+        index2,
+        item3,
+        codeCurrentFile
+      ) => {
+        let match = value.match(pattern);
+        if (match === null) {
           errors.push({
             archivo: item.archivo,
             tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}" el cual tiene que coincidir con la fecha del nombre del archivo`,
+            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}"`,
             valor: value,
             columna: columnName,
             fila: index2,
-          });
-        }
-      }
-      if (funct === "clasificadorcomun") {
-        if (value !== siglaClasificador) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}", el cual tiene que coincidir con la sigla "${siglaClasificador}" de Clasificador Común para la Bolsa de valores`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "tipoInstrumento") {
-        let errFunction = true;
-        map(instrumento?.resultFinal, (item4, index4) => {
-          if (value === item4.sigla) {
-            console.log(value);
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "codigoOperacion") {
-        let errFunction = true;
-        map(codOperacion.resultFinal, (item4, index4) => {
-          if (value === item4.codigo_aps) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "marcacion") {
-        let marcacion = await tipoMarcacion({
-          montoNegociado: item2.monto,
-          montoMinimo: item2.monto_minimo,
-        });
-        if (!marcacion.toString().includes(value)) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple cumple con el tipo de marcación.`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "accionesMonedaOriginal") {
-        try {
-          const accionesMO = infoArchivo?.paramsAccionesMO
-            ? await accionesMonedaOriginal({
-                numero_acciones: item2.numero_acciones,
-                precio_unitario: item2.precio_unitario,
-              })
-            : null;
-          if (
-            parseFloat(accionesMO).toFixed(2).toString() !== value.toString()
-          ) {
-            errors.push({
-              archivo: item.archivo,
-              tipo_error: "VALOR INCORRECTO",
-              descripcion: `El contenido del archivo no cumple con el formato correcto.`,
-              valor: value,
-              columna: columnName,
-              fila: index2,
-            });
-          }
-        } catch (err) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `Error en tipo de dato. ${err.message}`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "tipoCuenta") {
-        let errFunction = true;
-        map(_tipoCuenta.resultFinal, (item4, index4) => {
-          if (value === item4.sigla) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no coincide con algun tipo de cuenta.`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "entidadFinanciera") {
-        let errFunction = true;
-        map(_entidadFinanciera.resultFinal, (item4, index4) => {
-          if (value === item4.codigo_rmv) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no coincide con algun tipo de entidad financiera.`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "moneda") {
-        let errFunction = true;
-        map(_moneda.resultFinal, (item4, index4) => {
-          if (value === item4.sigla) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no coincide con algun tipo de moneda.`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "codigoMercado") {
-        let errFunction = true;
-        map(codMercado.resultFinal, (item4, index4) => {
-          if (value === item4.codigo_aps) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "flujoTotal") {
-        try {
-          const _flujoTotal = infoArchivo?.paramsFlujoTotal
-            ? await flujoTotal({
-                interes: item2.interes,
-                amortizacion: item2.amortizacion,
-              })
-            : null;
-          if (
-            parseFloat(_flujoTotal).toFixed(2).toString() !== value.toString()
-          ) {
-            errors.push({
-              archivo: item.archivo,
-              tipo_error: "VALOR INCORRECTO",
-              descripcion: `El contenido del archivo no cumple con el formato correcto de Flujo Total.`,
-              valor: value,
-              columna: columnName,
-              fila: index2,
-            });
-          }
-        } catch (err) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `Error en tipo de dato. ${err.message}`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "calificacionRiesgo") {
-        let errFunction = true;
-        map(calfRiesgo?.resultFinal, (item4, index4) => {
-          if (value === item4.descripcion) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "codigoCustodia") {
-        let errFunction = true;
-        map(codCustodia.resultFinal, (item4, index4) => {
-          if (value === item4.sigla) {
-            errFunction = false;
-          }
-        });
-        if (errFunction === true) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      } else if (funct === "calificacionRiesgoMultiple") {
-        try {
-          const calfRiesgoMultiple = await calificacionRiesgoConsultaMultiple({
-            tipo_instrumento: item2.tipo_instrumento,
-            plazo_valor: item2.plazo_valor,
-            calificacion_riesgo: value,
-            instrumento135,
-            instrumento136,
-            cortoPlazo,
-            largoPlazo,
-            calfRiesgoNormal,
-          });
-          console.log(value);
-          // console.log("VALUE", value);
-          if (calfRiesgoMultiple !== true) {
-            errors.push({
-              archivo: item.archivo,
-              tipo_error: "VALOR INCORRECTO",
-              descripcion: `El contenido del archivo no cumple con el formato correcto.`,
-              valor: value,
-              columna: columnName,
-              fila: index2,
-            });
-          }
-        } catch (err) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `Error en tipo de dato. ${err.message}`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          });
-        }
-      }
-    }
-  };
-
-  map(arrayDataObject, async (item2, index2) => {
-    map(arrayValidateObject, async (item3, index3) => {
-      let value = item2[item3.columnName];
-      let columnName = item3.columnName;
-      let pattern = item3.pattern;
-      let required = item3.required;
-      let funct = item3.function;
-      let dependency = item3.dependency;
-      console.log("ANTES DE VALIDACIONES", value);
-      // console.log("ANTES DE VALIDACIONES", errors);
-      if (!item2[item3.columnName] && required === true) {
-        errors.push({
-          archivo: item.archivo,
-          tipo_error: "VALOR EN NULO O VACIO",
-          descripcion: `El valor esta vacio o existe un error no controlado en el contenido del archivo, en la columna de "${columnName}" que contiene el valor de: "${value}"`,
-          valor:
-            typeof value === "undefined"
-              ? "indefinido"
-              : value === null
-              ? null
-              : "",
-          columna: columnName,
-          fila: index2,
-        });
-      } else {
-        if (dependency) {
-          dependenciesArray.push({
-            fromDependency: codeCurrentFile,
-            toDependency: dependency,
-            fromdata: {
-              value: value,
-              column: columnName,
-              row: index2,
-            },
           });
         } else {
-          await validarCampoIndividual(
-            value,
-            columnName,
-            pattern,
-            required,
-            funct,
-            dependency,
-            item2,
-            index2,
-            item3
-          );
+          if (columnName === "fecha_operacion") {
+            if (value !== fechaOperacion) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}" el cual tiene que coincidir con la fecha del nombre del archivo`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          }
+          if (
+            dependenciesArray?.length >= 0 &&
+            item?.archivo?.includes("44C") &&
+            dependenciesArray[0]?.code === "441" &&
+            (dependenciesArray[0]?.value === "1" ||
+              dependenciesArray[0]?.value === 1)
+          ) {
+          }
+          if (columnName === "nro_pago" && codeCurrentFile === "441") {
+            if (value === "1" || value === 1) {
+              dependenciesArray.push({
+                file: item.archivo,
+                code: codeCurrentFile,
+                value: value,
+                row: index2,
+                column: columnName,
+              });
+            }
+          }
+          if (funct === "clasificadorcomun") {
+            if (value !== siglaClasificador) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}", el cual tiene que coincidir con la sigla "${siglaClasificador}" de Clasificador Común para la Bolsa de valores`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoInstrumento") {
+            let errFunction = true;
+            map(instrumento?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                // console.log(value);
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoOperacion") {
+            let errFunction = true;
+            map(codOperacion.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_aps) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "marcacion") {
+            let marcacion = await tipoMarcacion({
+              montoNegociado: item2.monto,
+              montoMinimo: item2.monto_minimo,
+            });
+            if (!marcacion.toString().includes(value)) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no cumple cumple con el tipo de marcación.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "accionesMonedaOriginal") {
+            try {
+              const accionesMO = infoArchivo?.paramsAccionesMO
+                ? await accionesMonedaOriginal({
+                    numero_acciones: item2.numero_acciones,
+                    precio_unitario: item2.precio_unitario,
+                  })
+                : null;
+              if (
+                parseFloat(accionesMO).toFixed(2).toString() !==
+                value.toString()
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `Error en tipo de dato. ${err.message}`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoCuenta") {
+            let errFunction = true;
+            map(_tipoCuenta.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun tipo de cuenta.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "entidadFinanciera") {
+            let errFunction = true;
+            map(_entidadFinanciera.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_rmv) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun tipo de entidad financiera.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "moneda") {
+            let errFunction = true;
+            map(_moneda.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun tipo de moneda.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoMercado") {
+            let errFunction = true;
+            map(codMercado.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_aps) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "flujoTotal") {
+            try {
+              const _flujoTotal = infoArchivo?.paramsFlujoTotal
+                ? await flujoTotal({
+                    interes: item2.interes,
+                    amortizacion: item2.amortizacion,
+                  })
+                : null;
+              if (
+                parseFloat(_flujoTotal).toFixed(2).toString() !==
+                value.toString()
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no cumple con el formato correcto de Flujo Total.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `Error en tipo de dato. ${err.message}`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "calificacionRiesgo") {
+            let errFunction = true;
+            map(calfRiesgo?.resultFinal, (item4, index4) => {
+              if (value === item4.descripcion) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoCustodia") {
+            let errFunction = true;
+            map(codCustodia.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "calificacionRiesgoMultiple") {
+            try {
+              const calfRiesgoMultiple =
+                await calificacionRiesgoConsultaMultiple({
+                  tipo_instrumento: item2.tipo_instrumento,
+                  plazo_valor: item2.plazo_valor,
+                  calificacion_riesgo: value,
+                  instrumento135,
+                  instrumento136,
+                  cortoPlazo,
+                  largoPlazo,
+                  calfRiesgoNormal,
+                });
+              console.log(value);
+              // console.log("VALUE", value);
+              if (calfRiesgoMultiple !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `Error en tipo de dato. ${err.message}`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          }
         }
-      }
-      // console.log("DESPUES DE VALIDACIONES", errors);
-    });
-  });
+      };
+
+      map(arrayDataObject, async (item2, index2) => {
+        map(arrayValidateObject, async (item3, index3) => {
+          let value = item2[item3.columnName];
+          let columnName = item3.columnName;
+          let pattern = item3.pattern;
+          let required = item3.required;
+          let funct = item3.function;
+          let dependency = item3.dependency;
+          // console.log("ANTES DE VALIDACIONES", value);
+          // console.log("ANTES DE VALIDACIONES", errors);
+          if (!item2[item3.columnName] && required === true) {
+            errors.push({
+              archivo: item.archivo,
+              tipo_error: "VALOR EN NULO O VACIO",
+              descripcion: `El valor esta vacio o existe un error no controlado en el contenido del archivo, en la columna de "${columnName}" que contiene el valor de: "${value}"`,
+              valor:
+                typeof value === "undefined"
+                  ? "indefinido"
+                  : value === null
+                  ? null
+                  : "",
+              columna: columnName,
+              fila: index2,
+            });
+          } else {
+            await validarCampoIndividual(
+              value,
+              columnName,
+              pattern,
+              required,
+              funct,
+              dependency,
+              item2,
+              index2,
+              item3,
+              codeCurrentFile
+            );
+          }
+          // console.log("DESPUES DE VALIDACIONES", errors);
+        });
+      });
+      resolve();
+    }
+  );
+  return validacionesCamposArchivosFragmentoCodigoPromise;
 }
 
 exports.validarArchivo2 = async (req, res, next) => {

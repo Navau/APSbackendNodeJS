@@ -35,6 +35,7 @@ function refreshAccessToken(req, res) {
     WHERE status = true AND id_usuario = ${id_usuario}`,
       (err, result) => {
         if (err) {
+          console.log(err);
           res.status(500).send({
             resultado: 0,
             datos: null,
@@ -79,6 +80,7 @@ function Login(req, res) {
 
   pool.query(query, (err, result) => {
     if (err) {
+      console.log(err);
       res.status(500).send({
         resultado: 0,
         datos: null,

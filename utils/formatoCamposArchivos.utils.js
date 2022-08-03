@@ -133,7 +133,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
           },
         };
       } else if (nameFile.includes(".411")) {
-        // console.log("ARCHIVO CORRECTO : 411", nameFile);
+        console.log("ARCHIVO CORRECTO : 411", nameFile);
         codeCurrentFile = "411";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
@@ -894,7 +894,6 @@ async function obtenerValidaciones(typeFile) {
         positveNegative: true,
         required: true,
         function: null,
-        dependency: "44C",
       },
       {
         columnName: "tasa_interes_variable",
@@ -1533,7 +1532,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
 
   let isOkTipoInstrumento = false;
   let isOkCalfRiesgo = false;
-  console.log("TEST CALF", resultInstrumento135);
+  // console.log("TEST CALF", resultInstrumento135);
 
   if (calificacion_riesgo) {
     map(resultInstrumento135, (item, index) => {
@@ -1541,7 +1540,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
         isOkTipoInstrumento = true;
       }
     });
-    console.log("TEST 135", isOkTipoInstrumento);
+    // console.log("TEST 135", isOkTipoInstrumento);
 
     if (isOkTipoInstrumento === false) {
       map(resultInstrumento136, (item, index) => {
@@ -1549,7 +1548,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
           isOkTipoInstrumento = true;
         }
       });
-      console.log("TEST 136", isOkTipoInstrumento);
+      // console.log("TEST 136", isOkTipoInstrumento);
       if (isOkTipoInstrumento === true) {
         map(resultCalfRiesgoNormal, (item, index) => {
           if (calificacion_riesgo === item) {
