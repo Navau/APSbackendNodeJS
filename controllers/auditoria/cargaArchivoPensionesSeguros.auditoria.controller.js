@@ -20,6 +20,7 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respResultadoVacioObject200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
@@ -70,9 +71,8 @@ function ValorMaximo(req, res) {
 }
 
 function UltimaCarga(req, res) {
-  const { id_rol, id_usuario } = req.body;
-  console.log(id_rol);
-  console.log(id_usuario);
+  const { fecha_operacion } = req.body;
+  const { id_rol, id_usuario } = req.user;
   const params = {
     where: [
       {
@@ -82,6 +82,10 @@ function UltimaCarga(req, res) {
       {
         key: "id_rol",
         value: id_rol,
+      },
+      {
+        key: "fecha_operacion",
+        value: fecha_operacion,
       },
       {
         key: "cargado",
@@ -97,11 +101,7 @@ function UltimaCarga(req, res) {
     if (err) {
       respErrorServidor500(res, err);
     } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
+      respResultadoVacioObject200(res, result.rows);
     }
   });
 }

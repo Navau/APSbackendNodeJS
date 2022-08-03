@@ -68,6 +68,14 @@ function respResultadoVacio404(res, msg) {
   });
 }
 
+function respResultadoVacioObject200(res, data, msg) {
+  res.status(200).send({
+    resultado: 1,
+    datos: data,
+    mensaje: msg ? msg : "La petición fue realizada correctamente.",
+  });
+}
+
 function respResultadoCorrecto200(res, result, msg) {
   res.status(200).send({
     resultado: 1,
@@ -147,4 +155,5 @@ module.exports = {
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
   respArchivoErroneo200,
+  respResultadoVacioObject200,
 };
