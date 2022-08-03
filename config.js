@@ -1,9 +1,11 @@
 const API_VERSION = "v1";
 const IP_SERVER_API = "localhost";
-// const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const IP_SERVER_DB = "ec2-54-157-16-196.compute-1.amazonaws.com";
-const PORT_DB = process.env.DATABASE_PORT || 5432;
-const PORT_SERVER = 3977; // 3977 || 5290
+// const IP_SERVER_DB = "localhost";
+// const PORT_DB = process.env.DATABASE_PORT || 5432;
+const PORT_DB = 5432;
+const PORT_SERVER = process.env.PORT || 3977; // 3977 || 5290
+
 const PARAMS_CONNECTION = {
   host: IP_SERVER_DB,
   user: "svtwlzpatpgvdg",
