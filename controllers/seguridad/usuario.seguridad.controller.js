@@ -11,6 +11,7 @@ const {
 } = require("../../utils/consulta.utils");
 
 const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
+const { VerificarPermisoTablaUsuario } = require("../../utils/permiso.utils");
 
 const {
   respErrorServidor500,
@@ -72,22 +73,30 @@ function InstitucionConIDUsuario(req, res) {
 }
 
 //FUNCION PARA OBTENER TODOS LOS USUARIO DE SEGURIDAD
-function Listar(req, res) {
-  const params = {
-    status: "status",
-  };
-  let query = ListarUtil(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
+async function Listar(req, res) {
+  const permiso = await VerificarPermisoTablaUsuario({
+    req,
+    res,
+    table: nameTable,
+    action: "Listar",
   });
+  if (permiso?.rows) {
+    const params = {
+      status: "status",
+    };
+    let query = ListarUtil(nameTable, params);
+    pool.query(query, (err, result) => {
+      if (err) {
+        respErrorServidor500(res, err);
+      } else {
+        if (!result.rowCount || result.rowCount < 1) {
+          respResultadoVacio404(res);
+        } else {
+          respResultadoCorrecto200(res, result);
+        }
+      }
+    });
+  }
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON BUSQUEDA

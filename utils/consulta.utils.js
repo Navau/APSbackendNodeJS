@@ -781,6 +781,37 @@ function EliminarUtil(table, params) {
   return query;
 }
 
+function VerificarPermisoUtil(table, params) {
+  let query = "";
+  query += `SELECT * FROM public."${table}"`;
+
+  if (params?.where) {
+    map(params.where, (item, index) => {
+      if (item?.like === true) {
+        query = query + ` AND ${item.key} like '${item.value}%'`;
+      } else {
+        if (typeof item.value === "string") {
+          query = query + ` AND ${item.key} = '${item.value}'`;
+        } else if (typeof item.value === "number") {
+          query = query + ` AND ${item.key} = ${item.value}`;
+        } else if (typeof item.value === "boolean") {
+          query = query + ` AND ${item.key} = ${item.value}`;
+        }
+      }
+    });
+  }
+  if (!query.includes("WHERE") && query.includes("AND")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+  query && (query = query + ";");
+  console.log(query);
+  return query;
+}
+
 function ValidarIDActualizarUtil(nameTable, body, newID) {
   let indexId = nameTable.indexOf("_", 5);
   let idKey = newID
@@ -844,4 +875,5 @@ module.exports = {
   CargarArchivoABaseDeDatosUtil,
   ObtenerColumnasDeTablaUtil,
   ObtenerUltimoRegistro,
+  VerificarPermisoUtil,
 };

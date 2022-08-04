@@ -91,11 +91,15 @@ const cGrupoSectorEconomicoRoute = require("./clasificador/cGrupoSectorEconomico
 const cTipoAccionRoute = require("./clasificador/cTipoAccion.clasificador.route.js");
 const cTipoReporteRoute = require("./clasificador/cTipoReporte.clasificador.route.js");
 
+// OTROS
+const obtenerCabecerasRoute = require("./obtenerCabeceras.route");
+
 function routerApi(app) {
   const router = express.Router();
   app.use("/api", router);
 
   router.use("/Acceso", accessRoutes);
+  router.use("/obtenerCabeceras", obtenerCabecerasRoute);
   // router.use('/AccesoExterno', )
   router.use("/Upload", uploadRoute);
   router.use("/Accion", accionRoute);
