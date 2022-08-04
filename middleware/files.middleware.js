@@ -251,8 +251,7 @@ async function validarArchivosIteraciones(params) {
       .catch((err) => {
         console.log(err);
       })
-      .finally(() => {
-        console.log(isAllFiles);
+      .finally(async () => {
         if (archivosRequeridos.result.length >= 1) {
           let aux = false;
           map(filesUploaded, (item, index) => {
@@ -277,7 +276,8 @@ async function validarArchivosIteraciones(params) {
             return;
           }
         }
-        map(isAllFiles.currentFiles, async (item, index) => {
+        for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
+          const item = isAllFiles.currentFiles[index];
           console.log("TEST PARA VER ASYNC", item.archivo);
           const filePath = `./uploads/tmp/${item.archivo}`;
           const data = fs.readFileSync(filePath, "utf8");
@@ -304,7 +304,7 @@ async function validarArchivosIteraciones(params) {
           } else if (isAllFiles.ok === false && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
-                archivo: item,
+                archivo: item.archivo,
                 tipo_error: "ARCHIVO FALTANTE",
                 descripcion:
                   "El archivo subido no coincide con los archivos requeridos del usuario.",
@@ -496,7 +496,7 @@ async function validarArchivosIteraciones(params) {
           if (index === isAllFiles.currentFiles.length - 1) {
             resolve({ filesReaded });
           }
-        });
+        }
       });
   });
 
@@ -1102,7 +1102,7 @@ exports.validarArchivo2 = async (req, res, next) => {
 
                 await insertErrorsPromise
                   .then((response) => {
-                    // console.log(response) ;
+                    // console.log(response);
                   })
                   .catch((err) => {
                     respErrorServidor500(
@@ -1112,7 +1112,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                     );
                   })
                   .finally(() => {
-                    respArchivoErroneo200(res, errors);
+                    respArchivoErroneo200(res, errors, response.resultsPromise);
                   });
               } else {
                 req.errors = errors;
@@ -1150,6 +1150,7 @@ exports.validarArchivo2 = async (req, res, next) => {
 exports.subirArchivo = async (req, res, next) => {
   nameTable = "";
   codeCurrentFile = "";
+  codeCurrentFilesArray = [];
   nameTableErrors = "APS_aud_errores_carga_archivos";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
