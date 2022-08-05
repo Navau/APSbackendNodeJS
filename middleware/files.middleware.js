@@ -63,6 +63,7 @@ var nameTableErrors = "APS_aud_errores_carga_archivos";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
+var condicionNroPago441_44C = false;
 
 async function obtenerInstitucion(params) {
   const obtenerListaInstitucion = new Promise(async (resolve, reject) => {
@@ -277,8 +278,12 @@ async function validarArchivosIteraciones(params) {
           }
         }
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
+          // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
+          // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
+          // console.log("LENGTH isAllFiles: ", isAllFiles.currentFiles.length);
+          // console.log("INDEX: ", index);
           const item = isAllFiles.currentFiles[index];
-          console.log("TEST PARA VER ASYNC", item.archivo);
+          // console.log("TEST PARA VER ASYNC", item.archivo);
           const filePath = `./uploads/tmp/${item.archivo}`;
           const data = fs.readFileSync(filePath, "utf8");
           let dataSplit = null;
@@ -322,12 +327,12 @@ async function validarArchivosIteraciones(params) {
               });
             } else if (data.length === 0) {
               let myIndex = findIndex(isAllFiles.currentFiles, (itemFI) => {
-                return itemFI.archivo == item.archivo; // or el.nombre=='T NORTE';
+                return itemFI.archivo == item.archivo;
               });
               if (myIndex !== -1) {
                 isAllFiles.currentFiles.splice(myIndex, 1);
               }
-              return;
+              index--;
             } else {
               if (dataSplit === null) {
                 errors.push({
@@ -350,6 +355,7 @@ async function validarArchivosIteraciones(params) {
                     codeCurrentFile = await infoArchivo.codeCurrentFile;
                     nameTable = await infoArchivo.nameTable;
                     headers = await infoArchivo.headers;
+
                     codeCurrentFilesArray.push(codeCurrentFile);
 
                     //#region VALIDADORES
@@ -434,7 +440,7 @@ async function validarArchivosIteraciones(params) {
                         )
                       : null;
 
-                    console.log("TEST AAAAA");
+                    // console.log("TEST AAAAA");
 
                     //#endregion
 
@@ -526,9 +532,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let cortoPlazo = params.cortoPlazo;
       let largoPlazo = params.largoPlazo;
       let calfRiesgoNormal = params.calfRiesgoNormal;
+      console.log(dependenciesArray);
       console.log(codeCurrentFile);
-      console.log(codeCurrentFilesArray);
-
       const validarCampoIndividual = async (
         value,
         columnName,
@@ -545,8 +550,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         if (match === null) {
           errors.push({
             archivo: item.archivo,
-            tipo_error: "VALOR INCORRECTO",
-            descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}"`,
+            tipo_error: "TIPO DE DATO INCORRECTO",
+            descripcion: `El contenido del archivo no superó la validación de tipo de dato.`,
             valor: value,
             columna: columnName,
             fila: index2,
@@ -557,30 +562,54 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}" el cual tiene que coincidir con la fecha del nombre del archivo`,
+                descripcion: `El contenido del archivo no superó la validación de tipo de dato, el cual tiene que coincidir con la fecha del nombre del archivo.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
               });
             }
           }
-          if (
-            dependenciesArray?.length >= 0 &&
-            item?.archivo?.includes("44C") &&
-            dependenciesArray[0]?.code === "441" &&
-            (dependenciesArray[0]?.value === "1" ||
-              dependenciesArray[0]?.value === 1)
-          ) {
+          if (item?.archivo?.includes("44C")) {
+            map(dependenciesArray, (itemDP, indexDP) => {
+              if (
+                itemDP?.file?.includes("44C") &&
+                itemDP?.code === "441" &&
+                (itemDP?.value === "1" || itemDP?.value === 1)
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El archivo no debe tener contenido debido a que el archivo ${itemDP.code} tiene la columna nro_pago con el valor de ${itemDP.value}.`,
+                });
+              }
+            });
           }
+
           if (columnName === "nro_pago" && codeCurrentFile === "441") {
-            if (value === "1" || value === 1) {
-              dependenciesArray.push({
-                file: item.archivo,
-                code: codeCurrentFile,
-                value: value,
-                row: index2,
-                column: columnName,
+            if (dependenciesArray.length >= 1) {
+              map(dependenciesArray, (itemDP, indexDP) => {
+                if (!itemDP?.file?.includes("44C") && itemDP?.code !== "441") {
+                  if (value === "1" || value === 1) {
+                    dependenciesArray.push({
+                      file: item.archivo,
+                      code: codeCurrentFile,
+                      value: value,
+                      row: index2,
+                      column: columnName,
+                    });
+                  }
+                }
               });
+            } else {
+              if (value === "1" || value === 1) {
+                dependenciesArray.push({
+                  file: item.archivo,
+                  code: codeCurrentFile,
+                  value: value,
+                  row: index2,
+                  column: columnName,
+                });
+              }
             }
           }
           if (funct === "clasificadorcomun") {
@@ -588,7 +617,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}", el cual tiene que coincidir con la sigla "${siglaClasificador}" de Clasificador Común para la Bolsa de valores`,
+                descripcion: `El contenido del archivo no coincide con alguna sigla de Clasificador Común, el cual tiene que coincidir con la sigla "${siglaClasificador}".`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -623,7 +652,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
+                descripcion: `El contenido del archivo no coincide con algún código de operación.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -638,7 +667,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no cumple cumple con el tipo de marcación.`,
+                descripcion: `El contenido del archivo no coincide con el tipo de marcación.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -659,7 +688,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                  descripcion: `El contenido del archivo no cumple con el resultado (multiplicación) de numero_acciones: ${item2.numero_acciones} y precio_unitario: ${item2.precio_unitario}.`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -686,7 +715,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algun tipo de cuenta.`,
+                descripcion: `El contenido del archivo no coincide con alguna sigla de tipo de cuenta.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -703,7 +732,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algun tipo de entidad financiera.`,
+                descripcion: `El contenido del archivo no coincide con algún codigo de entidad financiera.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -720,7 +749,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algun tipo de moneda.`,
+                descripcion: `El contenido del archivo no coincide con algún tipo de moneda.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -737,7 +766,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
+                descripcion: `El contenido del archivo no coincide con algún codigo de mercado.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -758,7 +787,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no cumple con el formato correcto de Flujo Total.`,
+                  descripcion: `El contenido del archivo no cumple con el resultado (suma) de interes: ${item2.interes} y amortizacion: ${item2.amortizacion}.`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -785,7 +814,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
+                descripcion: `El contenido del archivo no coincide con alguna descripción de calificación de riesgo.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -802,7 +831,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: "${value}" en la fila "${index2}".`,
+                descripcion: `El contenido del archivo no coincide con alguna sigla de código de custodia.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -821,13 +850,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   largoPlazo,
                   calfRiesgoNormal,
                 });
-              console.log(value);
-              // console.log("VALUE", value);
-              if (calfRiesgoMultiple !== true) {
+              if (calfRiesgoMultiple?.ok !== true) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                  descripcion: calfRiesgoMultiple?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -861,7 +888,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             errors.push({
               archivo: item.archivo,
               tipo_error: "VALOR EN NULO O VACIO",
-              descripcion: `El valor esta vacio o existe un error no controlado en el contenido del archivo, en la columna de "${columnName}" que contiene el valor de: "${value}"`,
+              descripcion: `El valor esta vacio o existe un error no controlado en el contenido del archivo.`,
               valor:
                 typeof value === "undefined"
                   ? "indefinido"
@@ -888,6 +915,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           // console.log("DESPUES DE VALIDACIONES", errors);
         });
       });
+
       resolve();
     }
   );

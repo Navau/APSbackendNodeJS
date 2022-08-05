@@ -557,7 +557,16 @@ function InsertarUtil(table, params) {
 
   query && (query = query + ")");
 
+  params?.returnValue && (query = query = query + ` RETURNING `);
+
+  map(params.returnValue, (item, index) => {
+    query = query + `${item},`;
+  });
+
+  params?.returnValue && (query = query.substring(0, query.length - 1));
+
   params.body && (query = query = query + ";");
+
   console.log(query);
   return query;
 }
@@ -581,6 +590,8 @@ function InsertarVariosUtil(table, params) {
         index &&
           (query =
             query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+      } else if (item.toString()?.includes("$2a$")) {
+        // index && (query = query + `crypt('${item}', ${index}), `);
       } else {
         if (typeof item === "string") {
           if (index === "password") {

@@ -1555,9 +1555,15 @@ async function calificacionRiesgoConsultaMultiple(params) {
             isOkCalfRiesgo = true;
           }
         });
-        return isOkCalfRiesgo;
+        return {
+          ok: isOkCalfRiesgo,
+          message: `El contenido del archivo no coincide con alguna clasificación de riesgo en la Renta Variable.`,
+        };
       } else {
-        return false;
+        return {
+          ok: false,
+          message: `El contenido del archivo no coincide con alguna sigla de tipo de instrumento de Renta Fija o Renta Variable.`,
+        };
       }
     } else {
       if (plazo_valor < 360) {
@@ -1566,20 +1572,32 @@ async function calificacionRiesgoConsultaMultiple(params) {
             isOkCalfRiesgo = true;
           }
         });
-        return isOkCalfRiesgo;
+        return {
+          ok: isOkCalfRiesgo,
+          message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto plazo.`,
+        };
       } else if (plazo_valor >= 360) {
         map(resultLargoPlazo, (item, index) => {
           if (calificacion_riesgo === item) {
             isOkCalfRiesgo = true;
           }
         });
-        return isOkCalfRiesgo;
+        return {
+          ok: isOkCalfRiesgo,
+          message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Largo plazo.`,
+        };
       } else {
-        return isOkCalfRiesgo;
+        return {
+          ok: isOkCalfRiesgo,
+          message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto y Largo plazo.`,
+        };
       }
     }
   } else {
-    return false;
+    return {
+      ok: false,
+      message: `El contenido del archivo no tiene un valor asignado en calificación de riesgo.`,
+    };
   }
 }
 

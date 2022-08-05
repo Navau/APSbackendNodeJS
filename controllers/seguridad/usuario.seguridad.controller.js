@@ -11,7 +11,13 @@ const {
 } = require("../../utils/consulta.utils");
 
 const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
-const { VerificarPermisoTablaUsuario } = require("../../utils/permiso.utils");
+const {
+  VerificarPermisoTablaUsuario,
+  DatosCriticos,
+  DatosAnteriores,
+  Log,
+  LogDet,
+} = require("../../utils/permiso.utils");
 
 const {
   respErrorServidor500,
@@ -80,23 +86,29 @@ async function Listar(req, res) {
     table: nameTable,
     action: "Listar",
   });
-  if (permiso?.rows) {
-    const params = {
-      status: "status",
-    };
-    let query = ListarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
+  if (permiso?.err) {
+    respErrorServidor500END(res, permiso.err);
+    return;
   }
+  if (permiso?.ok === false) {
+    respResultadoVacio404(res, "Usuario no Autorizado");
+    return;
+  }
+  const params = {
+    status: "status",
+  };
+  let query = ListarUtil(nameTable, params);
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500(res, err);
+    } else {
+      if (!result.rowCount || result.rowCount < 1) {
+        respResultadoVacio404(res);
+      } else {
+        respResultadoCorrecto200(res, result);
+      }
+    }
+  });
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON BUSQUEDA
@@ -176,10 +188,15 @@ function Insertar(req, res) {
 }
 
 //FUNCION PARA ACTUALIZAR UN USUARIO
-function Actualizar(req, res) {
+async function Actualizar(req, res) {
   const body = req.body;
 
   let query = "";
+  const datosAnteriores = await DatosAnteriores({
+    req,
+    res,
+    table: nameTable,
+  });
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
@@ -195,17 +212,46 @@ function Actualizar(req, res) {
       };
       query = ActualizarUtil(nameTable, params);
 
-      pool.query(query, (err, result) => {
-        if (err) {
-          respErrorServidor500(res, err);
-        } else {
+      await pool
+        .query(query)
+        .then((result) => {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
           } else {
             respResultadoCorrecto200(res, result);
           }
-        }
+        })
+        .catch((err) => {
+          respErrorServidor500(res, err);
+        });
+      const criticos = await DatosCriticos({
+        req,
+        res,
+        table: nameTable,
+        action: "Actualizar",
       });
+      // console.log("criticos", criticos);
+      if (criticos?.ok !== true) {
+        // console.log("datosAnteriores", datosAnteriores);
+        if (datosAnteriores?.ok === true) {
+          let idTablaAccion = criticos?.result?.rows[0]?.id_tabla_accion;
+          const log = await Log({
+            req,
+            res,
+            id_tabla_accion: idTablaAccion ? idTablaAccion : 12,
+          });
+          // console.log("log", log);
+          if (log?.ok === true) {
+            const logDet = await LogDet({
+              req,
+              res,
+              datosAnteriores: datosAnteriores,
+              id_log: log.result.rows[0].id_log,
+            });
+            console.log("logDet", logDet);
+          }
+        }
+      }
     }
   }
 }
