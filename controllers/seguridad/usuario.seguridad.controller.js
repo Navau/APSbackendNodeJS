@@ -231,7 +231,7 @@ async function Actualizar(req, res) {
         action: "Actualizar",
       });
       // console.log("criticos", criticos);
-      if (criticos?.ok !== true) {
+      if (criticos?.ok === true) {
         // console.log("datosAnteriores", datosAnteriores);
         if (datosAnteriores?.ok === true) {
           let idTablaAccion = criticos?.result?.rows[0]?.id_tabla_accion;
