@@ -58,12 +58,24 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let headers = null;
       if (nameFile.includes("K.")) {
         console.log("ARCHIVO CORRECTO : K", nameFile);
-        codeCurrentFile = "k";
+        codeCurrentFile = "K";
         nameTable = "APS_aud_carga_archivos_bolsa";
-        headers = await formatoArchivo("k");
+        headers = await formatoArchivo("K");
       } else if (nameFile.includes("L.")) {
+        console.log("ARCHIVO CORRECTO : L", nameFile);
+        codeCurrentFile = "L";
+        nameTable = "APS_aud_carga_archivos_bolsa";
+        headers = await formatoArchivo("L");
       } else if (nameFile.includes("N.")) {
+        console.log("ARCHIVO CORRECTO : N", nameFile);
+        codeCurrentFile = "N";
+        nameTable = "APS_aud_carga_archivos_bolsa";
+        headers = await formatoArchivo("N");
       } else if (nameFile.includes("P.")) {
+        console.log("ARCHIVO CORRECTO : P", nameFile);
+        codeCurrentFile = "P";
+        nameTable = "APS_aud_carga_archivos_bolsa";
+        headers = await formatoArchivo("P");
       } else if (nameFile.includes(".413")) {
         console.log("ARCHIVO CORRECTO : 413", nameFile);
         codeCurrentFile = "413";
@@ -229,8 +241,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             where: [
               {
                 key: "id_grupo",
-                valuesWhereIn: [135, 138],
-                whereIn: true,
+                value: 136,
               },
             ],
           },
@@ -292,6 +303,109 @@ async function obtenerInformacionDeArchivo(nameFile) {
       } else if (nameFile.includes(".481")) {
         console.log("ARCHIVO CORRECTO : 481", nameFile);
         codeCurrentFile = "481";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+        };
+        paramsInstrumento135 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        };
+        paramsInstrumento136 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        };
+        paramsInstrumento136 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        };
+        paramsLargoPlazo = {
+          table: "APS_param_clasificador_comun",
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+            {
+              key: "sigla",
+              value: "LP",
+            },
+          ],
+        };
+        paramsCortoPlazo = {
+          table: "APS_param_clasificador_comun",
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+            {
+              key: "sigla",
+              value: "CP",
+            },
+          ],
+        };
+        paramsCodValoracion = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 138,
+              },
+            ],
+          },
+        };
+        paramsCalfRiesgo = {
+          table: "APS_param_clasificador_comun",
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 5,
+            },
+          ],
+        };
+        paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["codigo_valoracion"],
+            where: [
+              {
+                key: "id_moneda",
+                value: 5,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        paramsFechaOperacionMenor = true;
+      } else if (nameFile.includes(".482")) {
+        console.log("ARCHIVO CORRECTO : 482", nameFile);
+        codeCurrentFile = "482";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
         paramsInstrumento = {
@@ -381,17 +495,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-      } else if (nameFile.includes(".482")) {
-        console.log("ARCHIVO CORRECTO : 482", nameFile);
-        codeCurrentFile = "482";
-        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        headers = await formatoArchivo(codeCurrentFile);
-        paramsInstrumento = {
-          table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-          },
-        };
+        paramsFechaOperacionMenor = true;
       } else {
         reject();
       }
@@ -416,6 +520,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsInstrumento136,
         paramsCortoPlazo,
         paramsLargoPlazo,
+        paramsFechaOperacionMenor,
       });
     }
   );
@@ -441,18 +546,58 @@ async function obtenerCabeceras(table) {
 async function formatoArchivo(type) {
   // console.log("TYPE", type);
   let headers = null;
-  if (type === "k") {
-    return {
-      bolsa: null, //Char(3)
-      fecha: null, //Date fecha operacion "aaaa-mm-dd"
-      codigo_valoracion: null, //Char(20)
-      tipo_instrumento: null, //Char(5)
-      clave_instrumento: null, //Char(30)
-      tasa: null, //Decimal(8,4) tasa promedio
-      monto: null, //Decimal(16,2) monto negociado
-      monto_minimo: null, //Decimal(16,2) monto mínimo
-      tipo_marcacion: null, //Char(2) tipo marcación char 2 ** De donde saca los valores NM, NA, AC en donde se lo pone??
-    };
+  if (type === "K") {
+    await obtenerCabeceras("APS_oper_archivo_k")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "L") {
+    await obtenerCabeceras("APS_oper_archivo_L")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "N") {
+    await obtenerCabeceras("APS_oper_archivo_N")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "P") {
+    await obtenerCabeceras("APS_oper_archivo_P")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
   } else if (type === "413") {
     await obtenerCabeceras("APS_seguro_archivo_413")
       .then((response) => {
@@ -564,19 +709,19 @@ async function formatoArchivo(type) {
 
 async function obtenerValidaciones(typeFile) {
   let result = null;
-  if (typeFile === "k") {
+  if (typeFile === "K") {
     result = [
       {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: false,
         required: true,
-        function: "clasificadorcomun",
+        function: "clasificadorComun",
       },
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -593,7 +738,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "tipoinstrumento",
+        function: "tipoInstrumento",
       },
       {
         columnName: "clave_instrumento",
@@ -629,6 +774,153 @@ async function obtenerValidaciones(typeFile) {
         positveNegative: true,
         required: true,
         function: "marcacion",
+      },
+    ];
+  } else if (typeFile === "L") {
+    result = [
+      {
+        columnName: "bolsa",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: false,
+        required: true,
+        function: "dominioBolsa",
+      },
+      {
+        columnName: "fecha",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "codigo_valoracion",
+        pattern: /^[A-Za-z0-9]{0,20}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "monto_negociado",
+        pattern: /^(\d{1,16})(\.\d{4,4}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "precio",
+        pattern: /^(\d{1,16})(\.\d{4,4}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "monto_minimo",
+        pattern: /^(\d{1,16})(\.\d{4,4}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "tipo_valoracion",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile === "N") {
+    result = [
+      {
+        columnName: "bolsa",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: false,
+        required: true,
+        function: "dominioBolsa",
+      },
+      {
+        columnName: "fecha",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "codigo_valoracion",
+        pattern: /^[A-Za-z0-9]{0,20}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "fecha_marcacion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "tasa_rendimiento",
+        pattern: /^(\d{1,8})(\.\d{4,4}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile === "P") {
+    result = [
+      {
+        columnName: "bolsa",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: false,
+        required: true,
+        function: "dominioBolsa",
+      },
+      {
+        columnName: "fecha",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "tipo_activo",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "clave_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "ult_fecha_disponible",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "tasa",
+        pattern: /^(\d{1,8})(\.\d{4,4}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_bid",
+        pattern: /^(\d{1,16})(\.\d{5,5}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
       },
     ];
   } else if (typeFile === "413") {
@@ -759,7 +1051,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa_negociacion",
-        pattern: /^(\d{1,12})(\.\d{8,8}){1,1}$/,
+        pattern: /^(\d{1,3})(\.\d{4,8}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -929,7 +1221,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_acciones",
-        pattern: /^(\d{7,7}){1,1}$/,
+        pattern: /^(\d{1,7}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -1079,17 +1371,17 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9]{5,23}$/,
+        pattern: /^[A-Za-z0-9,-]{5,23}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z]{10,10}$/,
+        pattern: /^[A-Za-z0-9]{5,23}$/,
         positveNegative: true,
         required: true,
-        function: "codigoValoracion",
+        function: "codigoValoracionConInstrumento",
       },
       {
         columnName: "tasa_relevante_operacion",
@@ -1149,9 +1441,10 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion_riesgo",
-        pattern: /^[A-Za-z0-9,-]{3,3}$/,
+        pattern: /^[A-Za-z0-9,-]{1,3}$/,
         positveNegative: true,
         required: true,
+        mayBeEmpty: true, //TRUE = PUEDE ESTAR VACIO, FALSE = NO PUEDE ESTAR VACIO
         function: "calificacionRiesgoMultiple",
       },
       {
@@ -1160,7 +1453,7 @@ async function obtenerValidaciones(typeFile) {
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
-        function: null,
+        function: "fechaOperacionMenorAlArchivo",
       },
     ];
   } else if (typeFile === "482") {
@@ -1181,13 +1474,13 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z]{10,10}$/,
+        pattern: /^[[A-Za-z0-9]{7,10}$/,
         positveNegative: true,
         required: true,
-        function: "codigoValoracion",
+        function: "codigoValoracionConInstrumento",
       },
       {
-        columnName: "tasa_relevante_operacion",
+        columnName: "tasa_relevante_valoracion",
         pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
         positveNegative: true,
         required: true,
@@ -1255,7 +1548,7 @@ async function obtenerValidaciones(typeFile) {
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
-        function: null,
+        function: "fechaOperacionMenorAlArchivo",
       },
     ];
   }
@@ -1315,6 +1608,23 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
 
 async function clasificadorComun(table, params) {
   let query = ListarUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function codigoValoracionConInstrumento(table, params) {
+  let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
   await pool
     .query(query)
@@ -1534,69 +1844,97 @@ async function calificacionRiesgoConsultaMultiple(params) {
   let isOkCalfRiesgo = false;
   // console.log("TEST CALF", resultInstrumento135);
 
-  if (calificacion_riesgo) {
-    map(resultInstrumento135, (item, index) => {
+  map(resultInstrumento135, (item, index) => {
+    if (tipo_instrumento === item) {
+      isOkTipoInstrumento = true;
+    }
+  });
+  // console.log("TEST 135", isOkTipoInstrumento);
+
+  if (isOkTipoInstrumento === false) {
+    map(resultInstrumento136, (item, index) => {
       if (tipo_instrumento === item) {
         isOkTipoInstrumento = true;
       }
     });
-    // console.log("TEST 135", isOkTipoInstrumento);
 
-    if (isOkTipoInstrumento === false) {
-      map(resultInstrumento136, (item, index) => {
-        if (tipo_instrumento === item) {
-          isOkTipoInstrumento = true;
+    if (calificacion_riesgo === "" || calificacion_riesgo.length === 0) {
+      return {
+        ok: true,
+        message: `El contenido esta vacio.`,
+      };
+    }
+    // console.log("TEST 136", isOkTipoInstrumento);
+    if (isOkTipoInstrumento === true) {
+      map(resultCalfRiesgoNormal, (item, index) => {
+        if (calificacion_riesgo === item) {
+          isOkCalfRiesgo = true;
         }
       });
-      // console.log("TEST 136", isOkTipoInstrumento);
-      if (isOkTipoInstrumento === true) {
-        map(resultCalfRiesgoNormal, (item, index) => {
-          if (calificacion_riesgo === item) {
-            isOkCalfRiesgo = true;
-          }
-        });
-        return {
-          ok: isOkCalfRiesgo,
-          message: `El contenido del archivo no coincide con alguna clasificación de riesgo en la Renta Variable.`,
-        };
-      } else {
-        return {
-          ok: false,
-          message: `El contenido del archivo no coincide con alguna sigla de tipo de instrumento de Renta Fija o Renta Variable.`,
-        };
-      }
+      return {
+        ok: isOkCalfRiesgo,
+        message: `El contenido del archivo no coincide con alguna clasificación de riesgo en la Renta Variable.`,
+      };
     } else {
-      if (plazo_valor < 360) {
-        map(resultCortoPlazo, (item, index) => {
-          if (calificacion_riesgo === item) {
-            isOkCalfRiesgo = true;
-          }
-        });
-        return {
-          ok: isOkCalfRiesgo,
-          message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto plazo.`,
-        };
-      } else if (plazo_valor >= 360) {
-        map(resultLargoPlazo, (item, index) => {
-          if (calificacion_riesgo === item) {
-            isOkCalfRiesgo = true;
-          }
-        });
-        return {
-          ok: isOkCalfRiesgo,
-          message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Largo plazo.`,
-        };
-      } else {
-        return {
-          ok: isOkCalfRiesgo,
-          message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto y Largo plazo.`,
-        };
-      }
+      return {
+        ok: false,
+        message: `El contenido del archivo no coincide con alguna sigla de tipo de instrumento de Renta Fija o Renta Variable.`,
+      };
     }
   } else {
+    if (plazo_valor < 360) {
+      map(resultCortoPlazo, (item, index) => {
+        if (calificacion_riesgo === item) {
+          isOkCalfRiesgo = true;
+        }
+      });
+      return {
+        ok: isOkCalfRiesgo,
+        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto plazo.`,
+      };
+    } else if (plazo_valor >= 360) {
+      map(resultLargoPlazo, (item, index) => {
+        if (calificacion_riesgo === item) {
+          isOkCalfRiesgo = true;
+        }
+      });
+      return {
+        ok: isOkCalfRiesgo,
+        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Largo plazo.`,
+      };
+    } else {
+      return {
+        ok: isOkCalfRiesgo,
+        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto y Largo plazo.`,
+      };
+    }
+  }
+}
+
+async function fechaOperacionMenor(params) {
+  const { fecha_nombre_archivo, fecha_contenido_operacion } = params;
+  let year = fecha_contenido_operacion.substring(0, 4);
+  let month = fecha_contenido_operacion.substring(4, 6);
+  let day = fecha_contenido_operacion.substring(6, 8);
+  let nueva_fecha_contenido_operacion = year + "-" + month + "-" + day;
+  let nueva_fecha_nombre_archivo = fecha_nombre_archivo;
+  // Confirmar que se pudieron interpretar las fechas
+  if (
+    isNaN(Date.parse(nueva_fecha_contenido_operacion)) &&
+    isNaN(Date.parse(nueva_fecha_nombre_archivo))
+  ) {
     return {
       ok: false,
-      message: `El contenido del archivo no tiene un valor asignado en calificación de riesgo.`,
+      message:
+        "La fecha de operación del contenido del archivo o la fecha de operación no tiene el formato correcto.",
+    };
+  } else {
+    return {
+      ok:
+        Date.parse(nueva_fecha_contenido_operacion) <=
+        Date.parse(nueva_fecha_nombre_archivo),
+      message:
+        "La fecha de operación del contenido del archivo es mayor a la fecha de operación, lo cual debe ser menor.",
     };
   }
 }
@@ -1620,4 +1958,6 @@ module.exports = {
   moneda,
   calificacionRiesgoConsultaMultiple,
   CortoLargoPlazo,
+  codigoValoracionConInstrumento,
+  fechaOperacionMenor,
 };

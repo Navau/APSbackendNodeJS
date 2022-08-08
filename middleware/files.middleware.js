@@ -24,6 +24,8 @@ const {
   moneda,
   calificacionRiesgoConsultaMultiple,
   CortoLargoPlazo,
+  codigoValoracionConInstrumento,
+  fechaOperacionMenor,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -190,7 +192,7 @@ async function obtenerListaArchivos(params) {
       WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
       AND "APS_param_archivos_pensiones_seguros".status = true;`;
-    // console.log(query);
+    console.log(query);
 
     await pool
       .query(query)
@@ -217,13 +219,24 @@ async function seleccionarTablas(params) {
         code: "108",
         table: "APS_aud_carga_archivos_pensiones_seguros",
       };
+    } else if (
+      item.originalname.substring(0, 1) === "M" &&
+      (item.originalname.includes("K.") ||
+        item.originalname.includes("L.") ||
+        item.originalname.includes("N.") ||
+        item.originalname.includes("P."))
+    ) {
+      result = {
+        code: "M",
+        table: "APS_aud_carga_archivos_bolsa",
+      };
     }
   });
   return result;
 }
 
 async function validarArchivosIteraciones(params) {
-  const { req, res, fechaOperacion } = params;
+  const { req, res, fechaOperacion, fechaInicialOperacion } = params;
   const validarArchivoPromise = new Promise(async (resolve, reject) => {
     let isErrorPast = false;
     let isOkValidate = false;
@@ -253,10 +266,28 @@ async function validarArchivosIteraciones(params) {
         console.log(err);
       })
       .finally(async () => {
+        // console.log(isAllFiles);
+        // console.log(archivosRequeridos);
         if (archivosRequeridos.result.length >= 1) {
           let aux = false;
+          let fechaOperacionAux = fechaOperacion;
           map(filesUploaded, (item, index) => {
-            if (!item.originalname.includes(fechaOperacion)) {
+            if (item.originalname.substring(0, 3) === "108") {
+              fechaOperacionAux = fechaOperacion;
+            }
+            if (
+              item.originalname.substring(0, 1) === "M" &&
+              (item.originalname.includes("K.") ||
+                item.originalname.includes("L.") ||
+                item.originalname.includes("N.") ||
+                item.originalname.includes("P."))
+            ) {
+              fechaOperacionAux = fechaOperacion.substring(
+                2,
+                fechaOperacion.length
+              );
+            }
+            if (!item.originalname.includes(fechaOperacionAux)) {
               errors.push({
                 archivo: item.originalname,
                 tipo_error: "NOMBRE ARCHIVO ERRONEO",
@@ -266,16 +297,31 @@ async function validarArchivosIteraciones(params) {
               aux = true;
             }
             if (index === filesUploaded.length - 1 && aux === true) {
-              reject(errors);
+              resolve(errors);
             }
           });
         } else {
           if (isAllFiles.currentFiles.length === 0) {
-            reject({
+            resolve({
               message: "No existen archivos disponibles para el usuario.",
             });
             return;
           }
+        }
+        if (
+          isAllFiles.currentFiles.length === 0 &&
+          isAllFiles.missingFiles.length >= 1
+        ) {
+          map(isAllFiles.missingFiles, (item, index) => {
+            errors.push({
+              archivo: item.archivo,
+              tipo_error: "ARCHIVO FALTANTE",
+              descripcion:
+                "El archivo subido no coincide con los archivos requeridos del usuario.",
+            });
+          });
+          resolve(errors);
+          return;
         }
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
@@ -365,6 +411,13 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsInstrumento.params
                         )
                       : null;
+                    const codValoracionInstrumento =
+                      infoArchivo?.paramsCodValoracion
+                        ? await codigoValoracionConInstrumento(
+                            infoArchivo.paramsCodValoracion.table,
+                            infoArchivo.paramsCodValoracion.params
+                          )
+                        : null;
                     const codOperacion = infoArchivo?.paramsCodOperacion
                       ? await codigoOperacion(
                           infoArchivo.paramsCodOperacion.table,
@@ -470,9 +523,11 @@ async function validarArchivosIteraciones(params) {
                             arrayDataObject,
                             arrayValidateObject,
                             fechaOperacion,
+                            fechaInicialOperacion,
                             item,
                             infoArchivo,
                             instrumento,
+                            codValoracionInstrumento,
                             siglaClasificador,
                             codOperacion,
                             tipoMarcacion,
@@ -515,9 +570,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let arrayDataObject = params.arrayDataObject;
       let arrayValidateObject = params.arrayValidateObject;
       let fechaOperacion = params.fechaOperacion;
+      let fechaInicialOperacion = params.fechaInicialOperacion;
       let item = params.item;
       let infoArchivo = params.infoArchivo;
       let instrumento = params.instrumento;
+      let codValoracionInstrumento = params.codValoracionInstrumento;
       let siglaClasificador = params.siglaClasificador;
       let codOperacion = params.codOperacion;
       let tipoMarcacion = params.tipoMarcacion;
@@ -539,7 +596,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         columnName,
         pattern,
         required,
+        functAux,
         funct,
+        mayBeEmpty,
         dependency,
         item2,
         index2,
@@ -547,7 +606,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         codeCurrentFile
       ) => {
         let match = value.match(pattern);
-        if (match === null) {
+        if (match === null && mayBeEmpty === false) {
           errors.push({
             archivo: item.archivo,
             tipo_error: "TIPO DE DATO INCORRECTO",
@@ -557,16 +616,38 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             fila: index2,
           });
         } else {
-          if (columnName === "fecha_operacion") {
-            if (value !== fechaOperacion) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no superó la validación de tipo de dato, el cual tiene que coincidir con la fecha del nombre del archivo.`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
+          if (columnName === "fecha_operacion" || columnName === "fecha") {
+            if (
+              codeCurrentFile === "K" ||
+              codeCurrentFile === "L" ||
+              codeCurrentFile === "N" ||
+              codeCurrentFile === "P"
+            ) {
+              if (value !== fechaInicialOperacion) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no superó la validación de tipo de dato, el cual tiene que coincidir con la fecha del nombre del archivo.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else {
+              let funcAuxAux = funct;
+              if (
+                value !== fechaOperacion &&
+                funcAuxAux !== "fechaOperacionMenorAlArchivo"
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no superó la validación de tipo de dato, el cual tiene que coincidir con la fecha del nombre del archivo.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           }
           if (item?.archivo?.includes("44C")) {
@@ -636,6 +717,26 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoValoracionConInstrumento") {
+            let errFunction = true;
+            map(codValoracionInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                if (value !== "0" || value !== 0) {
+                  // console.log(value);
+                  errFunction = false;
+                }
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no es correcto debido a que el tipo de instrumento es ${item2.tipo_instrumento}, en el cual el codigo de valoracion debe ser 0.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -870,6 +971,35 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "fechaOperacionMenorAlArchivo") {
+            try {
+              const _fechaOperacionMenor =
+                infoArchivo?.paramsFechaOperacionMenor === true
+                  ? await fechaOperacionMenor({
+                      fecha_nombre_archivo: fechaInicialOperacion,
+                      fecha_contenido_operacion: value,
+                    })
+                  : null;
+              if (_fechaOperacionMenor?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _fechaOperacionMenor?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `Error en tipo de dato. ${err.message}`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
         }
       };
@@ -880,11 +1010,20 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let columnName = item3.columnName;
           let pattern = item3.pattern;
           let required = item3.required;
+          let mayBeEmpty =
+            item3?.mayBeEmpty === true || item3?.mayBeEmpty === false
+              ? item3.mayBeEmpty
+              : null;
           let funct = item3.function;
+          let functAux = item3.function;
           let dependency = item3.dependency;
           // console.log("ANTES DE VALIDACIONES", value);
           // console.log("ANTES DE VALIDACIONES", errors);
-          if (!item2[item3.columnName] && required === true) {
+          if (
+            !item2[item3.columnName] &&
+            required === true &&
+            mayBeEmpty === false
+          ) {
             errors.push({
               archivo: item.archivo,
               tipo_error: "VALOR EN NULO O VACIO",
@@ -903,8 +1042,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               value,
               columnName,
               pattern,
+              mayBeEmpty,
               required,
               funct,
+              functAux,
               dependency,
               item2,
               index2,
@@ -924,6 +1065,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 
 exports.validarArchivo2 = async (req, res, next) => {
   let fechaInicialOperacion = req?.body?.fecha_operacion;
+
   const periodicidad = req?.body?.periodicidad;
   try {
     const id_rol = req.user.id_rol;
@@ -1007,6 +1149,7 @@ exports.validarArchivo2 = async (req, res, next) => {
         req,
         res,
         fechaOperacion,
+        fechaInicialOperacion,
       })
         .then(async (response) => {
           const filesReaded = response.filesReaded;

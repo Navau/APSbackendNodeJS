@@ -590,7 +590,7 @@ function InsertarVariosUtil(table, params) {
         index &&
           (query =
             query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
-      } else if (item.toString()?.includes("$2a$")) {
+      } else if (item?.toString()?.includes("$2a$")) {
         // index && (query = query + `crypt('${item}', ${index}), `);
       } else {
         if (typeof item === "string") {
