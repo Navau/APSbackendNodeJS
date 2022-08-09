@@ -26,6 +26,8 @@ const {
   CortoLargoPlazo,
   codigoValoracionConInstrumento,
   fechaOperacionMenor,
+  montoFinalConTipoDeCambio,
+  tipoDeCambio,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -169,16 +171,19 @@ async function obtenerListaArchivos(params) {
   const periodicidad = params.req.body.periodicidad;
 
   const obtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
-    let query = `SELECT replace(replace(replace(replace(replace(replace(
+    let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
       "APS_param_archivos_pensiones_seguros".nombre::text, 
-      'nnn'::text, "APS_seg_institucion".codigo::text), 
-      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text), 
-      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
-      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
-      'nntt'::text, "APS_seg_institucion".codigo::text || 
+      'nnn'::text, "APS_seg_institucion".codigo::text),
+      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '2022-04-28')::text),
+      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'AA'::text, substring(EXTRACT(year FROM TIMESTAMP '2022-04-28')::text from 3 for 2)),
+      'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'nntt'::text, "APS_seg_institucion".codigo::text ||
       "APS_param_archivos_pensiones_seguros".codigo::text),
-      'nn'::text, "APS_seg_institucion".codigo::text) AS archivo, 
-      "APS_seg_usuario".id_usuario, 
+      'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
+      "APS_seg_usuario".id_usuario,
       "APS_param_archivos_pensiones_seguros".archivo_vacio 
       FROM "APS_param_archivos_pensiones_seguros" 
       JOIN "APS_param_clasificador_comun" 
@@ -191,6 +196,7 @@ async function obtenerListaArchivos(params) {
       ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
       WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
+      AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
       AND "APS_param_archivos_pensiones_seguros".status = true;`;
     console.log(query);
 
@@ -492,6 +498,12 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsCalfRiesgo.params
                         )
                       : null;
+                    const tipoCambio = infoArchivo?.paramsTipoDeCambio
+                      ? await tipoDeCambio(
+                          infoArchivo.paramsTipoDeCambio.table,
+                          infoArchivo.paramsTipoDeCambio.params
+                        )
+                      : null;
 
                     // console.log("TEST AAAAA");
 
@@ -518,7 +530,7 @@ async function validarArchivosIteraciones(params) {
                           let arrayValidateObject = await obtenerValidaciones(
                             codeCurrentFile
                           );
-                          // console.log(arrayValidateObject);
+
                           await validacionesCamposArchivosFragmentoCodigo({
                             arrayDataObject,
                             arrayValidateObject,
@@ -542,6 +554,7 @@ async function validarArchivosIteraciones(params) {
                             cortoPlazo,
                             largoPlazo,
                             calfRiesgoNormal,
+                            tipoCambio,
                           });
                         }
                       });
@@ -589,6 +602,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let cortoPlazo = params.cortoPlazo;
       let largoPlazo = params.largoPlazo;
       let calfRiesgoNormal = params.calfRiesgoNormal;
+      let tipoCambio = params.tipoCambio;
       console.log(dependenciesArray);
       console.log(codeCurrentFile);
       const validarCampoIndividual = async (
@@ -732,7 +746,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               }
             });
-            if (errFunction === true) {
+            // console.log(value);
+            // console.log(codValoracionInstrumento.resultFinal);
+            if (errFunction === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
@@ -985,6 +1001,40 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: _fechaOperacionMenor?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `Error en tipo de dato. ${err.message}`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "montoFinalConTipoDeCambio") {
+            try {
+              let errFunction = { ok: false, message: "" };
+              map(tipoCambio, (item, index) => {
+                if (errFunction.ok === false) {
+                  montoFinalConTipoDeCambio({
+                    saldo_mo: item2.saldo_mo,
+                    saldo_bs: value,
+                    tipo_cambio: item,
+                    errFunction,
+                  });
+                }
+              });
+
+              if (errFunction?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: errFunction?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,

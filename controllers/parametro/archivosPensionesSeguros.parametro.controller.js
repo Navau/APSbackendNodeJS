@@ -23,25 +23,30 @@ const {
 const nameTable = "APS_view_archivos_pensiones_seguros";
 
 function SeleccionarArchivos(req, res) {
-  const { id_usuario, fecha_operacion, periodicidad } = req.body;
-  console.log(req.body);
+  const { fecha_operacion, periodicidad } = req.body;
+  const id_rol = req.user.id_rol;
+  const id_usuario = req.user.id_usuario;
 
-  if (!id_usuario) {
+  if (!id_usuario || !id_rol) {
     respDatosNoRecibidos400(
       res,
-      "La información que se mando no es suficiente, falta el ID del usuario."
+      "La información que se mando no es suficiente, falta el ID del usuario o el ID Rol."
     );
   } else {
-    let query = `SELECT replace(replace(replace(replace(replace(replace(
+    let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
       "APS_param_archivos_pensiones_seguros".nombre::text, 
-      'nnn'::text, "APS_seg_institucion".codigo::text), 
-      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text), 
-      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
-      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
-      'nntt'::text, "APS_seg_institucion".codigo::text || 
+      'nnn'::text, "APS_seg_institucion".codigo::text),
+      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '2022-04-28')::text),
+      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'AA'::text, substring(EXTRACT(year FROM TIMESTAMP '2022-04-28')::text from 3 for 2)),
+      'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'nntt'::text, "APS_seg_institucion".codigo::text ||
       "APS_param_archivos_pensiones_seguros".codigo::text),
-      'nn'::text, "APS_seg_institucion".codigo::text) AS archivo, 
-      "APS_seg_usuario".id_usuario 
+      'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
+      "APS_seg_usuario".id_usuario,
+      "APS_param_archivos_pensiones_seguros".archivo_vacio 
       FROM "APS_param_archivos_pensiones_seguros" 
       JOIN "APS_param_clasificador_comun" 
       ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
@@ -53,6 +58,7 @@ function SeleccionarArchivos(req, res) {
       ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
       WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
+      AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
       AND "APS_param_archivos_pensiones_seguros".status = true;`;
 
     console.log(query);

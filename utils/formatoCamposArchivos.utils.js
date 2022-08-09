@@ -56,7 +56,9 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
+      let paramsTipoDeCambio = null;
       let headers = null;
+
       if (nameFile.includes("K.")) {
         console.log("ARCHIVO CORRECTO : K", nameFile);
         codeCurrentFile = "K";
@@ -238,11 +240,11 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
-            select: ["sigla"],
             where: [
               {
-                key: "id_grupo",
-                value: 136,
+                key: "id_tipo_renta",
+                valuesWhereIn: [136],
+                whereIn: true,
               },
             ],
           },
@@ -301,6 +303,27 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
           },
         };
+        paramsTipoDeCambio = {
+          table: "APS_oper_tipo_cambio",
+          params: {
+            select: ["fecha", "sigla", "compra"],
+            innerjoin: [
+              {
+                table: "APS_param_moneda",
+                on: [
+                  {
+                    table: "APS_oper_tipo_cambio",
+                    key: "id_moneda",
+                  },
+                  {
+                    table: "APS_param_moneda",
+                    key: "id_moneda",
+                  },
+                ],
+              },
+            ],
+          },
+        };
       } else if (nameFile.includes(".481")) {
         console.log("ARCHIVO CORRECTO : 481", nameFile);
         codeCurrentFile = "481";
@@ -308,65 +331,65 @@ async function obtenerInformacionDeArchivo(nameFile) {
         headers = await formatoArchivo(codeCurrentFile);
         paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
+          sparams: {
+            select: ["sigla"],
+          },
         };
         paramsInstrumento135 = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 135,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 135,
+              },
+            ],
+          },
         };
         paramsInstrumento136 = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 136,
-            },
-          ],
-        };
-        paramsInstrumento136 = {
-          table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 136,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
         };
         paramsLargoPlazo = {
           table: "APS_param_clasificador_comun",
-          select: ["descripcion"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 6,
-            },
-            {
-              key: "sigla",
-              value: "LP",
-            },
-          ],
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+              {
+                key: "sigla",
+                value: "LP",
+              },
+            ],
+          },
         };
         paramsCortoPlazo = {
           table: "APS_param_clasificador_comun",
-          select: ["descripcion"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 6,
-            },
-            {
-              key: "sigla",
-              value: "CP",
-            },
-          ],
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+              {
+                key: "sigla",
+                value: "CP",
+              },
+            ],
+          },
         };
         paramsCodValoracion = {
           table: "APS_param_tipo_instrumento",
@@ -382,13 +405,15 @@ async function obtenerInformacionDeArchivo(nameFile) {
         };
         paramsCalfRiesgo = {
           table: "APS_param_clasificador_comun",
-          select: ["descripcion"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 5,
-            },
-          ],
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 5,
+              },
+            ],
+          },
         };
         paramsMoneda = {
           table: "APS_param_moneda",
@@ -522,6 +547,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsCortoPlazo,
         paramsLargoPlazo,
         paramsFechaOperacionMenor,
+        paramsTipoDeCambio,
       });
     }
   );
@@ -546,172 +572,63 @@ async function obtenerCabeceras(table) {
 
 async function formatoArchivo(type) {
   // console.log("TYPE", type);
-  let headers = null;
-  if (type === "K") {
-    await obtenerCabeceras("APS_oper_archivo_k")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
+  const HEADERS = {
+    K: {
+      table: "APS_oper_archivo_k",
+    },
+    L: {
+      table: "APS_oper_archivo_l",
+    },
+    N: {
+      table: "APS_oper_archivo_n",
+    },
+    P: {
+      table: "APS_oper_archivo_p",
+    },
+    413: {
+      table: "APS_seguro_archivo_413",
+    },
+    411: {
+      table: "APS_seguro_archivo_411",
+    },
+    441: {
+      table: "APS_seguro_archivo_441",
+    },
+    443: {
+      table: "APS_seguro_archivo_443",
+    },
+    "44C": {
+      table: "APS_seguro_archivo_44C",
+    },
+    451: {
+      table: "APS_seguro_archivo_451",
+    },
+    481: {
+      table: "APS_seguro_archivo_481",
+    },
+    482: {
+      table: "APS_seguro_archivo_482",
+    },
+  };
+  // console.log(HEADERS[type].table);
+  let resultFinal = null;
+  await obtenerCabeceras(HEADERS[type].table)
+    .then((response) => {
+      let resultAux = [];
+      map(response.rows, (item, index) => {
+        resultAux.push(item.column_name);
       });
-    return headers;
-  } else if (type === "L") {
-    await obtenerCabeceras("APS_oper_archivo_L")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "N") {
-    await obtenerCabeceras("APS_oper_archivo_N")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "P") {
-    await obtenerCabeceras("APS_oper_archivo_P")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "413") {
-    await obtenerCabeceras("APS_seguro_archivo_413")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "411") {
-    await obtenerCabeceras("APS_seguro_archivo_411")
-      .then(async (response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "441") {
-    await obtenerCabeceras("APS_seguro_archivo_441")
-      .then(async (response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "443") {
-    await obtenerCabeceras("APS_seguro_archivo_443")
-      .then(async (response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "44C") {
-    await obtenerCabeceras("APS_seguro_archivo_44C")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "451") {
-    await obtenerCabeceras("APS_seguro_archivo_451")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "481") {
-    await obtenerCabeceras("APS_seguro_archivo_481")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else if (type === "482") {
-    await obtenerCabeceras("APS_seguro_archivo_482")
-      .then((response) => {
-        let resultAux = [];
-        map(response.rows, (item, index) => {
-          resultAux.push(item.column_name);
-        });
-        headers = resultAux;
-      })
-      .catch((err) => {
-        headers = { err };
-      });
-    return headers;
-  } else {
-    return null;
-  }
+      resultFinal = resultAux;
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    });
+  return resultFinal;
 }
 
 async function obtenerValidaciones(typeFile) {
-  let result = null;
-  if (typeFile === "K") {
-    result = [
+  const TYPE_FILES = {
+    K: [
       {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -776,9 +693,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: "marcacion",
       },
-    ];
-  } else if (typeFile === "L") {
-    result = [
+    ],
+    L: [
       {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -829,9 +745,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "N") {
-    result = [
+    ],
+    N: [
       {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -869,9 +784,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "P") {
-    result = [
+    ],
+    P: [
       {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -923,9 +837,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "413") {
-    result = [
+    ],
+    413: [
       {
         columnName: "fecha_operacion",
         pattern:
@@ -1011,9 +924,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: "codigoCustodia",
       },
-    ];
-  } else if (typeFile === "411") {
-    result = [
+    ],
+    411: [
       {
         columnName: "fecha_operacion",
         pattern:
@@ -1113,9 +1025,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: "codigoCustodia",
       },
-    ];
-  } else if (typeFile === "441") {
-    result = [
+    ],
+    441: [
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -1195,9 +1106,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "443") {
-    result = [
+    ],
+    443: [
       {
         columnName: "fecha_emision",
         pattern:
@@ -1255,9 +1165,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "44C") {
-    result = [
+    ],
+    "44C": [
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -1315,9 +1224,8 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "451") {
-    result = [
+    ],
+    451: [
       {
         columnName: "tipo_cuenta",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -1358,11 +1266,54 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
+        function: "montoFinalConTipoDeCambio",
+      },
+    ],
+    452: [
+      {
+        columnName: "tipo_cuenta",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoCuenta",
+      },
+      {
+        columnName: "entidad_financiera",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "entidadFinanciera",
+      },
+      {
+        columnName: "nro_cuenta",
+        pattern: /^[A-Za-z0-9,-]{5,20}$/,
+        positveNegative: true,
+        required: true,
         function: null,
       },
-    ];
-  } else if (typeFile === "481") {
-    result = [
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "moneda",
+      },
+      {
+        columnName: "saldo_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "saldo_bs",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "montoFinalConTipoDeCambio",
+      },
+    ],
+    481: [
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -1385,7 +1336,7 @@ async function obtenerValidaciones(typeFile) {
         function: "codigoValoracionConInstrumento",
       },
       {
-        columnName: "tasa_relevante_operacion",
+        columnName: "tasa_relevante_valoracion",
         pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
         positveNegative: true,
         required: true,
@@ -1456,9 +1407,103 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: "fechaOperacionMenorAlArchivo",
       },
-    ];
-  } else if (typeFile === "482") {
-    result = [
+    ],
+    482: [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z0-9,-]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "codigo_valoracion",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoValoracionConInstrumento",
+      },
+      {
+        columnName: "tasa_relevante_valoracion",
+        pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_valor",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_economico",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_total_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "precioTotal",
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoMoneda",
+      },
+      {
+        columnName: "precio_total_bs",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "calificacion_riesgo",
+        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        positveNegative: true,
+        required: true,
+        mayBeEmpty: true, //TRUE = PUEDE ESTAR VACIO, FALSE = NO PUEDE ESTAR VACIO
+        function: "calificacionRiesgoMultiple",
+      },
+      {
+        columnName: "fecha_operacion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: "fechaOperacionMenorAlArchivo",
+      },
+    ],
+    483: [
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -1551,10 +1596,10 @@ async function obtenerValidaciones(typeFile) {
         required: true,
         function: "fechaOperacionMenorAlArchivo",
       },
-    ];
-  }
+    ],
+  };
 
-  return result;
+  return TYPE_FILES[typeFile];
 }
 
 async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
@@ -1843,18 +1888,15 @@ async function calificacionRiesgoConsultaMultiple(params) {
 
   let isOkTipoInstrumento = false;
   let isOkCalfRiesgo = false;
-  // console.log("TEST CALF", resultInstrumento135);
 
   map(resultInstrumento135, (item, index) => {
-    if (tipo_instrumento === item) {
+    if (tipo_instrumento === item.sigla) {
       isOkTipoInstrumento = true;
     }
   });
-  // console.log("TEST 135", isOkTipoInstrumento);
-
   if (isOkTipoInstrumento === false) {
     map(resultInstrumento136, (item, index) => {
-      if (tipo_instrumento === item) {
+      if (tipo_instrumento === item.sigla) {
         isOkTipoInstrumento = true;
       }
     });
@@ -1865,10 +1907,9 @@ async function calificacionRiesgoConsultaMultiple(params) {
         message: `El contenido esta vacio.`,
       };
     }
-    // console.log("TEST 136", isOkTipoInstrumento);
     if (isOkTipoInstrumento === true) {
       map(resultCalfRiesgoNormal, (item, index) => {
-        if (calificacion_riesgo === item) {
+        if (calificacion_riesgo === item.descripcion) {
           isOkCalfRiesgo = true;
         }
       });
@@ -1885,7 +1926,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
   } else {
     if (plazo_valor < 360) {
       map(resultCortoPlazo, (item, index) => {
-        if (calificacion_riesgo === item) {
+        if (calificacion_riesgo === item.descripcion) {
           isOkCalfRiesgo = true;
         }
       });
@@ -1895,7 +1936,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
       };
     } else if (plazo_valor >= 360) {
       map(resultLargoPlazo, (item, index) => {
-        if (calificacion_riesgo === item) {
+        if (calificacion_riesgo === item.descripcion) {
           isOkCalfRiesgo = true;
         }
       });
@@ -1940,6 +1981,39 @@ async function fechaOperacionMenor(params) {
   }
 }
 
+async function tipoDeCambio(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function montoFinalConTipoDeCambio(params) {
+  const { saldo_mo, saldo_bs, tipo_cambio, errFunction } = params;
+  console.log(params);
+
+  if (
+    pàrseFloat(saldo_mo) * parseFloat(tipo_cambio.compra) ===
+    parseFloat(saldo_bs)
+  ) {
+    errFunction.ok = true;
+  } else {
+    errFunction.ok = false;
+    errFunction.message =
+      "El saldo en moneda original multiplicado por el tipo de cambio no es igual al saldo en bolivianos";
+  }
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -1961,4 +2035,6 @@ module.exports = {
   CortoLargoPlazo,
   codigoValoracionConInstrumento,
   fechaOperacionMenor,
+  tipoDeCambio,
+  montoFinalConTipoDeCambio,
 };

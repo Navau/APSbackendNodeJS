@@ -447,8 +447,17 @@ function EscogerInternoUtil(table, params) {
   query = `SELECT ${
     params?.select ? params.select.join(", ") : "*"
   } FROM public."${table}"`;
+  if (params?.innerjoin) {
+    const innerjoin = params.innerjoin;
+
+    map(innerjoin, (item, index) => {
+      query += ` INNER JOIN "${item.table}"`;
+      query += ` ON"${item.on[0].table}".${item.on[0].key} = "${item.on[1].table}".${item.on[1].key}`;
+    });
+  }
   if (params?.where) {
-    map(params.where, (item, index) => {
+    const where = params.where;
+    map(where, (item, index) => {
       if (item?.like === true) {
         query = query + ` AND ${item.key} like '${item.value}%'`;
       } else if (item?.whereIn === true) {
@@ -480,7 +489,7 @@ function EscogerInternoUtil(table, params) {
       }
     });
   }
-  if (!query.includes("WHERE") && query.includes("AND")) {
+  if (params?.where && !query.includes("WHERE") && query.includes("AND")) {
     let queryAux = query.split("");
     queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
     queryAux.splice(query.indexOf("AND"), 4);
