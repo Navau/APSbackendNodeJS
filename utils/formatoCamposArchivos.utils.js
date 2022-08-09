@@ -57,6 +57,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
       let paramsTipoDeCambio = null;
+      let paramsBolsa = null;
+      let paramsTipoValoracion = null;
       let headers = null;
 
       if (nameFile.includes("K.")) {
@@ -64,21 +66,106 @@ async function obtenerInformacionDeArchivo(nameFile) {
         codeCurrentFile = "K";
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("K");
+        paramsBolsa = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 1,
+              },
+            ],
+          },
+        };
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [135, 137],
+                whereIn: true,
+              },
+            ],
+          },
+        };
       } else if (nameFile.includes("L.")) {
         console.log("ARCHIVO CORRECTO : L", nameFile);
         codeCurrentFile = "L";
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("L");
+        paramsBolsa = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 1,
+              },
+            ],
+          },
+        };
+        paramsTipoValoracion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 31,
+              },
+            ],
+          },
+        };
       } else if (nameFile.includes("N.")) {
         console.log("ARCHIVO CORRECTO : N", nameFile);
         codeCurrentFile = "N";
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("N");
+        paramsBolsa = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 1,
+              },
+            ],
+          },
+        };
       } else if (nameFile.includes("P.")) {
         console.log("ARCHIVO CORRECTO : P", nameFile);
         codeCurrentFile = "P";
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("P");
+        paramsBolsa = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 1,
+              },
+            ],
+          },
+        };
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 138,
+              },
+            ],
+          },
+        };
       } else if (nameFile.includes(".413")) {
         console.log("ARCHIVO CORRECTO : 413", nameFile);
         codeCurrentFile = "413";
@@ -548,6 +635,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsLargoPlazo,
         paramsFechaOperacionMenor,
         paramsTipoDeCambio,
+        paramsBolsa,
+        paramsTipoValoracion,
       });
     }
   );
@@ -634,7 +723,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: false,
         required: true,
-        function: "clasificadorComun",
+        function: "bolsa",
       },
       {
         columnName: "fecha",
@@ -646,42 +735,42 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z0-9]{0,20}$/,
+        pattern: /^[A-Za-z0-9]{1,10}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{1,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
       },
       {
         columnName: "clave_instrumento",
-        pattern: /^[A-Za-z0-9]{0,30}$/,
+        pattern: /^[A-Za-z0-9]{1,30}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "tasa",
-        pattern: /^(\d{1,8})(\.\d{4,4}){0,1}$/,
+        columnName: "tasa_promedio",
+        pattern: /^(\d{1,8})(\.\d{4,4}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "monto",
-        pattern: /^(\d{1,16})(\.\d{2,2}){0,1}$/,
+        columnName: "monto_negociado",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "monto_minimo",
-        pattern: /^(\d{1,16})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -700,7 +789,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: false,
         required: true,
-        function: "dominioBolsa",
+        function: "bolsa",
       },
       {
         columnName: "fecha",
@@ -712,14 +801,14 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z0-9]{0,20}$/,
+        pattern: /^[A-Za-z0-9]{1,7}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "monto_negociado",
-        pattern: /^(\d{1,16})(\.\d{4,4}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
@@ -740,10 +829,10 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tipo_valoracion",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{2,2}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "tipoValoracion",
       },
     ],
     N: [
@@ -752,7 +841,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: false,
         required: true,
-        function: "dominioBolsa",
+        function: "bolsa",
       },
       {
         columnName: "fecha",
@@ -764,7 +853,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z0-9]{0,20}$/,
+        pattern: /^[A-Za-z0-9]{1,10}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -791,7 +880,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: false,
         required: true,
-        function: "dominioBolsa",
+        function: "bolsa",
       },
       {
         columnName: "fecha",
@@ -803,17 +892,17 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tipo_activo",
-        pattern: /^[A-Za-z0-9]{5,23}$/,
-        positveNegative: true,
-        required: true,
-        function: null,
-      },
-      {
-        columnName: "clave_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
+      },
+      {
+        columnName: "clave_instrumento",
+        pattern: /^[A-Za-z0-9]{5,30}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
       },
       {
         columnName: "ult_fecha_disponible",
@@ -1704,17 +1793,12 @@ async function tipoInstrumento(table, params) {
 }
 
 async function tipoMarcacion(params) {
+  const { monto_negociado, monto_minimo } = params;
   let resultFinal = null;
-  if (
-    params.montoNegociado !== 0 &&
-    params.montoNegociado >= params.montoMinimo
-  ) {
+  if (monto_negociado !== 0 && monto_negociado >= monto_minimo) {
     resultFinal = "AC, NA";
   }
-  if (
-    params.montoNegociado !== 0 &&
-    params.montoNegociado < params.montoMinimo
-  ) {
+  if (monto_negociado !== 0 && monto_negociado < monto_minimo) {
     resultFinal = "NM";
   }
 
@@ -2014,6 +2098,40 @@ async function montoFinalConTipoDeCambio(params) {
   }
 }
 
+async function bolsa(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function tipoValoracion(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -2037,4 +2155,6 @@ module.exports = {
   fechaOperacionMenor,
   tipoDeCambio,
   montoFinalConTipoDeCambio,
+  bolsa,
+  tipoValoracion,
 };

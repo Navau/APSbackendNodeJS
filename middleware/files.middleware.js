@@ -28,6 +28,8 @@ const {
   fechaOperacionMenor,
   montoFinalConTipoDeCambio,
   tipoDeCambio,
+  bolsa,
+  tipoValoracion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -358,7 +360,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === false && isErrorPast === false) {
+          } else if (isAllFiles.ok === true && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item.archivo,
@@ -504,6 +506,18 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsTipoDeCambio.params
                         )
                       : null;
+                    const _bolsa = infoArchivo?.paramsBolsa
+                      ? await bolsa(
+                          infoArchivo.paramsBolsa.table,
+                          infoArchivo.paramsBolsa.params
+                        )
+                      : null;
+                    const _tipoValoracion = infoArchivo?.paramsTipoValoracion
+                      ? await tipoValoracion(
+                          infoArchivo.paramsTipoValoracion.table,
+                          infoArchivo.paramsTipoValoracion.params
+                        )
+                      : null;
 
                     // console.log("TEST AAAAA");
 
@@ -555,6 +569,8 @@ async function validarArchivosIteraciones(params) {
                             largoPlazo,
                             calfRiesgoNormal,
                             tipoCambio,
+                            _bolsa,
+                            _tipoValoracion,
                           });
                         }
                       });
@@ -603,6 +619,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let largoPlazo = params.largoPlazo;
       let calfRiesgoNormal = params.calfRiesgoNormal;
       let tipoCambio = params.tipoCambio;
+      let _bolsa = params._bolsa;
+      let _tipoValoracion = params._tipoValoracion;
       console.log(dependenciesArray);
       console.log(codeCurrentFile);
       const validarCampoIndividual = async (
@@ -679,7 +697,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             });
           }
-
           if (columnName === "nro_pago" && codeCurrentFile === "441") {
             if (dependenciesArray.length >= 1) {
               map(dependenciesArray, (itemDP, indexDP) => {
@@ -707,12 +724,37 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           }
-          if (funct === "clasificadorcomun") {
-            if (value !== siglaClasificador) {
+          if (funct === "bolsa") {
+            let errFunction = true;
+            map(_bolsa?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                // console.log(value);
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de Clasificador Común, el cual tiene que coincidir con la sigla "${siglaClasificador}".`,
+                descripcion: `El contenido del archivo no coincide con alguna sigla de Bolsa de Valores.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoValoracion") {
+            let errFunction = true;
+            map(_tipoValoracion?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                // console.log(value);
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Valoración.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -740,15 +782,17 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             let errFunction = true;
             map(codValoracionInstrumento?.resultFinal, (item4, index4) => {
               if (item2.tipo_instrumento === item4.sigla) {
-                if (value !== "0" || value !== 0) {
+                if (value === "0" || value === 0) {
                   // console.log(value);
                   errFunction = false;
+                } else {
+                  errFunction = true;
                 }
               }
             });
             // console.log(value);
             // console.log(codValoracionInstrumento.resultFinal);
-            if (errFunction === false) {
+            if (errFunction === true) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
@@ -776,15 +820,26 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "marcacion") {
-            let marcacion = await tipoMarcacion({
-              montoNegociado: item2.monto,
-              montoMinimo: item2.monto_minimo,
-            });
-            if (!marcacion.toString().includes(value)) {
+            try {
+              let marcacion = await tipoMarcacion({
+                monto_negociado: parseFloat(item2.monto_negociado),
+                monto_minimo: parseFloat(item2.monto_minimo),
+              });
+              if (!marcacion.toString().includes(value)) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con el tipo de marcación.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con el tipo de marcación.`,
+                descripcion: `Error en tipo de dato. ${err.message}`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
