@@ -55,6 +55,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsFlujoTotal = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
+      let paramsFechaOperacionMenor = null;
       let headers = null;
       if (nameFile.includes("K.")) {
         console.log("ARCHIVO CORRECTO : K", nameFile);

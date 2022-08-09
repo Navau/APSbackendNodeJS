@@ -605,7 +605,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         item3,
         codeCurrentFile
       ) => {
-        let match = value.match(pattern);
+        let match = value?.match(pattern);
         if (match === null && mayBeEmpty === false) {
           errors.push({
             archivo: item.archivo,
