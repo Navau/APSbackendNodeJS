@@ -25,6 +25,15 @@ const {
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
+async function obtenerFechaOperacion(req, res) {
+  let query = "";
+  const fechaCarga = Date.now();
+  console.log(fechaCarga);
+  console.log(fechaCarga.getFullYear);
+  console.log(fechaCarga.GetMonth());
+  // const primerDiaMes = new Date(fechaCarga.)
+}
+
 function ValorMaximo(req, res) {
   const { max } = req.body;
   let fieldMax = max ? max : "fecha_operacion";

@@ -360,7 +360,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === false && isErrorPast === false) {
+          } else if (isAllFiles.ok === true && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item.archivo,
@@ -779,7 +779,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "codigoValoracionConInstrumento") {
-            let errFunction = true;
+            let errFunction = false;
             map(codValoracionInstrumento?.resultFinal, (item4, index4) => {
               if (item2.tipo_instrumento === item4.sigla) {
                 if (value === "0" || value === 0) {
@@ -1132,7 +1132,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             errors.push({
               archivo: item.archivo,
               tipo_error: "VALOR EN NULO O VACIO",
-              descripcion: `El valor esta vacio o existe un error no controlado en el contenido del archivo.`,
+              descripcion: `El valor está vacío o existe un error no controlado en el contenido del archivo.`,
               valor:
                 typeof value === "undefined"
                   ? "indefinido"
