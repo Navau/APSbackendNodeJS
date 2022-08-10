@@ -176,12 +176,12 @@ async function obtenerListaArchivos(params) {
     let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
       "APS_param_archivos_pensiones_seguros".nombre::text, 
       'nnn'::text, "APS_seg_institucion".codigo::text),
-      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '2022-04-28')::text),
-      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
-      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
-      'AA'::text, substring(EXTRACT(year FROM TIMESTAMP '2022-04-28')::text from 3 for 2)),
-      'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
-      'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP '2022-04-28')::text, 2, '0'::text)),
+      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text),
+      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+      'AA'::text, substring(EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text from 3 for 2)),
+      'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+      'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
       'nntt'::text, "APS_seg_institucion".codigo::text ||
       "APS_param_archivos_pensiones_seguros".codigo::text),
       'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
