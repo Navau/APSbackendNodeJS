@@ -21,17 +21,66 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respResultadoVacioObject200,
+  respResultadoCorrectoObjeto200,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
 async function obtenerFechaOperacion(req, res) {
-  let query = "";
-  const fechaCarga = Date.now();
-  console.log(fechaCarga);
-  console.log(fechaCarga.getFullYear);
-  console.log(fechaCarga.GetMonth());
-  // const primerDiaMes = new Date(fechaCarga.)
+  const { tipo } = req.body;
+  const addDays = (date, days) => {
+    date.setDate(date.getDate() + days);
+    return date;
+  };
+
+  const fechaOperacionMensual = () => {
+    const uploadDate = new Date();
+    const year = uploadDate.getFullYear();
+    const month = uploadDate.getMonth();
+    const day = uploadDate.getDay();
+    const firstDayMonth = new Date(year, month, 1);
+    const fechaOperacion = addDays(firstDayMonth, -1);
+
+    return fechaOperacion;
+  };
+  const fechaOperacionDiaria = () => {
+    const uploadDate = new Date();
+    const fechaOperacion = addDays(uploadDate, -1);
+
+    return fechaOperacion;
+  };
+  const fechaOperacionDiaHabil = () => {
+    const uploadDate = new Date();
+    const checkDate = addDays(uploadDate, -1);
+    const day = checkDate.getUTCDay();
+    let fechaOperacion = null;
+    if (day === 1) {
+      //SI ES LUNES
+      fechaOperacion = addDays(uploadDate, -3);
+    } else if (day === 0) {
+      // SI ES DOMINGO
+      fechaOperacion = addDays(uploadDate, -2);
+    } else {
+      fechaOperacion = checkDate;
+    }
+    return fechaOperacion;
+  };
+
+  const FECHA_OPERACION = {
+    M: fechaOperacionMensual(),
+    D: fechaOperacionDiaria(),
+    DH: fechaOperacionDiaHabil(),
+  };
+
+  if (isNaN(Date.parse(FECHA_OPERACION[tipo]))) {
+    respErrorServidor500END(res, {
+      message: "Hubo un error al obtener la fecha de operación.",
+      value: FECHA_OPERACION[tipo],
+    });
+  } else {
+    respResultadoCorrectoObjeto200(res, FECHA_OPERACION[tipo]);
+  }
 }
 
 function ValorMaximo(req, res) {
@@ -282,4 +331,5 @@ module.exports = {
   Deshabilitar,
   ValorMaximo,
   UltimaCarga,
+  obtenerFechaOperacion,
 };

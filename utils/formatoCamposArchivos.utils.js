@@ -2042,12 +2042,12 @@ async function fechaOperacionMenor(params) {
   let year = fecha_contenido_operacion.substring(0, 4);
   let month = fecha_contenido_operacion.substring(4, 6);
   let day = fecha_contenido_operacion.substring(6, 8);
-  let nueva_fecha_contenido_operacion = year + "-" + month + "-" + day;
-  let nueva_fecha_nombre_archivo = fecha_nombre_archivo;
+  let nuevaFechaContenidoOperacion = year + "-" + month + "-" + day;
+  let nuevaFechaNombreArchivo = fecha_nombre_archivo;
   // Confirmar que se pudieron interpretar las fechas
   if (
-    isNaN(Date.parse(nueva_fecha_contenido_operacion)) &&
-    isNaN(Date.parse(nueva_fecha_nombre_archivo))
+    isNaN(Date.parse(nuevaFechaContenidoOperacion)) &&
+    isNaN(Date.parse(nuevaFechaNombreArchivo))
   ) {
     return {
       ok: false,
@@ -2057,8 +2057,8 @@ async function fechaOperacionMenor(params) {
   } else {
     return {
       ok:
-        Date.parse(nueva_fecha_contenido_operacion) <=
-        Date.parse(nueva_fecha_nombre_archivo),
+        Date.parse(nuevaFechaContenidoOperacion) <=
+        Date.parse(nuevaFechaNombreArchivo),
       message:
         "La fecha de operación del contenido del archivo es mayor a la fecha de operación, lo cual debe ser menor.",
     };

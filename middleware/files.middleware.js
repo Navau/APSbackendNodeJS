@@ -638,7 +638,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         codeCurrentFile
       ) => {
         let match = value?.match(pattern);
-        if (match === null && mayBeEmpty === false) {
+        if (match === null && (mayBeEmpty === false || mayBeEmpty === null)) {
           errors.push({
             archivo: item.archivo,
             tipo_error: "TIPO DE DATO INCORRECTO",

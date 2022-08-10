@@ -6,6 +6,11 @@ const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post(
+  "/FechaOperacion",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.obtenerFechaOperacion
+);
+api.post(
   "/ValorMaximo",
   [md_auth.AsegurarAutenticacionConToken],
   controller.ValorMaximo
