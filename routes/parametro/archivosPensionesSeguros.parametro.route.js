@@ -10,6 +10,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.SeleccionarArchivos
 );
+api.post(
+  "/SeleccionarArchivosBolsa",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.SeleccionarArchivosBolsa
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

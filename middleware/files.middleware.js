@@ -65,11 +65,11 @@ const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 var nameTable = "";
 var codeCurrentFile = "";
 var codeCurrentFilesArray = [];
+var periodicidadFinal = null;
 var nameTableErrors = "APS_aud_errores_carga_archivos";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
-var condicionNroPago441_44C = false;
 
 async function obtenerInstitucion(params) {
   const obtenerListaInstitucion = new Promise(async (resolve, reject) => {
@@ -118,9 +118,6 @@ function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
       archivosRequeridos.result,
       "archivo"
     );
-    let id_usuario = archivosRequeridos.result[0]?.id_usuario
-      ? archivosRequeridos.result[0]?.id_usuario
-      : 0;
     let arrayB = arrayNameFilesToUpperCase(archivosSubidos, "originalname");
     let arrayResult = [];
     let arrayResult2 = [];
@@ -167,10 +164,25 @@ function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
 async function obtenerListaArchivos(params) {
   const id_rol = params.req.user.id_rol;
   const id_usuario = params.req.user.id_usuario;
+  const typeFiles = params.typeFiles;
   const fecha_operacion = params.req?.body?.fecha_operacion
     ? params.req.body.fecha_operacion
     : moment().format("YYYY-MM-DD");
-  const periodicidad = params.req.body.periodicidad;
+  let periodicidad = [154]; //VALOR POR DEFECTO
+  periodicidadFinal = 154;
+
+  if (typeFiles[0].originalname.substring(0, 1) === "M") {
+    if (typeFiles.length >= 1) {
+      periodicidad = [154, 219];
+      periodicidadFinal = 219;
+    } else {
+      periodicidad = [154];
+      periodicidadFinal = 154;
+    }
+  } else if (typeFiles[0].originalname.substring(0, 3 === "108")) {
+    periodicidad = [154];
+    periodicidadFinal = 154;
+  }
 
   const obtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
     let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
@@ -196,7 +208,7 @@ async function obtenerListaArchivos(params) {
       ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
       JOIN "APS_seg_institucion" 
       ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-      WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
+      WHERE "APS_param_clasificador_comun".id_clasificador_comun in (${periodicidad.join()}) 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
       AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
       AND "APS_param_archivos_pensiones_seguros".status = true;`;
@@ -250,15 +262,11 @@ async function validarArchivosIteraciones(params) {
     let isOkValidate = false;
     const filesReaded = []; //ARCHIVOS LEIDOS Y EXISTENTES
     const filesUploaded = req?.files; //ARCHIVOS SUBIDOS Y TEMPORALES
-    const clasificador = await clasificadorComun(
-      "APS_param_clasificador_comun",
-      {
-        idKey: "id_clasificador_comun_grupo",
-        idValue: 1,
-      }
-    );
-    const siglaClasificador = clasificador.resultFinal[0].sigla;
-    const archivosRequeridos = await obtenerListaArchivos({ req, res })
+    const archivosRequeridos = await obtenerListaArchivos({
+      req,
+      res,
+      typeFiles: filesUploaded,
+    })
       .then((response) => {
         return { result: response.rows };
       })
@@ -360,7 +368,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === true && isErrorPast === false) {
+          } else if (isAllFiles.ok === false && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item.archivo,
@@ -554,7 +562,6 @@ async function validarArchivosIteraciones(params) {
                             infoArchivo,
                             instrumento,
                             codValoracionInstrumento,
-                            siglaClasificador,
                             codOperacion,
                             tipoMarcacion,
                             _tipoCuenta,
@@ -604,7 +611,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let infoArchivo = params.infoArchivo;
       let instrumento = params.instrumento;
       let codValoracionInstrumento = params.codValoracionInstrumento;
-      let siglaClasificador = params.siglaClasificador;
       let codOperacion = params.codOperacion;
       let tipoMarcacion = params.tipoMarcacion;
       let _tipoCuenta = params._tipoCuenta;
@@ -1170,8 +1176,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 
 exports.validarArchivo2 = async (req, res, next) => {
   let fechaInicialOperacion = req?.body?.fecha_operacion;
-
-  const periodicidad = req?.body?.periodicidad;
   try {
     const id_rol = req.user.id_rol;
     const id_usuario = req.user.id_usuario;
@@ -1268,7 +1272,7 @@ exports.validarArchivo2 = async (req, res, next) => {
             });
             bodyQuery.push({
               id_rol,
-              id_periodo: periodicidad,
+              id_periodo: periodicidadFinal,
               fecha_operacion: fechaOperacion,
               nro_carga: nroCarga === null ? 1 : nroCarga + 1,
               fecha_carga: new Date(),
@@ -1413,12 +1417,12 @@ exports.validarArchivo2 = async (req, res, next) => {
             });
         })
         .catch((err) => {
-          console.log(err);
-          respErrorServidor500END(res, err);
+          console.log("ERR1", err);
+          respErrorServidor500END(res, { err, errorsCode });
         });
     }
   } catch (err) {
-    console.log(err);
+    console.log("ERR2", err);
     respErrorServidor500END(res, { err, errorsCode });
   }
 };
@@ -1430,6 +1434,7 @@ exports.subirArchivo = async (req, res, next) => {
   nameTableErrors = "APS_aud_errores_carga_archivos";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
+  periodicidadFinal = null;
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {

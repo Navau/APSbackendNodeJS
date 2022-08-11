@@ -28,41 +28,109 @@ const {
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
 async function obtenerFechaOperacion(req, res) {
-  const { tipo } = req.body;
-  const addDays = (date, days) => {
+  const { tipo } = req.body; //PENSIONES O BOLSA
+  const { id_rol, id_usuario } = req.user;
+  const queryMax = ValorMaximoDeCampoUtil(nameTable, {
+    fieldMax: "fecha_operacion",
+    where: [
+      {
+        key: "id_rol",
+        value: id_rol,
+      },
+      {
+        key: "id_usuario",
+        value: id_usuario,
+      },
+      {
+        key: "cargado",
+        value: true,
+      },
+    ],
+  });
+  const maxFechaOperacion = await pool
+    .query(queryMax)
+    .then((result) => {
+      if (!result.rowCount || result.rowCount < 1) {
+        return moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+      } else if (result?.rows[0]?.max === null) {
+        return moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+      } else {
+        return result.rows[0].max;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500END(res, err);
+      return null;
+    });
+  const queryUltimoRegistro = ObtenerUltimoRegistro(nameTable, {
+    where: [
+      {
+        key: "id_usuario",
+        value: id_usuario,
+      },
+      {
+        key: "id_rol",
+        value: id_rol,
+      },
+      {
+        key: "fecha_operacion",
+        value: new Date(maxFechaOperacion).toISOString().split("T")[0],
+      },
+      {
+        key: "cargado",
+        value: true,
+      },
+    ],
+    orderby: {
+      field: "nro_carga",
+    },
+  });
+
+  const ultimoRegistro = await pool
+    .query(queryUltimoRegistro)
+    .then((result) => {
+      return result.rows[0];
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500END(res, err);
+      return null;
+    });
+
+  const addValues = (date, days) => {
     date.setDate(date.getDate() + days);
     return date;
   };
 
+  const lastDate = new Date(ultimoRegistro);
+
   const fechaOperacionMensual = () => {
-    const uploadDate = new Date();
-    const year = uploadDate.getFullYear();
-    const month = uploadDate.getMonth();
-    const day = uploadDate.getDay();
-    const firstDayMonth = new Date(year, month, 1);
-    const fechaOperacion = addDays(firstDayMonth, -1);
+    const year = lastDate.getFullYear(); //2022
+    const month = lastDate.getMonth(); //08
+    const day = lastDate.getDay(); //10
+    const firstDayMonth = new Date(year, month, 1); // 2022-08-01
+    const fechaOperacion = addValues(firstDayMonth, -1); // 2022-07-31
 
     return fechaOperacion;
   };
   const fechaOperacionDiaria = () => {
-    const uploadDate = new Date();
-    const fechaOperacion = addDays(uploadDate, -1);
-
+    const fechaOperacion = addValues(lastDate, 1);
     return fechaOperacion;
   };
   const fechaOperacionDiaHabil = () => {
-    const uploadDate = new Date();
-    const checkDate = addDays(uploadDate, -1);
+    const checkDate = addValues(lastDate, 1);
     const day = checkDate.getUTCDay();
     let fechaOperacion = null;
     if (day === 1) {
       //SI ES LUNES
-      fechaOperacion = addDays(uploadDate, -3);
+      fechaOperacion = addDays(lastDate, -3); // ENTONCES SERA VIERNES
     } else if (day === 0) {
       // SI ES DOMINGO
-      fechaOperacion = addDays(uploadDate, -2);
+      fechaOperacion = addDays(lastDate, -2); // ENTONCES SERA VIERNES
     } else {
-      fechaOperacion = checkDate;
+      // SI ES SABADO
+      fechaOperacion = checkDate; // ENTONCES SERA VIERNES
     }
     return fechaOperacion;
   };
@@ -82,6 +150,63 @@ async function obtenerFechaOperacion(req, res) {
     respResultadoCorrectoObjeto200(res, FECHA_OPERACION[tipo]);
   }
 }
+// async function obtenerFechaOperacion(req, res) {
+//   const { tipo } = req.body;
+
+//   const addDays = (date, days) => {
+//     date.setDate(date.getDate() + days);
+//     return date;
+//   };
+
+//   const fechaOperacionMensual = () => {
+//     const uploadDate = new Date();
+//     const year = uploadDate.getFullYear();
+//     const month = uploadDate.getMonth();
+//     const day = uploadDate.getDay();
+//     const firstDayMonth = new Date(year, month, 1);
+//     const fechaOperacion = addDays(firstDayMonth, -1);
+
+//     return fechaOperacion;
+//   };
+//   const fechaOperacionDiaria = () => {
+//     const uploadDate = new Date();
+//     const fechaOperacion = addDays(uploadDate, -1);
+
+//     return fechaOperacion;
+//   };
+//   const fechaOperacionDiaHabil = () => {
+//     const uploadDate = new Date();
+//     const checkDate = addDays(uploadDate, -1);
+//     const day = checkDate.getUTCDay();
+//     let fechaOperacion = null;
+//     if (day === 1) {
+//       //SI ES LUNES
+//       fechaOperacion = addDays(uploadDate, -3); // ENTONCES SERA VIERNES
+//     } else if (day === 0) {
+//       // SI ES DOMINGO
+//       fechaOperacion = addDays(uploadDate, -2); // ENTONCES SERA VIERNES
+//     } else {
+//       // SI ES SABADO
+//       fechaOperacion = checkDate; // ENTONCES SERA VIERNES
+//     }
+//     return fechaOperacion;
+//   };
+
+//   const FECHA_OPERACION = {
+//     M: fechaOperacionMensual(),
+//     D: fechaOperacionDiaria(),
+//     DH: fechaOperacionDiaHabil(),
+//   };
+
+//   if (isNaN(Date.parse(FECHA_OPERACION[tipo]))) {
+//     respErrorServidor500END(res, {
+//       message: "Hubo un error al obtener la fecha de operación.",
+//       value: FECHA_OPERACION[tipo],
+//     });
+//   } else {
+//     respResultadoCorrectoObjeto200(res, FECHA_OPERACION[tipo]);
+//   }
+// }
 
 function ValorMaximo(req, res) {
   const { max } = req.body;
