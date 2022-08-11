@@ -9,6 +9,8 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
+  ObtenerUltimoRegistro,
+  ValorMaximoDeCampoUtil,
 } = require("../../utils/consulta.utils");
 const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
 
