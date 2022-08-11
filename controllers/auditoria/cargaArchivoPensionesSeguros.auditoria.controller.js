@@ -28,7 +28,7 @@ const {
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
 async function obtenerFechaOperacion(req, res) {
-  const { tipo } = req.body; //PENSIONES O BOLSA
+  const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
   const { id_rol, id_usuario } = req.user;
   const queryMax = ValorMaximoDeCampoUtil(nameTable, {
     fieldMax: "fecha_operacion",
@@ -40,6 +40,10 @@ async function obtenerFechaOperacion(req, res) {
       {
         key: "id_usuario",
         value: id_usuario,
+      },
+      {
+        key: "id_periodo",
+        value: tipo_periodo === "M" ? 155 : tipo_periodo === "D" ? 154 : null,
       },
       {
         key: "cargado",
@@ -115,33 +119,35 @@ async function obtenerFechaOperacion(req, res) {
     return fechaOperacion;
   };
   const fechaOperacionDiaria = () => {
-    const fechaOperacion = addValues(lastDate, 1);
-    return fechaOperacion;
-  };
-  const fechaOperacionDiaHabil = () => {
-    const checkDate = addValues(lastDate, 1);
-    const day = checkDate.getUTCDay();
-    let fechaOperacion = null;
-    if (day === 1) {
-      //SI ES LUNES
-      fechaOperacion = addDays(lastDate, -3); // ENTONCES SERA VIERNES
-    } else if (day === 0) {
-      // SI ES DOMINGO
-      fechaOperacion = addDays(lastDate, -2); // ENTONCES SERA VIERNES
+    if (tipo_archivo === "PENSIONES") {
+      const fechaOperacion = addValues(lastDate, 1); //VIERNES + 1 = SABADO
+      return fechaOperacion;
+    } else if (tipo_archivo === "BOLSA") {
+      const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
+      const dayLastDate = checkDate.getUTCDay(); //6 = SABADO; 0 = DOMINGO
+      let fechaOperacion = null;
+      if (dayLastDate === 0) {
+        //SI ES DOMINGO
+        fechaOperacion = addDays(lastDate, 1); // ENTONCES SERA LUNES
+      } else if (dayLastDate === 6) {
+        // SI ES SABADO
+        fechaOperacion = addDays(lastDate, 2); // ENTONCES SERA LUNES
+      } else {
+        // SI ES DIA HABIL
+        fechaOperacion = checkDate; // ENTONCES SERA LUNES
+      }
+      return fechaOperacion;
     } else {
-      // SI ES SABADO
-      fechaOperacion = checkDate; // ENTONCES SERA VIERNES
+      return null;
     }
-    return fechaOperacion;
   };
 
   const FECHA_OPERACION = {
     M: fechaOperacionMensual(),
     D: fechaOperacionDiaria(),
-    DH: fechaOperacionDiaHabil(),
   };
 
-  if (isNaN(Date.parse(FECHA_OPERACION[tipo]))) {
+  if (isNaN(Date.parse(FECHA_OPERACION[tipo_periodo]))) {
     respErrorServidor500END(res, {
       message: "Hubo un error al obtener la fecha de operación.",
       value: FECHA_OPERACION[tipo],
