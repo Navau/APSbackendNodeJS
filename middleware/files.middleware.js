@@ -165,6 +165,7 @@ async function obtenerListaArchivos(params) {
   const id_rol = params.req.user.id_rol;
   const id_usuario = params.req.user.id_usuario;
   const typeFiles = params.typeFiles;
+  const tipo_periodo = params.req?.body?.tipo_periodo;
   const fecha_operacion = params.req?.body?.fecha_operacion
     ? params.req.body.fecha_operacion
     : moment().format("YYYY-MM-DD");
@@ -179,9 +180,18 @@ async function obtenerListaArchivos(params) {
       periodicidad = [154];
       periodicidadFinal = 154;
     }
-  } else if (typeFiles[0].originalname.substring(0, 3 === "108")) {
+  } else if (
+    typeFiles[0].originalname.substring(0, 3 === "108") &&
+    tipo_periodo === "D"
+  ) {
     periodicidad = [154];
     periodicidadFinal = 154;
+  } else if (
+    typeFiles[0].originalname.substring(0, 3 === "108") &&
+    tipo_periodo === "M"
+  ) {
+    periodicidad = [155];
+    periodicidadFinal = 155;
   }
 
   const obtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
