@@ -17,6 +17,7 @@ const {
   EliminarUtil,
   ResetearIDUtil,
   InsertarVariosUtil,
+  ObtenerUltimoRegistro,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -26,6 +27,7 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respArchivoErroneo415,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";

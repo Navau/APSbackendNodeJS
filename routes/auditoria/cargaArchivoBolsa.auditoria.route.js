@@ -10,11 +10,6 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.tipoDeCambio
 );
-api.post(
-  "/FechaOperacion",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.obtenerFechaOperacion
-);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",
