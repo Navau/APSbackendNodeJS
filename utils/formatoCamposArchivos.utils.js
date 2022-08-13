@@ -54,7 +54,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsTipoCuenta = null;
       let paramsFlujoTotal = null;
       let paramsCantidadPorPrecio = null;
-      let paramsMayorACero = null;
+      let paramsMayorACeroEntero = null;
+      let paramsMayorACeroDecimal = null;
       let paramsTotalBsMenosPrevisionesInversiones = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
@@ -71,7 +72,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("K");
         paramsBolsa = {
-          table: "APS_param_tipo_instrumento",
+          table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
             where: [
@@ -101,7 +102,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("L");
         paramsBolsa = {
-          table: "APS_param_tipo_instrumento",
+          table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
             where: [
@@ -130,7 +131,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("N");
         paramsBolsa = {
-          table: "APS_param_tipo_instrumento",
+          table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
             where: [
@@ -147,7 +148,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         nameTable = "APS_aud_carga_archivos_bolsa";
         headers = await formatoArchivo("P");
         paramsBolsa = {
-          table: "APS_param_tipo_instrumento",
+          table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
             where: [
@@ -618,7 +619,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         codeCurrentFile = "483";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
-        paramsMayorACero = true;
+        paramsMayorACeroEntero = true;
+        paramsMayorACeroDecimal = true;
         paramsCantidadPorPrecio = true;
         paramsTotalBsMenosPrevisionesInversiones = true;
       } else if (nameFile.includes(".484")) {
@@ -664,7 +666,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTipoDeCambio,
         paramsBolsa,
         paramsTipoValoracion,
-        paramsMayorACero,
+        paramsMayorACeroEntero,
+        paramsMayorACeroDecimal,
         paramsCantidadPorPrecio,
         paramsTotalBsMenosPrevisionesInversiones,
         paramsTipoActivo,
@@ -1665,14 +1668,14 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^\d{1,7}$/,
         positveNegative: true,
         required: true,
-        function: "mayorACero",
+        function: "mayorACeroEntero",
       },
       {
         columnName: "precio",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "mayorACero",
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "total_bs",
@@ -1686,14 +1689,14 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "mayorACero",
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "mayorACero",
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "total_neto_inversiones_bs",
@@ -1738,6 +1741,213 @@ async function obtenerValidaciones(typeFile) {
         positveNegative: true,
         required: true,
         function: null,
+      },
+    ],
+    491: [
+      //       codigo_contable
+      // direccion
+      // ciudad
+      // fecha_compra
+      // superficie
+      // nro_registro_ddrr
+      // nro_testimonio
+      // saldo_anterior
+      // incremento
+      // decremento
+      // fecha
+      // altas_bajas
+      // actualizacion
+      // saldo_final
+      // saldo_anterior_depreciacion_acumulada
+      // Bajas
+      // actualizacion_depreciacion
+      // depreciacion_periodo
+      // saldo_final_dep
+      // valor_neto_bs
+      // valor_neto_da
+      // valor_neto_ufv
+      // total_vida_util
+      // vida_util_restante
+      // observaciones
+      // prevision
+
+      {
+        columnName: "codigo_contable",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoActivo",
+      },
+      {
+        columnName: "direccion",
+        pattern: /^[A-Za-z0-9,-]{15,300}$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "ciudad",
+        pattern: /^[A-Za-z0-9,-]{5,30}$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "fecha_compra",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "superficie",
+        pattern: /^[A-Za-z0-9,-]{5,13}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "nro_registro_ddrr",
+        pattern: /^[A-Za-z0-9,-]{5,25}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "nro_testimonio",
+        pattern: /^[A-Za-z0-9,-]{5,15}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "saldo_anterior",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "incremento",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "decremento",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "fecha",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "altas_bajas",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "actualizacion",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_final",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "saldo_anterior_depreciacion_acumulada",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "bajas",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "actualizacion_depreciacion",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "depreciacion_periodo",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_final_dep",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "valor_neto_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "valor_neto_da",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "valor_neto_ufv",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "total_vida_util",
+        pattern: /^[1-9][0-9]*$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "observaciones",
+        pattern: /^[A-Za-z0-9,-]{0,300}$/,
+        positveNegative: true,
+        required: true,
+        mayBeEmpty: true,
+        function: null,
+      },
+      {
+        columnName: "prevision",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
       },
     ],
   };
@@ -1933,10 +2143,40 @@ async function calificacionRiesgo(table, params) {
   return resultFinal;
 }
 
-async function mayorACero(params) {
+async function mayorACeroEntero(params) {
   const { value } = params;
   try {
     const valueNumber = parseInt(value);
+    if (isNaN(valueNumber)) {
+      return {
+        ok: false,
+        message: `El dato no es un numero entero.`,
+      };
+    } else {
+      if (valueNumber > 0) {
+        return {
+          ok: true,
+          message: `El valor si es mayor a 0.`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El valor no es mayor a 0.`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function mayorACeroDecimal(params) {
+  const { value } = params;
+  try {
+    const valueNumber = parseFloat(value);
     if (isNaN(valueNumber)) {
       return {
         ok: false,
@@ -2236,16 +2476,16 @@ async function tipoValoracion(table, params) {
 async function cantidadPorPrecio(params) {
   const { cantidad, precio, total_bs } = params;
   try {
-    const cantidadValue = parseInt(cantidad);
-    const precioValue = parseInt(precio);
+    const cantidadValue = parseFloat(cantidad).toFixed(2);
+    const precioValue = parseFloat(precio).toFixed(2);
     if (isNaN(cantidadValue) || isNaN(precioValue)) {
       return {
         ok: false,
         message: `La cantidad o el precio no son numeros.`,
       };
     } else {
-      const result = parseInt(cantidad) * parseInt(precio);
-      if (result.toFixed(2) === total_bs.toFixed(2)) {
+      const result = cantidadValue * precioValue;
+      if (result.toFixed(2) === parseFloat(total_bs).toFixed(2)) {
         return {
           ok: true,
           message: `El valor si es correcto`,
@@ -2269,17 +2509,20 @@ async function totalBsMenosPrevisionesInversiones(params) {
   const { total_bs, prevision_inversion_bs, total_neto_inversiones_bs } =
     params;
   try {
-    const totalBsValue = parseInt(total_bs);
-    const previsionInversionBsValue = parseInt(prevision_inversion_bs);
+    const totalBsValue = parseFloat(total_bs).toFixed(2);
+    const previsionInversionBsValue = parseFloat(
+      prevision_inversion_bs
+    ).toFixed(2);
     if (isNaN(totalBsValue) || isNaN(previsionInversionBsValue)) {
       return {
         ok: false,
         message: `La cantidad o el precio no son numeros.`,
       };
     } else {
-      const result =
-        parseInt(totalBsValue) - parseInt(previsionInversionBsValue);
-      if (result.toFixed(2) === total_neto_inversiones_bs.toFixed(2)) {
+      const result = totalBsValue - previsionInversionBsValue;
+      if (
+        result.toFixed(2) === parseFloat(total_neto_inversiones_bs).toFixed(2)
+      ) {
         return {
           ok: true,
           message: `El valor si es correcto`,
@@ -2324,7 +2567,8 @@ module.exports = {
   montoFinalConTipoDeCambio,
   bolsa,
   tipoValoracion,
-  mayorACero,
+  mayorACeroEntero,
+  mayorACeroDecimal,
   cantidadPorPrecio,
   totalBsMenosPrevisionesInversiones,
   tipoActivo,

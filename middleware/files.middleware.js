@@ -30,10 +30,11 @@ const {
   tipoDeCambio,
   bolsa,
   tipoValoracion,
-  mayorACero,
   cantidadPorPrecio,
   totalBsMenosPrevisionesInversiones,
   tipoActivo,
+  mayorACeroDecimal,
+  mayorACeroEntero,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -707,6 +708,15 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   columna: columnName,
                   fila: index2,
                 });
+              } else if (value !== fechaOperacion) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no superó la validación de tipo de dato, el cual tiene que coincidir con la fecha del nombre del archivo.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
             }
           }
@@ -1151,14 +1161,31 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "mayorACero") {
-            const _mayorACero = infoArchivo?.paramsMayorACero
-              ? await mayorACero({
+          } else if (funct === "mayorACeroDecimal") {
+            const _mayorACeroDecimal = infoArchivo?.paramsMayorACeroDecimal
+              ? await mayorACeroDecimal({
                   value: value,
                 })
               : null;
 
-            if (_mayorACero.ok === true) {
+            if (_mayorACeroDecimal.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "mayorACeroEntero") {
+            const _mayorACeroEntero = infoArchivo?.paramsMayorACeroEntero
+              ? await mayorACeroEntero({
+                  value: value,
+                })
+              : null;
+
+            if (_mayorACeroEntero.ok === true) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
