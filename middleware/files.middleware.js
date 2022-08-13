@@ -30,6 +30,10 @@ const {
   tipoDeCambio,
   bolsa,
   tipoValoracion,
+  mayorACero,
+  cantidadPorPrecio,
+  totalBsMenosPrevisionesInversiones,
+  tipoActivo,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -173,12 +177,11 @@ async function obtenerListaArchivos(params) {
   periodicidadFinal = 154;
 
   if (typeFiles[0].originalname.substring(0, 1) === "M") {
+    periodicidadFinal = 154;
     if (typeFiles.length >= 1) {
       periodicidad = [154, 219];
-      periodicidadFinal = 219;
     } else {
       periodicidad = [154];
-      periodicidadFinal = 154;
     }
   } else if (
     typeFiles[0].originalname.substring(0, 3 === "108") &&
@@ -427,6 +430,7 @@ async function validarArchivosIteraciones(params) {
                     codeCurrentFile = await infoArchivo.codeCurrentFile;
                     nameTable = await infoArchivo.nameTable;
                     headers = await infoArchivo.headers;
+                    console.log(infoArchivo);
 
                     codeCurrentFilesArray.push(codeCurrentFile);
 
@@ -435,6 +439,12 @@ async function validarArchivosIteraciones(params) {
                       ? await tipoInstrumento(
                           infoArchivo.paramsInstrumento.table,
                           infoArchivo.paramsInstrumento.params
+                        )
+                      : null;
+                    const _tipoActivo = infoArchivo?.paramsTipoActivo
+                      ? await tipoActivo(
+                          infoArchivo.paramsTipoActivo.table,
+                          infoArchivo.paramsTipoActivo.params
                         )
                       : null;
                     const codValoracionInstrumento =
@@ -571,6 +581,7 @@ async function validarArchivosIteraciones(params) {
                             item,
                             infoArchivo,
                             instrumento,
+                            _tipoActivo,
                             codValoracionInstrumento,
                             codOperacion,
                             tipoMarcacion,
@@ -620,6 +631,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let item = params.item;
       let infoArchivo = params.infoArchivo;
       let instrumento = params.instrumento;
+      let _tipoActivo = params._tipoActivo;
       let codValoracionInstrumento = params.codValoracionInstrumento;
       let codOperacion = params.codOperacion;
       let tipoMarcacion = params.tipoMarcacion;
@@ -789,6 +801,24 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoActivo") {
+            let errFunction = true;
+            map(_tipoActivo?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                // console.log(value);
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun tipo de activo.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1121,6 +1151,62 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "mayorACero") {
+            const _mayorACero = infoArchivo?.paramsMayorACero
+              ? await mayorACero({
+                  value: value,
+                })
+              : null;
+
+            if (_mayorACero.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "cantidadPorPrecio") {
+            const _cantidadPorPrecio = infoArchivo?.paramsCantidadPorPrecio
+              ? await cantidadPorPrecio({
+                  cantidad: item2.cantidad,
+                  precio: item2.precio,
+                  total_bs: value,
+                })
+              : null;
+
+            if (_cantidadPorPrecio.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "totalBsMenosPrevisionesInversiones") {
+            const _totalBsMenosPrevisionesInversiones =
+              infoArchivo?.paramsTotalBsMenosPrevisionesInversiones
+                ? await totalBsMenosPrevisionesInversiones({
+                    total_bs: item2.total_bs,
+                    prevision_inversion_bs: item2.prevision_inversion_bs,
+                    total_neto_inversiones_bs: value,
+                  })
+                : null;
+
+            if (_totalBsMenosPrevisionesInversiones.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
         }
       };
@@ -1185,7 +1271,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 }
 
 exports.validarArchivo2 = async (req, res, next) => {
-  let fechaInicialOperacion = req?.body?.fecha_operacion;
+  const fechaInicialOperacion = req?.body?.fecha_operacion;
+  const fecha_entrega = req?.body?.fecha_entrega;
+
   try {
     const id_rol = req.user.id_rol;
     const id_usuario = req.user.id_usuario;
@@ -1280,15 +1368,29 @@ exports.validarArchivo2 = async (req, res, next) => {
             map(req.files, (item, index) => {
               currentFiles.push(item.originalname);
             });
-            bodyQuery.push({
-              id_rol,
-              id_periodo: periodicidadFinal,
-              fecha_operacion: fechaOperacion,
-              nro_carga: nroCarga === null ? 1 : nroCarga + 1,
-              fecha_carga: new Date(),
-              id_usuario,
-              cargado: false,
-            });
+            console.log("fecha_entrega", fecha_entrega);
+            if (fecha_entrega) {
+              bodyQuery.push({
+                id_rol,
+                id_periodo: periodicidadFinal,
+                fecha_operacion: fechaOperacion,
+                fecha_entrega: fecha_entrega,
+                nro_carga: nroCarga === null ? 1 : nroCarga + 1,
+                fecha_carga: new Date(),
+                id_usuario,
+                cargado: false,
+              });
+            } else {
+              bodyQuery.push({
+                id_rol,
+                id_periodo: periodicidadFinal,
+                fecha_operacion: fechaOperacion,
+                nro_carga: nroCarga === null ? 1 : nroCarga + 1,
+                fecha_carga: new Date(),
+                id_usuario,
+                cargado: false,
+              });
+            }
             queryFiles = InsertarVariosUtil(nameTable, {
               body: bodyQuery,
               returnValue: ["id_carga_archivos"],

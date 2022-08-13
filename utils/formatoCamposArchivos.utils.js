@@ -53,12 +53,16 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsCodCustodia = null;
       let paramsTipoCuenta = null;
       let paramsFlujoTotal = null;
+      let paramsCantidadPorPrecio = null;
+      let paramsMayorACero = null;
+      let paramsTotalBsMenosPrevisionesInversiones = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
       let paramsTipoDeCambio = null;
       let paramsBolsa = null;
       let paramsTipoValoracion = null;
+      let paramsTipoActivo = null;
       let headers = null;
 
       if (nameFile.includes("K.")) {
@@ -609,6 +613,29 @@ async function obtenerInformacionDeArchivo(nameFile) {
           },
         };
         paramsFechaOperacionMenor = true;
+      } else if (nameFile.includes(".483")) {
+        console.log("ARCHIVO CORRECTO : 483", nameFile);
+        codeCurrentFile = "483";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsMayorACero = true;
+        paramsCantidadPorPrecio = true;
+        paramsTotalBsMenosPrevisionesInversiones = true;
+      } else if (nameFile.includes(".484")) {
+        console.log("ARCHIVO CORRECTO : 484", nameFile);
+        codeCurrentFile = "484";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsTipoActivo = {
+          table: "APS_param_clasificador_comun",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 30,
+            },
+          ],
+        };
       } else {
         reject();
       }
@@ -637,6 +664,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTipoDeCambio,
         paramsBolsa,
         paramsTipoValoracion,
+        paramsMayorACero,
+        paramsCantidadPorPrecio,
+        paramsTotalBsMenosPrevisionesInversiones,
+        paramsTipoActivo,
       });
     }
   );
@@ -1337,6 +1368,13 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
+        columnName: "codigo_cuenta_contable",
+        pattern: /^[A-Za-z0-9,-]{1,12}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
@@ -1345,14 +1383,14 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "saldo_mo",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "saldo_bs",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "montoFinalConTipoDeCambio",
@@ -1381,6 +1419,13 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
+        columnName: "codigo_cuenta_contable",
+        pattern: /^[A-Za-z0-9,-]{1,12}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
@@ -1389,14 +1434,14 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "saldo_mo",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "saldo_bs",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "montoFinalConTipoDeCambio",
@@ -1601,23 +1646,17 @@ async function obtenerValidaciones(typeFile) {
         function: "tipoInstrumento",
       },
       {
-        columnName: "serie",
-        pattern: /^[A-Za-z0-9]{5,23}$/,
+        columnName: "entidad_emisora",
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "tipoInstrumento",
       },
       {
-        columnName: "codigo_valoracion",
-        pattern: /^[[A-Za-z0-9]{7,10}$/,
-        positveNegative: true,
-        required: true,
-        function: "codigoValoracionConInstrumento",
-      },
-      {
-        columnName: "tasa_relevante_valoracion",
-        pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
-        positveNegative: true,
+        columnName: "fecha_adquisicion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
         required: true,
         function: null,
       },
@@ -1626,64 +1665,79 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^\d{1,7}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "mayorACero",
       },
       {
-        columnName: "plazo_valor",
-        pattern: /^\d{1,7}$/,
+        columnName: "precio",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "mayorACero",
       },
       {
-        columnName: "plazo_economico",
-        pattern: /^\d{1,7}$/,
+        columnName: "total_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "cantidadPorPrecio",
       },
       {
-        columnName: "precio_mo",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        columnName: "total_da",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "mayorACero",
       },
       {
-        columnName: "precio_total_mo",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        columnName: "prevision_inversiones_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "precioTotal",
+        function: "mayorACero",
       },
       {
-        columnName: "moneda",
-        pattern: /^[A-Za-z]{1,1}$/,
+        columnName: "total_neto_inversiones_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "codigoMoneda",
+        function: "totalBsMenosPrevisionesInversiones",
       },
+    ],
+    484: [
       {
-        columnName: "precio_total_bs",
-        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
-        positveNegative: true,
-        required: true,
-        function: null,
-      },
-      {
-        columnName: "calificacion_riesgo",
+        columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "calificacionRiesgoGrande",
+        function: "tipoActivo",
       },
       {
-        columnName: "fecha_operacion",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        columnName: "detalle_2",
+        pattern: /^[A-Za-z0-9,-]{5,25}$/,
         positveNegative: false,
         required: true,
-        function: "fechaOperacionMenorAlArchivo",
+        function: null,
+      },
+      {
+        columnName: "detalle_2",
+        pattern: /^[A-Za-z0-9,-]{5,25}$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "cuenta_contable",
+        pattern: /^[A-Za-z0-9,-]{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "prevision_inversiones_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
       },
     ],
   };
@@ -1792,6 +1846,23 @@ async function tipoInstrumento(table, params) {
   return resultFinal;
 }
 
+async function tipoActivo(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
 async function tipoMarcacion(params) {
   const { monto_negociado, monto_minimo } = params;
   let resultFinal = null;
@@ -1860,6 +1931,36 @@ async function calificacionRiesgo(table, params) {
       return resultFinal;
     });
   return resultFinal;
+}
+
+async function mayorACero(params) {
+  const { value } = params;
+  try {
+    const valueNumber = parseInt(value);
+    if (isNaN(valueNumber)) {
+      return {
+        ok: false,
+        message: `El dato no es un numero entero.`,
+      };
+    } else {
+      if (valueNumber > 0) {
+        return {
+          ok: true,
+          message: `El valor si es mayor a 0.`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El valor no es mayor a 0.`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+    };
+  }
 }
 
 async function codigoCustodia(table, params) {
@@ -2098,7 +2199,7 @@ async function montoFinalConTipoDeCambio(params) {
   }
 }
 
-async function bolsa(params) {
+async function bolsa(table, params) {
   let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
   await pool
@@ -2115,7 +2216,7 @@ async function bolsa(params) {
   return resultFinal;
 }
 
-async function tipoValoracion(params) {
+async function tipoValoracion(table, params) {
   let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
   await pool
@@ -2130,6 +2231,72 @@ async function tipoValoracion(params) {
       return resultFinal;
     });
   return resultFinal;
+}
+
+async function cantidadPorPrecio(params) {
+  const { cantidad, precio, total_bs } = params;
+  try {
+    const cantidadValue = parseInt(cantidad);
+    const precioValue = parseInt(precio);
+    if (isNaN(cantidadValue) || isNaN(precioValue)) {
+      return {
+        ok: false,
+        message: `La cantidad o el precio no son numeros.`,
+      };
+    } else {
+      const result = parseInt(cantidad) * parseInt(precio);
+      if (result.toFixed(2) === total_bs.toFixed(2)) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `La cantidad multiplicado por el precio no es igual al total en bolivianos.`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function totalBsMenosPrevisionesInversiones(params) {
+  const { total_bs, prevision_inversion_bs, total_neto_inversiones_bs } =
+    params;
+  try {
+    const totalBsValue = parseInt(total_bs);
+    const previsionInversionBsValue = parseInt(prevision_inversion_bs);
+    if (isNaN(totalBsValue) || isNaN(previsionInversionBsValue)) {
+      return {
+        ok: false,
+        message: `La cantidad o el precio no son numeros.`,
+      };
+    } else {
+      const result =
+        parseInt(totalBsValue) - parseInt(previsionInversionBsValue);
+      if (result.toFixed(2) === total_neto_inversiones_bs.toFixed(2)) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El total en bolivianos restado por la prevision de inversiones en bolivianos no es igual total neto de inversiones en bolivianos.`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+    };
+  }
 }
 
 module.exports = {
@@ -2157,4 +2324,8 @@ module.exports = {
   montoFinalConTipoDeCambio,
   bolsa,
   tipoValoracion,
+  mayorACero,
+  cantidadPorPrecio,
+  totalBsMenosPrevisionesInversiones,
+  tipoActivo,
 };

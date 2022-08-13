@@ -149,18 +149,19 @@ async function obtenerFechaOperacion(req, res) {
         return fechaOperacion;
       } else if (tipo_archivo === "BOLSA") {
         const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
-        const dayLastDate = checkDate.getUTCDay(); //6 = SABADO; 0 = DOMINGO
         let fechaOperacion = null;
-        if (dayLastDate === 0) {
-          //SI ES DOMINGO
-          fechaOperacion = addValues(lastDate, 1); // ENTONCES SERA LUNES
-        } else if (dayLastDate === 6) {
-          // SI ES SABADO
-          fechaOperacion = addValues(lastDate, 2); // ENTONCES SERA LUNES
-        } else {
-          // SI ES DIA HABIL
-          fechaOperacion = checkDate; // ENTONCES SERA LUNES
-        }
+        // const dayLastDate = checkDate.getUTCDay(); //6 = SABADO; 0 = DOMINGO
+        // if (dayLastDate === 0) {
+        //   //SI ES DOMINGO
+        //   fechaOperacion = addValues(lastDate, 1); // ENTONCES SERA LUNES
+        // } else if (dayLastDate === 6) {
+        //   // SI ES SABADO
+        //   fechaOperacion = addValues(lastDate, 2); // ENTONCES SERA LUNES
+        // } else {
+        //   // SI ES DIA HABIL
+        //   fechaOperacion = checkDate; // ENTONCES SERA LUNES
+        // }
+        fechaOperacion = checkDate; // ENTONCES SERA LUNES
         return fechaOperacion;
       } else {
         return null;
