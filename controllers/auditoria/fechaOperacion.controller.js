@@ -34,7 +34,7 @@ async function obtenerFechaOperacion(req, res) {
     }
 
     // 👇️ 2021-10-24 16:21:23 (yyyy-mm-dd hh:mm:ss)
-    console.log(formatDate(new Date()));
+    // console.log(formatDate(new Date()));
 
     const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
     const { id_rol, id_usuario } = req.user;
@@ -131,15 +131,20 @@ async function obtenerFechaOperacion(req, res) {
       date.setDate(date.getDate() + days);
       return date;
     };
+    const addMonths = (date, months) => {
+      date.setMonth(date.getMonth() + months);
+      return date;
+    };
 
     const lastDate = new Date(ultimoRegistro);
 
     const fechaOperacionMensual = () => {
       const year = lastDate.getFullYear(); //2022
-      const month = lastDate.getMonth(); //08
-      const day = lastDate.getDay(); //10
-      const firstDayMonth = new Date(year, month, 1); // 2022-08-01
-      const fechaOperacion = addValues(firstDayMonth, 1); // 2022-08-31
+      const month = lastDate.getMonth(); //06
+      const day = lastDate.getDay(); //30
+      const firstDayMonth = new Date(year, month, 1); // 2022-06-01
+      const lastDayMonth = addMonths(firstDayMonth, 2); // 2022-08-01
+      const fechaOperacion = addValues(lastDayMonth, -1); // 2022-07-31
 
       return fechaOperacion;
     };
