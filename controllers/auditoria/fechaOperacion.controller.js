@@ -139,7 +139,7 @@ async function obtenerFechaOperacion(req, res) {
       const month = lastDate.getMonth(); //08
       const day = lastDate.getDay(); //10
       const firstDayMonth = new Date(year, month, 1); // 2022-08-01
-      const fechaOperacion = addValues(firstDayMonth, -1); // 2022-07-31
+      const fechaOperacion = addValues(firstDayMonth, 1); // 2022-08-31
 
       return fechaOperacion;
     };

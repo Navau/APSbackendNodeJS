@@ -1,4 +1,6 @@
 const pool = require("../../database");
+const { map } = require("lodash");
+const moment = require("moment");
 
 const {
   ListarUtil,
@@ -12,6 +14,7 @@ const {
   ObtenerUltimoRegistro,
   ValorMaximoDeCampoUtil,
 } = require("../../utils/consulta.utils");
+
 const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
 
 const {
@@ -20,9 +23,11 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respResultadoVacioObject200,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_oper_carga_archivos_bolsa";
+const nameTable = "APS_aud_carga_archivos_bolsa";
 
 async function tipoDeCambio(req, res) {
   const { fecha_operacion } = req.body;
@@ -69,6 +74,87 @@ async function tipoDeCambio(req, res) {
     .catch((err) => {
       respErrorServidor500(res, err);
     });
+}
+
+function ValorMaximo(req, res) {
+  const { max } = req.body;
+  let fieldMax = max ? max : "fecha_operacion";
+  let whereValuesAux = [];
+  let whereFinal = [
+    {
+      key: "cargado",
+      value: true,
+    },
+  ];
+  map(req.body, (item, index) => {
+    whereValuesAux.push({
+      key: index,
+      value: item,
+    });
+  });
+  whereFinal = whereFinal.concat(whereValuesAux);
+  const params = {
+    fieldMax,
+    where: whereFinal,
+  };
+  let query = ValorMaximoDeCampoUtil(nameTable, params);
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500(res, err);
+    } else {
+      if (!result.rowCount || result.rowCount < 1) {
+        respResultadoVacio404(res);
+      } else {
+        if (result.rows[0].max === null) {
+          result = {
+            ...result,
+            rows: [
+              {
+                max: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
+              },
+            ],
+          };
+        }
+        respResultadoCorrecto200(res, result);
+      }
+    }
+  });
+}
+
+function UltimaCarga(req, res) {
+  const { fecha_operacion, cargado } = req.body;
+  const { id_rol, id_usuario } = req.user;
+  const params = {
+    where: [
+      {
+        key: "id_usuario",
+        value: id_usuario,
+      },
+      {
+        key: "id_rol",
+        value: id_rol,
+      },
+      {
+        key: "fecha_operacion",
+        value: fecha_operacion,
+      },
+      {
+        key: "cargado",
+        value: cargado === true || cargado === false ? cargado : true,
+      },
+    ],
+    orderby: {
+      field: "nro_carga",
+    },
+  };
+  let query = ObtenerUltimoRegistro(nameTable, params);
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500END(res, err);
+    } else {
+      respResultadoVacioObject200(res, result.rows);
+    }
+  });
 }
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO BOLSA DE SEGURIDAD
@@ -237,4 +323,6 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   tipoDeCambio,
+  ValorMaximo,
+  UltimaCarga,
 };

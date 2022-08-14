@@ -6,6 +6,16 @@ const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post(
+  "/ValorMaximo",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ValorMaximo
+);
+api.post(
+  "/UltimaCarga",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.UltimaCarga
+);
+api.post(
   "/TipoDeCambio",
   [md_auth.AsegurarAutenticacionConToken],
   controller.tipoDeCambio

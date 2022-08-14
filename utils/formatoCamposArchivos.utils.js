@@ -1869,7 +1869,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "saldoFinalSuma",
       },
       {
         columnName: "saldo_anterior_depreciacion_acumulada",
@@ -2540,6 +2540,10 @@ async function totalBsMenosPrevisionesInversiones(params) {
       message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
     };
   }
+}
+
+async function SaldoAntMasRevaluoMasAltasBajasMasActualizacion(params) {
+  const { saldo_anterior, altas_bajas, actualizacion } = params;
 }
 
 module.exports = {
