@@ -22,6 +22,7 @@ const {
   respIDNoRecibido400,
   respErrorServidor500END,
   respResultadoVacio404END,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 const { map } = require("lodash");
 
@@ -153,11 +154,8 @@ async function SeleccionarArchivosBolsa(req, res) {
         return null;
       }
 
-      const currentDate = new Date();
-      console.log("CURRENT_DATE", currentDate);
-      console.log(moment());
+      const currentDate = new Date(fecha_operacion);
       const day = currentDate.getUTCDay();
-      console.log("DAY", day);
       let periodicidad = [154]; //VALOR POR DEFECTO
 
       if (day === 0 || day === 6 || holidays.length >= 1) {
@@ -202,7 +200,10 @@ async function SeleccionarArchivosBolsa(req, res) {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
           } else {
-            respResultadoCorrecto200(res, result);
+            respResultadoCorrectoObjeto200(res, {
+              result: result.rows,
+              date: new Date(),
+            });
           }
         })
         .catch((err) => {
