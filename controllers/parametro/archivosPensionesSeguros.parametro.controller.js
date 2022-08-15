@@ -1,4 +1,5 @@
 const pool = require("../../database");
+const moment = require("moment");
 
 const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
 
@@ -20,6 +21,7 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respErrorServidor500END,
+  respResultadoVacio404END,
 } = require("../../utils/respuesta.utils");
 const { map } = require("lodash");
 
@@ -85,47 +87,86 @@ async function SeleccionarArchivosBolsa(req, res) {
   const id_rol = req.user.id_rol;
   const id_usuario = req.user.id_usuario;
 
-  if (!id_usuario || !id_rol) {
-    respDatosNoRecibidos400(
-      res,
-      "La información que se mando no es suficiente, falta el ID del usuario o el ID Rol."
-    );
-  } else {
-    let queryFeriado = EscogerInternoUtil("APS_param_feriado", {
-      select: ["*"],
+  const tipoDeCambio = async () => {
+    const resultFinal = { ok: false, message: "", err: null };
+    const queryTipoCambio = EscogerInternoUtil("APS_oper_tipo_cambio", {
+      select: ["count(*)"],
       where: [
-        {
-          key: "fecha",
-          value: fecha_operacion,
-        },
+        { key: `id_moneda`, valuesWhereIn: [3, 4], whereIn: true },
+        { key: `fecha`, value: fecha_operacion },
       ],
     });
-    const holidays = await pool
-      .query(queryFeriado)
+    await pool
+      .query(queryTipoCambio)
       .then((result) => {
-        return result.rows;
+        if (parseInt(result.rows[0].count) === 2) {
+          resultFinal.ok = true;
+          resultFinal.message =
+            "Correcto. Existe tipo de cambio para la fecha.";
+        } else {
+          resultFinal.ok = false;
+          resultFinal.message = "No existe tipo de cambio para esa fecha.";
+        }
       })
       .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-        return null;
+        resultFinal.ok = null;
+        resultFinal.err = err;
       });
+    return resultFinal;
+  };
 
-    if (holidays === null) {
-      return null;
-    }
-
-    const currentDate = new Date(fecha_operacion);
-    const day = currentDate.getUTCDay();
-    let periodicidad = [154]; //VALOR POR DEFECTO
-
-    if (day === 0 || day === 6 || holidays.length >= 1) {
-      periodicidad = [154]; // DIARIOS
+  if (!fecha_operacion) {
+    respDatosNoRecibidos400(
+      res,
+      "La información que se mando no es suficiente, falta la fecha de operación."
+    );
+  } else {
+    const _tipoDeCambio = await tipoDeCambio();
+    if (_tipoDeCambio.err !== null) {
+      respErrorServidor500END(res, _tipoDeCambio.err);
+      return;
+    } else if (_tipoDeCambio.ok === false) {
+      respResultadoVacio404END(res, _tipoDeCambio.message);
+      return;
     } else {
-      periodicidad = [154, 219]; // DIAS HABILES
-    }
+      let queryFeriado = EscogerInternoUtil("APS_param_feriado", {
+        select: ["*"],
+        where: [
+          {
+            key: "fecha",
+            value: fecha_operacion,
+          },
+        ],
+      });
+      const holidays = await pool
+        .query(queryFeriado)
+        .then((result) => {
+          return result.rows;
+        })
+        .catch((err) => {
+          console.log(err);
+          respErrorServidor500END(res, err);
+          return null;
+        });
 
-    let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
+      if (holidays === null) {
+        return null;
+      }
+
+      const currentDate = new Date();
+      console.log("CURRENT_DATE", currentDate);
+      console.log(moment());
+      const day = currentDate.getUTCDay();
+      console.log("DAY", day);
+      let periodicidad = [154]; //VALOR POR DEFECTO
+
+      if (day === 0 || day === 6 || holidays.length >= 1) {
+        periodicidad = [154]; // DIARIOS
+      } else {
+        periodicidad = [154, 219]; // DIAS HABILES
+      }
+
+      let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
     "APS_param_archivos_pensiones_seguros".nombre::text, 
     'nnn'::text, "APS_seg_institucion".codigo::text),
     'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text),
@@ -153,21 +194,22 @@ async function SeleccionarArchivosBolsa(req, res) {
     AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
     AND "APS_param_archivos_pensiones_seguros".status = true;`;
 
-    console.log(query);
+      console.log(query);
 
-    pool
-      .query(query)
-      .then((result) => {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-      });
+      pool
+        .query(query)
+        .then((result) => {
+          if (!result.rowCount || result.rowCount < 1) {
+            respResultadoVacio404(res);
+          } else {
+            respResultadoCorrecto200(res, result);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          respErrorServidor500END(res, err);
+        });
+    }
   }
 }
 

@@ -85,8 +85,6 @@ const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 //   }
 // }
 
-async function TipoDeCambio(params) {}
-
 function ValorMaximo(req, res) {
   const { max } = req.body;
   let fieldMax = max ? max : "fecha_operacion";

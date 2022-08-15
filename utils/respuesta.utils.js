@@ -67,6 +67,18 @@ function respResultadoVacio404(res, msg) {
       : "No se logró realizar correctamente la petición, debido a que la información no existe.",
   });
 }
+function respResultadoVacio404END(res, msg) {
+  res
+    .status(404)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg
+        ? msg
+        : "No se logró realizar correctamente la petición, debido a que la información no existe.",
+    })
+    .end();
+}
 
 function respResultadoVacioObject200(res, data, msg) {
   res.status(200).send({
@@ -151,6 +163,7 @@ module.exports = {
   respArchivoErroneo415,
   respResultadoCorrecto200,
   respResultadoVacio404,
+  respResultadoVacio404END,
   respIDNoRecibido400,
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
