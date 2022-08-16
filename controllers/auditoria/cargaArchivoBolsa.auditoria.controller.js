@@ -81,7 +81,6 @@ async function ValorMaximo(req, res) {
   const { max } = req.body;
   const { id_rol, id_usuario } = req.user;
   let fieldMax = max ? max : "fecha_operacion";
-  let whereValuesAux = [];
   let whereFinal = [
     {
       key: "id_rol",
@@ -92,13 +91,6 @@ async function ValorMaximo(req, res) {
       value: true,
     },
   ];
-  map(req.body, (item, index) => {
-    whereValuesAux.push({
-      key: index,
-      value: item,
-    });
-  });
-  whereFinal = whereFinal.concat(whereValuesAux);
   const params = {
     fieldMax,
     where: whereFinal,

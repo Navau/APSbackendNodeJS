@@ -88,7 +88,7 @@ const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 // }
 
 async function ValorMaximo(req, res) {
-  const { max } = req.body;
+  const { max, tipo_periodo } = req.body;
   const { id_rol, id_usuario } = req.user;
   const institucion = async () => {
     let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
@@ -157,26 +157,24 @@ async function ValorMaximo(req, res) {
   }
 
   let fieldMax = max ? max : "fecha_operacion";
-  let whereValuesAux = [];
   let whereFinal = [
     {
       key: "id_rol",
       value: id_rol,
     },
     {
+      key: "id_periodo",
+      value: tipo_periodo === "M" ? 155 : tipo_periodo === "D" ? 154 : null,
+    },
+    {
       key: "cod_institucion",
       value: cod_institucion.result.codigo,
     },
+    {
+      key: "cargado",
+      value: true,
+    },
   ];
-  map(req.body, (item, index) => {
-    if (index !== "max") {
-      whereValuesAux.push({
-        key: index,
-        value: item,
-      });
-    }
-  });
-  whereFinal = whereFinal.concat(whereValuesAux);
   const params = {
     fieldMax,
     where: whereFinal,

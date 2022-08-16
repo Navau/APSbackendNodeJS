@@ -154,12 +154,12 @@ async function obtenerFechaOperacion(req, res) {
     }
 
     const queryMax = ValorMaximoDeCampoUtil(tableQuery, {
-      fieldMax: "fecha_carga",
+      fieldMax: "fecha_operacion",
       where: whereMax,
     });
     console.log(queryMax);
 
-    const maxFechaCarga = await pool
+    const maxFechaOperacion = await pool
       .query(queryMax)
       .then((result) => {
         if (!result.rowCount || result.rowCount < 1) {
@@ -189,8 +189,8 @@ async function obtenerFechaOperacion(req, res) {
           value: cod_institucion.result.codigo,
         },
         {
-          key: "fecha_carga",
-          value: new Date(maxFechaCarga).toISOString().split("T")[0],
+          key: "fecha_operacion",
+          value: new Date(maxFechaOperacion).toISOString().split("T")[0],
         },
         {
           key: "cargado",
@@ -204,8 +204,8 @@ async function obtenerFechaOperacion(req, res) {
           value: id_rol,
         },
         {
-          key: "fecha_carga",
-          value: new Date(maxFechaCarga).toISOString().split("T")[0],
+          key: "fecha_operacion",
+          value: new Date(maxFechaOperacion).toISOString().split("T")[0],
         },
         {
           key: "cargado",
@@ -225,7 +225,7 @@ async function obtenerFechaOperacion(req, res) {
       .query(queryUltimoRegistro)
       .then((result) => {
         return result.rows.length >= 1
-          ? formatDate(new Date(result.rows?.[0]?.fecha_carga))
+          ? formatDate(new Date(result.rows?.[0]?.fecha_operacion))
           : formatDate(new Date());
       })
       .catch((err) => {
