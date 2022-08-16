@@ -87,9 +87,18 @@ const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
 function ValorMaximo(req, res) {
   const { max } = req.body;
+  const { id_rol, id_usuario } = req.user;
   let fieldMax = max ? max : "fecha_operacion";
   let whereValuesAux = [];
   let whereFinal = [
+    {
+      key: "id_usuario",
+      value: id_usuario,
+    },
+    {
+      key: "id_rol",
+      value: id_rol,
+    },
     {
       key: "cargado",
       value: true,
@@ -131,7 +140,7 @@ function ValorMaximo(req, res) {
 }
 
 function UltimaCarga(req, res) {
-  const { fecha_operacion, cargado } = req.body;
+  const { cargado } = req.body;
   const { id_rol, id_usuario } = req.user;
   const params = {
     where: [
@@ -142,10 +151,6 @@ function UltimaCarga(req, res) {
       {
         key: "id_rol",
         value: id_rol,
-      },
-      {
-        key: "fecha_operacion",
-        value: fecha_operacion,
       },
       {
         key: "cargado",

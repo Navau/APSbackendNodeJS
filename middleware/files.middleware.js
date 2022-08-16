@@ -35,6 +35,8 @@ const {
   tipoActivo,
   mayorACeroDecimal,
   mayorACeroEntero,
+  saldoAntMasAltasBajasMasActualizacion,
+  saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1234,6 +1236,53 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "saldoAntMasAltasBajasMasActualizacion") {
+            const _saldoAntMasAltasBajasMasActualizacion =
+              infoArchivo?.paramsSaldoAntMasAltasBajasMasActualizacion
+                ? await saldoAntMasAltasBajasMasActualizacion({
+                    saldo_final: value,
+                    saldo_anterior: item2.saldo_anterior,
+                    altas_bajas: item2.altas_bajas,
+                    actualizacion: item2.actualizacion,
+                  })
+                : null;
+
+            if (_saldoAntMasAltasBajasMasActualizacion.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (
+            funct === "saldoAntMenosBajasMasDepreciacionMesMasActualizacion"
+          ) {
+            const _saldoAntMenosBajasMasDepreciacionMesMasActualizacion =
+              infoArchivo?.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion
+                ? await saldoAntMenosBajasMasDepreciacionMesMasActualizacion({
+                    saldo_final_dep: value,
+                    saldo_anterior: item2.saldo_anterior,
+                    bajas: item2.bajas,
+                    depreciacion_periodo: item2.depreciacion_periodo,
+                    actualizacion: item2.actualizacion,
+                  })
+                : null;
+
+            if (
+              _saldoAntMenosBajasMasDepreciacionMesMasActualizacion.ok === true
+            ) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
         }
       };
@@ -1396,6 +1445,7 @@ exports.validarArchivo2 = async (req, res, next) => {
               currentFiles.push(item.originalname);
             });
             console.log("fecha_entrega", fecha_entrega);
+            console.log(new Date());
             if (fecha_entrega) {
               bodyQuery.push({
                 id_rol,
@@ -1418,6 +1468,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                 cargado: false,
               });
             }
+            console.log(bodyQuery);
             queryFiles = InsertarVariosUtil(nameTable, {
               body: bodyQuery,
               returnValue: ["id_carga_archivos"],
