@@ -200,9 +200,7 @@ async function SeleccionarArchivosBolsa(req, res) {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
           } else {
-            respResultadoCorrectoObjeto200(res, {
-              result: result.rows,
-            });
+            respResultadoCorrectoObjeto200(res, result.rows);
           }
         })
         .catch((err) => {
