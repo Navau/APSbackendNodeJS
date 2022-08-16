@@ -2,6 +2,7 @@ const pool = require("../../database");
 const {
   ValorMaximoDeCampoUtil,
   ObtenerUltimoRegistro,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 const {
   respErrorServidor500END,
@@ -33,11 +34,75 @@ async function obtenerFechaOperacion(req, res) {
       );
     }
 
-    // 👇️ 2021-10-24 16:21:23 (yyyy-mm-dd hh:mm:ss)
-    // console.log(formatDate(new Date()));
-
     const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
     const { id_rol, id_usuario } = req.user;
+
+    const institucion = async () => {
+      let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+        select: [`"APS_seg_institucion".codigo`],
+        innerjoin: [
+          {
+            table: `APS_seg_institucion`,
+            on: [
+              {
+                table: `APS_seg_institucion`,
+                key: "id_institucion",
+              },
+              {
+                table: `APS_seg_usuario`,
+                key: "id_institucion",
+              },
+            ],
+          },
+          {
+            table: `APS_seg_usuario_rol`,
+            on: [
+              {
+                table: `APS_seg_usuario_rol`,
+                key: "id_usuario",
+              },
+              {
+                table: `APS_seg_usuario`,
+                key: "id_usuario",
+              },
+            ],
+          },
+        ],
+        where: [
+          { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+          { key: `"APS_seg_usuario_rol".id_rol`, value: id_rol },
+        ],
+      });
+
+      const resultFinal = await pool
+        .query(queryInstitucion)
+        .then((result) => {
+          if (result.rows.length >= 1) {
+            return { ok: true, result: result?.rows?.[0] };
+          } else {
+            return { ok: false, result: result?.rows?.[0] };
+          }
+        })
+        .catch((err) => {
+          return { ok: false, err };
+        });
+      return resultFinal;
+    };
+
+    const cod_institucion = await institucion();
+
+    if (cod_institucion?.err) {
+      respErrorServidor500END(res, err);
+      return;
+    }
+    if (cod_institucion.ok === false) {
+      respResultadoVacio404END(
+        res,
+        "No existe ninguna institución para este usuario."
+      );
+      return;
+    }
+
     const tableQuery =
       tipo_archivo === "PENSIONES"
         ? "APS_aud_carga_archivos_pensiones_seguros"
@@ -61,10 +126,10 @@ async function obtenerFechaOperacion(req, res) {
           value: id_rol,
         },
         {
-          key: "id_usuario",
-          value: id_usuario,
+          key: "cod_institucion",
+          value: cod_institucion.result.codigo,
         },
-        {
+        tipo_archivo === "PENSIONES" && {
           key: "id_periodo",
           value: tipo_periodo === "M" ? 155 : tipo_periodo === "D" ? 154 : null,
         },
@@ -74,6 +139,7 @@ async function obtenerFechaOperacion(req, res) {
         },
       ],
     });
+
     const maxFechaOperacion = await pool
       .query(queryMax)
       .then((result) => {
@@ -90,15 +156,16 @@ async function obtenerFechaOperacion(req, res) {
         respErrorServidor500END(res, err);
         return null;
       });
+
     const queryUltimoRegistro = ObtenerUltimoRegistro(tableQuery, {
       where: [
         {
-          key: "id_usuario",
-          value: id_usuario,
-        },
-        {
           key: "id_rol",
           value: id_rol,
+        },
+        {
+          key: "cod_institucion",
+          value: cod_institucion.result.codigo,
         },
         {
           key: "fecha_operacion",
@@ -137,6 +204,7 @@ async function obtenerFechaOperacion(req, res) {
     };
 
     const lastDate = new Date(ultimoRegistro);
+    console.log(lastDate);
 
     const fechaOperacionMensual = () => {
       const year = lastDate.getFullYear(); //2022
@@ -151,6 +219,7 @@ async function obtenerFechaOperacion(req, res) {
     const fechaOperacionDiaria = () => {
       if (tipo_archivo === "PENSIONES") {
         const fechaOperacion = addValues(lastDate, 1); //VIERNES + 1 = SABADO
+        console.log(fechaOperacion);
         return fechaOperacion;
       } else if (tipo_archivo === "BOLSA") {
         const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO

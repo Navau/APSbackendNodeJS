@@ -59,6 +59,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsTotalBsMenosPrevisionesInversiones = null;
       let paramsSaldoAntMasAltasBajasMasActualizacion = null;
       let paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = null;
+      let paramssaldoFinalMesAnteriorBsMasMovimientoMesBs = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
@@ -650,6 +651,19 @@ async function obtenerInformacionDeArchivo(nameFile) {
         headers = await formatoArchivo(codeCurrentFile);
         paramsSaldoAntMasAltasBajasMasActualizacion = true;
         paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
+      } else if (nameFile.includes(".492")) {
+        console.log("ARCHIVO CORRECTO : 492", nameFile);
+        codeCurrentFile = "492";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsSaldoAntMasAltasBajasMasActualizacion = true;
+        paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
+      } else if (nameFile.includes(".494")) {
+        console.log("ARCHIVO CORRECTO : 494", nameFile);
+        codeCurrentFile = "494";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramssaldoFinalMesAnteriorBsMasMovimientoMesBs = true;
       } else {
         reject();
       }
@@ -686,6 +700,9 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramslugarNegociacion,
         paramslugarNegociacionVacio,
         paramstipoOperacion,
+        paramsSaldoAntMasAltasBajasMasActualizacion,
+        paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion,
+        paramssaldoFinalMesAnteriorBsMasMovimientoMesBs,
       });
     }
   );
@@ -2077,7 +2094,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z0-9,-]{10,100}$/,
         positveNegative: true,
         required: true,
-        function: "tipoActivo",
+        function: null,
       },
       {
         columnName: "saldo_final_mes_anterior_bs",
@@ -2088,24 +2105,24 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "movimiento_mes_bs",
-        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: false,
         required: true,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "saldo_final_mes_actual_bs",
-        pattern: /^[A-Za-z0-9,-]{1,7}$/,
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "saldoFinalMesAnteriorBsMasMovimientoMesBs",
       },
       {
         columnName: "total",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "mayorACeroDecimal",
       },
     ],
   };
@@ -2817,6 +2834,46 @@ async function saldoAntMenosBajasMasDepreciacionMesMasActualizacion(params) {
   }
 }
 
+async function saldoFinalMesAnteriorBsMasMovimientoMesBs(params) {
+  const {
+    saldo_final_mes_actual_bs,
+    saldo_final_mes_anterior_bs,
+    movimiento_mes_bs,
+  } = params;
+  try {
+    const saldoFinalMesAnteriorBsValue = parseFloat(
+      saldo_final_mes_anterior_bs
+    );
+    const movimientoMesBsValue = parseFloat(movimiento_mes_bs);
+    if (isNaN(saldoFinalMesAnteriorBsValue) || isNaN(movimientoMesBsValue)) {
+      return {
+        ok: false,
+        message: `El campo saldo final del mes anterior en bolivianos o el movimiento de mes en bolivianos no son numeros.`,
+      };
+    } else {
+      const result = saldoFinalMesAnteriorBsValue + movimientoMesBsValue;
+      if (
+        result.toFixed(2) === parseFloat(saldo_final_mes_actual_bs).toFixed(2)
+      ) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El  saldo final del mes anterior en bolivianos sumado con el movimiento de mes en bolivianos no es igual a saldo final del mes actual en bolivianos.`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -2851,4 +2908,5 @@ module.exports = {
   tipoOperacion,
   saldoAntMasAltasBajasMasActualizacion,
   saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
+  saldoFinalMesAnteriorBsMasMovimientoMesBs,
 };

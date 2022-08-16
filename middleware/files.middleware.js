@@ -37,6 +37,7 @@ const {
   mayorACeroEntero,
   saldoAntMasAltasBajasMasActualizacion,
   saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
+  saldoFinalMesAnteriorBsMasMovimientoMesBs,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -177,10 +178,8 @@ async function obtenerListaArchivos(params) {
     ? params.req.body.fecha_operacion
     : moment().format("YYYY-MM-DD");
   let periodicidad = [154]; //VALOR POR DEFECTO
-  periodicidadFinal = 154;
 
   if (typeFiles[0].originalname.substring(0, 1) === "M") {
-    periodicidadFinal = 154;
     if (typeFiles.length >= 1) {
       periodicidad = [154, 219];
     } else {
@@ -284,7 +283,9 @@ async function validarArchivosIteraciones(params) {
       typeFiles: filesUploaded,
     })
       .then((response) => {
-        return { result: response.rows };
+        return {
+          result: response.rows,
+        };
       })
       .catch((err) => {
         return { err };
@@ -1283,6 +1284,27 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "saldoFinalMesAnteriorBsMasMovimientoMesBs") {
+            const _saldoFinalMesAnteriorBsMasMovimientoMesBs =
+              infoArchivo?.paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs
+                ? await saldoFinalMesAnteriorBsMasMovimientoMesBs({
+                    saldo_final_mes_actual_bs: value,
+                    saldo_final_mes_anterior_bs:
+                      item2.saldo_final_mes_anterior_bs,
+                    movimiento_mes_bs: item2.movimiento_mes_bs,
+                  })
+                : null;
+
+            if (_saldoFinalMesAnteriorBsMasMovimientoMesBs.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
         }
       };
@@ -1348,6 +1370,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 
 exports.validarArchivo2 = async (req, res, next) => {
   const fechaInicialOperacion = req?.body?.fecha_operacion;
+  const tipo_periodo = req?.body?.tipo_periodo;
   const fecha_entrega = req?.body?.fecha_entrega;
 
   try {
@@ -1357,7 +1380,7 @@ exports.validarArchivo2 = async (req, res, next) => {
       ? fechaInicialOperacion.split("-").join("")
       : moment().format("YYYYMMDD");
 
-    console.log(fechaOperacion);
+    console.log(fechaInicialOperacion);
 
     let infoTables = await seleccionarTablas({
       files: req.files,
@@ -1444,29 +1467,24 @@ exports.validarArchivo2 = async (req, res, next) => {
             map(req.files, (item, index) => {
               currentFiles.push(item.originalname);
             });
-            console.log("fecha_entrega", fecha_entrega);
-            console.log(new Date());
+            bodyQuery.push({
+              id_rol,
+              fecha_operacion: fechaInicialOperacion,
+              nro_carga: nroCarga === null ? 1 : nroCarga + 1,
+              fecha_carga: new Date(),
+              id_usuario,
+              cargado: false,
+            });
             if (fecha_entrega) {
-              bodyQuery.push({
-                id_rol,
-                id_periodo: periodicidadFinal,
-                fecha_operacion: fechaOperacion,
-                fecha_entrega: fecha_entrega,
-                nro_carga: nroCarga === null ? 1 : nroCarga + 1,
-                fecha_carga: new Date(),
-                id_usuario,
-                cargado: false,
-              });
-            } else {
-              bodyQuery.push({
-                id_rol,
-                id_periodo: periodicidadFinal,
-                fecha_operacion: fechaOperacion,
-                nro_carga: nroCarga === null ? 1 : nroCarga + 1,
-                fecha_carga: new Date(),
-                id_usuario,
-                cargado: false,
-              });
+              bodyQuery[0].fecha_entrega = fecha_entrega;
+            }
+            if (codeCurrentFile === "108") {
+              bodyQuery[0].cod_institucion = codeCurrentFile;
+              if (tipo_periodo === "D") {
+                bodyQuery[0].id_periodo = 154;
+              } else if (tipo_periodo === "M") {
+                bodyQuery[0].id_periodo = 155;
+              }
             }
             console.log(bodyQuery);
             queryFiles = InsertarVariosUtil(nameTable, {

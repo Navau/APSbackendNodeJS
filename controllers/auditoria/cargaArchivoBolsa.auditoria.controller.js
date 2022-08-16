@@ -76,11 +76,17 @@ async function tipoDeCambio(req, res) {
     });
 }
 
-function ValorMaximo(req, res) {
+//Obtiene la ultima fecha de operacion siempre que cargado = true
+async function ValorMaximo(req, res) {
   const { max } = req.body;
+  const { id_rol, id_usuario } = req.user;
   let fieldMax = max ? max : "fecha_operacion";
   let whereValuesAux = [];
   let whereFinal = [
+    {
+      key: "id_rol",
+      value: id_rol,
+    },
     {
       key: "cargado",
       value: true,
@@ -98,10 +104,9 @@ function ValorMaximo(req, res) {
     where: whereFinal,
   };
   let query = ValorMaximoDeCampoUtil(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
+  await pool
+    .query(query)
+    .then((result) => {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(res);
       } else {
@@ -117,26 +122,22 @@ function ValorMaximo(req, res) {
         }
         respResultadoCorrecto200(res, result);
       }
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500(res, err);
+    });
 }
 
-function UltimaCarga(req, res) {
-  const { fecha_operacion, cargado } = req.body;
+//Obtiene la ultima carga mediante el parametro cargado
+async function UltimaCarga(req, res) {
+  const { cargado } = req.body;
   const { id_rol, id_usuario } = req.user;
   const params = {
     where: [
       {
-        key: "id_usuario",
-        value: id_usuario,
-      },
-      {
         key: "id_rol",
         value: id_rol,
-      },
-      {
-        key: "fecha_operacion",
-        value: fecha_operacion,
       },
       {
         key: "cargado",
@@ -148,13 +149,15 @@ function UltimaCarga(req, res) {
     },
   };
   let query = ObtenerUltimoRegistro(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500END(res, err);
-    } else {
+  await pool
+    .query(query)
+    .then((result) => {
       respResultadoVacioObject200(res, result.rows);
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO BOLSA DE SEGURIDAD

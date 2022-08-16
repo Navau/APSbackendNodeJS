@@ -12,6 +12,7 @@ const {
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
   ObtenerUltimoRegistro,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +24,7 @@ const {
   respResultadoVacioObject200,
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
+  respResultadoVacio404END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
@@ -85,19 +87,85 @@ const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 //   }
 // }
 
-function ValorMaximo(req, res) {
+async function ValorMaximo(req, res) {
   const { max } = req.body;
   const { id_rol, id_usuario } = req.user;
+  const institucion = async () => {
+    let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+      select: [`"APS_seg_institucion".codigo`],
+      innerjoin: [
+        {
+          table: `APS_seg_institucion`,
+          on: [
+            {
+              table: `APS_seg_institucion`,
+              key: "id_institucion",
+            },
+            {
+              table: `APS_seg_usuario`,
+              key: "id_institucion",
+            },
+          ],
+        },
+        {
+          table: `APS_seg_usuario_rol`,
+          on: [
+            {
+              table: `APS_seg_usuario_rol`,
+              key: "id_usuario",
+            },
+            {
+              table: `APS_seg_usuario`,
+              key: "id_usuario",
+            },
+          ],
+        },
+      ],
+      where: [
+        { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+        { key: `"APS_seg_usuario_rol".id_rol`, value: id_rol },
+      ],
+    });
+
+    const resultFinal = await pool
+      .query(queryInstitucion)
+      .then((result) => {
+        if (result.rows.length >= 1) {
+          return { ok: true, result: result?.rows?.[0] };
+        } else {
+          return { ok: false, result: result?.rows?.[0] };
+        }
+      })
+      .catch((err) => {
+        return { ok: false, err };
+      });
+    return resultFinal;
+  };
+
+  const cod_institucion = await institucion();
+
+  if (cod_institucion?.err) {
+    respErrorServidor500END(res, err);
+    return;
+  }
+  if (cod_institucion.ok === false) {
+    respResultadoVacio404END(
+      res,
+      "No existe ninguna institución para este usuario."
+    );
+    return;
+  }
+
   let fieldMax = max ? max : "fecha_operacion";
   let whereValuesAux = [];
   let whereFinal = [
     {
-      key: "id_usuario",
-      value: id_usuario,
-    },
-    {
       key: "id_rol",
       value: id_rol,
+    },
+    {
+      key: "cod_institucion",
+      value: cod_institucion.result.codigo,
     },
     {
       key: "cargado",
@@ -116,10 +184,9 @@ function ValorMaximo(req, res) {
     where: whereFinal,
   };
   let query = ValorMaximoDeCampoUtil(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
+  await pool
+    .query(query)
+    .then((result) => {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(res);
       } else {
@@ -135,22 +202,90 @@ function ValorMaximo(req, res) {
         }
         respResultadoCorrecto200(res, result);
       }
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500(res, err);
+    });
 }
 
-function UltimaCarga(req, res) {
+async function UltimaCarga(req, res) {
   const { cargado } = req.body;
   const { id_rol, id_usuario } = req.user;
+  const institucion = async () => {
+    let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+      select: [`"APS_seg_institucion".codigo`],
+      innerjoin: [
+        {
+          table: `APS_seg_institucion`,
+          on: [
+            {
+              table: `APS_seg_institucion`,
+              key: "id_institucion",
+            },
+            {
+              table: `APS_seg_usuario`,
+              key: "id_institucion",
+            },
+          ],
+        },
+        {
+          table: `APS_seg_usuario_rol`,
+          on: [
+            {
+              table: `APS_seg_usuario_rol`,
+              key: "id_usuario",
+            },
+            {
+              table: `APS_seg_usuario`,
+              key: "id_usuario",
+            },
+          ],
+        },
+      ],
+      where: [
+        { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+        { key: `"APS_seg_usuario_rol".id_rol`, value: id_rol },
+      ],
+    });
+
+    const resultFinal = await pool
+      .query(queryInstitucion)
+      .then((result) => {
+        if (result.rows.length >= 1) {
+          return { ok: true, result: result?.rows?.[0] };
+        } else {
+          return { ok: false, result: result?.rows?.[0] };
+        }
+      })
+      .catch((err) => {
+        return { ok: false, err };
+      });
+    return resultFinal;
+  };
+
+  const cod_institucion = await institucion();
+
+  if (cod_institucion?.err) {
+    respErrorServidor500END(res, err);
+    return;
+  }
+  if (cod_institucion.ok === false) {
+    respResultadoVacio404END(
+      res,
+      "No existe ninguna institución para este usuario."
+    );
+    return;
+  }
   const params = {
     where: [
       {
-        key: "id_usuario",
-        value: id_usuario,
-      },
-      {
         key: "id_rol",
         value: id_rol,
+      },
+      {
+        key: "cod_institucion",
+        value: cod_institucion.result.codigo,
       },
       {
         key: "cargado",
@@ -162,13 +297,15 @@ function UltimaCarga(req, res) {
     },
   };
   let query = ObtenerUltimoRegistro(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
+  await pool
+    .query(query)
+    .then((result) => {
       respResultadoVacioObject200(res, result.rows);
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
