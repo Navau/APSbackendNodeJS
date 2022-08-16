@@ -169,10 +169,12 @@ async function ValorMaximo(req, res) {
     },
   ];
   map(req.body, (item, index) => {
-    whereValuesAux.push({
-      key: index,
-      value: item,
-    });
+    if (index !== "max") {
+      whereValuesAux.push({
+        key: index,
+        value: item,
+      });
+    }
   });
   whereFinal = whereFinal.concat(whereValuesAux);
   const params = {
