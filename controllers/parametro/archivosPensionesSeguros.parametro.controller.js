@@ -202,7 +202,6 @@ async function SeleccionarArchivosBolsa(req, res) {
           } else {
             respResultadoCorrectoObjeto200(res, {
               result: result.rows,
-              date: new Date(),
             });
           }
         })
