@@ -167,10 +167,6 @@ async function ValorMaximo(req, res) {
       key: "cod_institucion",
       value: cod_institucion.result.codigo,
     },
-    {
-      key: "cargado",
-      value: true,
-    },
   ];
   map(req.body, (item, index) => {
     whereValuesAux.push({

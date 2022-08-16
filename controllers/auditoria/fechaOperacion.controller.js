@@ -36,79 +36,80 @@ async function obtenerFechaOperacion(req, res) {
 
     const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
     const { id_rol, id_usuario } = req.user;
-
-    const institucion = async () => {
-      let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
-        select: [`"APS_seg_institucion".codigo`],
-        innerjoin: [
-          {
-            table: `APS_seg_institucion`,
-            on: [
-              {
-                table: `APS_seg_institucion`,
-                key: "id_institucion",
-              },
-              {
-                table: `APS_seg_usuario`,
-                key: "id_institucion",
-              },
-            ],
-          },
-          {
-            table: `APS_seg_usuario_rol`,
-            on: [
-              {
-                table: `APS_seg_usuario_rol`,
-                key: "id_usuario",
-              },
-              {
-                table: `APS_seg_usuario`,
-                key: "id_usuario",
-              },
-            ],
-          },
-        ],
-        where: [
-          { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
-          { key: `"APS_seg_usuario_rol".id_rol`, value: id_rol },
-        ],
-      });
-
-      const resultFinal = await pool
-        .query(queryInstitucion)
-        .then((result) => {
-          if (result.rows.length >= 1) {
-            return { ok: true, result: result?.rows?.[0] };
-          } else {
-            return { ok: false, result: result?.rows?.[0] };
-          }
-        })
-        .catch((err) => {
-          return { ok: false, err };
-        });
-      return resultFinal;
-    };
-
-    const cod_institucion = await institucion();
-
-    if (cod_institucion?.err) {
-      respErrorServidor500END(res, err);
-      return;
-    }
-    if (cod_institucion.ok === false) {
-      respResultadoVacio404END(
-        res,
-        "No existe ninguna institución para este usuario."
-      );
-      return;
-    }
-
     const tableQuery =
       tipo_archivo === "PENSIONES"
         ? "APS_aud_carga_archivos_pensiones_seguros"
         : tipo_archivo === "BOLSA"
         ? "APS_aud_carga_archivos_bolsa"
         : null;
+    let cod_institucion = null;
+    if (tipo_archivo !== "BOLSA") {
+      const institucion = async () => {
+        let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+          select: [`"APS_seg_institucion".codigo`],
+          innerjoin: [
+            {
+              table: `APS_seg_institucion`,
+              on: [
+                {
+                  table: `APS_seg_institucion`,
+                  key: "id_institucion",
+                },
+                {
+                  table: `APS_seg_usuario`,
+                  key: "id_institucion",
+                },
+              ],
+            },
+            {
+              table: `APS_seg_usuario_rol`,
+              on: [
+                {
+                  table: `APS_seg_usuario_rol`,
+                  key: "id_usuario",
+                },
+                {
+                  table: `APS_seg_usuario`,
+                  key: "id_usuario",
+                },
+              ],
+            },
+          ],
+          where: [
+            { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+            { key: `"APS_seg_usuario_rol".id_rol`, value: id_rol },
+          ],
+        });
+
+        const resultFinal = await pool
+          .query(queryInstitucion)
+          .then((result) => {
+            if (result.rows.length >= 1) {
+              return { ok: true, result: result?.rows?.[0] };
+            } else {
+              return { ok: false, result: result?.rows?.[0] };
+            }
+          })
+          .catch((err) => {
+            return { ok: false, err };
+          });
+        return resultFinal;
+      };
+
+      cod_institucion = await institucion();
+
+      if (cod_institucion?.err) {
+        respErrorServidor500END(res, err);
+        return;
+      }
+      if (cod_institucion.ok === false) {
+        respResultadoVacio404END(
+          res,
+          "No existe ninguna institución para este usuario."
+        );
+        return;
+      }
+    }
 
     if (tableQuery === null) {
       respErrorServidor500END(res, {
@@ -118,9 +119,21 @@ async function obtenerFechaOperacion(req, res) {
       return;
     }
 
-    const queryMax = ValorMaximoDeCampoUtil(tableQuery, {
-      fieldMax: "fecha_operacion",
-      where: [
+    let whereMax = [];
+
+    if (tipo_archivo === "BOLSA") {
+      whereMax = [
+        {
+          key: "id_rol",
+          value: id_rol,
+        },
+        {
+          key: "cargado",
+          value: true,
+        },
+      ];
+    } else {
+      whereMax = [
         {
           key: "id_rol",
           value: id_rol,
@@ -129,7 +142,7 @@ async function obtenerFechaOperacion(req, res) {
           key: "cod_institucion",
           value: cod_institucion.result.codigo,
         },
-        tipo_archivo === "PENSIONES" && {
+        {
           key: "id_periodo",
           value: tipo_periodo === "M" ? 155 : tipo_periodo === "D" ? 154 : null,
         },
@@ -137,8 +150,14 @@ async function obtenerFechaOperacion(req, res) {
           key: "cargado",
           value: true,
         },
-      ],
+      ];
+    }
+
+    const queryMax = ValorMaximoDeCampoUtil(tableQuery, {
+      fieldMax: "fecha_operacion",
+      where: whereMax,
     });
+    console.log(queryMax);
 
     const maxFechaOperacion = await pool
       .query(queryMax)
@@ -157,8 +176,10 @@ async function obtenerFechaOperacion(req, res) {
         return null;
       });
 
-    const queryUltimoRegistro = ObtenerUltimoRegistro(tableQuery, {
-      where: [
+    let whereUltimoRegistro = [];
+
+    if (cod_institucion !== null) {
+      whereUltimoRegistro = [
         {
           key: "id_rol",
           value: id_rol,
@@ -175,7 +196,26 @@ async function obtenerFechaOperacion(req, res) {
           key: "cargado",
           value: true,
         },
-      ],
+      ];
+    } else {
+      whereUltimoRegistro = [
+        {
+          key: "id_rol",
+          value: id_rol,
+        },
+        {
+          key: "fecha_operacion",
+          value: new Date(maxFechaOperacion).toISOString().split("T")[0],
+        },
+        {
+          key: "cargado",
+          value: true,
+        },
+      ];
+    }
+
+    const queryUltimoRegistro = ObtenerUltimoRegistro(tableQuery, {
+      where: whereUltimoRegistro,
       orderby: {
         field: "nro_carga",
       },
