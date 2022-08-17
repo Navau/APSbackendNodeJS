@@ -336,6 +336,8 @@ async function UltimaCarga2(req, res) {
     LEFT JOIN "APS_aud_carga_archivos_pensiones_seguros" AS datos 
     ON max_id.maxid = datos.id_carga_archivos
   `;
+
+  console.log("TEST ULTIMA CARGA", query);
   await pool
     .query(query)
     .then((result) => {
