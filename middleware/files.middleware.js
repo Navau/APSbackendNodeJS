@@ -1479,12 +1479,12 @@ exports.validarArchivo2 = async (req, res, next) => {
             }
             console.log("infoTables", infoTables);
             if (infoTables.code === "108") {
-              bodyQuery[0].cod_institucion = codeCurrentFile;
-              if (tipo_periodo === "D") {
-                bodyQuery[0].id_periodo = 154;
-              } else if (tipo_periodo === "M") {
-                bodyQuery[0].id_periodo = 155;
-              }
+              bodyQuery[0].cod_institucion = infoTables.code;
+            }
+            if (tipo_periodo === "D") {
+              bodyQuery[0].id_periodo = 154;
+            } else if (tipo_periodo === "M") {
+              bodyQuery[0].id_periodo = 155;
             }
             console.log(bodyQuery);
             queryFiles = InsertarVariosUtil(nameTable, {
