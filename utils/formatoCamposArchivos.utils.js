@@ -717,7 +717,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramstipoOperacion,
         paramsSaldoAntMasAltasBajasMasActualizacion,
         paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion,
-        paramssaldoFinalMesAnteriorBsMasMovimientoMesBs,
+        paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs,
       });
     }
   );
@@ -2193,6 +2193,48 @@ async function obtenerValidaciones(typeFile) {
         positveNegative: true,
         required: true,
         function: "fechaOperacionMenor",
+      },
+      {
+        columnName: "saldo_anterior",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "incremento_revaluo_tecnico",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_anterior",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_anterior",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_anterior",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_anterior",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "saldo_anterior",
