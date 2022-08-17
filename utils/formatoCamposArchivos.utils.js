@@ -59,7 +59,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsTotalBsMenosPrevisionesInversiones = null;
       let paramsSaldoAntMasAltasBajasMasActualizacion = null;
       let paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = null;
-      let paramssaldoFinalMesAnteriorBsMasMovimientoMesBs = null;
+      let paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
@@ -663,7 +663,22 @@ async function obtenerInformacionDeArchivo(nameFile) {
         codeCurrentFile = "494";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
-        paramssaldoFinalMesAnteriorBsMasMovimientoMesBs = true;
+        paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs = true;
+      } else if (nameFile.includes(".496")) {
+        console.log("ARCHIVO CORRECTO : 496", nameFile);
+        codeCurrentFile = "496";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+      } else if (nameFile.includes(".497")) {
+        console.log("ARCHIVO CORRECTO : 497", nameFile);
+        codeCurrentFile = "497";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+      } else if (nameFile.includes(".498")) {
+        console.log("ARCHIVO CORRECTO : 498", nameFile);
+        codeCurrentFile = "498";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
       } else {
         reject();
       }
@@ -766,6 +781,27 @@ async function formatoArchivo(type) {
     },
     483: {
       table: "APS_seguro_archivo_483",
+    },
+    484: {
+      table: "APS_seguro_archivo_484",
+    },
+    491: {
+      table: "APS_seguro_archivo_491",
+    },
+    492: {
+      table: "APS_seguro_archivo_492",
+    },
+    494: {
+      table: "APS_seguro_archivo_494",
+    },
+    496: {
+      table: "APS_seguro_archivo_496",
+    },
+    497: {
+      table: "APS_seguro_archivo_497",
+    },
+    498: {
+      table: "APS_seguro_archivo_498",
     },
   };
   // console.log(HEADERS[type].table);
@@ -1741,7 +1777,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "direccion",
-        pattern: /^[A-Za-z0-9,-]{15,300}$/,
+        pattern: /^[\s\S]{15,300}$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -1897,7 +1933,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "observaciones",
-        pattern: /^[A-Za-z0-9,-]{0,300}$/,
+        pattern: /^[\s\S]{0,300}$/,
         positveNegative: true,
         required: true,
         mayBeEmpty: true,
@@ -1921,7 +1957,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "direccion",
-        pattern: /^[A-Za-z0-9,-]{15,300}$/,
+        pattern: /^[\s\S]{15,300}$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -2077,7 +2113,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "observaciones",
-        pattern: /^[A-Za-z0-9,-]{0,300}$/,
+        pattern: /^[\s\S]{0,300}$/,
         positveNegative: true,
         required: true,
         mayBeEmpty: true,
@@ -2092,6 +2128,117 @@ async function obtenerValidaciones(typeFile) {
       },
     ],
     494: [
+      {
+        columnName: "descripcion",
+        pattern: /^[\s\S]{10,100}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "saldo_final_mes_anterior_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: false,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "movimiento_mes_bs",
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: false,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_final_mes_actual_bs",
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "saldoFinalMesAnteriorBsMasMovimientoMesBs",
+      },
+      {
+        columnName: "total",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+    ],
+    496: [
+      {
+        columnName: "descripcion",
+        pattern: /^[\s\S]{20,150}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "ubicacion",
+        pattern: /^[\s\S]{20,150}$/,
+        positveNegative: false,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: false,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_final_mes_actual_bs",
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "saldoFinalMesAnteriorBsMasMovimientoMesBs",
+      },
+      {
+        columnName: "total",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+    ],
+    497: [
+      {
+        columnName: "descripcion",
+        pattern: /^[A-Za-z0-9,-]{10,100}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "saldo_final_mes_anterior_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: false,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "movimiento_mes_bs",
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: false,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_final_mes_actual_bs",
+        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "saldoFinalMesAnteriorBsMasMovimientoMesBs",
+      },
+      {
+        columnName: "total",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+    ],
+    498: [
       {
         columnName: "descripcion",
         pattern: /^[A-Za-z0-9,-]{10,100}$/,

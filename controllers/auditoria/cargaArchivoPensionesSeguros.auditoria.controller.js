@@ -339,7 +339,7 @@ async function UltimaCarga2(req, res) {
   await pool
     .query(query)
     .then((result) => {
-      respResultadoVacioObject200(res, result.rows);
+      respResultadoVacioObject200(res, result.rows[0]);
     })
     .catch((err) => {
       console.log(err);

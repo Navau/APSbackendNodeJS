@@ -1,5 +1,5 @@
-const pool = require("../../database");
 const { map } = require("lodash");
+const pool = require("../../database");
 const moment = require("moment");
 
 const {
@@ -10,12 +10,8 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
-  EscogerInternoUtil,
-  ObtenerUltimoRegistro,
   ValorMaximoDeCampoUtil,
 } = require("../../utils/consulta.utils");
-
-const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
 
 const {
   respErrorServidor500,
@@ -23,82 +19,36 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
-  respResultadoVacioObject200,
-  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_aud_carga_archivos_bolsa";
+const nameTable = "APS_aud_errores_carga_archivos_bolsa";
 
-async function tipoDeCambio(req, res) {
-  const { fecha_operacion } = req.body;
-
-  let query = EscogerInternoUtil("APS_oper_tipo_cambio", {
-    select: [
-      `"APS_oper_tipo_cambio".fecha`,
-      `"APS_param_moneda".sigla`,
-      `"APS_param_moneda".descripcion`,
-      `"APS_oper_tipo_cambio".compra`,
-      `"APS_oper_tipo_cambio".venta`,
-      `"APS_param_moneda".activo`,
-      `"APS_param_moneda".es_visible`,
-    ],
-    innerjoin: [
-      {
-        table: "APS_param_moneda",
-        on: [
-          {
-            table: "APS_oper_tipo_cambio",
-            key: "id_moneda",
-          },
-          {
-            table: "APS_param_moneda",
-            key: "id_moneda",
-          },
-        ],
-      },
-    ],
-    where: [
-      { key: `"APS_param_moneda".activo`, value: true },
-      { key: `"APS_oper_tipo_cambio".fecha`, value: fecha_operacion },
-    ],
-  });
-  pool
-    .query(query)
-    .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    })
-    .catch((err) => {
-      respErrorServidor500(res, err);
-    });
-}
-
-//Obtiene la ultima fecha de operacion siempre que cargado = true
-async function ValorMaximo(req, res) {
+function ValorMaximo(req, res) {
   const { max } = req.body;
-  const { id_rol, id_usuario } = req.user;
   let fieldMax = max ? max : "fecha_operacion";
+  let whereValuesAux = [];
   let whereFinal = [
-    {
-      key: "id_rol",
-      value: id_rol,
-    },
     {
       key: "cargado",
       value: true,
     },
   ];
+  map(req.body, (item, index) => {
+    whereValuesAux.push({
+      key: index,
+      value: item,
+    });
+  });
+  whereFinal = whereFinal.concat(whereValuesAux);
   const params = {
     fieldMax,
     where: whereFinal,
   };
   let query = ValorMaximoDeCampoUtil(nameTable, params);
-  await pool
-    .query(query)
-    .then((result) => {
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500(res, err);
+    } else {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(res);
       } else {
@@ -107,85 +57,18 @@ async function ValorMaximo(req, res) {
             ...result,
             rows: [
               {
-                max: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
+                max: moment(item).format("YYYY-MM-DD HH:mm:ss.SSS"),
               },
             ],
           };
         }
         respResultadoCorrecto200(res, result);
       }
-    })
-    .catch((err) => {
-      console.log(err);
-      respErrorServidor500(res, err);
-    });
+    }
+  });
 }
 
-//Obtiene la ultima carga mediante el parametro cargado
-async function UltimaCarga(req, res) {
-  const { cargado } = req.body;
-  const { id_rol, id_usuario } = req.user;
-  const params = {
-    where: [
-      {
-        key: "id_rol",
-        value: id_rol,
-      },
-      {
-        key: "cargado",
-        value: cargado === true || cargado === false ? cargado : true,
-      },
-    ],
-    orderby: {
-      field: "nro_carga",
-    },
-  };
-  let query = ObtenerUltimoRegistro(nameTable, params);
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoVacioObject200(res, result.rows);
-    })
-    .catch((err) => {
-      console.log(err);
-      respErrorServidor500(res, err);
-    });
-}
-
-async function UltimaCarga2(req, res) {
-  const { fecha_operacion } = req.body;
-  const { id_rol, id_usuario } = req.user;
-
-  let query = `SELECT CASE 
-  WHEN maxid > 0 
-      THEN nro_carga 
-      ELSE 0 
-  END AS nroCarga, 
-  CASE 
-  WHEN maxid > 0 
-      THEN cargado 
-      ELSE false 
-  END AS Cargado 
-  FROM (
-    SELECT coalesce(max(id_carga_archivos), 0) AS maxid 
-    FROM public."APS_aud_carga_archivos_bolsa" AS bolsa
-    WHERE bolsa.id_rol = ${id_rol} 
-    AND bolsa.fecha_operacion = '${fecha_operacion}') AS max_id 
-    LEFT JOIN "APS_aud_carga_archivos_bolsa" AS datos 
-    ON max_id.maxid = datos.id_carga_archivos;
-  `;
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoVacioObject200(res, result.rows[0]);
-    })
-    .catch((err) => {
-      console.log(err);
-      respErrorServidor500(res, err);
-    });
-}
-
-//FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO BOLSA DE SEGURIDAD
+//FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 function Listar(req, res) {
   let query = ListarUtil(nameTable);
   pool.query(query, (err, result) => {
@@ -201,7 +84,7 @@ function Listar(req, res) {
   });
 }
 
-//FUNCION PARA OBTENER UN CARGA ARCHIVO BOLSA, CON BUSQUEDA
+//FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON BUSQUEDA
 function Buscar(req, res) {
   const body = req.body;
 
@@ -226,7 +109,7 @@ function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CARGA ARCHIVO BOLSA, CON ID DEL CARGA ARCHIVO BOLSA
+//FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON ID DEL CARGA ARCHIVO PENSIONES SEGURO
 function Escoger(req, res) {
   const body = req.body;
 
@@ -251,7 +134,7 @@ function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN CARGA ARCHIVO BOLSA
+//FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
 function Insertar(req, res) {
   const body = req.body;
 
@@ -276,7 +159,7 @@ function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CARGA ARCHIVO BOLSA
+//FUNCION PARA ACTUALIZAR UN CARGA ARCHIVO PENSIONES SEGURO
 function Actualizar(req, res) {
   const body = req.body;
 
@@ -311,7 +194,7 @@ function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CARGA ARCHIVO BOLSA
+//FUNCION PARA DESHABILITAR UN CARGA ARCHIVO PENSIONES SEGURO
 function Deshabilitar(req, res) {
   const body = req.body;
 
@@ -350,8 +233,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
-  tipoDeCambio,
   ValorMaximo,
-  UltimaCarga,
-  UltimaCarga2,
 };
