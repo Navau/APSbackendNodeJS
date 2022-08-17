@@ -1,5 +1,5 @@
 const express = require("express");
-const controller = require("../../controllers/auditoria/erroresCargaArchivos.auditoria.controller");
+const controller = require("../../controllers/auditoria/erroresCargaArchivosBolsa.auditoria.controller");
 const md_auth = require("../../middleware/token.middleware");
 
 const api = express.Router();

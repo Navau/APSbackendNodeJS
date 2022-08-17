@@ -17,7 +17,9 @@ const usuarioRolRoutes = require("./seguridad/usuarioRol.seguridad.route");
 // Rutas de Auditoria (Se llama auditoria por la division en la base de datos)
 const cargaArchivosBolsaRoute = require("./auditoria/cargaArchivoBolsa.auditoria.route");
 const cargaArchivosPensionesSegurosRoute = require("./auditoria/cargaArchivoPensionesSeguros.auditoria.route");
-const erroresCargaArchivosRoute = require("./auditoria/erroresCargaArchivos.auditoria.route");
+const erroresCargaArchivosBolsaRoute = require("./auditoria/erroresCargaArchivosBolsa.auditoria.route");
+const erroresCargaArchivosCustodioRoute = require("./auditoria/erroresCargaArchivosCustodio.auditoria.route");
+const erroresCargaArchivosPensionesSegurosRoute = require("./auditoria/erroresCargaArchivosPensionesSeguros.auditoria.route");
 const fechaOperacionRoute = require("./auditoria/fechaOperacion.route");
 
 // Rutas Operativas (Se llama Operativas por la division en la base de datos)
@@ -115,7 +117,15 @@ function routerApi(app) {
     cargaArchivosPensionesSegurosRoute
   );
   router.use("/FechaOperacion", fechaOperacionRoute);
-  router.use("/ErroresCargaArchivos", erroresCargaArchivosRoute);
+  router.use("/ErroresCargaArchivosBolsa", erroresCargaArchivosBolsaRoute);
+  router.use(
+    "/ErroresCargaArchivosPensionesSeguros",
+    erroresCargaArchivosPensionesSegurosRoute
+  );
+  router.use(
+    "/ErroresCargaArchivosCustodio",
+    erroresCargaArchivosCustodioRoute
+  );
   router.use("/CarteraSIP", carteraSIPRoute);
   router.use("/CarteraSIPAgrupacion", carteraSIPAgrupacionRoute);
   router.use("/ClasificadorComun", clasificadorComunRoute);
