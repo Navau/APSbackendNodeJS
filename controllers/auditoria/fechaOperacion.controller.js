@@ -37,6 +37,10 @@ async function obtenerFechaOperacion(req, res) {
 
     const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
     const { id_rol, id_usuario } = req.user;
+    console.log("TIPO PERIODO Y TIPO ARCHIVO", {
+      tipo_periodo,
+      tipo_archivo,
+    });
     const tableQuery =
       tipo_archivo === "PENSIONES"
         ? "APS_aud_carga_archivos_pensiones_seguros"
@@ -162,11 +166,12 @@ async function obtenerFechaOperacion(req, res) {
       fieldMax: "fecha_operacion",
       where: whereMax,
     });
-    console.log(queryMax);
+    console.log("queryMax", queryMax);
 
     const maxFechaOperacion = await pool
       .query(queryMax)
       .then((result) => {
+        console.log("RESULTADO DE MAX FECHA OPERACION", result.rows);
         if (!result.rowCount || result.rowCount < 1) {
           return formatDate(new Date());
         } else if (result?.rows[0]?.max === null) {
