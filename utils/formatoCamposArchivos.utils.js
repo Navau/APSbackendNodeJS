@@ -2181,20 +2181,21 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        pattern: /(0|[1-9][0-9]{1,6})$/,
         positveNegative: false,
         required: true,
-        function: "mayorACeroDecimal",
+        function: "mayorACeroEntero",
       },
       {
-        columnName: "saldo_final_mes_actual_bs",
-        pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
+        columnName: "fecha_compra",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: true,
         required: true,
-        function: "saldoFinalMesAnteriorBsMasMovimientoMesBs",
+        function: "fechaOperacionMenor",
       },
       {
-        columnName: "total",
+        columnName: "saldo_anterior",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,

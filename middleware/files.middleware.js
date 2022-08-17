@@ -179,8 +179,11 @@ async function obtenerListaArchivos(params) {
     : moment().format("YYYY-MM-DD");
   let periodicidad = [154]; //VALOR POR DEFECTO
 
-  if (typeFiles[0].originalname.substring(0, 1) === "M") {
-    if (typeFiles.length >= 1) {
+  if (
+    typeFiles[0].originalname.substring(0, 1) === "M" &&
+    tipo_periodo === "D"
+  ) {
+    if (typeFiles.length >= 2) {
       periodicidad = [154, 219];
     } else {
       periodicidad = [154];
