@@ -434,7 +434,6 @@ async function validarArchivosIteraciones(params) {
                     codeCurrentFile = await infoArchivo.codeCurrentFile;
                     nameTable = await infoArchivo.nameTable;
                     headers = await infoArchivo.headers;
-                    console.log(infoArchivo);
 
                     codeCurrentFilesArray.push(codeCurrentFile);
 
@@ -1478,7 +1477,8 @@ exports.validarArchivo2 = async (req, res, next) => {
             if (fecha_entrega) {
               bodyQuery[0].fecha_entrega = fecha_entrega;
             }
-            if (codeCurrentFile === "108") {
+            console.log("infoTables", infoTables);
+            if (infoTables.code === "108") {
               bodyQuery[0].cod_institucion = codeCurrentFile;
               if (tipo_periodo === "D") {
                 bodyQuery[0].id_periodo = 154;

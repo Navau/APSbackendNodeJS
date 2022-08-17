@@ -764,6 +764,9 @@ async function formatoArchivo(type) {
     482: {
       table: "APS_seguro_archivo_482",
     },
+    483: {
+      table: "APS_seguro_archivo_483",
+    },
   };
   // console.log(HEADERS[type].table);
   let resultFinal = null;
