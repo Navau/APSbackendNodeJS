@@ -969,7 +969,7 @@ async function obtenerValidaciones(typeFile) {
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: true,
         required: true,
-        function: "tipoInstrumento",
+        function: null,
       },
       {
         columnName: "tasa_rendimiento",
@@ -2181,7 +2181,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /(0|[1-9][0-9]{1,6})$/,
+        pattern: /^(0|[1-9][0-9]{1,6})$/,
         positveNegative: false,
         required: true,
         function: "mayorACeroEntero",
@@ -2209,39 +2209,81 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorACeroDecimal",
       },
       {
-        columnName: "saldo_anterior",
+        columnName: "decremento_revaluo_tecnico",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "mayorACeroDecimal",
       },
       {
-        columnName: "saldo_anterior",
+        columnName: "altas_bajas_bienes",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "mayorACeroDecimal",
       },
       {
-        columnName: "saldo_anterior",
+        columnName: "saldo_final",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "mayorACeroDecimal",
       },
       {
-        columnName: "saldo_anterior",
+        columnName: "saldo_anterior_depreciacion_acumulada",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "mayorACeroDecimal",
       },
       {
-        columnName: "saldo_anterior",
+        columnName: "depreciacion_periodo",
         pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "altas_bajas_depreciacion",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "saldo_final_depreciacion_acumulada",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "depreciacionPeriodoMasAltasBajasDepreciacion",
+      },
+      {
+        columnName: "valor_neto_bs",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "valor_neto_usd",
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "total_vida_util",
+        pattern: /(0|[1-9][0-9]{1,2})$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "vida_util_restante",
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        positveNegative: true,
+        required: true,
+        function: "mayorACeroEntero",
       },
     ],
     497: [
@@ -3067,6 +3109,44 @@ async function saldoFinalMesAnteriorBsMasMovimientoMesBs(params) {
   }
 }
 
+async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
+  const {
+    saldo_final_depreciacion_acumulada,
+    depreciacion_periodo,
+    altas_bajas_depreciacion,
+  } = params;
+  try {
+    const saldoFinalMesAnteriorBsValue = parseFloat(depreciacion_periodo);
+    const movimientoMesBsValue = parseFloat(altas_bajas_depreciacion);
+    if (isNaN(saldoFinalMesAnteriorBsValue) || isNaN(movimientoMesBsValue)) {
+      return {
+        ok: false,
+        message: `El campo saldo final del mes anterior en bolivianos o el movimiento de mes en bolivianos no son numeros.`,
+      };
+    } else {
+      const result = saldoFinalMesAnteriorBsValue + movimientoMesBsValue;
+      if (
+        result.toFixed(2) === parseFloat(saldo_final_mes_actual_bs).toFixed(2)
+      ) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El  saldo final del mes anterior en bolivianos sumado con el movimiento de mes en bolivianos no es igual a saldo final del mes actual en bolivianos.`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -3102,4 +3182,5 @@ module.exports = {
   saldoAntMasAltasBajasMasActualizacion,
   saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
   saldoFinalMesAnteriorBsMasMovimientoMesBs,
+  depreciacionPeriodoMasAltasBajasDepreciacion,
 };
