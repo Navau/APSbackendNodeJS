@@ -88,7 +88,7 @@ const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 // }
 
 async function ValorMaximo(req, res) {
-  const { max, tipo_periodo } = req.body;
+  const { max, periodicidad } = req.body;
   const { id_rol, id_usuario } = req.user;
   const institucion = async () => {
     let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
@@ -142,6 +142,10 @@ async function ValorMaximo(req, res) {
     return resultFinal;
   };
 
+  if (!periodicidad) {
+    respDatosNoRecibidos400(res, "No se envio la periodicidad.");
+  }
+
   const cod_institucion = await institucion();
 
   if (cod_institucion?.err) {
@@ -164,7 +168,7 @@ async function ValorMaximo(req, res) {
     },
     {
       key: "id_periodo",
-      value: tipo_periodo === "M" ? 155 : tipo_periodo === "D" ? 154 : null,
+      value: periodicidad,
     },
     {
       key: "cod_institucion",
@@ -293,6 +297,45 @@ async function UltimaCarga(req, res) {
     },
   };
   let query = ObtenerUltimoRegistro(nameTable, params);
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoVacioObject200(res, result.rows);
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500(res, err);
+    });
+}
+
+async function UltimaCarga2(req, res) {
+  const { fecha_operacion, periodicidad } = req.body;
+  const { id_rol, id_usuario } = req.user;
+
+  let query = `
+  SELECT CASE 
+  WHEN maxid > 0 
+      THEN nro_carga 
+      ELSE 0 
+  END AS nroCarga, 
+  CASE 
+  WHEN maxid > 0 
+      THEN cargado 
+      ELSE false 
+  END AS Cargado 
+  FROM ( 
+    SELECT coalesce(max(id_carga_archivos), 0) AS maxid 
+    FROM public."APS_aud_carga_archivos_pensiones_seguros" AS pen 
+    INNER JOIN "APS_seg_institucion" AS int 
+    ON int.codigo = pen.cod_institucion 
+    INNER JOIN "APS_seg_usuario" AS usuario 
+    ON usuario.id_institucion = int.id_institucion 
+    WHERE usuario.id_usuario=${id_usuario} 
+    AND pen.id_periodo=${periodicidad} 
+    AND pen.fecha_operacion = '${fecha_operacion}') AS max_id 
+    LEFT JOIN "APS_aud_carga_archivos_pensiones_seguros" AS datos 
+    ON max_id.maxid = datos.id_carga_archivos
+  `;
   await pool
     .query(query)
     .then((result) => {
@@ -471,4 +514,5 @@ module.exports = {
   Deshabilitar,
   ValorMaximo,
   UltimaCarga,
+  UltimaCarga2,
 };

@@ -7,6 +7,7 @@ const {
 const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
+  respDatosNoRecibidos400,
 } = require("../../utils/respuesta.utils");
 const moment = require("moment");
 
@@ -118,6 +119,10 @@ async function obtenerFechaOperacion(req, res) {
       });
       return;
     }
+    if (!tipo_periodo) {
+      respDatosNoRecibidos400(res, "No se especifico el tipo periodo.");
+      return;
+    }
 
     let whereMax = [];
 
@@ -132,7 +137,7 @@ async function obtenerFechaOperacion(req, res) {
           value: true,
         },
       ];
-    } else {
+    } else if (tipo_archivo === "PENSIONES") {
       whereMax = [
         {
           key: "id_rol",
@@ -144,7 +149,7 @@ async function obtenerFechaOperacion(req, res) {
         },
         {
           key: "id_periodo",
-          value: tipo_periodo === "M" ? 155 : tipo_periodo === "D" ? 154 : null,
+          value: tipo_periodo === "D" ? 154 : tipo_periodo === "M" ? 155 : null,
         },
         {
           key: "cargado",
@@ -176,65 +181,6 @@ async function obtenerFechaOperacion(req, res) {
         return null;
       });
 
-    let whereUltimoRegistro = [];
-
-    if (cod_institucion !== null) {
-      whereUltimoRegistro = [
-        {
-          key: "id_rol",
-          value: id_rol,
-        },
-        {
-          key: "cod_institucion",
-          value: cod_institucion.result.codigo,
-        },
-        {
-          key: "fecha_operacion",
-          value: new Date(maxFechaOperacion).toISOString().split("T")[0],
-        },
-        {
-          key: "cargado",
-          value: true,
-        },
-      ];
-    } else {
-      whereUltimoRegistro = [
-        {
-          key: "id_rol",
-          value: id_rol,
-        },
-        {
-          key: "fecha_operacion",
-          value: new Date(maxFechaOperacion).toISOString().split("T")[0],
-        },
-        {
-          key: "cargado",
-          value: true,
-        },
-      ];
-    }
-
-    const queryUltimoRegistro = ObtenerUltimoRegistro(tableQuery, {
-      where: whereUltimoRegistro,
-      orderby: {
-        field: "nro_carga",
-      },
-    });
-
-    const ultimoRegistro = await pool
-      .query(queryUltimoRegistro)
-      .then((result) => {
-        return result.rows.length >= 1
-          ? formatDate(new Date(result.rows?.[0]?.fecha_operacion))
-          : formatDate(new Date());
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-        return null;
-      });
-    console.log(ultimoRegistro);
-
     const addValues = (date, days) => {
       date.setDate(date.getDate() + days);
       return date;
@@ -244,8 +190,8 @@ async function obtenerFechaOperacion(req, res) {
       return date;
     };
 
-    const lastDate = new Date(ultimoRegistro);
-    console.log(lastDate);
+    const lastDate = new Date(maxFechaOperacion);
+    console.log("lastDate", lastDate);
 
     const fechaOperacionMensual = () => {
       const year = lastDate.getFullYear(); //2022
@@ -257,13 +203,15 @@ async function obtenerFechaOperacion(req, res) {
 
       return fechaOperacion;
     };
+
     const fechaOperacionDiaria = () => {
       if (tipo_archivo === "PENSIONES") {
         const fechaOperacion = addValues(lastDate, 1); //VIERNES + 1 = SABADO
-        console.log(fechaOperacion);
         return fechaOperacion;
       } else if (tipo_archivo === "BOLSA") {
+        console.log(tipo_archivo);
         const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
+        console.log(checkDate);
         let fechaOperacion = null;
         // const dayLastDate = checkDate.getUTCDay(); //6 = SABADO; 0 = DOMINGO
         // if (dayLastDate === 0) {
@@ -284,17 +232,19 @@ async function obtenerFechaOperacion(req, res) {
     };
 
     const FECHA_OPERACION = {
-      M: fechaOperacionMensual(),
-      D: fechaOperacionDiaria(),
+      M: fechaOperacionMensual,
+      D: fechaOperacionDiaria,
     };
 
-    if (isNaN(Date.parse(FECHA_OPERACION[tipo_periodo]))) {
+    const result = FECHA_OPERACION[tipo_periodo]();
+
+    if (isNaN(Date.parse(result))) {
       respErrorServidor500END(res, {
         message: "Hubo un error al obtener la fecha de operación.",
-        value: FECHA_OPERACION[tipo_periodo],
+        value: result,
       });
     } else {
-      respResultadoCorrectoObjeto200(res, FECHA_OPERACION[tipo_periodo]);
+      respResultadoCorrectoObjeto200(res, result);
     }
   } catch (err) {
     respErrorServidor500END(res, err);

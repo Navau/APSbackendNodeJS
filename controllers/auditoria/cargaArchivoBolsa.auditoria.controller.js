@@ -152,6 +152,39 @@ async function UltimaCarga(req, res) {
     });
 }
 
+async function UltimaCarga2(req, res) {
+  const { fecha_operacion } = req.body;
+  const { id_rol, id_usuario } = req.user;
+
+  let query = `SELECT CASE 
+  WHEN maxid > 0 
+      THEN nro_carga 
+      ELSE 0 
+  END AS nroCarga, 
+  CASE 
+  WHEN maxid > 0 
+      THEN cargado 
+      ELSE false 
+  END AS Cargado 
+  FROM (
+    SELECT coalesce(max(id_carga_archivos), 0) AS maxid 
+    FROM public."APS_aud_carga_archivos_bolsa" AS bolsa
+    WHERE bolsa.id_rol = ${id_rol} 
+    AND bolsa.fecha_operacion = '${fecha_operacion}') AS max_id 
+    LEFT JOIN "APS_aud_carga_archivos_bolsa" AS datos 
+    ON max_id.maxid = datos.id_carga_archivos;
+  `;
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoVacioObject200(res, result.rows);
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500(res, err);
+    });
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO BOLSA DE SEGURIDAD
 function Listar(req, res) {
   let query = ListarUtil(nameTable);
@@ -320,4 +353,5 @@ module.exports = {
   tipoDeCambio,
   ValorMaximo,
   UltimaCarga,
+  UltimaCarga2,
 };

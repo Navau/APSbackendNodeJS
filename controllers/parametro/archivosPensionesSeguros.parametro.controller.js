@@ -130,16 +130,10 @@ async function SeleccionarArchivosBolsa(req, res) {
       respResultadoVacio404END(res, _tipoDeCambio.message);
       return;
     } else {
-      let queryFeriado = EscogerInternoUtil("APS_param_feriado", {
-        select: ["*"],
-        where: [
-          {
-            key: "fecha",
-            value: fecha_operacion,
-          },
-        ],
-      });
-      const holidays = await pool
+      let queryFeriado = `SELECT CASE WHEN  EXTRACT(DOW FROM TIMESTAMP'${fecha_operacion}' ) IN (6,7) OR
+      (SELECT COUNT(*) FROM public."APS_param_feriado" WHERE fecha = '${fecha_operacion}') > 0
+       THEN 0 ELSE 1 END;`;
+      const workingDay = await pool
         .query(queryFeriado)
         .then((result) => {
           return result.rows;
@@ -150,15 +144,11 @@ async function SeleccionarArchivosBolsa(req, res) {
           return null;
         });
 
-      if (holidays === null) {
-        return null;
-      }
-
-      const currentDate = new Date(fecha_operacion);
-      const day = currentDate.getUTCDay();
       let periodicidad = [154]; //VALOR POR DEFECTO
 
-      if (day === 0 || day === 6 || holidays.length >= 1) {
+      console.log(workingDay);
+
+      if (parseInt(workingDay?.[0].case) === 0) {
         periodicidad = [154]; // DIARIOS
       } else {
         periodicidad = [154, 219]; // DIAS HABILES

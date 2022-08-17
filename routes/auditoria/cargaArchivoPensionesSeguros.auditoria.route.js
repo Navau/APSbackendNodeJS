@@ -13,7 +13,7 @@ api.post(
 api.post(
   "/UltimaCarga",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.UltimaCarga
+  controller.UltimaCarga2
 );
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(

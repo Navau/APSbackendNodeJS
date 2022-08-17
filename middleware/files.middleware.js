@@ -74,7 +74,7 @@ var nameTable = "";
 var codeCurrentFile = "";
 var codeCurrentFilesArray = [];
 var periodicidadFinal = null;
-var nameTableErrors = "APS_aud_errores_carga_archivos";
+var nameTableErrors = "";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
@@ -253,6 +253,7 @@ async function seleccionarTablas(params) {
       result = {
         code: "108",
         table: "APS_aud_carga_archivos_pensiones_seguros",
+        tableErrors: "APS_aud_errores_carga_archivos_bolsa",
       };
     } else if (
       item.originalname.substring(0, 1) === "M" &&
@@ -264,6 +265,7 @@ async function seleccionarTablas(params) {
       result = {
         code: "M",
         table: "APS_aud_carga_archivos_bolsa",
+        tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
     }
   });
@@ -1393,6 +1395,7 @@ exports.validarArchivo2 = async (req, res, next) => {
       return;
     } else {
       nameTable = infoTables.table;
+      nameTableErrors = infoTables.tableErrors;
       codeCurrentFile = infoTables.code;
 
       const nroCargaPromise = new Promise(async (resolve, reject) => {
@@ -1477,14 +1480,13 @@ exports.validarArchivo2 = async (req, res, next) => {
             if (fecha_entrega) {
               bodyQuery[0].fecha_entrega = fecha_entrega;
             }
-            console.log("infoTables", infoTables);
             if (infoTables.code === "108") {
               bodyQuery[0].cod_institucion = infoTables.code;
-            }
-            if (tipo_periodo === "D") {
-              bodyQuery[0].id_periodo = 154;
-            } else if (tipo_periodo === "M") {
-              bodyQuery[0].id_periodo = 155;
+              if (tipo_periodo === "D") {
+                bodyQuery[0].id_periodo = 154;
+              } else if (tipo_periodo === "M") {
+                bodyQuery[0].id_periodo = 155;
+              }
             }
             console.log(bodyQuery);
             queryFiles = InsertarVariosUtil(nameTable, {
@@ -1639,7 +1641,7 @@ exports.subirArchivo = async (req, res, next) => {
   nameTable = "";
   codeCurrentFile = "";
   codeCurrentFilesArray = [];
-  nameTableErrors = "APS_aud_errores_carga_archivos";
+  nameTableErrors = "";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   periodicidadFinal = null;
