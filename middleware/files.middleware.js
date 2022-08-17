@@ -256,7 +256,7 @@ async function seleccionarTablas(params) {
       result = {
         code: "108",
         table: "APS_aud_carga_archivos_pensiones_seguros",
-        tableErrors: "APS_aud_errores_carga_archivos_bolsa",
+        tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
     } else if (
       item.originalname.substring(0, 1) === "M" &&
@@ -268,7 +268,7 @@ async function seleccionarTablas(params) {
       result = {
         code: "M",
         table: "APS_aud_carga_archivos_bolsa",
-        tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
+        tableErrors: "APS_aud_errores_carga_archivos_bolsa",
       };
     }
   });
@@ -1556,6 +1556,8 @@ exports.validarArchivo2 = async (req, res, next) => {
                           : 0,
                       });
                     });
+
+                    console.log(nameTableErrors);
 
                     queryFiles = InsertarVariosUtil(nameTableErrors, {
                       body: bodyQuery,
