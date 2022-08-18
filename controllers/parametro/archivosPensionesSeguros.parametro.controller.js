@@ -127,7 +127,7 @@ async function SeleccionarArchivosBolsa(req, res) {
       respErrorServidor500END(res, _tipoDeCambio.err);
       return;
     } else if (_tipoDeCambio.ok === false) {
-      respResultadoVacio404END(res, _tipoDeCambio.message);
+      respResultadoCorrectoObjeto200(res, null, _tipoDeCambio.message);
       return;
     }
     // const queryFeriado = EscogerInternoUtil("APS_param_feriado", {
