@@ -582,11 +582,11 @@ async function CargarArchivo3(req, res) {
   let bodyFinalQuery = [];
   let tableFile = null;
   let paramsFile = null;
-  console.log("filesReaded", filesReaded);
-  console.log("filesUploadedBD", filesUploadedBD);
-  console.log("previousResults", previousResults);
-  console.log("previousErrors", previousErrors);
-  console.log("returnsValues", returnsValues);
+  // console.log("filesReaded", filesReaded);
+  // console.log("filesUploadedBD", filesUploadedBD);
+  // console.log("previousResults", previousResults);
+  // console.log("previousErrors", previousErrors);
+  // console.log("returnsValues", returnsValues);
   console.log("ESTOY EN CARGAR ARCHIVO 3");
   let infoTables = {
     code: null,
@@ -652,7 +652,7 @@ async function CargarArchivo3(req, res) {
 
       //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
       const dataFile = newArrayDataObject.join("");
-      console.log("dataFile", dataFile);
+      // console.log("dataFile", dataFile);
       const filePathWrite = `./uploads/tmp/${item.originalname}`;
       fs.writeFileSync(filePathWrite, dataFile);
       //#endregion
@@ -700,6 +700,7 @@ async function CargarArchivo3(req, res) {
           filePath,
         };
       }
+      // console.log(headers);
 
       //#region Formateando informacion de archivo para insertar por medio de un INSERT QUERY
       let finalData = [];
@@ -736,6 +737,8 @@ async function CargarArchivo3(req, res) {
         body: bodyFinalQuery,
         returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
       });
+
+      bodyFinalQuery = [];
 
       await pool
         .query(queryFiles)
@@ -795,16 +798,17 @@ async function CargarArchivo3(req, res) {
           false
         );
       } else {
+        const finalRespArray = [];
+        map(previousResults[0].files, (item, index) => {
+          finalRespArray.push({
+            archivo: item,
+            cargado: true,
+            id_carga_archivos: idCargaArchivos,
+            mensaje: `Archivo ${item} cargado correctamente.`,
+          });
+        });
         actualizarCampoCargado(
-          respResultadoCorrectoObjeto200(
-            res,
-            {
-              files: previousResults[0].files,
-              id_carga_archivos: idCargaArchivos,
-              cargado: true,
-            },
-            "Archivos Cargados correctamente."
-          ),
+          respResultadoCorrectoObjeto200(res, finalRespArray),
           true
         );
       }

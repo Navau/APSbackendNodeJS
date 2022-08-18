@@ -166,7 +166,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        paramsInstrumento = {
+        paramsTipoActivo = {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
@@ -919,7 +919,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "tipoInstrumento",
+        function: null,
       },
       {
         columnName: "precio",
@@ -1003,7 +1003,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "tipoInstrumento",
+        function: "tipoActivo",
       },
       {
         columnName: "clave_instrumento",
@@ -1029,7 +1029,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_bid",
-        pattern: /^(\d{1,16})(\.\d{5,5}){1,1}$/,
+        pattern: /^(\d{1,11})(\.\d{5,5}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
