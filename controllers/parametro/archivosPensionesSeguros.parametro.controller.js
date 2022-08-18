@@ -130,44 +130,16 @@ async function SeleccionarArchivosBolsa(req, res) {
       respResultadoVacio404END(res, _tipoDeCambio.message);
       return;
     }
-    let queryFeriado = EscogerInternoUtil("APS_param_feriado", {
-      select: ["*"],
-      where: [
-        {
-          key: "fecha",
-          value: fecha_operacion,
-        },
-      ],
-    });
-    const holidays = await pool
-      .query(queryFeriado)
-      .then((result) => {
-        return result.rows;
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-        return null;
-      });
-
-    if (holidays === null) {
-      return null;
-    }
-
-    const fechaOperacion = new Date(fecha_operacion);
-    const day = fechaOperacion.getUTCDay();
-    let periodicidad = [154]; //VALOR POR DEFECTO
-
-    if (day === 0 || day === 6 || holidays.length >= 1) {
-      periodicidad = [154]; // DIARIOS
-    } else {
-      periodicidad = [154, 219]; // DIAS HABILES
-    }
-    // let queryFeriado = `SELECT CASE WHEN  EXTRACT(DOW FROM TIMESTAMP'${fecha_operacion}' ) IN (6,7) OR
-    // (SELECT COUNT(*) FROM public."APS_param_feriado" WHERE fecha = '${fecha_operacion}') > 0
-    //  THEN 0 ELSE 1 END;`;
-    // console.log(queryFeriado);
-    // const workingDay = await pool
+    // const queryFeriado = EscogerInternoUtil("APS_param_feriado", {
+    //   select: ["*"],
+    //   where: [
+    //     {
+    //       key: "fecha",
+    //       value: fecha_operacion,
+    //     },
+    //   ],
+    // });
+    // const holidays = await pool
     //   .query(queryFeriado)
     //   .then((result) => {
     //     return result.rows;
@@ -178,15 +150,48 @@ async function SeleccionarArchivosBolsa(req, res) {
     //     return null;
     //   });
 
+    // if (holidays === null) {
+    //   return null;
+    // }
+
+    // const fechaOperacion = new Date(fecha_operacion);
+    // const day = fechaOperacion.getUTCDay();
     // let periodicidad = [154]; //VALOR POR DEFECTO
 
-    // console.log(workingDay);
-
-    // if (parseInt(workingDay?.[0].case) === 0) {
+    // if (day === 0 || day === 6 || holidays.length >= 1) {
     //   periodicidad = [154]; // DIARIOS
     // } else {
     //   periodicidad = [154, 219]; // DIAS HABILES
     // }
+    const queryFeriado = `SELECT 
+    CASE 
+    WHEN EXTRACT 
+    (DOW FROM TIMESTAMP'${fecha_operacion}') IN (6,0) OR 
+    (SELECT COUNT(*) FROM public."APS_param_feriado" WHERE fecha = '${fecha_operacion}') > 0 
+    THEN 0 
+    ELSE 1 
+    END`;
+    console.log(queryFeriado);
+    const workingDay = await pool
+      .query(queryFeriado)
+      .then((result) => {
+        return result.rows;
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+        return null;
+      });
+
+    let periodicidad = [154]; //VALOR POR DEFECTO
+
+    // console.log(workingDay);
+
+    if (parseInt(workingDay?.[0].case) === 0) {
+      periodicidad = [154]; // DIARIOS
+    } else {
+      periodicidad = [154, 219]; // DIAS HABILES
+    }
 
     let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
   "APS_param_archivos_pensiones_seguros".nombre::text, 
