@@ -60,6 +60,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsSaldoAntMasAltasBajasMasActualizacion = null;
       let paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = null;
       let paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs = null;
+      let paramsDepreciacionPeriodoMasAltasBajasDepreciacion = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
@@ -669,6 +670,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         codeCurrentFile = "496";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
+        paramsDepreciacionPeriodoMasAltasBajasDepreciacion = true;
       } else if (nameFile.includes(".497")) {
         console.log("ARCHIVO CORRECTO : 497", nameFile);
         codeCurrentFile = "497";
@@ -718,6 +720,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsSaldoAntMasAltasBajasMasActualizacion,
         paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion,
         paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs,
+        paramsDepreciacionPeriodoMasAltasBajasDepreciacion,
       });
     }
   );
@@ -3116,17 +3119,18 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
     altas_bajas_depreciacion,
   } = params;
   try {
-    const saldoFinalMesAnteriorBsValue = parseFloat(depreciacion_periodo);
-    const movimientoMesBsValue = parseFloat(altas_bajas_depreciacion);
-    if (isNaN(saldoFinalMesAnteriorBsValue) || isNaN(movimientoMesBsValue)) {
+    const depreciacionPeriodoValue = parseFloat(depreciacion_periodo);
+    const altasBajasDepreciacionValue = parseFloat(altas_bajas_depreciacion);
+    if (isNaN(depreciacionPeriodoValue) || isNaN(altasBajasDepreciacionValue)) {
       return {
         ok: false,
-        message: `El campo saldo final del mes anterior en bolivianos o el movimiento de mes en bolivianos no son numeros.`,
+        message: `El campo depreciacion de periodo o altas y bajas de depreciacion no son numeros.`,
       };
     } else {
-      const result = saldoFinalMesAnteriorBsValue + movimientoMesBsValue;
+      const result = depreciacionPeriodoValue + altasBajasDepreciacionValue;
       if (
-        result.toFixed(2) === parseFloat(saldo_final_mes_actual_bs).toFixed(2)
+        result.toFixed(2) ===
+        parseFloat(saldo_final_depreciacion_acumulada).toFixed(2)
       ) {
         return {
           ok: true,
@@ -3135,7 +3139,7 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
       } else {
         return {
           ok: false,
-          message: `El  saldo final del mes anterior en bolivianos sumado con el movimiento de mes en bolivianos no es igual a saldo final del mes actual en bolivianos.`,
+          message: `La depreciacion de periodo sumado con las altas y bajas de depreciacion no es igual a saldo final de depreciacion acumulada .`,
         };
       }
     }
@@ -3145,6 +3149,12 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
       message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
     };
   }
+}
+
+async function operacionColumnas(params) {
+  const campos = ["campo1", "campo1", "campo1", "campo1"];
+
+  const operadores = ["+", "-", "*", "/"];
 }
 
 module.exports = {

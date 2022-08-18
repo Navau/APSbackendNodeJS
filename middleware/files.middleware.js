@@ -38,6 +38,7 @@ const {
   saldoAntMasAltasBajasMasActualizacion,
   saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
   saldoFinalMesAnteriorBsMasMovimientoMesBs,
+  depreciacionPeriodoMasAltasBajasDepreciacion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1309,6 +1310,26 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "depreciacionPeriodoMasAltasBajasDepreciacion") {
+            const _depreciacionPeriodoMasAltasBajasDepreciacion =
+              infoArchivo?.paramsDepreciacionPeriodoMasAltasBajasDepreciacion
+                ? await depreciacionPeriodoMasAltasBajasDepreciacion({
+                    saldo_final_depreciacion_acumulada: value,
+                    depreciacion_periodo: item2.depreciacion_periodo,
+                    altas_bajas_depreciacion: item2.altas_bajas_depreciacion,
+                  })
+                : null;
+
+            if (_depreciacionPeriodoMasAltasBajasDepreciacion.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
         }
       };
@@ -1619,11 +1640,12 @@ exports.validarArchivo2 = async (req, res, next) => {
                 req.filesUploadedBD = response.bodyQuery;
                 req.codeCurrentFile = codeCurrentFile;
                 req.nameTableAud = nameTable;
-                respResultadoCorrectoObjeto200(res, {
-                  results: response.resultsPromise,
-                  errors,
-                });
-                // next();
+                req.tipo_periodo = tipo_periodo;
+                // respResultadoCorrectoObjeto200(res, {
+                //   results: response.resultsPromise,
+                //   errors,
+                // });
+                next();
               }
             })
             .catch(() => {

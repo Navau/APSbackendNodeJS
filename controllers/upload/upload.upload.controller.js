@@ -28,6 +28,7 @@ const {
   respIDNoRecibido400,
   respArchivoErroneo415,
   respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
@@ -569,25 +570,255 @@ async function CargarArchivo2(req, res) {
 }
 
 async function CargarArchivo3(req, res) {
-  let idCargaArchivos = null;
   let errorsFinal = [];
-  let filesReaded = req.filesReaded;
-  let filesUploadedBD = req.filesUploadedBD;
-  let previousResults = req.results;
-  let previousErrors = req.errors;
-  let returnsValues = req.returnsValues;
-  let resultFinal = [];
+  const filesReaded = req.filesReaded;
+  const filesUploadedBD = req.filesUploadedBD;
+  const previousResults = req.results;
+  const previousErrors = req.errors;
+  const returnsValues = req.returnsValues;
+  const idCargaArchivos = returnsValues[0].id_carga_archivos;
+  const resultFinal = [];
   let bodyPartialQuery = [];
   let bodyFinalQuery = [];
-  let uploadPromise = null;
   let tableFile = null;
   let paramsFile = null;
-  let queryUpdateForError = "";
-  // console.log("filesUploadedBD", filesUploadedBD);
-  // console.log("previousResults", previousResults);
-  // console.log("previousErrors", previousErrors);
-  // console.log("returnsValues", returnsValues);
-  // console.log("ESTOY EN CARGAR ARCHIVO 2");
+  console.log("filesReaded", filesReaded);
+  console.log("filesUploadedBD", filesUploadedBD);
+  console.log("previousResults", previousResults);
+  console.log("previousErrors", previousErrors);
+  console.log("returnsValues", returnsValues);
+  console.log("ESTOY EN CARGAR ARCHIVO 3");
+  let infoTables = {
+    code: null,
+    table: null,
+    tableErrors: null,
+  };
+  map(req.files, (item, index) => {
+    if (item.originalname.substring(0, 3) === "108") {
+      infoTables = {
+        code: "108",
+        table: "APS_aud_carga_archivos_pensiones_seguros",
+        tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
+      };
+    } else if (
+      item.originalname.substring(0, 1) === "M" &&
+      (item.originalname.includes("K.") ||
+        item.originalname.includes("L.") ||
+        item.originalname.includes("N.") ||
+        item.originalname.includes("P."))
+    ) {
+      infoTables = {
+        code: "M",
+        table: "APS_aud_carga_archivos_bolsa",
+        tableErrors: "APS_aud_errores_carga_archivos_bolsa",
+      };
+    }
+  });
+
+  const uploadPromise = new Promise(async (resolve, reject) => {
+    let errors = [];
+    for (let index = 0; index < req.files.length; index++) {
+      const item = req.files[index];
+      const arrayDataObject = [];
+      const filePath =
+        __dirname.substring(0, __dirname.indexOf("controllers")) + item.path;
+      //#region SEPARAR LOS CAMPOS DEL ARCHIVO QUE ESTA DIVIDO EN FILAS
+      // console.log(filesReaded);
+      map(filesReaded[index], (item2, index2) => {
+        let rowSplit = item2.split(",");
+        let resultObject = [];
+        map(rowSplit, (item3, index3) => {
+          if (item3 !== "") {
+            resultObject = [
+              ...resultObject,
+              item3.trim(), //QUITAR ESPACIOS
+            ];
+          }
+        });
+        if (item2 !== "") {
+          arrayDataObject.push(resultObject);
+        }
+      });
+      //#endregion
+
+      //#region INSERTAR EL ID DE CARGA ARCHIVOS A CADA FILA SEPARADA
+      // console.log("arrayDataObject", arrayDataObject);
+      const newArrayDataObject = [];
+      map(arrayDataObject, (item2, index2) => {
+        newArrayDataObject.push([...item2, `"${idCargaArchivos}"\r\n`]);
+      });
+      // console.log("newArrayDataObject", newArrayDataObject);
+      //#endregion
+
+      //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
+      const dataFile = newArrayDataObject.join("");
+      console.log("dataFile", dataFile);
+      const filePathWrite = `./uploads/tmp/${item.originalname}`;
+      fs.writeFileSync(filePathWrite, dataFile);
+      //#endregion
+      let headers = null;
+      let codeFile = null;
+
+      if (item.originalname.includes("K.")) {
+        codeFile = "K";
+        headers = await formatoArchivo(codeFile);
+        headers.splice(0, 1); // ELIMINAR ID DE TABLA
+        tableFile = "APS_oper_archivo_k";
+
+        paramsFile = {
+          headers,
+          filePath,
+        };
+      } else if (item.originalname.includes("L.")) {
+        codeFile = "L";
+        headers = await formatoArchivo(codeFile);
+        headers.splice(0, 1); // ELIMINAR ID DE TABLA
+        tableFile = "APS_oper_archivo_l";
+
+        paramsFile = {
+          headers,
+          filePath,
+        };
+      } else if (item.originalname.includes("N.")) {
+        codeFile = "N";
+        headers = await formatoArchivo(codeFile);
+        headers.splice(0, 1); // ELIMINAR ID DE TABLA
+        tableFile = "APS_oper_archivo_n";
+
+        paramsFile = {
+          headers,
+          filePath,
+        };
+      } else if (item.originalname.includes("P.")) {
+        codeFile = "P";
+        headers = await formatoArchivo(codeFile);
+        headers.splice(0, 1); // ELIMINAR ID DE TABLA
+        tableFile = "APS_oper_archivo_p";
+
+        paramsFile = {
+          headers,
+          filePath,
+        };
+      }
+
+      //#region Formateando informacion de archivo para insertar por medio de un INSERT QUERY
+      let finalData = [];
+      let partialData = [];
+      map(newArrayDataObject, (itemV1, indexV1) => {
+        // console.log("ITEMV1", itemV1);
+        let dataObject = Object.assign({}, itemV1);
+        partialData.push(dataObject);
+      });
+      let partialHeaders = headers;
+      map(partialData, (itemV1, indexV1) => {
+        let x = {};
+        map(itemV1, (itemV2, indexV2) => {
+          let valueAux = itemV2;
+          if (valueAux.includes("\r\n")) {
+            valueAux = `"${idCargaArchivos}"`;
+          }
+          x = {
+            ...x,
+            [partialHeaders[indexV2]]: valueAux?.trim().replace(/['"]+/g, ""),
+          };
+        });
+        finalData.push(x);
+      });
+      //#endregion
+
+      map([finalData], (itemBPQ, indexBPQ) => {
+        bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
+      });
+
+      let queryFiles = "";
+
+      queryFiles = InsertarVariosUtil(tableFile, {
+        body: bodyFinalQuery,
+        returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
+      });
+
+      await pool
+        .query(queryFiles)
+        .then((resultFile) => {
+          resultFinal.push({
+            message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
+            result: {
+              rowsUpdate: resultFile.rows,
+              rowCount: resultFile.rowCount,
+            },
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          errors.push({
+            type: "QUERY SQL ERROR",
+            message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
+            err,
+          });
+          // reject({ resultFinal, errors });
+        })
+        .finally(() => {
+          if (index === req.files.length - 1) {
+            resolve({ resultFinal, errors });
+          }
+        });
+    }
+  });
+
+  const actualizarCampoCargado = async (resp, state) => {
+    const queryUpdateForError = ActualizarUtil(infoTables.table, {
+      body: {
+        cargado: state,
+      },
+      idKey: "id_carga_archivos",
+      idValue: idCargaArchivos,
+    });
+    console.log(queryUpdateForError);
+
+    await pool
+      .query(queryUpdateForError)
+      .then((response) => {})
+      .catch((err) => {})
+      .finally(() => {
+        resp;
+      });
+  };
+
+  uploadPromise
+    .then((response) => {
+      if (response.errors.length >= 1) {
+        actualizarCampoCargado(
+          respArchivoErroneo415(res, {
+            errores: [...response.errors, ...previousErrors],
+            cargado: false,
+          }),
+          false
+        );
+      } else {
+        actualizarCampoCargado(
+          respResultadoCorrectoObjeto200(
+            res,
+            {
+              files: previousResults[0].files,
+              id_carga_archivos: idCargaArchivos,
+              cargado: true,
+            },
+            "Archivos Cargados correctamente."
+          ),
+          true
+        );
+      }
+    })
+    .catch((err) => {
+      actualizarCampoCargado(
+        respErrorServidor500(
+          res,
+          { errores: err, cargado: false },
+          "Ocurrió un error inesperado.",
+          false
+        )
+      );
+    });
 }
 
 //FUNCION PARA OBTENER TODOS LOS ACTIVIDAD ECONOMICA DE SEGURIDAD
