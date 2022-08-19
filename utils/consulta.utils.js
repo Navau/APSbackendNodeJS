@@ -801,6 +801,127 @@ function EliminarUtil(table, params) {
   return query;
 }
 
+function EliminarMultiplesTablasUtil(tables, params) {
+  let querys = [];
+  let queryFinal = "";
+  map(tables, (item, index) => {
+    let query = `DELETE FROM public."${item}"`;
+    if (params?.where) {
+      const where = params.where;
+      map(where, (item, index) => {
+        if (item?.like === true) {
+          query = query + ` AND ${item.key} like '${item.value}%'`;
+        } else if (item?.whereIn === true) {
+          let valuesAux = [];
+          map(item.valuesWhereIn, (itemV, indexV) => {
+            valuesAux.push(itemV);
+          });
+          query = query + ` AND ${item.key} in (${valuesAux.join(", ")})`;
+        } else {
+          if (typeof item.value === "string") {
+            query =
+              query +
+              ` AND ${item.key} ${item?.operator ? item.operator : "="} '${
+                item.value
+              }'`;
+          } else if (typeof item.value === "number") {
+            query =
+              query +
+              ` AND ${item.key} ${item?.operator ? item.operator : "="} ${
+                item.value
+              }`;
+          } else if (typeof item.value === "boolean") {
+            query =
+              query +
+              ` AND ${item.key} ${item?.operator ? item.operator : "="} ${
+                item.value
+              }`;
+          }
+        }
+      });
+    }
+    if (params?.where && !query.includes("WHERE") && query.includes("AND")) {
+      let queryAux = query.split("");
+      queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+      queryAux.splice(query.indexOf("AND"), 4);
+      queryAux.join("");
+      query = queryAux.join("");
+    }
+    query && (query = query + ";");
+    querys.push(query);
+  });
+
+  map(querys, (item, index) => {
+    queryFinal += `${item} \r\n`;
+  });
+
+  // console.log(querys);
+  console.log(queryFinal);
+  return queryFinal;
+}
+
+function AlterarSequenciaMultiplesTablasUtil(sequences, params) {
+  let querys = [];
+  let queryFinal = "";
+
+  map(sequences, (item, index) => {
+    let query = `ALTER SEQUENCE "${item.table}_${item.id}_seq"`;
+    if (params?.restartValue) {
+      query += ` RESTART WITH ${params.restartValue[index]}`;
+    }
+    query && (query = query + ";");
+    querys.push(query);
+  });
+
+  map(querys, (item, index) => {
+    queryFinal += `${item} \r\n`;
+  });
+
+  // console.log(querys);
+  console.log(queryFinal);
+  return queryFinal;
+}
+
+function ValorMaximoDeCampoMultiplesTablasUtil(tables, params) {
+  let querys = [];
+  let queryFinal = "";
+
+  map(tables, (item, index) => {
+    let query = `SELECT max(${params.fieldMax[index]}) FROM public."${item}"`;
+    if (params?.where) {
+      map(params.where, (item, index) => {
+        if (item?.like === true) {
+          query = query + ` AND ${item.key} like '${item.value}%'`;
+        } else {
+          if (typeof item.value === "string") {
+            query = query + ` AND ${item.key} = '${item.value}'`;
+          } else if (typeof item.value === "number") {
+            query = query + ` AND ${item.key} = ${item.value}`;
+          } else if (typeof item.value === "boolean") {
+            query = query + ` AND ${item.key} = ${item.value}`;
+          }
+        }
+      });
+    }
+    if (!query.includes("WHERE") && query.includes("AND")) {
+      let queryAux = query.split("");
+      queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+      queryAux.splice(query.indexOf("AND"), 4);
+      queryAux.join("");
+      query = queryAux.join("");
+    }
+    query && (query = query + ";");
+    querys.push(query);
+  });
+  map(querys, (item, index) => {
+    queryFinal += `${item} \r\n`;
+  });
+
+  // console.log(querys);
+  console.log(queryFinal);
+  return queryFinal;
+}
+
 function VerificarPermisoUtil(table, params) {
   let query = "";
   query += `SELECT * FROM public."${table}"`;
@@ -896,4 +1017,7 @@ module.exports = {
   ObtenerColumnasDeTablaUtil,
   ObtenerUltimoRegistro,
   VerificarPermisoUtil,
+  EliminarMultiplesTablasUtil,
+  AlterarSequenciaMultiplesTablasUtil,
+  ValorMaximoDeCampoMultiplesTablasUtil,
 };

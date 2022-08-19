@@ -1,3 +1,4 @@
+const { map } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -8,6 +9,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  ValorMaximoDeCampoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -16,10 +18,54 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
+  respResultadoVacio404END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_tipo_cambio";
 
+async function ValorMaximo(req, res) {
+  const { body } = req;
+  const whereFinal = [];
+  map(body, (item, index) => {
+    whereFinal.push({
+      key: index,
+      value: item,
+    });
+  });
+  const query = ValorMaximoDeCampoUtil(nameTable, {
+    fieldMax: "fecha",
+    where: whereFinal,
+  });
+
+  const maxFecha = await pool
+    .query(query)
+    .then((result) => {
+      if (!result.rows?.[0].max) {
+        return { ok: false, value: result.rows[0].max };
+      } else {
+        return { ok: true, value: result.rows[0].max };
+      }
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+
+  if (maxFecha?.err) {
+    respErrorServidor500END(res, maxFecha.err);
+    return null;
+  }
+  if (maxFecha.ok === false) {
+    respResultadoVacio404END(
+      res,
+      "No se encontró ninguna fecha para esta moneda"
+    );
+    return null;
+  }
+
+  respResultadoCorrectoObjeto200(res, maxFecha.value);
+}
 //FUNCION PARA OBTENER TODOS LOS TIPO CAMBIO DE SEGURIDAD
 function Listar(req, res) {
   let query = ListarUtil(nameTable);
@@ -185,4 +231,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  ValorMaximo,
 };

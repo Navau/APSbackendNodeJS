@@ -18,6 +18,9 @@ const {
   ResetearIDUtil,
   InsertarVariosUtil,
   ObtenerUltimoRegistro,
+  EliminarMultiplesTablasUtil,
+  AlterarSequenciaMultiplesTablasUtil,
+  ValorMaximoDeCampoMultiplesTablasUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -338,262 +341,40 @@ async function CargarArchivo(req, res) {
     });
 }
 
-async function CargarArchivo2(req, res) {
-  let idCargaArchivos = null;
-  let errorsFinal = [];
-  let filesReaded = req.filesReaded;
-  let filesUploadedBD = req.filesUploadedBD;
-  let previousResults = req.results;
-  let previousErrors = req.errors;
-  let returnsValues = req.returnsValues;
-  let codeCurrentFile = req.codeCurrentFile;
-  nameTable = req.nameTableAud;
-  let resultFinal = [];
-  let bodyPartialQuery = [];
-  let bodyFinalQuery = [];
-  let uploadPromise = null;
-  let tableFile = null;
-  let paramsFile = null;
-  let queryUpdateForError = "";
-  console.log("codeCurrentFile", codeCurrentFile);
-  console.log("nameTable", nameTable);
-  console.log("filesUploadedBD", filesUploadedBD);
-  console.log("previousResults", previousResults);
-  console.log("previousErrors", previousErrors);
-  console.log("returnsValues", returnsValues);
-  console.log("ESTOY EN CARGAR ARCHIVO 2");
-  uploadPromise = new Promise(async (resolve, reject) => {
-    let errors = [];
-    // let queryCurrentFilesBD = ListarUtil(nameTable, {});
-    // let currentFilesBD = [];
-    map(req.files, async (item, index) => {
-      let arrayDataObject = [];
-      let filePath =
-        __dirname.substring(0, __dirname.indexOf("controllers")) + item.path;
-      map(filesReaded[index], (item2, index2) => {
-        let rowSplit = item2.split(",");
-        let resultObject = [];
-        map(rowSplit, (item3, index3) => {
-          if (item3 !== "") {
-            resultObject = [
-              ...resultObject,
-              item3.trim(), //QUITAR ESPACIOS
-            ];
-          }
-        });
-        if (item2 !== "") {
-          arrayDataObject.push(resultObject);
-        }
-      });
-      let arrayDataObjectWithIDandStatus = [];
-      map(returnsValues, (item2, index2) => {
-        if (item2.nombre_archivo === item.originalname) {
-          idCargaArchivos = item2.id_carga_archivos;
-        }
-      });
-      // console.log(arrayDataObject);
-      map(arrayDataObject, (item2, index2) => {
-        let result = [...item2, `"${idCargaArchivos}"`, `"true"\r\n`];
-        arrayDataObjectWithIDandStatus.push(result);
-      });
-      // console.log(arrayDataObjectWithIDandStatus);
-      let dataFile = arrayDataObjectWithIDandStatus.join("");
-      const filePathWrite = `./uploads/tmp/${item.originalname}`;
-      fs.writeFileSync(filePathWrite, dataFile);
-      let headers = null;
-
-      if (item.originalname.includes("K.")) {
-        headers = formatoArchivo("k");
-        tableFile = "APS_oper_archivo_k";
-
-        headers = {
-          ...headers,
-          codigo_activo: headers.tipo_marcacion,
-          id_carga_archivos: idCargaArchivos,
-          estado: true,
-        };
-
-        delete headers.tipo_marcacion;
-
-        paramsFile = {
-          headers,
-          filePath,
-        };
-      } else if (item.originalname.includes("L.")) {
-      } else if (item.originalname.includes("N.")) {
-      } else if (item.originalname.includes("P.")) {
-      }
-      //#region Formateando informacion de archivo para insertar por medio de un INSERT QUERY
-      let finalData = [];
-      let partialData = [];
-      map(arrayDataObjectWithIDandStatus, (itemV1, indexV1) => {
-        // console.log("ITEMV1", itemV1);
-        let dataObject = Object.assign({}, itemV1);
-        partialData.push(dataObject);
-      });
-      let partialHeaders = headers;
-      map(partialData, (itemV1, indexV1) => {
-        let x = {};
-        map(itemV1, (itemV2, indexV2) => {
-          let valueAux = itemV2;
-          if (valueAux.includes("\r\n")) {
-            valueAux = `"true"`;
-          }
-          x = {
-            ...x,
-            [partialHeaders[indexV2]]: valueAux?.trim().replace(/['"]+/g, ""),
-          };
-        });
-        finalData.push(x);
-      });
-      //#endregion
-
-      bodyPartialQuery.push(finalData);
-      // let queryFile = "";
-
-      // queryFile = CargarArchivoABaseDeDatosUtil(tableFile, {
-      //   action: "insert",
-      //   paramsFile,
-      // });
-
-      // await pool
-      //   .query(queryFile)
-      //   .then((resultFile) => {
-      //     resultFinal.push({
-      //       file: item.originalname,
-      //       message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
-      //       result: {
-      //         rowsUpdate: resultFile.rows,
-      //         rowCount: resultFile.rowCount,
-      //       },
-      //     });
-      //   })
-      //   .catch((err) => {
-      //     console.log(err);
-      //     errors.push({
-      //       file: item.originalname,
-      //       type: "QUERY SQL ERROR",
-      //       message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
-      //       err,
-      //     });
-      //     if (index === req.files.length - 1) {
-      //       reject({ resultFinal, errors });
-      //     }
-      //   })
-      //   .finally(() => {
-      //     if (index === req.files.length - 1) {
-      //       resolve({ resultFinal, errors });
-      //     }
-      //   });
-    });
-    map(bodyPartialQuery, (itemBPQ, indexBPQ) => {
-      bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
-    });
-
-    let queryFiles = "";
-
-    queryFiles = InsertarVariosUtil(tableFile, {
-      body: bodyFinalQuery,
-      returnValue: ["id_carga_archivos", "id_archivo_k"],
-    });
-
-    await pool
-      .query(queryFiles)
-      .then((resultFile) => {
-        resultFinal.push({
-          // file: item.originalname,
-          message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
-          result: {
-            rowsUpdate: resultFile.rows,
-            rowCount: resultFile.rowCount,
-          },
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-        errors.push({
-          // file: item.originalname,
-          type: "QUERY SQL ERROR",
-          message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
-          err,
-        });
-        reject({ resultFinal, errors });
-      })
-      .finally(() => {
-        resolve({ resultFinal, errors });
-      });
-  });
-
-  const ActualizarCampoCargado = (resp) => {
-    map(returnsValues, async (item, index) => {
-      queryUpdateForError = ActualizarUtil(nameTable, {
-        body: {
-          cargado: false,
-        },
-        idKey: "id_carga_archivos",
-        idValue: item.id_carga_archivos,
-      });
-
-      await pool
-        .query(queryUpdateForError)
-        .then((response) => {})
-        .catch((err) => {})
-        .finally(() => {
-          if (index === req.files.length - 1) {
-            resp;
-          }
-        });
-    });
-  };
-
-  uploadPromise
-    .then((response) => {
-      if (response.errors.length >= 1) {
-        ActualizarCampoCargado(
-          respArchivoErroneo415(res, [...response.errors, ...previousErrors])
-        );
-      } else {
-        respResultadoCorrecto200(
-          res,
-          {
-            rows: [...response.resultFinal, ...previousResults],
-          },
-          "Archivos Cargados correctamente."
-        );
-      }
-    })
-    .catch((err) => {
-      ActualizarCampoCargado(
-        respErrorServidor500(res, err, "Ocurrió un error inesperado.")
-      );
-    });
-}
-
 async function CargarArchivo3(req, res) {
-  let errorsFinal = [];
   const filesReaded = req.filesReaded;
-  const filesUploadedBD = req.filesUploadedBD;
+  // const filesUploadedBD = req.filesUploadedBD;
   const previousResults = req.results;
   const previousErrors = req.errors;
   const returnsValues = req.returnsValues;
   const idCargaArchivos = returnsValues[0].id_carga_archivos;
   const resultFinal = [];
-  let bodyPartialQuery = [];
+  const tablesFilesArray = [];
+  const sequencesTablesFilesArray = [];
+  const idTablesFilesArray = [];
   let bodyFinalQuery = [];
-  let tableFile = null;
-  let paramsFile = null;
+  const filesSort = req.files.sort((a, b) => {
+    if (a.originalname.toLowerCase() < b.originalname.toLowerCase()) {
+      return -1;
+    }
+    if (a.originalname.toLowerCase() > b.originalname.toLowerCase()) {
+      return 1;
+    }
+    return 0;
+  }); // ORDENANDO LOS ARCHIVOS PARA ITERAR CON LA VARIABLE filesReaded
+
+  // const filesSort = req.files;
   // console.log("filesReaded", filesReaded);
   // console.log("filesUploadedBD", filesUploadedBD);
   // console.log("previousResults", previousResults);
   // console.log("previousErrors", previousErrors);
   // console.log("returnsValues", returnsValues);
-  console.log("ESTOY EN CARGAR ARCHIVO 3");
   let infoTables = {
     code: null,
     table: null,
     tableErrors: null,
   };
-  map(req.files, (item, index) => {
+  map(filesSort, (item, index) => {
     if (item.originalname.substring(0, 3) === "108") {
       infoTables = {
         code: "108",
@@ -617,13 +398,14 @@ async function CargarArchivo3(req, res) {
 
   const uploadPromise = new Promise(async (resolve, reject) => {
     let errors = [];
-    for (let index = 0; index < req.files.length; index++) {
-      const item = req.files[index];
+    for (let index = 0; index < filesSort.length; index++) {
+      const item = filesSort[index];
       const arrayDataObject = [];
       const filePath =
         __dirname.substring(0, __dirname.indexOf("controllers")) + item.path;
       //#region SEPARAR LOS CAMPOS DEL ARCHIVO QUE ESTA DIVIDO EN FILAS
       // console.log(filesReaded);
+      // SE ORDENAN PRIMERO LOS ARCHIVOS ANTES DE ITERAR CON FILES READED
       map(filesReaded[index], (item2, index2) => {
         let rowSplit = item2.split(",");
         let resultObject = [];
@@ -652,64 +434,60 @@ async function CargarArchivo3(req, res) {
 
       //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
       const dataFile = newArrayDataObject.join("");
-      // console.log("dataFile", dataFile);
       const filePathWrite = `./uploads/tmp/${item.originalname}`;
       fs.writeFileSync(filePathWrite, dataFile);
       //#endregion
       let headers = null;
       let codeFile = null;
+      let tableFile = null;
+      let idTable = null;
 
       if (item.originalname.includes("K.")) {
         codeFile = "K";
         headers = await formatoArchivo(codeFile);
+        idTable = headers[0];
         headers.splice(0, 1); // ELIMINAR ID DE TABLA
         tableFile = "APS_oper_archivo_k";
-
-        paramsFile = {
-          headers,
-          filePath,
-        };
       } else if (item.originalname.includes("L.")) {
         codeFile = "L";
         headers = await formatoArchivo(codeFile);
+        idTable = headers[0];
         headers.splice(0, 1); // ELIMINAR ID DE TABLA
         tableFile = "APS_oper_archivo_l";
-
-        paramsFile = {
-          headers,
-          filePath,
-        };
       } else if (item.originalname.includes("N.")) {
         codeFile = "N";
         headers = await formatoArchivo(codeFile);
+        idTable = headers[0];
         headers.splice(0, 1); // ELIMINAR ID DE TABLA
         tableFile = "APS_oper_archivo_n";
-
-        paramsFile = {
-          headers,
-          filePath,
-        };
       } else if (item.originalname.includes("P.")) {
         codeFile = "P";
         headers = await formatoArchivo(codeFile);
+        idTable = headers[0];
         headers.splice(0, 1); // ELIMINAR ID DE TABLA
         tableFile = "APS_oper_archivo_p";
-
-        paramsFile = {
-          headers,
-          filePath,
-        };
       }
+      tablesFilesArray.push(tableFile);
+      sequencesTablesFilesArray.push({
+        table: tableFile,
+        id: idTable,
+      });
+      idTablesFilesArray.push(idTable);
       // console.log(headers);
+      // console.log(codeFile);
+      // console.log(headers);
+      // console.log(item.originalname);
 
       //#region Formateando informacion de archivo para insertar por medio de un INSERT QUERY
       let finalData = [];
       let partialData = [];
+      // console.log(newArrayDataObject);
       map(newArrayDataObject, (itemV1, indexV1) => {
         // console.log("ITEMV1", itemV1);
         let dataObject = Object.assign({}, itemV1);
         partialData.push(dataObject);
       });
+      // console.log(partialData);
       let partialHeaders = headers;
       map(partialData, (itemV1, indexV1) => {
         let x = {};
@@ -726,6 +504,9 @@ async function CargarArchivo3(req, res) {
         finalData.push(x);
       });
       //#endregion
+      if (codeFile === "P") {
+        // console.log(finalData);
+      }
 
       map([finalData], (itemBPQ, indexBPQ) => {
         bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
@@ -737,6 +518,8 @@ async function CargarArchivo3(req, res) {
         body: bodyFinalQuery,
         returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
       });
+
+      // console.log(queryFiles);
 
       bodyFinalQuery = [];
 
@@ -787,13 +570,119 @@ async function CargarArchivo3(req, res) {
       });
   };
 
+  const eliminarArchivosCargados = async (tables, sequences, idTables) => {
+    const resultFinal = [];
+    const idsSequencesArray = [];
+
+    const queryDelete = EliminarMultiplesTablasUtil(tables, {
+      where: [
+        {
+          key: "id_carga_archivos",
+          value: idCargaArchivos,
+        },
+      ],
+    });
+
+    const infoDelete = await pool
+      .query(queryDelete)
+      .then((result) => {
+        resultFinal.push({
+          query: "Eliminando cargas con error.",
+          tables,
+          ok: true,
+        });
+        return result;
+      })
+      .catch((err) => {
+        console.log(err);
+        resultFinal.push({
+          query: "Eliminando cargas con error.",
+          tables,
+          ok: false,
+          err,
+        });
+        return null;
+      });
+
+    for (let index = 0; index < tables.length; index++) {
+      const item = tables[index];
+      const id = idTables[index];
+      const queryMax = ValorMaximoDeCampoUtil(item, {
+        fieldMax: id,
+      });
+      const maxIdTables = await pool
+        .query(queryMax)
+        .then((result) => {
+          resultFinal.push({
+            query: "Seleccionando Maximos de cada tabla.",
+            item,
+            id,
+            ok: true,
+          });
+          return result;
+        })
+        .catch((err) => {
+          console.log(err);
+          resultFinal.push({
+            query: "Seleccionando Maximos de cada tabla.",
+            item,
+            id,
+            ok: false,
+            err,
+          });
+          return null;
+        });
+      if (maxIdTables !== null) {
+        const idReturn = parseInt(maxIdTables?.rows?.[0]?.max) + 1;
+        idsSequencesArray.push(idReturn);
+      }
+    }
+
+    const querySequence = AlterarSequenciaMultiplesTablasUtil(sequences, {
+      restartValue: idsSequencesArray,
+    });
+
+    const alterSquences = await pool
+      .query(querySequence)
+      .then((result) => {
+        resultFinal.push({
+          query: "Alterando secuencias.",
+          tables,
+          idsSequencesArray,
+          ok: true,
+        });
+        return result;
+      })
+      .catch((err) => {
+        console.log(err);
+        resultFinal.push({
+          query: "Alterando secuencias.",
+          tables,
+          idsSequencesArray,
+          ok: false,
+          err,
+        });
+        return null;
+      });
+
+    return resultFinal;
+  };
+
   uploadPromise
-    .then((response) => {
+    .then(async (response) => {
       if (response.errors.length >= 1) {
-        actualizarCampoCargado(
+        const resultDelete = await eliminarArchivosCargados(
+          tablesFilesArray,
+          sequencesTablesFilesArray,
+          idTablesFilesArray
+        );
+        console.log(resultDelete);
+        await actualizarCampoCargado(
           respArchivoErroneo415(res, {
             errores: [...response.errors, ...previousErrors],
             cargado: false,
+            resultDelete,
+            idCargaArchivos,
           }),
           false
         );
@@ -813,11 +702,22 @@ async function CargarArchivo3(req, res) {
         );
       }
     })
-    .catch((err) => {
-      actualizarCampoCargado(
+    .catch(async (err) => {
+      const resultDelete = await eliminarArchivosCargados(
+        tablesFilesArray,
+        sequencesTablesFilesArray,
+        idTablesFilesArray
+      );
+      console.log(resultDelete);
+      await actualizarCampoCargado(
         respErrorServidor500(
           res,
-          { errores: err, cargado: false },
+          {
+            errores: err,
+            cargado: false,
+            resultDelete: resultDelete,
+            idCargaArchivos: idCargaArchivos,
+          },
           "Ocurrió un error inesperado.",
           false
         )
@@ -995,6 +895,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   CargarArchivo,
-  CargarArchivo2,
   CargarArchivo3,
 };
