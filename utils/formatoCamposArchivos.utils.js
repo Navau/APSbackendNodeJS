@@ -61,6 +61,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
       let paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = null;
       let paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs = null;
       let paramsDepreciacionPeriodoMasAltasBajasDepreciacion = null;
+      let paramsOperacionEntreColumnas = null;
       let paramsEntidadFinanciera = null;
       let paramsMoneda = null;
       let paramsFechaOperacionMenor = null;
@@ -650,6 +651,9 @@ async function obtenerInformacionDeArchivo(nameFile) {
         codeCurrentFile = "491";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
+        paramsOperacionEntreColumnas = true;
+        paramsMayorACeroDecimal = true;
+        paramsMayorACeroEntero = true;
         paramsSaldoAntMasAltasBajasMasActualizacion = true;
         paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
       } else if (nameFile.includes(".492")) {
@@ -721,6 +725,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion,
         paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs,
         paramsDepreciacionPeriodoMasAltasBajasDepreciacion,
+        paramsOperacionEntreColumnas,
       });
     }
   );
@@ -857,7 +862,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "clave_instrumento",
-        pattern: /^[A-Za-z0-9]{1,30}$/,
+        pattern: /^[A-Za-z0-9,-]{1,30}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -1869,7 +1874,8 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: "saldoAntMasAltasBajasMasActualizacion",
+        function: "operacionEntreColumnas",
+        // function: "saldoAntMasAltasBajasMasActualizacion",
       },
       {
         columnName: "saldo_anterior_depreciacion_acumulada",
@@ -3144,17 +3150,82 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
       }
     }
   } catch (err) {
+    c;
+  }
+}
+
+async function operacionEntreColumnas(params) {
+  const { total, operators, fields } = params;
+  try {
+    // console.log("total", total);
+    // console.log("operators", operators);
+    // console.log("fields", fields);
+    let fieldsErrorText = "";
+    let result = fields[0].value;
+    let fieldsResultText = `${fields[0].key}`;
+
+    map(fields, (item, index) => {
+      if (isNaN(parseFloat(item.value)) && index % 2 === 0) {
+        fieldsErrorText += `${item.key} o`;
+      }
+    });
+    console.log("fieldsErrorText", fieldsErrorText);
+    if (fieldsErrorText.length >= 1) {
+      return {
+        ok: false,
+        message: `El campo ${fieldsErrorText} no son numeros validos.`,
+      };
+    }
+
+    map(fields, (item, index) => {
+      if (index % 2 !== 0) {
+        const operator = fields[index];
+        if (operator === "+") {
+          result = result + fields[index + 1].value;
+          index !== fields.length - 1 && (fieldsResultText += ` sumado con `);
+          fieldsResultText += `${fields[index + 1].key}`;
+        } else if (operator === "-") {
+          result = result - fields[index + 1].value;
+          index !== fields.length - 1 && (fieldsResultText += ` restado con `);
+          fieldsResultText += `${fields[index + 1].key}`;
+        } else if (operator === "*") {
+          result = result * fields[index + 1].value;
+          index !== fields.length - 1 &&
+            (fieldsResultText += `multiplicado con `);
+          fieldsResultText += `${fields[index + 1].key}`;
+        } else if (operator === "/") {
+          result = result / fields[index + 1].value;
+          index !== fields.length - 1 && (fieldsResultText += ` dividido con `);
+          fieldsResultText += `${fields[index + 1].key}`;
+        } else {
+          result = result + fields[index + 1].value;
+          index !== fields.length - 1 && (fieldsResultText += ` sumado con `);
+          fieldsResultText += `${fields[index + 1].key}`;
+        }
+      }
+    });
+
+    // console.log("fieldsResultText", fieldsResultText);
+    // console.log("result", result.toFixed(2));
+    // console.log(parseFloat(total.value).toFixed(2));
+
+    if (result.toFixed(2) === parseFloat(total.value).toFixed(2)) {
+      return {
+        ok: true,
+        message: `El valor si es correcto`,
+      };
+    } else {
+      return {
+        ok: false,
+        message: `El resultado de ${fieldsResultText} no es igual a ${total.key}.`,
+      };
+    }
+  } catch (err) {
     return {
       ok: false,
       message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
     };
   }
-}
-
-async function operacionColumnas(params) {
-  const campos = ["campo1", "campo1", "campo1", "campo1"];
-
-  const operadores = ["+", "-", "*", "/"];
 }
 
 module.exports = {
@@ -3193,4 +3264,5 @@ module.exports = {
   saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
   saldoFinalMesAnteriorBsMasMovimientoMesBs,
   depreciacionPeriodoMasAltasBajasDepreciacion,
+  operacionEntreColumnas,
 };

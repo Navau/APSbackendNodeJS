@@ -39,6 +39,7 @@ const {
   saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
   saldoFinalMesAnteriorBsMasMovimientoMesBs,
   depreciacionPeriodoMasAltasBajasDepreciacion,
+  operacionEntreColumnas,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -190,13 +191,13 @@ async function obtenerListaArchivos(params) {
       periodicidad = [154];
     }
   } else if (
-    typeFiles[0].originalname.substring(0, 3 === "108") &&
+    typeFiles[0].originalname.substring(0, 3) === "108" &&
     tipo_periodo === "D"
   ) {
     periodicidad = [154];
     periodicidadFinal = 154;
   } else if (
-    typeFiles[0].originalname.substring(0, 3 === "108") &&
+    typeFiles[0].originalname.substring(0, 3) === "108" &&
     tipo_periodo === "M"
   ) {
     periodicidad = [155];
@@ -307,6 +308,7 @@ async function validarArchivosIteraciones(params) {
       .finally(async () => {
         // console.log(isAllFiles);
         // console.log(archivosRequeridos);
+        console.log(isAllFiles);
         if (archivosRequeridos.result.length >= 1) {
           let aux = false;
           let fechaOperacionAux = fechaOperacion;
@@ -347,21 +349,21 @@ async function validarArchivosIteraciones(params) {
             return;
           }
         }
-        if (
-          isAllFiles.currentFiles.length === 0 &&
-          isAllFiles.missingFiles.length >= 1
-        ) {
-          map(isAllFiles.missingFiles, (item, index) => {
-            errors.push({
-              archivo: item.archivo,
-              tipo_error: "ARCHIVO FALTANTE",
-              descripcion:
-                "El archivo subido no coincide con los archivos requeridos del usuario.",
-            });
-          });
-          resolve(errors);
-          return;
-        }
+        // if (
+        //   isAllFiles.currentFiles.length === 0 &&
+        //   isAllFiles.missingFiles.length >= 1
+        // ) {
+        //   map(isAllFiles.missingFiles, (item, index) => {
+        //     errors.push({
+        //       archivo: item.archivo,
+        //       tipo_error: "ARCHIVO FALTANTE",
+        //       descripcion:
+        //         "El archivo subido no coincide con los archivos requeridos del usuario.",
+        //     });
+        //   });
+        //   resolve(errors);
+        //   return;
+        // }
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
@@ -391,7 +393,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === false && isErrorPast === false) {
+          } else if (isAllFiles.ok === true && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item.archivo,
@@ -1175,12 +1177,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   value: value,
                 })
               : null;
+            console.log(mayorACeroDecimal);
 
-            if (_mayorACeroDecimal.ok === true) {
+            if (_mayorACeroDecimal.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
+                descripcion: _mayorACeroDecimal.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1197,7 +1200,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
+                descripcion: _mayorACeroEntero.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1216,7 +1219,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
+                descripcion: _cantidadPorPrecio.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1325,6 +1328,43 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: errFunction.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "operacionEntreColumnas") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsOperacionEntreColumnas
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: "saldo_final",
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "saldo_anterior",
+                        value: parseFloat(item2.saldo_anterior),
+                      },
+                      "+",
+                      {
+                        key: "altas_bajas",
+                        value: parseFloat(item2.altas_bajas),
+                      },
+                      "+",
+                      {
+                        key: "actualizacion",
+                        value: parseFloat(item2.actualizacion),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1517,6 +1557,7 @@ exports.validarArchivo2 = async (req, res, next) => {
               body: bodyQuery,
               returnValue: ["id_carga_archivos"],
             });
+            console.log(queryFiles);
             await pool
               .query(queryFiles)
               .then(async (resultFiles) => {
