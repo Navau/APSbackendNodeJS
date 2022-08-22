@@ -393,7 +393,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === true && isErrorPast === false) {
+          } else if (isAllFiles.ok === false && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item.archivo,
