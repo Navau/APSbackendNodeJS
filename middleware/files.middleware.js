@@ -40,6 +40,9 @@ const {
   saldoFinalMesAnteriorBsMasMovimientoMesBs,
   depreciacionPeriodoMasAltasBajasDepreciacion,
   operacionEntreColumnas,
+  emisor,
+  tipoOperacion,
+  lugarNegociacion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -452,6 +455,26 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsInstrumento.params
                         )
                       : null;
+                    const _tipoOperacion = infoArchivo?.paramstipoOperacion
+                      ? await tipoOperacion(
+                          infoArchivo.paramstipoOperacion.table,
+                          infoArchivo.paramstipoOperacion.params
+                        )
+                      : null;
+                    const _lugarNegociacion =
+                      infoArchivo?.paramsLugarNegociacion
+                        ? await lugarNegociacion(
+                            infoArchivo.paramsLugarNegociacion.table,
+                            infoArchivo.paramsLugarNegociacion.params
+                          )
+                        : null;
+                    const _lugarNegociacionVacio =
+                      infoArchivo?.paramsLugarNegociacionVacio
+                        ? await lugarNegociacion(
+                            infoArchivo.paramsLugarNegociacionVacio.table,
+                            infoArchivo.paramsLugarNegociacionVacio.params
+                          )
+                        : null;
                     const _tipoActivo = infoArchivo?.paramsTipoActivo
                       ? await tipoActivo(
                           infoArchivo.paramsTipoActivo.table,
@@ -488,6 +511,31 @@ async function validarArchivosIteraciones(params) {
                       ? await moneda(
                           infoArchivo.paramsMoneda.table,
                           infoArchivo.paramsMoneda.params
+                        )
+                      : null;
+                    const _emisor = infoArchivo?.paramsEmisor
+                      ? await emisor(
+                          infoArchivo.paramsEmisor.table,
+                          infoArchivo.paramsEmisor.params
+                        )
+                      : null;
+                    const _tipoAmortizacion =
+                      infoArchivo?.paramsTipoAmortizacion
+                        ? await emisor(
+                            infoArchivo.paramsTipoAmortizacion.table,
+                            infoArchivo.paramsTipoAmortizacion.params
+                          )
+                        : null;
+                    const _tipoInteres = infoArchivo?.paramsTipoInteres
+                      ? await emisor(
+                          infoArchivo.paramsTipoInteres.table,
+                          infoArchivo.paramsTipoInteres.params
+                        )
+                      : null;
+                    const _tipoTasa = infoArchivo?.paramsTipoTasa
+                      ? await emisor(
+                          infoArchivo.paramsTipoTasa.table,
+                          infoArchivo.paramsTipoTasa.params
                         )
                       : null;
                     const codMercado = infoArchivo?.paramsCodMercado
@@ -558,6 +606,18 @@ async function validarArchivosIteraciones(params) {
                         )
                       : null;
 
+                    const _cadenaCombinadalugarNegTipoOperTipoInstrum =
+                      infoArchivo?.paramsCadenaCombinadalugarNegTipoOperTipoInstrum
+                        ? await tipoValoracion(
+                            infoArchivo
+                              .paramsCadenaCombinadalugarNegTipoOperTipoInstrum
+                              .table,
+                            infoArchivo
+                              .paramsCadenaCombinadalugarNegTipoOperTipoInstrum
+                              .params
+                          )
+                        : null;
+
                     // console.log("TEST AAAAA");
 
                     //#endregion
@@ -592,13 +652,19 @@ async function validarArchivosIteraciones(params) {
                             item,
                             infoArchivo,
                             instrumento,
+                            _lugarNegociacion,
+                            _lugarNegociacionVacio,
+                            _tipoOperacion,
                             _tipoActivo,
                             codValoracionInstrumento,
                             codOperacion,
-                            tipoMarcacion,
                             _tipoCuenta,
                             _entidadFinanciera,
                             _moneda,
+                            _emisor,
+                            _tipoAmortizacion,
+                            _tipoInteres,
+                            _tipoTasa,
                             codMercado,
                             calfRiesgo,
                             codCustodia,
@@ -610,6 +676,7 @@ async function validarArchivosIteraciones(params) {
                             tipoCambio,
                             _bolsa,
                             _tipoValoracion,
+                            _cadenaCombinadalugarNegTipoOperTipoInstrum,
                           });
                         }
                       });
@@ -642,13 +709,19 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let item = params.item;
       let infoArchivo = params.infoArchivo;
       let instrumento = params.instrumento;
+      let _lugarNegociacion = params._lugarNegociacion;
+      let _lugarNegociacionVacio = params._lugarNegociacionVacio;
+      let _tipoOperacion = params._tipoOperacion;
       let _tipoActivo = params._tipoActivo;
       let codValoracionInstrumento = params.codValoracionInstrumento;
       let codOperacion = params.codOperacion;
-      let tipoMarcacion = params.tipoMarcacion;
       let _tipoCuenta = params._tipoCuenta;
       let _entidadFinanciera = params._entidadFinanciera;
       let _moneda = params._moneda;
+      let _emisor = params._emisor;
+      let _tipoAmortizacion = params._tipoAmortizacion;
+      let _tipoInteres = params._tipoInteres;
+      let _tipoTasa = params._tipoTasa;
       let codMercado = params.codMercado;
       let calfRiesgo = params._entidadFinanciera;
       let codCustodia = params.codCustodia;
@@ -660,6 +733,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       let tipoCambio = params.tipoCambio;
       let _bolsa = params._bolsa;
       let _tipoValoracion = params._tipoValoracion;
+
+      let _cadenaCombinadalugarNegTipoOperTipoInstrum =
+        params._cadenaCombinadalugarNegTipoOperTipoInstrum;
       console.log(dependenciesArray);
       console.log(codeCurrentFile);
       const validarCampoIndividual = async (
@@ -670,6 +746,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         functAux,
         funct,
         mayBeEmpty,
+        operationNotValid,
         dependency,
         item2,
         index2,
@@ -744,6 +821,24 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             });
+          } else if (item?.archivo?.includes("441")) {
+            const serieCombinada441 = `${item2.tipo_instrumento}${item2.serie}`;
+            map(dependenciesArray, (itemDP, indexDP) => {
+              if (
+                (itemDP?.file?.includes("411") ||
+                  itemDP?.file?.includes("413")) &&
+                serieCombinada441 !== itemDP.value
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El tipo_instrumento combinado con la serie del archivo ${itemDP.file} no debe ser igual a el tipo_instrumento combinado con la serie del archivo ${item.archivo} debido a que el tipo_operacion en el archivo ${itemDP.file} es igual a "COP". SERIE DEL ARCHIVO ${itemDP.file}: ${itemDP.value}, SERIE DEL ARCHIVO ${item.archivo}: ${serieCombinada441}`,
+                  valor: itemDP.value,
+                  columna: itemDP.column,
+                  fila: itemDP.row,
+                });
+              }
+            });
           }
           if (columnName === "nro_pago" && codeCurrentFile === "441") {
             if (dependenciesArray.length >= 1) {
@@ -766,6 +861,66 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   file: item.archivo,
                   code: codeCurrentFile,
                   value: value,
+                  row: index2,
+                  column: columnName,
+                });
+              }
+            }
+          }
+          if (
+            columnName === "serie" &&
+            codeCurrentFile === "411" &&
+            operationNotValid === "tipoOperacionCOP"
+          ) {
+            if (item2.tipo_operacion === "COP") {
+              const serieCombinada411 = `${item2.tipo_instrumento}${item2.serie}`;
+              if (dependenciesArray.length >= 1) {
+                map(dependenciesArray, (itemDP, indexDP) => {
+                  if (!itemDP?.file?.includes("411")) {
+                    dependenciesArray.push({
+                      file: item.archivo,
+                      code: codeCurrentFile,
+                      value: serieCombinada411,
+                      row: index2,
+                      column: columnName,
+                    });
+                  }
+                });
+              } else {
+                dependenciesArray.push({
+                  file: item.archivo,
+                  code: codeCurrentFile,
+                  value: serieCombinada411,
+                  row: index2,
+                  column: columnName,
+                });
+              }
+            }
+          }
+          if (
+            columnName === "serie" &&
+            codeCurrentFile === "413" &&
+            operationNotValid === "tipoOperacionCOP"
+          ) {
+            if (item2.tipo_operacion === "COP") {
+              const serieCombinada411 = `${item2.tipo_instrumento}${item2.serie}`;
+              if (dependenciesArray.length >= 1) {
+                map(dependenciesArray, (itemDP, indexDP) => {
+                  if (!itemDP?.file?.includes("413")) {
+                    dependenciesArray.push({
+                      file: item.archivo,
+                      code: codeCurrentFile,
+                      value: serieCombinada411,
+                      row: index2,
+                      column: columnName,
+                    });
+                  }
+                });
+              } else {
+                dependenciesArray.push({
+                  file: item.archivo,
+                  code: codeCurrentFile,
+                  value: serieCombinada411,
                   row: index2,
                   column: columnName,
                 });
@@ -821,6 +976,40 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `El contenido del archivo no coincide con algun tipo de instrumento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoOperacion") {
+            let errFunction = true;
+            map(_tipoOperacion.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_rmv) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún tipo de operacion.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "lugarNegociacion") {
+            let errFunction = true;
+            map(_lugarNegociacion.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_rmv) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún lugar de negociacion.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -912,31 +1101,31 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "accionesMonedaOriginal") {
-            try {
-              const accionesMO = infoArchivo?.paramsAccionesMO
-                ? await accionesMonedaOriginal({
-                    numero_acciones: item2.numero_acciones,
-                    precio_unitario: item2.precio_unitario,
-                  })
-                : null;
-              if (
-                parseFloat(accionesMO).toFixed(2).toString() !==
-                value.toString()
-              ) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no cumple con el resultado (multiplicación) de numero_acciones: ${item2.numero_acciones} y precio_unitario: ${item2.precio_unitario}.`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } catch (err) {
+            let _operacionEntreColumnas = infoArchivo?.paramsAccionesMO
+              ? await operacionEntreColumnas({
+                  total: {
+                    key: columnName,
+                    value: value,
+                  },
+                  fields: [
+                    {
+                      key: "numero_acciones",
+                      value: parseFloat(item2.numero_acciones),
+                    },
+                    "*",
+                    {
+                      key: "precio_unitario",
+                      value: parseFloat(item2.precio_unitario),
+                    },
+                  ],
+                })
+              : null;
+
+            if (_operacionEntreColumnas.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
+                descripcion: _operacionEntreColumnas.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -993,6 +1182,74 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "emisor") {
+            let errFunction = true;
+            map(_emisor.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_rmv) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún tipo de emisor.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoAmortizacion") {
+            let errFunction = true;
+            map(_tipoAmortizacion.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún tipo de amortizacion.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoInteres") {
+            let errFunction = true;
+            map(_tipoInteres.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún tipo de interes.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoTasa") {
+            let errFunction = true;
+            map(_tipoTasa.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún tipo de tasa.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           } else if (funct === "codigoMercado") {
             let errFunction = true;
             map(codMercado.resultFinal, (item4, index4) => {
@@ -1011,31 +1268,31 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "flujoTotal") {
-            try {
-              const _flujoTotal = infoArchivo?.paramsFlujoTotal
-                ? await flujoTotal({
-                    interes: item2.interes,
-                    amortizacion: item2.amortizacion,
-                  })
-                : null;
-              if (
-                parseFloat(_flujoTotal).toFixed(2).toString() !==
-                value.toString()
-              ) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no cumple con el resultado (suma) de interes: ${item2.interes} y amortizacion: ${item2.amortizacion}.`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } catch (err) {
+            let _operacionEntreColumnas = infoArchivo?.paramsFlujoTotal
+              ? await operacionEntreColumnas({
+                  total: {
+                    key: columnName,
+                    value: value,
+                  },
+                  fields: [
+                    {
+                      key: "interes",
+                      value: parseFloat(item2.saldo_anterior),
+                    },
+                    "+",
+                    {
+                      key: "amortizacion",
+                      value: parseFloat(item2.altas_bajas),
+                    },
+                  ],
+                })
+              : null;
+
+            if (_operacionEntreColumnas.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
+                descripcion: _operacionEntreColumnas.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1172,14 +1429,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "mayorACeroDecimal") {
-            const _mayorACeroDecimal = infoArchivo?.paramsMayorACeroDecimal
-              ? await mayorACeroDecimal({
-                  value: value,
-                })
-              : null;
-            console.log(mayorACeroDecimal);
+            const _mayorACeroDecimal = await mayorACeroDecimal({
+              value: value,
+            });
+            // console.log(mayorACeroDecimal);
 
-            if (_mayorACeroDecimal.ok === false) {
+            if (_mayorACeroDecimal?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
@@ -1190,13 +1445,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "mayorACeroEntero") {
-            const _mayorACeroEntero = infoArchivo?.paramsMayorACeroEntero
-              ? await mayorACeroEntero({
-                  value: value,
-                })
-              : null;
+            const _mayorACeroEntero = await mayorACeroEntero({
+              value: value,
+            });
 
-            if (_mayorACeroEntero.ok === true) {
+            if (_mayorACeroEntero?.ok === true) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
@@ -1226,119 +1479,43 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "totalBsMenosPrevisionesInversiones") {
-            const _totalBsMenosPrevisionesInversiones =
+            let _operacionEntreColumnas =
               infoArchivo?.paramsTotalBsMenosPrevisionesInversiones
-                ? await totalBsMenosPrevisionesInversiones({
-                    total_bs: item2.total_bs,
-                    prevision_inversion_bs: item2.prevision_inversion_bs,
-                    total_neto_inversiones_bs: value,
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "total_bs",
+                        value: parseFloat(item2.prevision_inversion_bs),
+                      },
+                      "-",
+                      {
+                        key: "prevision_inversion_bs",
+                        value: parseFloat(item2.total_neto_inversiones_bs),
+                      },
+                    ],
                   })
                 : null;
 
-            if (_totalBsMenosPrevisionesInversiones.ok === true) {
+            if (_operacionEntreColumnas.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
+                descripcion: _operacionEntreColumnas.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
               });
             }
           } else if (funct === "saldoAntMasAltasBajasMasActualizacion") {
-            const _saldoAntMasAltasBajasMasActualizacion =
-              infoArchivo?.paramsSaldoAntMasAltasBajasMasActualizacion
-                ? await saldoAntMasAltasBajasMasActualizacion({
-                    saldo_final: value,
-                    saldo_anterior: item2.saldo_anterior,
-                    altas_bajas: item2.altas_bajas,
-                    actualizacion: item2.actualizacion,
-                  })
-                : null;
-
-            if (_saldoAntMasAltasBajasMasActualizacion.ok === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (
-            funct === "saldoAntMenosBajasMasDepreciacionMesMasActualizacion"
-          ) {
-            const _saldoAntMenosBajasMasDepreciacionMesMasActualizacion =
-              infoArchivo?.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion
-                ? await saldoAntMenosBajasMasDepreciacionMesMasActualizacion({
-                    saldo_final_dep: value,
-                    saldo_anterior: item2.saldo_anterior,
-                    bajas: item2.bajas,
-                    depreciacion_periodo: item2.depreciacion_periodo,
-                    actualizacion: item2.actualizacion,
-                  })
-                : null;
-
-            if (
-              _saldoAntMenosBajasMasDepreciacionMesMasActualizacion.ok === true
-            ) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "saldoFinalMesAnteriorBsMasMovimientoMesBs") {
-            const _saldoFinalMesAnteriorBsMasMovimientoMesBs =
-              infoArchivo?.paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs
-                ? await saldoFinalMesAnteriorBsMasMovimientoMesBs({
-                    saldo_final_mes_actual_bs: value,
-                    saldo_final_mes_anterior_bs:
-                      item2.saldo_final_mes_anterior_bs,
-                    movimiento_mes_bs: item2.movimiento_mes_bs,
-                  })
-                : null;
-
-            if (_saldoFinalMesAnteriorBsMasMovimientoMesBs.ok === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "depreciacionPeriodoMasAltasBajasDepreciacion") {
-            const _depreciacionPeriodoMasAltasBajasDepreciacion =
-              infoArchivo?.paramsDepreciacionPeriodoMasAltasBajasDepreciacion
-                ? await depreciacionPeriodoMasAltasBajasDepreciacion({
-                    saldo_final_depreciacion_acumulada: value,
-                    depreciacion_periodo: item2.depreciacion_periodo,
-                    altas_bajas_depreciacion: item2.altas_bajas_depreciacion,
-                  })
-                : null;
-
-            if (_depreciacionPeriodoMasAltasBajasDepreciacion.ok === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: errFunction.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "operacionEntreColumnas") {
             let _operacionEntreColumnas =
-              infoArchivo?.paramsOperacionEntreColumnas
+              infoArchivo?.paramsSaldoAntMasAltasBajasMasActualizacion
                 ? await operacionEntreColumnas({
                     total: {
-                      key: "saldo_final",
+                      key: columnName,
                       value: value,
                     },
                     fields: [
@@ -1370,6 +1547,202 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (
+            funct === "saldoAntMenosBajasMasDepreciacionMesMasActualizacion"
+          ) {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "saldo_anterior",
+                        value: parseFloat(item2.saldo_anterior),
+                      },
+                      "-",
+                      {
+                        key: "bajas",
+                        value: parseFloat(item2.bajas),
+                      },
+                      "+",
+                      {
+                        key: "depreciacion_periodo",
+                        value: parseFloat(item2.depreciacion_periodo),
+                      },
+                      "+",
+                      {
+                        key: "actualizacion",
+                        value: parseFloat(item2.actualizacion),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "saldoFinalMesAnteriorBsMasMovimientoMesBs") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "saldo_final_mes_anterior_bs",
+                        value: parseFloat(item2.saldo_final_mes_anterior_bs),
+                      },
+                      "+",
+                      {
+                        key: "movimiento_mes_bs",
+                        value: parseFloat(item2.movimiento_mes_bs),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "depreciacionPeriodoMasAltasBajasDepreciacion") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsDepreciacionPeriodoMasAltasBajasDepreciacion
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "depreciacion_periodo",
+                        value: parseFloat(item2.depreciacion_periodo),
+                      },
+                      "+",
+                      {
+                        key: "altas_bajas_depreciacion",
+                        value: parseFloat(item2.altas_bajas_depreciacion),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "cantidadCuotasMultiplicadoCuotaBs") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsCantidadCuotasMultiplicadoCuotaBs
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "cantidad_cuotas",
+                        value: parseFloat(item2.cantidad_cuotas),
+                      },
+                      "*",
+                      {
+                        key: "cuota_bs",
+                        value: parseFloat(item2.cuota_bs),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "cantidadValoresMultiplicadoPrecioNegociacion") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsCantidadCuotasMultiplicadoCuotaBs
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "cantidad_valores",
+                        value: parseFloat(item2.cantidad_valores),
+                      },
+                      "*",
+                      {
+                        key: "precio_negociacion",
+                        value: parseFloat(item2.precio_negociacion),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          }
+          if (
+            operationNotValid === "cadenaCombinadalugarNegTipoOperTipoInstrum"
+          ) {
+            let errFunction = true;
+            const siglaCombinada = `${item2.lugar_negociacion}${item2.tipo_operacion}${item2.tipo_instrumento}`;
+            map(
+              _cadenaCombinadalugarNegTipoOperTipoInstrum?.resultFinal,
+              (item4, index4) => {
+                if (siglaCombinada === item4.siglaCombinada) {
+                  errFunction = false;
+                }
+              }
+            );
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna descripción de calificación de riesgo.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
         }
       };
@@ -1383,6 +1756,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let mayBeEmpty =
             item3?.mayBeEmpty === true || item3?.mayBeEmpty === false
               ? item3.mayBeEmpty
+              : null;
+          let operationNotValid =
+            item3?.operationNotValid.length >= 1 ||
+            item3?.operationNotValid !== ""
+              ? item.operationNotValid
               : null;
           let funct = item3.function;
           let functAux = item3.function;
@@ -1413,6 +1791,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               columnName,
               pattern,
               mayBeEmpty,
+              operationNotValid,
               required,
               funct,
               functAux,

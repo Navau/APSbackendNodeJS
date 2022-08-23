@@ -312,6 +312,38 @@ function BuscarUtil(table, params) {
   return query;
 }
 
+function BuscarDiferenteUtil(table, params) {
+  let query = "";
+  params.body && (query = query + `SELECT * FROM public."${table}" `);
+  if (params?.status) {
+    params.status === "activo" && (query = query + " WHERE activo = true");
+    params.status === "status" && (query = query + " WHERE status = true");
+  }
+
+  query &&
+    map(params.body, (item, index) => {
+      // console.log(
+      //   "TIPO: " + typeof item + " CLAVE:" + index + " VALOR: " + item
+      // );
+      index = ponerComillasACamposConMayuscula(index);
+      if (item !== null && typeof item !== "undefined") {
+        if (typeof item === "string") {
+          index &&
+            (query = query + ` AND lower(${index}) not like lower('${item}%')`);
+        } else if (typeof item === "number") {
+          index && (query = query + ` AND ${index} <> ${item}`);
+        } else if (typeof item === "boolean") {
+          index && (query = query + ` AND ${index} <> ${item}`);
+        }
+      }
+    });
+  params.body && (query = query = query + ";");
+
+  console.log(query);
+
+  return query;
+}
+
 function EscogerLlaveClasificadorUtil(table, params) {
   let query = "";
   if (params?.idClasificadorComunGrupo) {
@@ -999,6 +1031,7 @@ function ponerComillasACamposConMayuscula(index) {
 module.exports = {
   ListarUtil,
   BuscarUtil,
+  BuscarDiferenteUtil,
   EscogerUtil,
   EscogerInternoUtil,
   EscogerLlaveClasificadorUtil,

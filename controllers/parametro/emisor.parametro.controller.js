@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  BuscarDiferenteUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -51,6 +52,32 @@ function Buscar(req, res) {
       body: body,
     };
     let query = BuscarUtil(nameTable, params);
+    pool.query(query, (err, result) => {
+      if (err) {
+        respErrorServidor500(res, err);
+      } else {
+        if (!result.rows || result.rows < 1) {
+          respResultadoVacio404(res);
+        } else {
+          respResultadoCorrecto200(res, result);
+        }
+      }
+    });
+  }
+}
+
+//FUNCION PARA OBTENER UN EMISOR, CON BUSQUEDA DIFERENTE
+function BuscarDiferente(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      status: "activo",
+      body: body,
+    };
+    let query = BuscarDiferenteUtil(nameTable, params);
     pool.query(query, (err, result) => {
       if (err) {
         respErrorServidor500(res, err);
@@ -189,4 +216,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  BuscarDiferente,
 };

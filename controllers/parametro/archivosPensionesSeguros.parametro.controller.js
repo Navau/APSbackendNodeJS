@@ -185,7 +185,7 @@ async function SeleccionarArchivosBolsa(req, res) {
 
     let periodicidad = [154]; //VALOR POR DEFECTO
 
-    // console.log(workingDay);
+    console.log(workingDay);
 
     if (parseInt(workingDay?.[0].case) === 0) {
       periodicidad = [154]; // DIARIOS
