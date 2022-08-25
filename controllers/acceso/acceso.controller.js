@@ -155,7 +155,8 @@ function Login(req, res) {
 
 function TokenConRol(req, res) {
   const body = req.body;
-  const { id_usuario, id_rol } = body;
+  const { id_rol } = body;
+  const { id_usuario } = jwt.decodedToken(req.headers.authorization);
 
   if (!id_usuario || !id_rol) {
     res.status(404).send({
