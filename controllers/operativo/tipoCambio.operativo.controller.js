@@ -330,4 +330,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   ValorMaximo,
+  UltimoRegistro,
 };
