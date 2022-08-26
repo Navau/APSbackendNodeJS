@@ -90,17 +90,15 @@ async function UltimoRegistro(req, res) {
       [padTo2Digits(date.getMilliseconds())].join()
     );
   }
-  const { body } = req;
-  const whereFinal = [];
-  map(body, (item, index) => {
-    whereFinal.push({
-      key: index,
-      value: item,
-    });
-  });
+  const { id_moneda } = req.body;
   const query = ValorMaximoDeCampoUtil(nameTable, {
     fieldMax: "fecha",
-    where: whereFinal,
+    where: [
+      {
+        key: "id_moneda",
+        value: id_moneda,
+      },
+    ],
   });
 
   const maxFecha = await pool
@@ -133,6 +131,10 @@ async function UltimoRegistro(req, res) {
       {
         key: "fecha",
         value: formatDate(maxFecha.value),
+      },
+      {
+        key: "id_moneda",
+        value: id_moneda,
       },
     ],
     orderby: {
