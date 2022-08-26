@@ -43,6 +43,7 @@ const {
   emisor,
   tipoOperacion,
   lugarNegociacion,
+  cartera,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -870,7 +871,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           if (
             columnName === "serie" &&
             codeCurrentFile === "411" &&
-            operationNotValid === "tipoOperacionCOP"
+            operationNotValid === "tipoOperacionCOP" &&
+            infoArchivo.tipoOperacionCOP
           ) {
             if (item2.tipo_operacion === "COP") {
               const serieCombinada411 = `${item2.tipo_instrumento}${item2.serie}`;
@@ -900,7 +902,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           if (
             columnName === "serie" &&
             codeCurrentFile === "413" &&
-            operationNotValid === "tipoOperacionCOP"
+            operationNotValid === "tipoOperacionCOP" &&
+            infoArchivo.tipoOperacionCOP
           ) {
             if (item2.tipo_operacion === "COP") {
               const serieCombinada411 = `${item2.tipo_instrumento}${item2.serie}`;
@@ -1714,6 +1717,24 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "cartera") {
+            const _cartera = infoArchivo?.paramsCartera
+              ? await cartera({
+                  cartera_origen: item2.cartera_origen,
+                  cartera_destino: item2.cartera_destino,
+                })
+              : null;
+
+            if (_cartera?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _cartera.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
