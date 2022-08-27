@@ -1779,7 +1779,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               ? item3.mayBeEmpty
               : null;
           let operationNotValid =
-            item3?.operationNotValid.length >= 1 ||
+            item3?.operationNotValid?.length >= 1 ||
             item3?.operationNotValid !== ""
               ? item.operationNotValid
               : null;
