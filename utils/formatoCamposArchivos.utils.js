@@ -3233,6 +3233,123 @@ async function tipoTasa(table, params) {
   return resultFinal;
 }
 
+async function plazoCupon(params) {
+  const { plazo_cupon, nro_pago } = params;
+
+  if (isNaN(plazo_cupon) || isNaN(nro_pago)) {
+    return {
+      ok: false,
+      message: `El campo plazo_cupon o nro_pago no son numeros.`,
+    };
+  }
+
+  if (nro_pago > 1) {
+    if (plazo_cupon <= 0) {
+      return {
+        ok: false,
+        message: `El campo nro_pago es mayor a 1 por lo tanto plazo_cupon debe ser mayor a 0.`,
+      };
+    }
+  } else if (nro_pago === 1) {
+    if (plazo_cupon !== 0) {
+      return {
+        ok: false,
+        message: `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0.`,
+      };
+    }
+  }
+
+  return {
+    ok: true,
+    message: `Valores correctos`,
+  };
+}
+
+async function prepago(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function subordinado(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function calificacion(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function calificadora(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function custodio(params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
 async function CortoLargoPlazo(table, params) {
   let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
@@ -3882,4 +3999,10 @@ module.exports = {
   operacionEntreColumnas,
   cadenaCombinadalugarNegTipoOperTipoInstrum,
   cartera,
+  plazoCupon,
+  prepago,
+  subordinado,
+  calificacion,
+  calificadora,
+  custodio,
 };

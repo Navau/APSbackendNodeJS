@@ -44,6 +44,12 @@ const {
   tipoOperacion,
   lugarNegociacion,
   cartera,
+  prepago,
+  subordinado,
+  calificacion,
+  calificadora,
+  custodio,
+  plazoCupon,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -539,6 +545,36 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsTipoTasa.params
                         )
                       : null;
+                    const _prepago = infoArchivo?.paramsPrepago
+                      ? await prepago(
+                          infoArchivo.paramsPrepago.table,
+                          infoArchivo.paramsPrepago.params
+                        )
+                      : null;
+                    const _subordinado = infoArchivo?.paramsSubordinado
+                      ? await subordinado(
+                          infoArchivo.paramsSubordinado.table,
+                          infoArchivo.paramsSubordinado.params
+                        )
+                      : null;
+                    const _calificacion = infoArchivo?.paramsCalificacion
+                      ? await calificacion(
+                          infoArchivo.paramsCalificacion.table,
+                          infoArchivo.paramsCalificacion.params
+                        )
+                      : null;
+                    const _calificadora = infoArchivo?.paramsCalificadora
+                      ? await calificadora(
+                          infoArchivo.paramsCalificadora.table,
+                          infoArchivo.paramsCalificadora.params
+                        )
+                      : null;
+                    const _custodio = infoArchivo?.paramsCustodio
+                      ? await custodio(
+                          infoArchivo.paramsCustodio.table,
+                          infoArchivo.paramsCustodio.params
+                        )
+                      : null;
                     const codMercado = infoArchivo?.paramsCodMercado
                       ? await codigoMercado(
                           infoArchivo.paramsCodMercado.table,
@@ -666,6 +702,11 @@ async function validarArchivosIteraciones(params) {
                             _tipoAmortizacion,
                             _tipoInteres,
                             _tipoTasa,
+                            _prepago,
+                            _subordinado,
+                            _calificacion,
+                            _calificadora,
+                            _custodio,
                             codMercado,
                             calfRiesgo,
                             codCustodia,
@@ -703,39 +744,44 @@ async function validarArchivosIteraciones(params) {
 async function validacionesCamposArchivosFragmentoCodigo(params) {
   const validacionesCamposArchivosFragmentoCodigoPromise = new Promise(
     (resolve, reject) => {
-      let arrayDataObject = params.arrayDataObject;
-      let arrayValidateObject = params.arrayValidateObject;
-      let fechaOperacion = params.fechaOperacion;
-      let fechaInicialOperacion = params.fechaInicialOperacion;
-      let item = params.item;
-      let infoArchivo = params.infoArchivo;
-      let instrumento = params.instrumento;
-      let _lugarNegociacion = params._lugarNegociacion;
-      let _lugarNegociacionVacio = params._lugarNegociacionVacio;
-      let _tipoOperacion = params._tipoOperacion;
-      let _tipoActivo = params._tipoActivo;
-      let codValoracionInstrumento = params.codValoracionInstrumento;
-      let codOperacion = params.codOperacion;
-      let _tipoCuenta = params._tipoCuenta;
-      let _entidadFinanciera = params._entidadFinanciera;
-      let _moneda = params._moneda;
-      let _emisor = params._emisor;
-      let _tipoAmortizacion = params._tipoAmortizacion;
-      let _tipoInteres = params._tipoInteres;
-      let _tipoTasa = params._tipoTasa;
-      let codMercado = params.codMercado;
-      let calfRiesgo = params._entidadFinanciera;
-      let codCustodia = params.codCustodia;
-      let instrumento135 = params.instrumento135;
-      let instrumento136 = params.instrumento136;
-      let cortoPlazo = params.cortoPlazo;
-      let largoPlazo = params.largoPlazo;
-      let calfRiesgoNormal = params.calfRiesgoNormal;
-      let tipoCambio = params.tipoCambio;
-      let _bolsa = params._bolsa;
-      let _tipoValoracion = params._tipoValoracion;
+      const arrayDataObject = params.arrayDataObject;
+      const arrayValidateObject = params.arrayValidateObject;
+      const fechaOperacion = params.fechaOperacion;
+      const fechaInicialOperacion = params.fechaInicialOperacion;
+      const item = params.item;
+      const infoArchivo = params.infoArchivo;
+      const instrumento = params.instrumento;
+      const _lugarNegociacion = params._lugarNegociacion;
+      const _lugarNegociacionVacio = params._lugarNegociacionVacio;
+      const _tipoOperacion = params._tipoOperacion;
+      const _tipoActivo = params._tipoActivo;
+      const codValoracionInstrumento = params.codValoracionInstrumento;
+      const codOperacion = params.codOperacion;
+      const _tipoCuenta = params._tipoCuenta;
+      const _entidadFinanciera = params._entidadFinanciera;
+      const _moneda = params._moneda;
+      const _emisor = params._emisor;
+      const _tipoAmortizacion = params._tipoAmortizacion;
+      const _tipoInteres = params._tipoInteres;
+      const _tipoTasa = params._tipoTasa;
+      const _prepago = params._prepago;
+      const _subordinado = params._subordinado;
+      const _calificacion = params._calificacion;
+      const _calificadora = params._calificadora;
+      const _custodio = params._custodio;
+      const codMercado = params.codMercado;
+      const calfRiesgo = params._entidadFinanciera;
+      const codCustodia = params.codCustodia;
+      const instrumento135 = params.instrumento135;
+      const instrumento136 = params.instrumento136;
+      const cortoPlazo = params.cortoPlazo;
+      const largoPlazo = params.largoPlazo;
+      const calfRiesgoNormal = params.calfRiesgoNormal;
+      const tipoCambio = params.tipoCambio;
+      const _bolsa = params._bolsa;
+      const _tipoValoracion = params._tipoValoracion;
 
-      let _cadenaCombinadalugarNegTipoOperTipoInstrum =
+      const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
       console.log(dependenciesArray);
       console.log(codeCurrentFile);
@@ -1253,6 +1299,91 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "prepago") {
+            let errFunction = true;
+            map(_prepago.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de prepago.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "subordinado") {
+            let errFunction = true;
+            map(_subordinado.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de subordinado.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "calificacion") {
+            let errFunction = true;
+            map(_calificacion.resultFinal, (item4, index4) => {
+              if (value === item4.descripcion) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna descripcion de calificacion.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "calificadora") {
+            let errFunction = true;
+            map(_calificadora.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de calificadora.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "custodio") {
+            let errFunction = true;
+            map(_custodio.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de custodio.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           } else if (funct === "codigoMercado") {
             let errFunction = true;
             map(codMercado.resultFinal, (item4, index4) => {
@@ -1735,6 +1866,49 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: _cartera.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "nroPago") {
+            const errFunction = { ok: true, message: "" };
+            if (infoArchivo?.paramsNroPago) {
+              if (parseInt(item2.plazo_cupon) > 0) {
+                if (
+                  item2.nro_pago !==
+                  parseInt(item2.plazo_emision) / parseInt(item2.plazo_cupon)
+                ) {
+                  errFunction.ok = false;
+                  errFunction.message =
+                    "El campo nro_pago no es igual a la division de plazo_emision entre plazo_cupon.";
+                }
+              }
+            }
+
+            if (errFunction?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _plazoCupon.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "plazoCupon") {
+            const _plazoCupon = infoArchivo?.paramsPlazoCupon
+              ? await plazoCupon({
+                  nro_pago: parseInt(item2.nro_pago),
+                  plazo_cupon: parseInt(item2.plazo_cupon),
+                })
+              : null;
+
+            if (_plazoCupon?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _plazoCupon.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
