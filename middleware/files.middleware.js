@@ -50,6 +50,17 @@ const {
   calificadora,
   custodio,
   plazoCupon,
+  mayorIgualACeroDecimal,
+  mayorIgualACeroEntero,
+  plazoEconomicoConInstrumento,
+  tasaRelevanteConInstrumento,
+  plazoValorConInstrumento,
+  tipoValoracionConsultaMultiple,
+  tipoValoracion22,
+  tipoValoracion31,
+  tipoValoracion210,
+  tasaRendimiento,
+  entidadEmisora,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -90,6 +101,7 @@ var nameTableErrors = "";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
+var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
 
 async function obtenerInstitucion(params) {
   const obtenerListaInstitucion = new Promise(async (resolve, reject) => {
@@ -318,7 +330,7 @@ async function validarArchivosIteraciones(params) {
       .finally(async () => {
         // console.log(isAllFiles);
         // console.log(archivosRequeridos);
-        console.log(isAllFiles);
+        // console.log(isAllFiles);
         if (archivosRequeridos.result.length >= 1) {
           let aux = false;
           let fechaOperacionAux = fechaOperacion;
@@ -374,6 +386,7 @@ async function validarArchivosIteraciones(params) {
         //   resolve(errors);
         //   return;
         // }
+        console.log(isAllFiles);
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
@@ -488,11 +501,39 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsTipoActivo.params
                         )
                       : null;
-                    const codValoracionInstrumento =
-                      infoArchivo?.paramsCodValoracion
-                        ? await codigoValoracionConInstrumento(
-                            infoArchivo.paramsCodValoracion.table,
-                            infoArchivo.paramsCodValoracion.params
+                    const _tasaRendimiento = infoArchivo?.paramsTasaRendimiento
+                      ? await tasaRendimiento(
+                          infoArchivo.paramsTasaRendimiento.table,
+                          infoArchivo.paramsTasaRendimiento.params
+                        )
+                      : null;
+                    const _entidadEmisora = infoArchivo?.paramsEntidadEmisora
+                      ? await entidadEmisora(
+                          infoArchivo.paramsEntidadEmisora.table,
+                          infoArchivo.paramsEntidadEmisora.params
+                        )
+                      : null;
+                    const _plazoValorConInstrumento =
+                      infoArchivo?.paramsPlazoValorConInstrumento
+                        ? await plazoValorConInstrumento(
+                            infoArchivo.paramsPlazoValorConInstrumento.table,
+                            infoArchivo.paramsPlazoValorConInstrumento.params
+                          )
+                        : null;
+                    const _tasaRelevanteConInstrumento =
+                      infoArchivo?.paramsTasaRelevanteConInstrumento
+                        ? await tasaRelevanteConInstrumento(
+                            infoArchivo.paramsTasaRelevanteConInstrumento.table,
+                            infoArchivo.paramsTasaRelevanteConInstrumento.params
+                          )
+                        : null;
+                    const _plazoEconomicoConInstrumento =
+                      infoArchivo?.paramsPlazoEconomicoConInstrumento
+                        ? await plazoEconomicoConInstrumento(
+                            infoArchivo.paramsPlazoEconomicoConInstrumento
+                              .table,
+                            infoArchivo.paramsPlazoEconomicoConInstrumento
+                              .params
                           )
                         : null;
                     const codOperacion = infoArchivo?.paramsCodOperacion
@@ -642,6 +683,46 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsTipoValoracion.params
                         )
                       : null;
+                    const _tipoValoracion22 =
+                      infoArchivo?.paramsTipoValoracion22
+                        ? await tipoValoracion(
+                            infoArchivo.paramsTipoValoracion22.table,
+                            infoArchivo.paramsTipoValoracion22.params
+                          )
+                        : null;
+                    const _tipoValoracion31 =
+                      infoArchivo?.paramsTipoValoracion31
+                        ? await tipoValoracion(
+                            infoArchivo.paramsTipoValoracion31.table,
+                            infoArchivo.paramsTipoValoracion31.params
+                          )
+                        : null;
+                    const _tipoValoracion210 =
+                      infoArchivo?.paramsTipoValoracion22
+                        ? await tipoValoracion(
+                            infoArchivo.paramsTipoValoracion210.table,
+                            infoArchivo.paramsTipoValoracion210.params
+                          )
+                        : null;
+
+                    const _instrumento135 = infoArchivo?.paramsInstrumento135
+                      ? await tipoInstrumento(
+                          infoArchivo.paramsInstrumento135.table,
+                          infoArchivo.paramsInstrumento135.params
+                        )
+                      : null;
+                    const _instrumento1 = infoArchivo?.paramsInstrumento1
+                      ? await tipoInstrumento(
+                          infoArchivo.paramsInstrumento1.table,
+                          infoArchivo.paramsInstrumento1.params
+                        )
+                      : null;
+                    const _instrumento18 = infoArchivo?.paramsInstrumento18
+                      ? await tipoInstrumento(
+                          infoArchivo.paramsInstrumento18.table,
+                          infoArchivo.paramsInstrumento18.params
+                        )
+                      : null;
 
                     const _cadenaCombinadalugarNegTipoOperTipoInstrum =
                       infoArchivo?.paramsCadenaCombinadalugarNegTipoOperTipoInstrum
@@ -693,7 +774,11 @@ async function validarArchivosIteraciones(params) {
                             _lugarNegociacionVacio,
                             _tipoOperacion,
                             _tipoActivo,
-                            codValoracionInstrumento,
+                            _tasaRendimiento,
+                            _entidadEmisora,
+                            _plazoValorConInstrumento,
+                            _tasaRelevanteConInstrumento,
+                            _plazoEconomicoConInstrumento,
                             codOperacion,
                             _tipoCuenta,
                             _entidadFinanciera,
@@ -718,6 +803,12 @@ async function validarArchivosIteraciones(params) {
                             tipoCambio,
                             _bolsa,
                             _tipoValoracion,
+                            _tipoValoracion22,
+                            _tipoValoracion31,
+                            _tipoValoracion210,
+                            _instrumento135,
+                            _instrumento1,
+                            _instrumento18,
                             _cadenaCombinadalugarNegTipoOperTipoInstrum,
                           });
                         }
@@ -755,7 +846,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _lugarNegociacionVacio = params._lugarNegociacionVacio;
       const _tipoOperacion = params._tipoOperacion;
       const _tipoActivo = params._tipoActivo;
-      const codValoracionInstrumento = params.codValoracionInstrumento;
+      const _tasaRendimiento = params._tasaRendimiento;
+      const _entidadEmisora = params._entidadEmisora;
+      const _plazoValorConInstrumento = params._plazoValorConInstrumento;
+      const _tasaRelevanteConInstrumento = params._tasaRelevanteConInstrumento;
+      const _plazoEconomicoConInstrumento =
+        params._plazoEconomicoConInstrumento;
       const codOperacion = params.codOperacion;
       const _tipoCuenta = params._tipoCuenta;
       const _entidadFinanciera = params._entidadFinanciera;
@@ -780,27 +876,43 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const tipoCambio = params.tipoCambio;
       const _bolsa = params._bolsa;
       const _tipoValoracion = params._tipoValoracion;
+      const _tipoValoracion22 = params._tipoValoracion22;
+      const _tipoValoracion31 = params._tipoValoracion31;
+      const _tipoValoracion210 = params._tipoValoracion210;
+      const _instrumento135 = params._instrumento135;
+      const _instrumento1 = params._instrumento1;
+      const _instrumento18 = params._instrumento18;
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
       console.log(dependenciesArray);
       console.log(codeCurrentFile);
+      lengthFilesObject[codeCurrentFile] = arrayDataObject.length;
       const validarCampoIndividual = async (
         value,
         columnName,
         pattern,
-        required,
-        functAux,
+        date,
         funct,
         mayBeEmpty,
         operationNotValid,
-        dependency,
         item2,
         index2,
         item3,
         codeCurrentFile
       ) => {
-        let match = value?.match(pattern);
+        let match;
+        if (date === true) {
+          let valueAux =
+            value?.slice(0, 4) +
+            "-" +
+            value?.slice(4, 6) +
+            "-" +
+            value?.slice(6);
+          match = valueAux?.match(pattern);
+        } else {
+          match = value?.match(pattern);
+        }
         if (match === null && (mayBeEmpty === false || mayBeEmpty === null)) {
           errors.push({
             archivo: item.archivo,
@@ -811,7 +923,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             fila: index2,
           });
         } else {
-          if (columnName === "fecha_operacion" || columnName === "fecha") {
+          if (columnName.includes("fecha")) {
             if (
               codeCurrentFile === "K" ||
               codeCurrentFile === "L" ||
@@ -886,6 +998,14 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             });
+          } else if (item?.archivo?.includes("444")) {
+            if (lengthFilesObject["441"] === lengthFilesObject["444"]) {
+              map(dependenciesArray, (item444, index444) => {
+                if (item444.code === "441") {
+                }
+              });
+            } else {
+            }
           }
           if (columnName === "nro_pago" && codeCurrentFile === "441") {
             if (dependenciesArray.length >= 1) {
@@ -976,6 +1096,35 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           }
+          if (codeCurrentFile === "441") {
+            if (columnName === "precio_nominal") {
+              dependenciesArray.push({
+                file: item.archivo,
+                code: codeCurrentFile,
+                value: value,
+                row: index2,
+                column: columnName,
+              });
+            }
+            if (columnName === "tasa_emision") {
+              dependenciesArray.push({
+                file: item.archivo,
+                code: codeCurrentFile,
+                value: value,
+                row: index2,
+                column: columnName,
+              });
+            }
+            if (columnName === "plaza_emision") {
+              dependenciesArray.push({
+                file: item.archivo,
+                code: codeCurrentFile,
+                value: value,
+                row: index2,
+                column: columnName,
+              });
+            }
+          } // TO DO: HACER LA VALIDACION DEL INTERES DEL ARCHIVO 441 CON EL ARCHIVO 444 Y DE IGUAL FORMA EL ARCHIVO 442 CON EL ARCHIVO 445
           if (funct === "bolsa") {
             let errFunction = true;
             map(_bolsa?.resultFinal, (item4, index4) => {
@@ -1007,6 +1156,39 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Valoración.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoValoracionConsultaMultiple") {
+            try {
+              const _tipoValoracionConsultaMultiple =
+                await tipoValoracionConsultaMultiple({
+                  tipo_instrumento: item2.tipo_instrumento,
+                  tipo_valoracion: item2.tipo_valoracion,
+                  _instrumento135,
+                  _instrumento1,
+                  _instrumento18,
+                  _tipoValoracion22,
+                  _tipoValoracion31,
+                  _tipoValoracion210,
+                });
+              if (_tipoValoracionConsultaMultiple?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _tipoValoracionConsultaMultiple?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } catch (err) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `Error en tipo de dato. ${err.message}`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1082,9 +1264,45 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "codigoValoracionConInstrumento") {
+          } else if (funct === "tasaRendimiento") {
+            let errFunction = true;
+            map(_tasaRendimiento?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                // console.log(value);
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna tasa_rendimiento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "entidadEmisora") {
+            let errFunction = true;
+            map(_entidadEmisora?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                // console.log(value);
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna tasa_rendimiento.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "plazoValorConInstrumento") {
             let errFunction = false;
-            map(codValoracionInstrumento?.resultFinal, (item4, index4) => {
+            map(_plazoValorConInstrumento?.resultFinal, (item4, index4) => {
               if (item2.tipo_instrumento === item4.sigla) {
                 if (value === "0" || value === 0) {
                   // console.log(value);
@@ -1094,13 +1312,55 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               }
             });
-            // console.log(value);
-            // console.log(codValoracionInstrumento.resultFinal);
             if (errFunction === true) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no es correcto debido a que el tipo de instrumento es ${item2.tipo_instrumento}, en el cual el codigo de valoracion debe ser 0.`,
+                descripcion: `El contenido del archivo no es correcto debido a que el tipo de instrumento es ${item2.tipo_instrumento}, en el cual el campo ${columnName} debe ser 0.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tasaRelevanteConInstrumento") {
+            let errFunction = false;
+            map(_tasaRelevanteConInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                if (value === "0" || value === 0) {
+                  // console.log(value);
+                  errFunction = false;
+                } else {
+                  errFunction = true;
+                }
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no es correcto debido a que el tipo de instrumento es ${item2.tipo_instrumento}, en el cual el campo ${columnName} debe ser 0.`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "plazoEconomicoConInstrumento") {
+            let errFunction = false;
+            map(_plazoEconomicoConInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                if (value === "0" || value === 0) {
+                  // console.log(value);
+                  errFunction = false;
+                } else {
+                  errFunction = true;
+                }
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no es correcto debido a que el tipo de instrumento es ${item2.tipo_instrumento}, en el cual el campo ${columnName} debe ser 0.`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1401,26 +1661,59 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "flujoTotal") {
-            let _operacionEntreColumnas = infoArchivo?.paramsFlujoTotal
-              ? await operacionEntreColumnas({
-                  total: {
-                    key: columnName,
-                    value: value,
-                  },
-                  fields: [
-                    {
-                      key: "interes",
-                      value: parseFloat(item2.saldo_anterior),
+          } else if (funct === "interesMasAmortizacion") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsInteresMasAmortizacion
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
                     },
-                    "+",
-                    {
-                      key: "amortizacion",
-                      value: parseFloat(item2.altas_bajas),
+                    fields: [
+                      {
+                        key: "interes",
+                        value: parseFloat(item2.interes),
+                      },
+                      "+",
+                      {
+                        key: "amortizacion",
+                        value: parseFloat(item2.amortizacion),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "flujoTotalMenosAmortizacion") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsFlujoTotalMenosAmortizacion
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
                     },
-                  ],
-                })
-              : null;
+                    fields: [
+                      {
+                        key: "flujo_total",
+                        value: parseFloat(item2.flujo_total),
+                      },
+                      "-",
+                      {
+                        key: "amortizacion",
+                        value: parseFloat(item2.amortizacion),
+                      },
+                    ],
+                  })
+                : null;
 
             if (_operacionEntreColumnas.ok === false) {
               errors.push({
@@ -1593,20 +1886,64 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "cantidadPorPrecio") {
-            const _cantidadPorPrecio = infoArchivo?.paramsCantidadPorPrecio
-              ? await cantidadPorPrecio({
-                  cantidad: item2.cantidad,
-                  precio: item2.precio,
-                  total_bs: value,
-                })
-              : null;
+          } else if (funct === "mayorIgualACeroDecimal") {
+            const _mayorIgualACeroDecimal = await mayorIgualACeroDecimal({
+              value: value,
+            });
+            // console.log(mayorACeroDecimal);
 
-            if (_cantidadPorPrecio.ok === true) {
+            if (_mayorIgualACeroDecimal?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _cantidadPorPrecio.message,
+                descripcion: _mayorIgualACeroDecimal.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "mayorIgualACeroEntero") {
+            const _mayorIgualACeroEntero = await mayorIgualACeroEntero({
+              value: value,
+            });
+
+            if (_mayorIgualACeroEntero?.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _mayorIgualACeroEntero.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "cantidadMultiplicadoPrecio") {
+            const _operacionEntreColumnas =
+              infoArchivo?.paramsCantidadMultiplicadoPrecio
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "cantidad",
+                        value: parseFloat(item2.cantidad),
+                      },
+                      "*",
+                      {
+                        key: "precio",
+                        value: parseFloat(item2.precio),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1623,12 +1960,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     fields: [
                       {
                         key: "total_bs",
-                        value: parseFloat(item2.prevision_inversion_bs),
+                        value: parseFloat(item2.total_bs),
                       },
                       "-",
                       {
                         key: "prevision_inversion_bs",
-                        value: parseFloat(item2.total_neto_inversiones_bs),
+                        value: parseFloat(item2.prevision_inversiones_bs),
                       },
                     ],
                   })
@@ -1710,6 +2047,38 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       {
                         key: "actualizacion",
                         value: parseFloat(item2.actualizacion),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "saldoFinalMenosSaldoFinalDep") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsSaldoFinalMenosSaldoFinalDep
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "saldo_final",
+                        value: parseFloat(item2.saldo_final),
+                      },
+                      "-",
+                      {
+                        key: "saldo_final_dep",
+                        value: parseFloat(item2.saldo_final_dep),
                       },
                     ],
                   })
@@ -1853,6 +2222,38 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "cantidadMultiplicadoPrecioEquivalente") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsCantidadMultiplicadoPrecioEquivalente
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "cantidad",
+                        value: parseFloat(item2.cantidad),
+                      },
+                      "*",
+                      {
+                        key: "precio_equivalente",
+                        value: parseFloat(item2.precio_equivalente),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           } else if (funct === "cartera") {
             const _cartera = infoArchivo?.paramsCartera
               ? await cartera({
@@ -1872,16 +2273,31 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "nroPago") {
-            const errFunction = { ok: true, message: "" };
+            let errFunction = { ok: true, message: "" };
             if (infoArchivo?.paramsNroPago) {
               if (parseInt(item2.plazo_cupon) > 0) {
-                if (
-                  item2.nro_pago !==
-                  parseInt(item2.plazo_emision) / parseInt(item2.plazo_cupon)
-                ) {
+                errFunction = operacionEntreColumnas({
+                  total: {
+                    key: columnName,
+                    value: value,
+                  },
+                  fields: [
+                    {
+                      key: "plazo_emision",
+                      value: parseInt(item2.plazo_emision),
+                    },
+                    "/",
+                    {
+                      key: "plazo_cupon",
+                      value: parseInt(item2.plazo_cupon),
+                    },
+                  ],
+                });
+              } else {
+                if (item2.nro_pago !== 0 || item2.nro_pago !== "0") {
                   errFunction.ok = false;
                   errFunction.message =
-                    "El campo nro_pago no es igual a la division de plazo_emision entre plazo_cupon.";
+                    "El campo plazo_cupon es mayor a cero por lo tanto el valor de nro_pago debe ser 0";
                 }
               }
             }
@@ -1947,7 +2363,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let value = item2[item3.columnName];
           let columnName = item3.columnName;
           let pattern = item3.pattern;
-          let required = item3.required;
+          let date = item3?.date === true ? item3.date : null;
           let mayBeEmpty =
             item3?.mayBeEmpty === true || item3?.mayBeEmpty === false
               ? item3.mayBeEmpty
@@ -1958,15 +2374,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               ? item.operationNotValid
               : null;
           let funct = item3.function;
-          let functAux = item3.function;
-          let dependency = item3.dependency;
           // console.log("ANTES DE VALIDACIONES", value);
           // console.log("ANTES DE VALIDACIONES", errors);
-          if (
-            !item2[item3.columnName] &&
-            required === true &&
-            mayBeEmpty === false
-          ) {
+          if (!item2[item3.columnName] && mayBeEmpty === false) {
             errors.push({
               archivo: item.archivo,
               tipo_error: "VALOR EN NULO O VACIO",
@@ -1985,12 +2395,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               value,
               columnName,
               pattern,
+              date,
+              funct,
               mayBeEmpty,
               operationNotValid,
-              required,
-              funct,
-              functAux,
-              dependency,
               item2,
               index2,
               item3,
@@ -2148,7 +2556,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                 });
               })
               .catch((err) => {
-                console.log("ERR", err);
+                console.log("ERR CARGA", err);
                 errorsCode.push({
                   files: currentFiles,
                   type: "QUERY SQL ERROR",
@@ -2192,13 +2600,15 @@ exports.validarArchivo2 = async (req, res, next) => {
                           : 0,
                       });
                     });
+                    // console.log(errors);
 
-                    console.log(nameTableErrors);
+                    // console.log(nameTableErrors);
 
                     queryFiles = InsertarVariosUtil(nameTableErrors, {
                       body: bodyQuery,
                       returnValue: ["id_error_archivo"],
                     });
+                    // console.log(queryFiles);
 
                     await pool
                       .query(queryFiles)
@@ -2216,7 +2626,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                         });
                       })
                       .catch((err) => {
-                        console.log("ERR", err);
+                        console.log("ERR CARGA ERRORES", err);
                         errorsCode.push({
                           files: currentFiles,
                           type: "QUERY SQL ERROR",

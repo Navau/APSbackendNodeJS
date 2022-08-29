@@ -490,33 +490,41 @@ function EscogerInternoUtil(table, params) {
   if (params?.where) {
     const where = params.where;
     map(where, (item, index) => {
+      const operatorSQL = item?.operatorSQL ? item.operatorSQL : "AND";
       if (item?.like === true) {
-        query = query + ` AND ${item.key} like '${item.value}%'`;
+        query = query + ` ${operatorSQL} ${item.key} like '${item.value}%'`;
       } else if (item?.whereIn === true) {
+        const searchCriteriaWhereIn = item?.searchCriteria
+          ? item.searchCriteria
+          : "IN";
         let valuesAux = [];
         map(item.valuesWhereIn, (itemV, indexV) => {
           valuesAux.push(itemV);
         });
-        query = query + ` AND ${item.key} in (${valuesAux.join(", ")})`;
+        query =
+          query +
+          ` ${operatorSQL} ${
+            item.key
+          } ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
       } else {
         if (typeof item.value === "string") {
           query =
             query +
-            ` AND ${item.key} ${item?.operator ? item.operator : "="} '${
-              item.value
-            }'`;
+            ` ${operatorSQL} ${item.key} ${
+              item?.operator ? item.operator : "="
+            } '${item.value}'`;
         } else if (typeof item.value === "number") {
           query =
             query +
-            ` AND ${item.key} ${item?.operator ? item.operator : "="} ${
-              item.value
-            }`;
+            ` ${operatorSQL} ${item.key} ${
+              item?.operator ? item.operator : "="
+            } ${item.value}`;
         } else if (typeof item.value === "boolean") {
           query =
             query +
-            ` AND ${item.key} ${item?.operator ? item.operator : "="} ${
-              item.value
-            }`;
+            ` ${operatorSQL} ${item.key} ${
+              item?.operator ? item.operator : "="
+            } ${item.value}`;
         }
       }
     });

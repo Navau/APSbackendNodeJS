@@ -69,17 +69,29 @@ function SeleccionarArchivos(req, res) {
 
     console.log(query);
 
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
+    pool
+      .query(query)
+      .then((result) => {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);
         } else {
-          respResultadoCorrecto200(res, result);
+          const resultArray = result.rows.sort((a, b) => {
+            if (a.archivo.toLowerCase() < b.archivo.toLowerCase()) {
+              return -1;
+            }
+            if (a.archivo.toLowerCase() > b.archivo.toLowerCase()) {
+              return 1;
+            }
+            return 0;
+          });
+          console.log(resultArray);
+          respResultadoCorrectoObjeto200(res, resultArray);
         }
-      }
-    });
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
   }
 }
 
@@ -229,7 +241,17 @@ async function SeleccionarArchivosBolsa(req, res) {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);
         } else {
-          respResultadoCorrectoObjeto200(res, result.rows);
+          const resultArray = result.rows.sort((a, b) => {
+            if (a.archivo.toLowerCase() < b.archivo.toLowerCase()) {
+              return -1;
+            }
+            if (a.archivo.toLowerCase() > b.archivo.toLowerCase()) {
+              return 1;
+            }
+            return 0;
+          });
+          console.log(resultArray);
+          respResultadoCorrectoObjeto200(res, resultArray);
         }
       })
       .catch((err) => {
