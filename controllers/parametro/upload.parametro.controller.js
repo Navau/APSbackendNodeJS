@@ -649,7 +649,11 @@ function Insertar(req, res) {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);
         } else {
-          respResultadoCorrecto200(res, result);
+          respResultadoCorrecto200(
+            res,
+            result,
+            "Información guardada correctamente"
+          );
         }
       }
     });
@@ -683,7 +687,11 @@ function Actualizar(req, res) {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
           } else {
-            respResultadoCorrecto200(res, result);
+            respResultadoCorrecto200(
+              res,
+              result,
+              "Información actualizada correctamente"
+            );
           }
         }
       });

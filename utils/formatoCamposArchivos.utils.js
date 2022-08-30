@@ -99,6 +99,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramstipoOperacion: null,
         paramsEntidadEmisora: null,
         paramsTasaRendimiento: null,
+        paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
         headers: null,
         paramsCadenaCombinadalugarNegTipoOperTipoInstrum: null,
         tipoOperacionCOP: null,
@@ -453,7 +454,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 25,
               },
             ],
@@ -465,7 +466,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 23,
               },
             ],
@@ -477,7 +478,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 16,
               },
             ],
@@ -504,7 +505,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 21,
               },
             ],
@@ -516,7 +517,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["descripcion"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 6,
               },
             ],
@@ -528,7 +529,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7],
                 whereIn: true,
               },
@@ -541,7 +542,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [9],
                 whereIn: true,
               },
@@ -605,7 +606,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["descripcion"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 6,
               },
             ],
@@ -617,7 +618,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [8],
                 whereIn: true,
               },
@@ -664,7 +665,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["descripcion"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 6,
               },
             ],
@@ -676,7 +677,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7],
                 whereIn: true,
               },
@@ -689,7 +690,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [9],
                 whereIn: true,
               },
@@ -865,7 +866,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["descripcion"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 6,
               },
             ],
@@ -877,7 +878,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7],
                 whereIn: true,
               },
@@ -890,7 +891,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [9],
                 whereIn: true,
               },
@@ -958,7 +959,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 value: 31,
               },
               {
-                key: "id_clasificador_comun_grupo",
+                key: "id_clasificador_comun",
                 valuesWhereIn: [210],
                 whereIn: true,
                 searchCriteriaWhereIn: "NOT IN",
@@ -972,14 +973,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun_grupo",
-                value: 31,
-              },
-              {
-                key: "id_clasificador_comun_grupo",
-                valuesWhereIn: [210],
-                whereIn: true,
-                searchCriteriaWhereIn: "NOT IN",
+                key: "id_clasificador_comun",
+                value: 210,
               },
             ],
           },
@@ -1074,7 +1069,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["descripcion"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 6,
               },
             ],
@@ -1086,7 +1081,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7],
                 whereIn: true,
               },
@@ -1099,7 +1094,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [9],
                 whereIn: true,
               },
@@ -1287,7 +1282,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7, 8],
                 whereIn: true,
               },
@@ -1300,7 +1295,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 9,
               },
             ],
@@ -1352,7 +1347,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7, 8],
                 whereIn: true,
               },
@@ -1365,7 +1360,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun",
+                key: "id_clasificador_comun_grupo",
                 value: 9,
               },
             ],
@@ -1520,6 +1515,41 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.codeCurrentFile = "498";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+      } else if (nameFile.includes(".CC")) {
+        console.log("ARCHIVO CORRECTO : CC", nameFile);
+        PARAMS.codeCurrentFile = "CC";
+        PARAMS.nameTable = "APS_aud_carga_archivos_custodio";
+        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [135],
+                whereIn: true,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCustodio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 19,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPrecioMercadoMOMultiplicadoCantidadValores = true;
       } else {
         reject();
       }
@@ -1630,6 +1660,9 @@ async function formatoArchivo(type) {
     },
     498: {
       table: "APS_seguro_archivo_498",
+    },
+    CC: {
+      table: "APS_oper_archivo_Custodio",
     },
   };
   // console.log(HEADERS[type].table);
@@ -3396,6 +3429,58 @@ async function obtenerValidaciones(typeFile) {
     BG: [],
     FE: [],
     VC: [],
+    CC: [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        function: null,
+      },
+      {
+        columnName: "tasa_relevante",
+        pattern: /^(0|[1-9][0-9]{0,1})(\.\d{8,8}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_nominal_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_nominal_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_mercado_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_mercado_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "cantidad_valores",
+        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "total_mercado_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "precioMercadoMOMultiplicadoCantidadValores",
+      },
+      {
+        columnName: "custodia",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "custodio",
+      },
+    ],
   };
 
   return TYPE_FILES[typeFile];
@@ -3430,9 +3515,18 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         let resultObject = {};
         let counterAux = 0;
         map(headers, (item2, index2) => {
+          const value = rowSplit[counterAux];
+          if (value[0] !== '"' || value[value.length - 1] !== '"') {
+            errors.push({
+              msg: `No contiene comillas al inicio y final del campo.`,
+              value: value?.trim().replace(/['"]+/g, ""),
+              column: item2,
+              row: index,
+            });
+          }
           resultObject = {
             ...resultObject,
-            [item2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+            [item2]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
           };
           counterAux++;
         });

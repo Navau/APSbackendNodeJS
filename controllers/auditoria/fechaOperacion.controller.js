@@ -46,6 +46,8 @@ async function obtenerFechaOperacion(req, res) {
         ? "APS_aud_carga_archivos_pensiones_seguros"
         : tipo_archivo === "BOLSA"
         ? "APS_aud_carga_archivos_bolsa"
+        : tipo_archivo === "CUSTODIO"
+        ? "APS_aud_carga_archivos_custodio"
         : null;
     let cod_institucion = null;
     if (tipo_archivo !== "BOLSA") {
@@ -160,6 +162,13 @@ async function obtenerFechaOperacion(req, res) {
           value: true,
         },
       ];
+    } else if (tipo_archivo === "CUSTODIO") {
+      whereMax = [
+        {
+          key: "cargado",
+          value: true,
+        },
+      ];
     }
 
     const queryMax = ValorMaximoDeCampoUtil(tableQuery, {
@@ -218,18 +227,14 @@ async function obtenerFechaOperacion(req, res) {
         const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
         console.log(checkDate);
         let fechaOperacion = null;
-        // const dayLastDate = checkDate.getUTCDay(); //6 = SABADO; 0 = DOMINGO
-        // if (dayLastDate === 0) {
-        //   //SI ES DOMINGO
-        //   fechaOperacion = addValues(lastDate, 1); // ENTONCES SERA LUNES
-        // } else if (dayLastDate === 6) {
-        //   // SI ES SABADO
-        //   fechaOperacion = addValues(lastDate, 2); // ENTONCES SERA LUNES
-        // } else {
-        //   // SI ES DIA HABIL
-        //   fechaOperacion = checkDate; // ENTONCES SERA LUNES
-        // }
-        fechaOperacion = checkDate; // ENTONCES SERA LUNES
+        fechaOperacion = checkDate;
+        return fechaOperacion;
+      } else if (tipo_archivo === "CUSTODIO") {
+        console.log(tipo_archivo);
+        const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
+        console.log(checkDate);
+        let fechaOperacion = null;
+        fechaOperacion = checkDate;
         return fechaOperacion;
       } else {
         return null;

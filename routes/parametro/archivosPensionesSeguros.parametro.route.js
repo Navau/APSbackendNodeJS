@@ -15,6 +15,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.SeleccionarArchivosBolsa
 );
+api.post(
+  "/SeleccionarArchivosCustodio",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.SeleccionarArchivosCustodio
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

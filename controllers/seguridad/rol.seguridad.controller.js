@@ -64,7 +64,7 @@ function ObtenerMenuAng(req, res) {
     } else {
       let querys = ObtenerMenuAngUtil(data);
       pool.query(querys.query, (err, result) => {
-        console.log(result);
+        // console.log(result);
         if (err) {
           respErrorServidor500(res, err);
         } else {
@@ -182,7 +182,11 @@ function Insertar(req, res) {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);
         } else {
-          respResultadoCorrecto200(res, result);
+          respResultadoCorrecto200(
+            res,
+            result,
+            "Información guardada correctamente"
+          );
         }
       }
     });
@@ -216,7 +220,11 @@ function Actualizar(req, res) {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
           } else {
-            respResultadoCorrecto200(res, result);
+            respResultadoCorrecto200(
+              res,
+              result,
+              "Información actualizada correctamente"
+            );
           }
         }
       });

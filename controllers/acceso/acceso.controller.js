@@ -92,7 +92,7 @@ function Login(req, res) {
         res.status(404).send({
           resultado: 0,
           datos: null,
-          mensaje: "Usuario no encontrado.",
+          mensaje: "Usuario o Contraseña incorrectos.",
         });
       } else {
         let queryRol = `SELECT id_rol 

@@ -261,6 +261,71 @@ async function SeleccionarArchivosBolsa(req, res) {
   }
 }
 
+async function SeleccionarArchivosCustodio(req, res) {
+  const { fecha_operacion } = req.body;
+
+  if (!fecha_operacion) {
+    respDatosNoRecibidos400(
+      res,
+      "La información que se mando no es suficiente, falta la fecha de operación."
+    );
+  } else {
+    let query = `SELECT replace(replace(replace(replace(archivo.nombre, 'EEE', institucion.codigo), 
+    'AAAA', EXTRACT(YEAR FROM TIMESTAMP '${fecha_operacion}')::text), 
+    'MM', LPAD(EXTRACT(MONTH FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
+    'DD', LPAD(EXTRACT(DAY FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)) AS archivo, 
+    archivo.id_rol, "APS_seg_usuario".id_usuario 
+    FROM 
+    (SELECT 'CC' as cod, 
+     "APS_seg_institucion".codigo, 
+     "APS_seg_institucion".id_tipo_entidad 
+     FROM public."APS_seg_institucion" 
+     WHERE id_tipo_entidad in (179, 189) 
+     ORDER BY id_institucion ASC) AS institucion 
+     
+    INNER JOIN 
+    (SELECT 
+     "APS_param_archivos_pensiones_seguros".codigo as cod, 
+     "APS_param_archivos_pensiones_seguros".nombre, 
+     "APS_param_archivos_pensiones_seguros".id_rol 
+     FROM public."APS_param_archivos_pensiones_seguros" 
+     ORDER BY id_archivo ASC) AS archivo 
+    
+    INNER JOIN "APS_seg_rol" 
+    ON "APS_seg_rol".id_rol = archivo.id_rol 
+    INNER JOIN "APS_seg_usuario_rol" 
+    ON "APS_seg_usuario_rol".id_rol = "APS_seg_rol".id_rol 
+    INNER JOIN "APS_seg_usuario" 
+    ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
+    ON institucion.cod = archivo.cod;`;
+
+    console.log(query);
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (!result.rowCount || result.rowCount < 1) {
+          respResultadoVacio404(res);
+        } else {
+          const resultArray = result.rows.sort((a, b) => {
+            if (a.archivo.toLowerCase() < b.archivo.toLowerCase()) {
+              return -1;
+            }
+            if (a.archivo.toLowerCase() > b.archivo.toLowerCase()) {
+              return 1;
+            }
+            return 0;
+          });
+          respResultadoCorrectoObjeto200(res, resultArray);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE PARAMETRO
 function Listar(req, res) {
   const params = {
@@ -349,7 +414,11 @@ function Insertar(req, res) {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);
         } else {
-          respResultadoCorrecto200(res, result);
+          respResultadoCorrecto200(
+            res,
+            result,
+            "Información guardada correctamente"
+          );
         }
       }
     });
@@ -383,7 +452,11 @@ function Actualizar(req, res) {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
           } else {
-            respResultadoCorrecto200(res, result);
+            respResultadoCorrecto200(
+              res,
+              result,
+              "Información actualizada correctamente"
+            );
           }
         }
       });
@@ -432,4 +505,5 @@ module.exports = {
   Deshabilitar,
   SeleccionarArchivos,
   SeleccionarArchivosBolsa,
+  SeleccionarArchivosCustodio,
 };

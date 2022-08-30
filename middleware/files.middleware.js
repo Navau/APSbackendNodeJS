@@ -202,58 +202,97 @@ async function obtenerListaArchivos(params) {
     ? params.req.body.fecha_operacion
     : moment().format("YYYY-MM-DD");
   let periodicidad = [154]; //VALOR POR DEFECTO
+  let typeFileAux = null;
 
-  if (
-    typeFiles[0].originalname.substring(0, 1) === "M" &&
-    tipo_periodo === "D"
-  ) {
-    if (typeFiles.length >= 2) {
-      periodicidad = [154, 219];
-    } else {
+  if (typeFiles[0].originalname.toUpperCase().includes(".CC")) {
+    typeFileAux = "CUSTODIO";
+  } else {
+    typeFileAux = "PENSIONES O BOLSA";
+    if (
+      typeFiles[0].originalname.toUpperCase().substring(0, 1) === "M" &&
+      tipo_periodo === "D"
+    ) {
+      if (typeFiles.length >= 2) {
+        periodicidad = [154, 219];
+      } else {
+        periodicidad = [154];
+      }
+    } else if (
+      typeFiles[0].originalname.toUpperCase().substring(0, 3) === "108" &&
+      tipo_periodo === "D"
+    ) {
       periodicidad = [154];
+      periodicidadFinal = 154;
+    } else if (
+      typeFiles[0].originalname.toUpperCase().substring(0, 3) === "108" &&
+      tipo_periodo === "M"
+    ) {
+      periodicidad = [155];
+      periodicidadFinal = 155;
     }
-  } else if (
-    typeFiles[0].originalname.substring(0, 3) === "108" &&
-    tipo_periodo === "D"
-  ) {
-    periodicidad = [154];
-    periodicidadFinal = 154;
-  } else if (
-    typeFiles[0].originalname.substring(0, 3) === "108" &&
-    tipo_periodo === "M"
-  ) {
-    periodicidad = [155];
-    periodicidadFinal = 155;
   }
 
   const obtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
-    let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
-      "APS_param_archivos_pensiones_seguros".nombre::text, 
-      'nnn'::text, "APS_seg_institucion".codigo::text),
-      'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text),
-      'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
-      'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
-      'AA'::text, substring(EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text from 3 for 2)),
-      'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
-      'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
-      'nntt'::text, "APS_seg_institucion".codigo::text ||
-      "APS_param_archivos_pensiones_seguros".codigo::text),
-      'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
-      "APS_seg_usuario".id_usuario,
-      "APS_param_archivos_pensiones_seguros".archivo_vacio 
-      FROM "APS_param_archivos_pensiones_seguros" 
-      JOIN "APS_param_clasificador_comun" 
-      ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
-      JOIN "APS_seg_usuario_rol" 
-      ON "APS_seg_usuario_rol".id_rol = "APS_param_archivos_pensiones_seguros".id_rol 
-      JOIN "APS_seg_usuario" 
+    let query = "";
+    if (typeFileAux === "CUSTODIO") {
+      query = `SELECT replace(replace(replace(replace(archivo.nombre, 'EEE', institucion.codigo), 
+      'AAAA', EXTRACT(YEAR FROM TIMESTAMP '${fecha_operacion}')::text), 
+      'MM', LPAD(EXTRACT(MONTH FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
+      'DD', LPAD(EXTRACT(DAY FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)) AS archivo, 
+      archivo.id_rol, "APS_seg_usuario".id_usuario 
+      FROM 
+      (SELECT 'CC' as cod, 
+       "APS_seg_institucion".codigo, 
+       "APS_seg_institucion".id_tipo_entidad 
+       FROM public."APS_seg_institucion" 
+       WHERE id_tipo_entidad in (179, 189) 
+       ORDER BY id_institucion ASC) AS institucion 
+       
+      INNER JOIN 
+      (SELECT 
+       "APS_param_archivos_pensiones_seguros".codigo as cod, 
+       "APS_param_archivos_pensiones_seguros".nombre, 
+       "APS_param_archivos_pensiones_seguros".id_rol 
+       FROM public."APS_param_archivos_pensiones_seguros" 
+       ORDER BY id_archivo ASC) AS archivo 
+      
+      INNER JOIN "APS_seg_rol" 
+      ON "APS_seg_rol".id_rol = archivo.id_rol 
+      INNER JOIN "APS_seg_usuario_rol" 
+      ON "APS_seg_usuario_rol".id_rol = "APS_seg_rol".id_rol 
+      INNER JOIN "APS_seg_usuario" 
       ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
-      JOIN "APS_seg_institucion" 
-      ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-      WHERE "APS_param_clasificador_comun".id_clasificador_comun in (${periodicidad.join()}) 
-      AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
-      AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
-      AND "APS_param_archivos_pensiones_seguros".status = true;`;
+      ON institucion.cod = archivo.cod;`;
+    } else {
+      query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
+        "APS_param_archivos_pensiones_seguros".nombre::text, 
+        'nnn'::text, "APS_seg_institucion".codigo::text),
+        'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text),
+        'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+        'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+        'AA'::text, substring(EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text from 3 for 2)),
+        'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+        'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)),
+        'nntt'::text, "APS_seg_institucion".codigo::text ||
+        "APS_param_archivos_pensiones_seguros".codigo::text),
+        'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
+        "APS_seg_usuario".id_usuario,
+        "APS_param_archivos_pensiones_seguros".archivo_vacio 
+        FROM "APS_param_archivos_pensiones_seguros" 
+        JOIN "APS_param_clasificador_comun" 
+        ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
+        JOIN "APS_seg_usuario_rol" 
+        ON "APS_seg_usuario_rol".id_rol = "APS_param_archivos_pensiones_seguros".id_rol 
+        JOIN "APS_seg_usuario" 
+        ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
+        JOIN "APS_seg_institucion" 
+        ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
+        WHERE "APS_param_clasificador_comun".id_clasificador_comun in (${periodicidad.join()}) 
+        AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
+        AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
+        AND "APS_param_archivos_pensiones_seguros".status = true;`;
+    }
+
     console.log(query);
 
     await pool
@@ -276,23 +315,32 @@ async function seleccionarTablas(params) {
     table: null,
   };
   map(params.files, (item, index) => {
-    if (item.originalname.substring(0, 3) === "108") {
+    if (
+      item.originalname.toUpperCase().substring(0, 3) === "108" &&
+      !item.originalname.toUpperCase().includes(".CC")
+    ) {
       result = {
         code: "108",
         table: "APS_aud_carga_archivos_pensiones_seguros",
         tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
     } else if (
-      item.originalname.substring(0, 1) === "M" &&
-      (item.originalname.includes("K.") ||
-        item.originalname.includes("L.") ||
-        item.originalname.includes("N.") ||
-        item.originalname.includes("P."))
+      item.originalname.toUpperCase().substring(0, 1) === "M" &&
+      (item.originalname.toUpperCase().includes("K.") ||
+        item.originalname.toUpperCase().includes("L.") ||
+        item.originalname.toUpperCase().includes("N.") ||
+        item.originalname.toUpperCase().includes("P."))
     ) {
       result = {
         code: "M",
         table: "APS_aud_carga_archivos_bolsa",
         tableErrors: "APS_aud_errores_carga_archivos_bolsa",
+      };
+    } else if (item.originalname.toUpperCase().includes(".CC")) {
+      result = {
+        code: "CC",
+        table: "APS_aud_carga_archivos_custodio",
+        tableErrors: "APS_aud_errores_carga_archivos_custodio",
       };
     }
   });
@@ -749,10 +797,12 @@ async function validarArchivosIteraciones(params) {
                         arrayDataObject = err;
                         map(err.errors, (itemError, indexError) => {
                           errors.push({
-                            archivo: item.archivo,
+                            archivo: item?.archivo,
                             tipo_error: "ERROR DE CONTENIDO",
-                            descripcion: itemError.msg,
-                            fila: itemError.row,
+                            descripcion: itemError?.msg,
+                            valor: itemError?.value,
+                            columna: itemError?.column,
+                            fila: itemError?.row,
                           });
                         });
                       })
@@ -2239,6 +2289,38 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       {
                         key: "precio_equivalente",
                         value: parseFloat(item2.precio_equivalente),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "precioMercadoMOMultiplicadoCantidadValores") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsPrecioMercadoMOMultiplicadoCantidadValores
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "precio_mercado_mo",
+                        value: parseFloat(item2.precio_mercado_mo),
+                      },
+                      "*",
+                      {
+                        key: "cantidad_valores",
+                        value: parseFloat(item2.cantidad_valores),
                       },
                     ],
                   })
