@@ -1874,7 +1874,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -1930,7 +1930,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -1979,7 +1979,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2040,7 +2040,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2156,7 +2156,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2220,7 +2220,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2397,7 +2397,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2596,7 +2596,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2643,12 +2643,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
         columnName: "plazo_valor",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2712,12 +2712,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
         columnName: "plazo_valor",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -2783,7 +2783,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -3180,7 +3180,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -3290,7 +3290,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "plazo_prestamo",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
@@ -3471,7 +3471,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
       {
