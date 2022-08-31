@@ -88,6 +88,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsCantidadMultiplicadoPrecioEquivalente: null,
         paramsTipoDeCambio: null,
         paramsBolsa: null,
+        paramsTipoMarcacion: null,
         paramsTipoValoracion: null,
         paramsTipoValoracionConsultaMultiple: null,
         paramsTipoValoracion22: null,
@@ -135,6 +136,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.TipoMarcacion;
       } else if (nameFile.includes("L.")) {
         console.log("ARCHIVO CORRECTO : L", nameFile);
         PARAMS.codeCurrentFile = "L";
@@ -164,6 +166,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsTipoMarcacion = true;
       } else if (nameFile.includes("N.")) {
         console.log("ARCHIVO CORRECTO : N", nameFile);
         PARAMS.codeCurrentFile = "N";
@@ -3491,16 +3494,23 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     let arrayDataObject = [];
     let errors = [];
     headers.splice(0, 1); // ELIMINAR ID DE TABLA
+    const numberCommas = headers?.length - 1;
 
-    map(["id_carga_archivos", "cod_institucion", "fecha_informacion"], (item, index) => {
-      let myIndex = headers.indexOf(item);
-      if (myIndex !== -1) {
-        headers.splice(myIndex, 1);
+    map(
+      ["id_carga_archivos", "cod_institucion", "fecha_informacion"],
+      (item, index) => {
+        let myIndex = headers.indexOf(item);
+        if (myIndex !== -1) {
+          headers.splice(myIndex, 1);
+        }
       }
-    }); // ELIMINAR ID CARGA ARCHIVOS
+    ); // ELIMINAR ID CARGA ARCHIVOS
+    // console.log(headers);
+    // console.log(dataSplit);
 
     map(dataSplit, (item, index) => {
       let rowSplit = item.split(",");
+
       if (item.length === 0) {
         return;
       } else if (
@@ -3508,7 +3518,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         rowSplit.length < headers.length
       ) {
         errors.push({
-          msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
+          msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas.`,
           row: index,
         });
       } else {
@@ -3682,16 +3692,38 @@ async function entidadEmisora(table, params) {
 }
 
 async function tipoMarcacion(params) {
-  const { monto_negociado, monto_minimo } = params;
-  let resultFinal = null;
+  const { tipo_marcacion, monto_negociado, monto_minimo } = params;
+  if (isNaN(monto_negociado) || isNaN(monto_minimo)) {
+    return {
+      ok: false,
+      message: `El campo monto_negociado o monto_minimo no son numeros.`,
+    };
+  }
+  let values = null;
+
   if (monto_negociado !== 0 && monto_negociado >= monto_minimo) {
-    resultFinal = "AC, NA";
+    values = "AC, NA";
+    if (!values.includes(tipo_marcacion)) {
+      return {
+        ok: false,
+        message: `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe ser ${values}.`,
+      };
+    }
   }
   if (monto_negociado !== 0 && monto_negociado < monto_minimo) {
-    resultFinal = "NM";
+    values = "NM";
+    if (!values.includes(tipo_marcacion)) {
+      return {
+        ok: false,
+        message: `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe ser ${values}.`,
+      };
+    }
   }
 
-  return resultFinal;
+  return {
+    ok: true,
+    message: "Valores correctos",
+  };
 }
 
 async function accionesMonedaOriginal(params) {
@@ -3769,7 +3801,7 @@ async function mayorACeroEntero(params) {
       } else {
         return {
           ok: false,
-          message: `El valor no es mayor a 0.`,
+          message: `El valor debe ser mayor a 0.`,
         };
       }
     }
@@ -3799,7 +3831,7 @@ async function mayorACeroDecimal(params) {
       } else {
         return {
           ok: false,
-          message: `El valor no es mayor a 0.`,
+          message: `El valor debe ser mayor a 0.`,
         };
       }
     }
@@ -4661,10 +4693,9 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
 }
 
 async function operacionEntreColumnas(params) {
-  const { total, operators, fields } = params;
+  const { total, fields } = params;
   try {
     // console.log("total", total);
-    // console.log("operators", operators);
     // console.log("fields", fields);
     let fieldsErrorText = "";
     let result = fields[0].value;
@@ -4675,7 +4706,6 @@ async function operacionEntreColumnas(params) {
         fieldsErrorText += `${item.key} o`;
       }
     });
-    console.log("fieldsErrorText", fieldsErrorText);
     if (fieldsErrorText.length >= 1) {
       return {
         ok: false,

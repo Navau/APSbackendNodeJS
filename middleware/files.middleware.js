@@ -434,7 +434,7 @@ async function validarArchivosIteraciones(params) {
         //   resolve(errors);
         //   return;
         // }
-        // console.log(isAllFiles);
+        console.log(isAllFiles);
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
@@ -1433,17 +1433,20 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "marcacion") {
+          } else if (funct === "tipoMarcacion") {
             try {
-              let marcacion = await tipoMarcacion({
-                monto_negociado: parseFloat(item2.monto_negociado),
-                monto_minimo: parseFloat(item2.monto_minimo),
-              });
-              if (!marcacion.toString().includes(value)) {
+              const _tipoMarcacion = infoArchivo.paramsTipoMarcacion
+                ? await tipoMarcacion({
+                    tipo_marcacion: item2.tipo_marcacion,
+                    monto_negociado: parseFloat(item2.monto_negociado),
+                    monto_minimo: parseFloat(item2.monto_minimo),
+                  })
+                : null;
+              if (_tipoMarcacion?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no coincide con el tipo de marcación.`,
+                  descripcion: _tipoMarcacion?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -1926,7 +1929,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               value: value,
             });
 
-            if (_mayorACeroEntero?.ok === true) {
+            if (_mayorACeroEntero?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
