@@ -3492,7 +3492,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     let errors = [];
     headers.splice(0, 1); // ELIMINAR ID DE TABLA
 
-    map(["id_carga_archivos"], (item, index) => {
+    map(["id_carga_archivos", "cod_institucion", "fecha_informacion"], (item, index) => {
       let myIndex = headers.indexOf(item);
       if (myIndex !== -1) {
         headers.splice(myIndex, 1);

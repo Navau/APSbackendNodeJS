@@ -434,7 +434,7 @@ async function validarArchivosIteraciones(params) {
         //   resolve(errors);
         //   return;
         // }
-        console.log(isAllFiles);
+        // console.log(isAllFiles);
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
