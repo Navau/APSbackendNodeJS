@@ -961,6 +961,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         funct,
         mayBeEmpty,
         operationNotValid,
+        typeError,
         item2,
         index2,
         item3,
@@ -982,11 +983,14 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           errors.push({
             archivo: item.archivo,
             tipo_error: "TIPO DE DATO INCORRECTO",
-            descripcion: `El contenido del archivo no superó la validación de tipo de dato.`,
+            descripcion:
+              typeError === "format"
+                ? "El valor no superó la validación de formato."
+                : `El valor no superó la validación de tipo de dato.`,
             valor: value,
             columna: columnName,
             fila: index2,
-          });
+          }); //FORMATO DE VALOR DE DOMINIO
         } else {
           if (columnName.includes("fecha")) {
             if (
@@ -1296,20 +1300,39 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "lugarNegociacion") {
             let errFunction = true;
-            map(_lugarNegociacion?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_rmv) {
-                errFunction = false;
+            let errFunctionEmpty = true;
+            map(_lugarNegociacionVacio?.resultFinal, (item4, index4) => {
+              if (item3.tipo_operacion === item4.codigo_rmv) {
+                errFunctionEmpty = false;
               }
             });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún lugar de negociacion.`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            if (!errFunctionEmpty) {
+              if (value !== "" || value?.length !== 0) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo lugar_negociacion debe estar vacio debido a que el tipo_operacion es ${item3.tipo_operacion}.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else {
+              map(_lugarNegociacion?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo_rmv) {
+                  errFunction = false;
+                }
               });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo lugar_negociacion no coincide con ningun codigo_rmv válido.`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           } else if (funct === "tipoActivo") {
             let errFunction = true;
@@ -2474,6 +2497,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               ? item.operationNotValid
               : null;
           let funct = item3.function;
+          let typeError =
+            item3?.typeError ||
+            item3?.typeError?.length >= 1 ||
+            item3?.typeError !== ""
+              ? item.typeError
+              : null;
           // console.log("ANTES DE VALIDACIONES", value);
           // console.log("ANTES DE VALIDACIONES", errors);
           if (!item2[item3.columnName] && mayBeEmpty === false) {
@@ -2499,6 +2528,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               funct,
               mayBeEmpty,
               operationNotValid,
+              typeError,
               item2,
               index2,
               item3,
