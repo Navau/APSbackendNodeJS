@@ -790,7 +790,22 @@ async function validarArchivosIteraciones(params) {
 
                     await formatearDatosEInsertarCabeceras(headers, dataSplit)
                       .then(async (response) => {
-                        arrayDataObject = response;
+                        arrayDataObject = response.arrayDataObject;
+                        if (response?.errorsValues) {
+                          map(
+                            response?.errorsValues,
+                            (itemError, indexError) => {
+                              errors.push({
+                                archivo: item?.archivo,
+                                tipo_error: "ERROR DE CONTENIDO",
+                                descripcion: itemError?.msg,
+                                valor: itemError?.value,
+                                columna: itemError?.column,
+                                fila: itemError?.row,
+                              });
+                            }
+                          );
+                        }
                       })
                       .catch((err) => {
                         // console.log(err);
@@ -935,7 +950,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
-      console.log(dependenciesArray);
+      // console.log(dependenciesArray);
       console.log(codeCurrentFile);
       lengthFilesObject[codeCurrentFile] = arrayDataObject.length;
       const validarCampoIndividual = async (
@@ -1281,7 +1296,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "lugarNegociacion") {
             let errFunction = true;
-            map(_lugarNegociacion.resultFinal, (item4, index4) => {
+            map(_lugarNegociacion?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_rmv) {
                 errFunction = false;
               }

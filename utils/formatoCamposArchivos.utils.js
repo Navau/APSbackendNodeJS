@@ -3493,6 +3493,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
   const formatearPromise = new Promise((resolve, reject) => {
     let arrayDataObject = [];
     let errors = [];
+    let errorsValues = [];
     headers.splice(0, 1); // ELIMINAR ID DE TABLA
     const numberCommas = headers?.length - 1;
 
@@ -3509,7 +3510,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     // console.log(dataSplit);
 
     map(dataSplit, (item, index) => {
-      let rowSplit = item.split(",");
+      const rowSplit = item.split(",");
 
       if (item.length === 0) {
         return;
@@ -3527,7 +3528,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         map(headers, (item2, index2) => {
           const value = rowSplit[counterAux];
           if (value[0] !== '"' || value[value.length - 1] !== '"') {
-            errors.push({
+            errorsValues.push({
               msg: `No contiene comillas al inicio y final del campo.`,
               value: value?.trim().replace(/['"]+/g, ""),
               column: item2,
@@ -3547,10 +3548,10 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     if (errors.length >= 1) {
       reject({
         err: true,
-        errors,
+        errors: [...errorsValues, ...errors],
       });
     }
-    resolve(arrayDataObject);
+    resolve({ arrayDataObject, errorsValues });
   });
   return formatearPromise;
 }
