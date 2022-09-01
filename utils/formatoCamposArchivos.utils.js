@@ -385,7 +385,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
           table: "APS_param_operacion_valida",
           params: {
             select: [
-              "lugar_negociacion || tipo_operacion || tipo_instrumento as siglaCombinada",
+              "lugar_negociacion || tipo_operacion || tipo_instrumento as siglacombinada",
             ],
             where: [
               {

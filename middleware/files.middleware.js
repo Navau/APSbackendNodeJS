@@ -1065,7 +1065,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               ) {
                 errors.push({
                   archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
+                  tipo_error: "VALOR INCORRECTO OPERACION NO VALIDA",
                   descripcion: `El tipo_instrumento combinado con la serie del archivo ${itemDP.file} no debe ser igual a el tipo_instrumento combinado con la serie del archivo ${item.archivo} debido a que el tipo_operacion en el archivo ${itemDP.file} es igual a "COP". SERIE DEL ARCHIVO ${itemDP.file}: ${itemDP.value}, SERIE DEL ARCHIVO ${item.archivo}: ${serieCombinada441}`,
                   valor: itemDP.value,
                   columna: itemDP.column,
@@ -2481,12 +2481,14 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           if (
             operationNotValid === "cadenaCombinadalugarNegTipoOperTipoInstrum"
           ) {
+            // console.log(operationNotValid);
             let errFunction = true;
             const siglaCombinada = `${item2.lugar_negociacion}${item2.tipo_operacion}${item2.tipo_instrumento}`;
+            // console.log(_cadenaCombinadalugarNegTipoOperTipoInstrum);
             map(
               _cadenaCombinadalugarNegTipoOperTipoInstrum?.resultFinal,
               (item4, index4) => {
-                if (siglaCombinada === item4.siglaCombinada) {
+                if (siglaCombinada === item4.siglacombinada) {
                   errFunction = false;
                 }
               }
@@ -2494,9 +2496,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             if (errFunction === true) {
               errors.push({
                 archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
+                tipo_error: "VALOR INCORRECTO OPERACION NO VALIDA",
                 descripcion: `El contenido del archivo no coincide con alguna descripción de calificación de riesgo`,
-                valor: value,
+                valor: siglaCombinada,
                 columna: columnName,
                 fila: index2,
               });
@@ -2527,7 +2529,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let operationNotValid =
             item3?.operationNotValid?.length >= 1 ||
             item3?.operationNotValid !== ""
-              ? item.operationNotValid
+              ? item3.operationNotValid
               : null;
           let funct = item3.function;
           let typeError =

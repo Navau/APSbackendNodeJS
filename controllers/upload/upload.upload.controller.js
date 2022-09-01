@@ -567,11 +567,11 @@ async function CargarArchivo3(req, res) {
       });
       //#endregion
 
-      console.log("stringFinalFile", stringFinalFile);
+      // console.log("stringFinalFile", stringFinalFile);
       map(arrayDataObject, (item2, index2) => {
         newArrayDataObject.push([...item2, ...stringFinalFile.split(",")]);
       });
-      console.log("newArrayDataObject", newArrayDataObject);
+      // console.log("newArrayDataObject", newArrayDataObject);
       //#endregion
 
       //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
@@ -593,8 +593,8 @@ async function CargarArchivo3(req, res) {
         let dataObject = Object.assign({}, itemV1);
         partialData.push(dataObject);
       });
-      console.log(partialData);
-      console.log(headers);
+      // console.log(partialData);
+      // console.log(headers);
       let partialHeaders = headers;
       map(partialData, (itemV1, indexV1) => {
         let x = {};
@@ -611,7 +611,7 @@ async function CargarArchivo3(req, res) {
         finalData.push(x);
       });
       //#endregion
-      console.log(finalData);
+      // console.log(finalData);
       if (codeFile === "P") {
       }
 
