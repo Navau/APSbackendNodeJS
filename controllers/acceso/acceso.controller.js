@@ -24,7 +24,7 @@ function refreshAccessToken(req, res) {
     res.status(404).send({
       resultado: 0,
       datos: null,
-      mensaje: "El Refresh Token ha expirado.",
+      mensaje: "El Refresh Token ha expirado",
     });
   } else {
     const { id_usuario } = jwt.decodedToken(refreshToken);
@@ -47,7 +47,7 @@ function refreshAccessToken(req, res) {
             res.status(404).send({
               resultado: 0,
               datos: null,
-              mensaje: "Usuario no encontrado.",
+              mensaje: "Usuario no encontrado",
             });
           } else {
             res.status(200).send({
@@ -84,7 +84,7 @@ function Login(req, res) {
       res.status(500).send({
         resultado: 0,
         datos: null,
-        mensaje: "Error del servidor.",
+        mensaje: "Error del servidor",
         err,
       });
     } else {
@@ -92,7 +92,7 @@ function Login(req, res) {
         res.status(404).send({
           resultado: 0,
           datos: null,
-          mensaje: "Usuario o Contraseña incorrectos.",
+          mensaje: "Usuario y/o Contraseña incorrecto",
         });
       } else {
         let queryRol = `SELECT id_rol 
@@ -114,8 +114,7 @@ function Login(req, res) {
               res.status(404).send({
                 resultado: 0,
                 datos: null,
-                mensaje:
-                  "Este usuario no cuenta con un Rol, favor asignar uno.",
+                mensaje: "Este usuario no cuenta con un Rol",
               });
             } else {
               let resultAux = {
@@ -142,7 +141,7 @@ function Login(req, res) {
                 res.status(400).send({
                   resultado: 0,
                   datos: null,
-                  mensaje: "Hubo un error al crear el token de autenticación.",
+                  mensaje: "Hubo un error al crear el token de autenticación",
                 });
               }
             }
@@ -162,7 +161,7 @@ function TokenConRol(req, res) {
     res.status(404).send({
       resultado: 0,
       datos: null,
-      mensaje: "No se recibió la información suficiente.",
+      mensaje: "No se recibió la información suficiente",
     });
   } else {
     let user = {
@@ -172,7 +171,7 @@ function TokenConRol(req, res) {
     res.status(200).send({
       resultado: 1,
       datos: jwt.createAccessTokenWithRol(user),
-      mensaje: "Token con Rol creado correctamente.",
+      mensaje: "Token con Rol creado correctamente",
     });
   }
 }
