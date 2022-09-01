@@ -904,6 +904,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
-  CargarArchivo,
   CargarArchivo3,
 };
