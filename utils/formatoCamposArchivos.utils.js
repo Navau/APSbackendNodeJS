@@ -1864,6 +1864,11 @@ async function obtenerValidaciones(typeFile) {
         function: "tipoOperacion",
       },
       {
+        columnName: "correlativo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: "mayorACeroEntero",
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         function: "tipoInstrumento",
@@ -1918,6 +1923,11 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         function: "tipoOperacion",
+      },
+      {
+        columnName: "correlativo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: "mayorACeroEntero",
       },
       {
         columnName: "tipo_instrumento",
