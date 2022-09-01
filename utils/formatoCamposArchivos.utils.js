@@ -3838,7 +3838,7 @@ async function mayorACeroDecimal(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero.`,
+        message: `El dato no es un numero decimal.`,
       };
     } else {
       if (valueNumber > 0) {

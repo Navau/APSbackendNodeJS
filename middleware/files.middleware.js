@@ -995,7 +995,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             columna: columnName,
             fila: index2,
           }); //FORMATO DE VALOR DE DOMINIO
-        } else {
+        }
+        try {
           if (columnName.includes("fecha")) {
             if (
               codeCurrentFile === "K" ||
@@ -1198,6 +1199,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } // TO DO: HACER LA VALIDACION DEL INTERES DEL ARCHIVO 441 CON EL ARCHIVO 444 Y DE IGUAL FORMA EL ARCHIVO 442 CON EL ARCHIVO 445
+
+          if (columnName === "tasa_negociacion") {
+            console.log(codeCurrentFile);
+            console.log(item3);
+          }
+
           if (funct === "bolsa") {
             let errFunction = true;
             map(_bolsa?.resultFinal, (item4, index4) => {
@@ -1288,7 +1295,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           } else if (funct === "tipoOperacion") {
             let errFunction = true;
             if (lugarNegociacionTipoOperacionAux) {
-              map(_tipoOperacion.resultFinal, (item4, index4) => {
+              map(_tipoOperacion?.resultFinal, (item4, index4) => {
                 if (value === item4.codigo_rmv) {
                   errFunction = false;
                 }
@@ -1310,7 +1317,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               });
               if (errFunction === true) {
-                map(_tipoOperacion.resultFinal, (item4, index4) => {
+                map(_tipoOperacion?.resultFinal, (item4, index4) => {
                   if (value === item4.codigo_rmv) {
                     errFunction = false;
                   }
@@ -1472,7 +1479,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "codigoOperacion") {
             let errFunction = true;
-            map(codOperacion.resultFinal, (item4, index4) => {
+            map(codOperacion?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_aps) {
                 errFunction = false;
               }
@@ -1537,11 +1544,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 })
               : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1549,7 +1556,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "tipoCuenta") {
             let errFunction = true;
-            map(_tipoCuenta.resultFinal, (item4, index4) => {
+            map(_tipoCuenta?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1566,7 +1573,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "entidadFinanciera") {
             let errFunction = true;
-            map(_entidadFinanciera.resultFinal, (item4, index4) => {
+            map(_entidadFinanciera?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_rmv) {
                 errFunction = false;
               }
@@ -1583,7 +1590,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "moneda") {
             let errFunction = true;
-            map(_moneda.resultFinal, (item4, index4) => {
+            map(_moneda?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1600,7 +1607,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "emisor") {
             let errFunction = true;
-            map(_emisor.resultFinal, (item4, index4) => {
+            map(_emisor?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_rmv) {
                 errFunction = false;
               }
@@ -1617,7 +1624,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "tipoAmortizacion") {
             let errFunction = true;
-            map(_tipoAmortizacion.resultFinal, (item4, index4) => {
+            map(_tipoAmortizacion?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1634,7 +1641,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "tipoInteres") {
             let errFunction = true;
-            map(_tipoInteres.resultFinal, (item4, index4) => {
+            map(_tipoInteres?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1651,7 +1658,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "tipoTasa") {
             let errFunction = true;
-            map(_tipoTasa.resultFinal, (item4, index4) => {
+            map(_tipoTasa?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1668,7 +1675,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "prepago") {
             let errFunction = true;
-            map(_prepago.resultFinal, (item4, index4) => {
+            map(_prepago?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1685,7 +1692,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "subordinado") {
             let errFunction = true;
-            map(_subordinado.resultFinal, (item4, index4) => {
+            map(_subordinado?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1702,7 +1709,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "calificacion") {
             let errFunction = true;
-            map(_calificacion.resultFinal, (item4, index4) => {
+            map(_calificacion?.resultFinal, (item4, index4) => {
               if (value === item4.descripcion) {
                 errFunction = false;
               }
@@ -1719,7 +1726,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "calificadora") {
             let errFunction = true;
-            map(_calificadora.resultFinal, (item4, index4) => {
+            map(_calificadora?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1736,7 +1743,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "custodio") {
             let errFunction = true;
-            map(_custodio.resultFinal, (item4, index4) => {
+            map(_custodio?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1753,7 +1760,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "codigoMercado") {
             let errFunction = true;
-            map(codMercado.resultFinal, (item4, index4) => {
+            map(codMercado?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_aps) {
                 errFunction = false;
               }
@@ -1790,11 +1797,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1822,11 +1829,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1851,7 +1858,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "codigoCustodia") {
             let errFunction = true;
-            map(codCustodia.resultFinal, (item4, index4) => {
+            map(codCustodia?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -1932,7 +1939,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             try {
               let errFunction = { ok: false, message: "" };
               map(tipoCambio, (item, index) => {
-                if (errFunction.ok === false) {
+                if (errFunction?.ok === false) {
                   montoFinalConTipoDeCambio({
                     saldo_mo: item2.saldo_mo,
                     saldo_bs: value,
@@ -1966,13 +1973,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             const _mayorACeroDecimal = await mayorACeroDecimal({
               value: value,
             });
-            // console.log(mayorACeroDecimal);
+            console.log(_mayorACeroDecimal);
 
             if (_mayorACeroDecimal?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorACeroDecimal.message,
+                descripcion: _mayorACeroDecimal?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1987,7 +1994,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorACeroEntero.message,
+                descripcion: _mayorACeroEntero?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2003,7 +2010,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorIgualACeroDecimal.message,
+                descripcion: _mayorIgualACeroDecimal?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2018,7 +2025,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorIgualACeroEntero.message,
+                descripcion: _mayorIgualACeroEntero?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2046,11 +2053,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2078,11 +2085,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2115,11 +2122,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2159,11 +2166,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2191,11 +2198,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2223,11 +2230,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2255,11 +2262,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2287,11 +2294,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2319,11 +2326,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2351,11 +2358,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2383,11 +2390,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   })
                 : null;
 
-            if (_operacionEntreColumnas.ok === false) {
+            if (_operacionEntreColumnas?.ok === false) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas.message,
+                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2405,7 +2412,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _cartera.message,
+                descripcion: _cartera?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2445,7 +2452,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _plazoCupon.message,
+                descripcion: _plazoCupon?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2463,7 +2470,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _plazoCupon.message,
+                descripcion: _plazoCupon?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2494,6 +2501,15 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           }
+        } catch (err) {
+          errors.push({
+            archivo: item.archivo,
+            tipo_error: "VALOR INCORRECTO",
+            descripcion: `Error inesperado. ${err.message}`,
+            valor: value,
+            columna: columnName,
+            fila: index2,
+          });
         }
       };
 
