@@ -434,7 +434,7 @@ async function validarArchivosIteraciones(params) {
         //   resolve(errors);
         //   return;
         // }
-        console.log(isAllFiles);
+        // console.log(isAllFiles);
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
@@ -513,6 +513,7 @@ async function validarArchivosIteraciones(params) {
                     codeCurrentFile = await infoArchivo.codeCurrentFile;
                     nameTable = await infoArchivo.nameTable;
                     headers = await infoArchivo.headers;
+                    // console.log(headers);
 
                     codeCurrentFilesArray.push(codeCurrentFile);
 
@@ -822,7 +823,9 @@ async function validarArchivosIteraciones(params) {
                         });
                       })
                       .finally(async () => {
+                        // console.log(arrayDataObject);
                         if (!arrayDataObject?.err) {
+                          // console.log("DENTRO DE IF");
                           let arrayValidateObject = await obtenerValidaciones(
                             codeCurrentFile
                           );

@@ -3496,7 +3496,6 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     let errors = [];
     let errorsValues = [];
     headers.splice(0, 1); // ELIMINAR ID DE TABLA
-    const numberCommas = headers?.length - 1;
 
     map(
       ["id_carga_archivos", "cod_institucion", "fecha_informacion"],
@@ -3509,6 +3508,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
     // console.log(headers);
     // console.log(dataSplit);
+    const numberCommas = headers?.length - 1;
 
     map(dataSplit, (item, index) => {
       let rowNumberCommas = 0;
@@ -3517,6 +3517,8 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           rowNumberCommas++;
         }
       });
+      // console.log(rowNumberCommas);
+      // console.log(numberCommas);
       const rowSplit = item.split(",");
 
       if (item.length === 0) {
