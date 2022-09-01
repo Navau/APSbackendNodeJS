@@ -533,29 +533,45 @@ async function CargarArchivo3(req, res) {
         id: idTable,
       });
       idTablesFilesArray.push(idTable);
-      //#region INSERTAR EL ID DE CARGA ARCHIVOS A CADA FILA SEPARADA
+      //#region INSERTAR EL ID DE CARGA ARCHIVOS, COD_INSTITUCION, FECHA_INFORMACION A CADA FILA SEPARADA
       // console.log("arrayDataObject", arrayDataObject);
       const newArrayDataObject = [];
       // ["id_carga_archivos", "cod_institucion", "fecha_informacion"]
-      console.log(headers);
-      console.log(headers.includes("id_carga_archivos"));
+      // console.log(headers);
+      // console.log(headers.includes("id_carga_archivos"));
 
       let stringFinalFile = "";
+      let arrayHeadersAux = [];
       if (headers.includes("id_carga_archivos")) {
         stringFinalFile += `"${idCargaArchivos}"`;
+        arrayHeadersAux.push("id_carga_archivos");
       }
       if (headers.includes("cod_institucion")) {
         stringFinalFile += `,"${infoTables.code}"`;
+        arrayHeadersAux.push("cod_institucion");
       }
       if (headers.includes("fecha_informacion")) {
         stringFinalFile += `,"2022-05-05"`;
+        arrayHeadersAux.push("fecha_informacion");
       }
+      //#region ELIMINANDO LOS CAMPOS DE ID_CARGA_ARCHIVOS, COD_INSTITUCION Y FECHA INFORMACION PARA VOLVER A PONERLOS PERO AL FINAL DEL ARRAY HEADERS
       stringFinalFile += `\r\n`;
+      map(arrayHeadersAux, (item2, index2) => {
+        let myIndex = headers.indexOf(item2);
+        if (myIndex !== -1) {
+          headers.splice(myIndex, 1);
+        }
+      });
+      map(arrayHeadersAux, (item2, index2) => {
+        headers.push(item2);
+      });
+      //#endregion
+
       console.log("stringFinalFile", stringFinalFile);
       map(arrayDataObject, (item2, index2) => {
         newArrayDataObject.push([...item2, ...stringFinalFile.split(",")]);
       });
-      // console.log("newArrayDataObject", newArrayDataObject);
+      console.log("newArrayDataObject", newArrayDataObject);
       //#endregion
 
       //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
@@ -577,7 +593,8 @@ async function CargarArchivo3(req, res) {
         let dataObject = Object.assign({}, itemV1);
         partialData.push(dataObject);
       });
-      // console.log(partialData);
+      console.log(partialData);
+      console.log(headers);
       let partialHeaders = headers;
       map(partialData, (itemV1, indexV1) => {
         let x = {};

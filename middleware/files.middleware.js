@@ -1201,10 +1201,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } // TO DO: HACER LA VALIDACION DEL INTERES DEL ARCHIVO 441 CON EL ARCHIVO 444 Y DE IGUAL FORMA EL ARCHIVO 442 CON EL ARCHIVO 445
 
-          if (columnName === "tasa_negociacion") {
-            console.log(codeCurrentFile);
-            console.log(item3);
-          }
+          // if (columnName === "tasa_negociacion") {
+          //   console.log(codeCurrentFile);
+          //   console.log(item3);
+          // }
 
           if (funct === "bolsa") {
             let errFunction = true;

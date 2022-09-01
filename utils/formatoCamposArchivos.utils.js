@@ -1910,7 +1910,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "lugar_negociacion",
-        pattern: /^[A-Za-z0-9,-]{0,4}$/,
+        pattern: /^[A-Za-z0-9,-]{0,3}$/,
         mayBeEmpty: true,
         function: "lugarNegociacion",
       },
