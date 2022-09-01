@@ -4324,7 +4324,7 @@ async function montoFinalConTipoDeCambio(params) {
   const { saldo_mo, saldo_bs, tipo_cambio, errFunction } = params;
 
   if (
-    pàrseFloat(saldo_mo) * parseFloat(tipo_cambio.compra) ===
+    parseFloat(saldo_mo) * parseFloat(tipo_cambio.compra) ===
     parseFloat(saldo_bs)
   ) {
     errFunction.ok = true;
