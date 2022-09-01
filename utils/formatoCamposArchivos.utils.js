@@ -3528,7 +3528,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         rowSplit.length < headers.length
       ) {
         errors.push({
-          msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas.`,
+          msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
           row: index,
         });
       } else if (
@@ -3536,7 +3536,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         rowNumberCommas < numberCommas
       ) {
         errors.push({
-          msg: `El formato del archivo debe estar separado por correctamente por comas.`,
+          msg: `El formato del archivo debe estar separado por correctamente por comas`,
           row: index,
         });
       } else {
@@ -3546,7 +3546,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           const value = rowSplit[counterAux];
           if (value[0] !== '"' || value[value.length - 1] !== '"') {
             errorsValues.push({
-              msg: `El campo debe estar entre comillas.`,
+              msg: `El campo debe estar entre comillas`,
               value: value?.trim().replace(/['"]+/g, ""),
               column: item2,
               row: index,
@@ -3714,7 +3714,7 @@ async function tipoMarcacion(params) {
   if (isNaN(monto_negociado) || isNaN(monto_minimo)) {
     return {
       ok: false,
-      message: `El campo monto_negociado o monto_minimo no son numeros.`,
+      message: `El campo monto_negociado o monto_minimo no son numeros`,
     };
   }
   let values = null;
@@ -3724,7 +3724,7 @@ async function tipoMarcacion(params) {
     if (!values.includes(tipo_marcacion)) {
       return {
         ok: false,
-        message: `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe ser ${values}.`,
+        message: `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe ser ${values}`,
       };
     }
   }
@@ -3733,7 +3733,7 @@ async function tipoMarcacion(params) {
     if (!values.includes(tipo_marcacion)) {
       return {
         ok: false,
-        message: `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe ser ${values}.`,
+        message: `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe ser ${values}`,
       };
     }
   }
@@ -3808,18 +3808,18 @@ async function mayorACeroEntero(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero.`,
+        message: `El dato no es un numero entero`,
       };
     } else {
       if (valueNumber > 0) {
         return {
           ok: true,
-          message: `El valor si es mayor a 0.`,
+          message: `El valor si es mayor a 0`,
         };
       } else {
         return {
           ok: false,
-          message: `El valor debe ser mayor a 0.`,
+          message: `El valor debe ser mayor a 0`,
         };
       }
     }
@@ -3838,18 +3838,18 @@ async function mayorACeroDecimal(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero decimal.`,
+        message: `El dato no es un numero decimal`,
       };
     } else {
       if (valueNumber > 0) {
         return {
           ok: true,
-          message: `El valor si es mayor a 0.`,
+          message: `El valor si es mayor a 0`,
         };
       } else {
         return {
           ok: false,
-          message: `El valor debe ser mayor a 0.`,
+          message: `El valor debe ser mayor a 0`,
         };
       }
     }
@@ -3868,18 +3868,18 @@ async function mayorIgualACeroEntero(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero.`,
+        message: `El dato no es un numero entero`,
       };
     } else {
       if (valueNumber >= 0) {
         return {
           ok: true,
-          message: `El valor si es mayor o igual a 0.`,
+          message: `El valor si es mayor o igual a 0`,
         };
       } else {
         return {
           ok: false,
-          message: `El valor no es mayor o igual a 0.`,
+          message: `El valor no es mayor o igual a 0`,
         };
       }
     }
@@ -3898,18 +3898,18 @@ async function mayorIgualACeroDecimal(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero.`,
+        message: `El dato no es un numero entero`,
       };
     } else {
       if (valueNumber > 0) {
         return {
           ok: true,
-          message: `El valor si es mayor o igual a 0.`,
+          message: `El valor si es mayor o igual a 0`,
         };
       } else {
         return {
           ok: false,
-          message: `El valor no es mayor o igual a 0.`,
+          message: `El valor no es mayor o igual a 0`,
         };
       }
     }
@@ -4063,7 +4063,7 @@ async function plazoCupon(params) {
   if (isNaN(plazo_cupon) || isNaN(nro_pago)) {
     return {
       ok: false,
-      message: `El campo plazo_cupon o nro_pago no son numeros.`,
+      message: `El campo plazo_cupon o nro_pago no son numeros`,
     };
   }
 
@@ -4071,14 +4071,14 @@ async function plazoCupon(params) {
     if (plazo_cupon <= 0) {
       return {
         ok: false,
-        message: `El campo nro_pago es mayor a 1 por lo tanto plazo_cupon debe ser mayor a 0.`,
+        message: `El campo nro_pago es mayor a 1 por lo tanto plazo_cupon debe ser mayor a 0`,
       };
     }
   } else if (nro_pago === 1) {
     if (plazo_cupon !== 0) {
       return {
         ok: false,
-        message: `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0.`,
+        message: `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0`,
       };
     }
   }
@@ -4226,7 +4226,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
     if (calificacion_riesgo === "" || calificacion_riesgo.length === 0) {
       return {
         ok: true,
-        message: `El contenido esta vacio.`,
+        message: `El contenido esta vacio`,
       };
     }
     if (isOkTipoInstrumento === true) {
@@ -4237,12 +4237,12 @@ async function calificacionRiesgoConsultaMultiple(params) {
       });
       return {
         ok: isOkCalfRiesgo,
-        message: `El contenido del archivo no coincide con alguna clasificación de riesgo en la Renta Variable.`,
+        message: `El contenido del archivo no coincide con alguna clasificación de riesgo en la Renta Variable`,
       };
     } else {
       return {
         ok: false,
-        message: `El contenido del archivo no coincide con alguna sigla de tipo de instrumento de Renta Fija o Renta Variable.`,
+        message: `El contenido del archivo no coincide con alguna sigla de tipo de instrumento de Renta Fija o Renta Variable`,
       };
     }
   } else {
@@ -4254,7 +4254,7 @@ async function calificacionRiesgoConsultaMultiple(params) {
       });
       return {
         ok: isOkCalfRiesgo,
-        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto plazo.`,
+        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto plazo`,
       };
     } else if (plazo_valor >= 360) {
       map(resultLargoPlazo, (item, index) => {
@@ -4264,12 +4264,12 @@ async function calificacionRiesgoConsultaMultiple(params) {
       });
       return {
         ok: isOkCalfRiesgo,
-        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Largo plazo.`,
+        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Largo plazo`,
       };
     } else {
       return {
         ok: isOkCalfRiesgo,
-        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto y Largo plazo.`,
+        message: `El contenido del archivo no coincide con alguna descripción de Renta fija a Corto y Largo plazo`,
       };
     }
   }
@@ -4290,7 +4290,7 @@ async function fechaOperacionMenor(params) {
     return {
       ok: false,
       message:
-        "La fecha de operación del contenido del archivo o la fecha de operación no tiene el formato correcto.",
+        "La fecha de operación del contenido del archivo o la fecha de operación no tiene el formato correcto",
     };
   } else {
     return {
@@ -4298,7 +4298,7 @@ async function fechaOperacionMenor(params) {
         Date.parse(nuevaFechaContenidoOperacion) <=
         Date.parse(nuevaFechaNombreArchivo),
       message:
-        "La fecha de operación del contenido del archivo es mayor a la fecha de operación, lo cual debe ser menor.",
+        "La fecha de operación del contenido del archivo es mayor a la fecha de operación, lo cual debe ser menor",
     };
   }
 }
@@ -4413,7 +4413,7 @@ async function tipoValoracionConsultaMultiple(params) {
       return {
         ok: false,
         message:
-          "El campo tipo_valoracion no coincide con ninguna sigla válida.",
+          "El campo tipo_valoracion no coincide con ninguna sigla válida",
       };
     }
   }
@@ -4440,7 +4440,7 @@ async function tipoValoracionConsultaMultiple(params) {
       return {
         ok: false,
         message:
-          "El campo tipo_valoracion no coincide con ninguna sigla válida.",
+          "El campo tipo_valoracion no coincide con ninguna sigla válida",
       };
     }
   }
@@ -4467,7 +4467,7 @@ async function tipoValoracionConsultaMultiple(params) {
       return {
         ok: false,
         message:
-          "El campo tipo_valoracion no coincide con ninguna sigla válida.",
+          "El campo tipo_valoracion no coincide con ninguna sigla válida",
       };
     }
   }
@@ -4475,7 +4475,7 @@ async function tipoValoracionConsultaMultiple(params) {
   return {
     ok: false,
     message:
-      "El campo tipo_instrumento no superó las validaciones para el tipo_valoracion.",
+      "El campo tipo_instrumento no superó las validaciones para el tipo_valoracion",
   };
 }
 
@@ -4488,7 +4488,7 @@ async function totalBsMenosPrevisionesInversiones(params) {
     if (isNaN(totalBsValue) || isNaN(previsionInversionBsValue)) {
       return {
         ok: false,
-        message: `El campo total en bolivianos o la prevision de inversiones no son numeros.`,
+        message: `El campo total en bolivianos o la prevision de inversiones no son numeros`,
       };
     } else {
       const result = totalBsValue - previsionInversionBsValue;
@@ -4502,7 +4502,7 @@ async function totalBsMenosPrevisionesInversiones(params) {
       } else {
         return {
           ok: false,
-          message: `El total en bolivianos restado por la prevision de inversiones en bolivianos no es igual a total neto de inversiones en bolivianos.`,
+          message: `El total en bolivianos restado por la prevision de inversiones en bolivianos no es igual a total neto de inversiones en bolivianos`,
         };
       }
     }
@@ -4561,7 +4561,7 @@ async function saldoAntMasAltasBajasMasActualizacion(params) {
     ) {
       return {
         ok: false,
-        message: `El campo saldo anterior o altas y bajas o actualizacion no son numeros.`,
+        message: `El campo saldo anterior o altas y bajas o actualizacion no son numeros`,
       };
     } else {
       const result = saldoAnteriorValue + altasBajasValue + actualizacionValue;
@@ -4573,7 +4573,7 @@ async function saldoAntMasAltasBajasMasActualizacion(params) {
       } else {
         return {
           ok: false,
-          message: `El saldo anterior sumado con altas y bajas y sumado con actualizacion no es igual a saldo final.`,
+          message: `El saldo anterior sumado con altas y bajas y sumado con actualizacion no es igual a saldo final`,
         };
       }
     }
@@ -4606,7 +4606,7 @@ async function saldoAntMenosBajasMasDepreciacionMesMasActualizacion(params) {
     ) {
       return {
         ok: false,
-        message: `El campo saldo anterior o bajas o actualizacion o periodo de depreciacion no son numeros.`,
+        message: `El campo saldo anterior o bajas o actualizacion o periodo de depreciacion no son numeros`,
       };
     } else {
       const result =
@@ -4622,7 +4622,7 @@ async function saldoAntMenosBajasMasDepreciacionMesMasActualizacion(params) {
       } else {
         return {
           ok: false,
-          message: `El saldo anterior restado con bajas sumado con periodo de depreciacion y sumado con actualizacion no es igual a saldo final dep.`,
+          message: `El saldo anterior restado con bajas sumado con periodo de depreciacion y sumado con actualizacion no es igual a saldo final dep`,
         };
       }
     }
@@ -4648,7 +4648,7 @@ async function saldoFinalMesAnteriorBsMasMovimientoMesBs(params) {
     if (isNaN(saldoFinalMesAnteriorBsValue) || isNaN(movimientoMesBsValue)) {
       return {
         ok: false,
-        message: `El campo saldo final del mes anterior en bolivianos o el movimiento de mes en bolivianos no son numeros.`,
+        message: `El campo saldo final del mes anterior en bolivianos o el movimiento de mes en bolivianos no son numeros`,
       };
     } else {
       const result = saldoFinalMesAnteriorBsValue + movimientoMesBsValue;
@@ -4662,7 +4662,7 @@ async function saldoFinalMesAnteriorBsMasMovimientoMesBs(params) {
       } else {
         return {
           ok: false,
-          message: `El  saldo final del mes anterior en bolivianos sumado con el movimiento de mes en bolivianos no es igual a saldo final del mes actual en bolivianos.`,
+          message: `El  saldo final del mes anterior en bolivianos sumado con el movimiento de mes en bolivianos no es igual a saldo final del mes actual en bolivianos`,
         };
       }
     }
@@ -4686,7 +4686,7 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
     if (isNaN(depreciacionPeriodoValue) || isNaN(altasBajasDepreciacionValue)) {
       return {
         ok: false,
-        message: `El campo depreciacion de periodo o altas y bajas de depreciacion no son numeros.`,
+        message: `El campo depreciacion de periodo o altas y bajas de depreciacion no son numeros`,
       };
     } else {
       const result = depreciacionPeriodoValue + altasBajasDepreciacionValue;
@@ -4701,7 +4701,7 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
       } else {
         return {
           ok: false,
-          message: `La depreciacion de periodo sumado con las altas y bajas de depreciacion no es igual a saldo final de depreciacion acumulada .`,
+          message: `La depreciacion de periodo sumado con las altas y bajas de depreciacion no es igual a saldo final de depreciacion acumulada `,
         };
       }
     }
@@ -4727,7 +4727,7 @@ async function operacionEntreColumnas(params) {
     if (fieldsErrorText.length >= 1) {
       return {
         ok: false,
-        message: `El campo ${fieldsErrorText} no son numeros validos.`,
+        message: `El campo ${fieldsErrorText} no son numeros validos`,
       };
     }
 
@@ -4771,7 +4771,7 @@ async function operacionEntreColumnas(params) {
     } else {
       return {
         ok: false,
-        message: `El resultado de ${fieldsResultText} no es igual a ${total.key}.`,
+        message: `El resultado de ${fieldsResultText} no es igual a ${total.key}`,
       };
     }
   } catch (err) {
