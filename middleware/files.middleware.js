@@ -965,6 +965,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         funct,
         mayBeEmpty,
         operationNotValid,
+        notValidate,
         typeError,
         item2,
         index2,
@@ -997,7 +998,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }); //FORMATO DE VALOR DE DOMINIO
         }
         try {
-          if (columnName.includes("fecha")) {
+          if (columnName.includes("fecha") && notValidate === null) {
             if (
               codeCurrentFile === "K" ||
               codeCurrentFile === "L" ||
@@ -1973,7 +1974,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             const _mayorACeroDecimal = await mayorACeroDecimal({
               value: value,
             });
-            console.log(_mayorACeroDecimal);
+            // console.log(_mayorACeroDecimal);
 
             if (_mayorACeroDecimal?.ok === false) {
               errors.push({
@@ -2535,6 +2536,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             item3?.typeError !== ""
               ? item.typeError
               : null;
+
+          let notValidate =
+            item3?.notValidate === true ? item3.notValidate : null;
           // console.log("ANTES DE VALIDACIONES", value);
           // console.log("ANTES DE VALIDACIONES", errors);
           if (!item2[item3.columnName] && mayBeEmpty === false) {
@@ -2560,6 +2564,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               funct,
               mayBeEmpty,
               operationNotValid,
+              notValidate,
               typeError,
               item2,
               index2,

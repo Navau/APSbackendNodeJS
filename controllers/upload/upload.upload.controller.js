@@ -376,7 +376,10 @@ async function CargarArchivo3(req, res) {
     tableErrors: null,
   };
   map(filesSort, (item, index) => {
-    if (item.originalname.substring(0, 3) === "108") {
+    if (
+      item.originalname.toUpperCase().substring(0, 3) === "108" &&
+      !item.originalname.toUpperCase().includes(".CC")
+    ) {
       infoTables = {
         code: "108",
         table: "APS_aud_carga_archivos_pensiones_seguros",
@@ -393,6 +396,12 @@ async function CargarArchivo3(req, res) {
         code: "M",
         table: "APS_aud_carga_archivos_bolsa",
         tableErrors: "APS_aud_errores_carga_archivos_bolsa",
+      };
+    } else if (item.originalname.toUpperCase().includes(".CC")) {
+      infoTables = {
+        code: "CC",
+        table: "APS_aud_carga_archivos_custodio",
+        tableErrors: "APS_aud_errores_carga_archivos_custodio",
       };
     }
   });
@@ -424,11 +433,127 @@ async function CargarArchivo3(req, res) {
       });
       //#endregion
 
+      let headers = null;
+      let codeFile = null;
+      let tableFile = null;
+      let idTable = null;
+
+      if (item.originalname.includes("K.")) {
+        codeFile = "K";
+        tableFile = "APS_oper_archivo_k";
+      } else if (item.originalname.includes("L.")) {
+        codeFile = "L";
+        tableFile = "APS_oper_archivo_l";
+      } else if (item.originalname.includes("N.")) {
+        codeFile = "N";
+        tableFile = "APS_oper_archivo_n";
+      } else if (item.originalname.includes("P.")) {
+        codeFile = "P";
+        tableFile = "APS_oper_archivo_p";
+      } else if (item.originalname.includes(".411")) {
+        codeFile = "411";
+        tableFile = "APS_seguro_archivo_411";
+      } else if (item.originalname.includes(".412")) {
+        codeFile = "412";
+        tableFile = "APS_seguro_archivo_412";
+      } else if (item.originalname.includes(".413")) {
+        codeFile = "413";
+        tableFile = "APS_seguro_archivo_413";
+      } else if (item.originalname.includes(".441")) {
+        codeFile = "441";
+        tableFile = "APS_seguro_archivo_441";
+      } else if (item.originalname.includes(".442")) {
+        codeFile = "442";
+        tableFile = "APS_seguro_archivo_442";
+      } else if (item.originalname.includes(".443")) {
+        codeFile = "443";
+        tableFile = "APS_seguro_archivo_443";
+      } else if (item.originalname.includes(".444")) {
+        codeFile = "444";
+        tableFile = "APS_seguro_archivo_444";
+      } else if (item.originalname.includes(".445")) {
+        codeFile = "445";
+        tableFile = "APS_seguro_archivo_445";
+      } else if (item.originalname.includes(".451")) {
+        codeFile = "451";
+        tableFile = "APS_seguro_archivo_451";
+      } else if (item.originalname.includes(".481")) {
+        codeFile = "481";
+        tableFile = "APS_seguro_archivo_481";
+      } else if (item.originalname.includes(".482")) {
+        codeFile = "482";
+        tableFile = "APS_seguro_archivo_482";
+      } else if (item.originalname.includes(".483")) {
+        codeFile = "483";
+        tableFile = "APS_seguro_archivo_483";
+      } else if (item.originalname.includes(".484")) {
+        codeFile = "484";
+        tableFile = "APS_seguro_archivo_484";
+      } else if (item.originalname.includes(".485")) {
+        codeFile = "485";
+        tableFile = "APS_seguro_archivo_485";
+      } else if (item.originalname.includes(".486")) {
+        codeFile = "486";
+        tableFile = "APS_seguro_archivo_486";
+      } else if (item.originalname.includes(".461")) {
+        codeFile = "461";
+        tableFile = "APS_seguro_archivo_461";
+      } else if (item.originalname.includes(".471")) {
+        codeFile = "471";
+        tableFile = "APS_seguro_archivo_471";
+      } else if (item.originalname.includes(".491")) {
+        codeFile = "491";
+        tableFile = "APS_seguro_archivo_491";
+      } else if (item.originalname.includes(".492")) {
+        codeFile = "492";
+        tableFile = "APS_seguro_archivo_492";
+      } else if (item.originalname.includes(".494")) {
+        codeFile = "494";
+        tableFile = "APS_seguro_archivo_494";
+      } else if (item.originalname.includes(".496")) {
+        codeFile = "496";
+        tableFile = "APS_seguro_archivo_496";
+      } else if (item.originalname.includes(".497")) {
+        codeFile = "497";
+        tableFile = "APS_seguro_archivo_497";
+      } else if (item.originalname.includes(".498")) {
+        codeFile = "498";
+        tableFile = "APS_seguro_archivo_498";
+      } else if (item.originalname.includes(".CC")) {
+        codeFile = "CC";
+        tableFile = "APS_oper_archivo_Custodio";
+      }
+      headers = await formatoArchivo(codeFile);
+      idTable = headers[0];
+      headers.splice(0, 1); // ELIMINAR ID DE TABLA
+
+      tablesFilesArray.push(tableFile);
+      sequencesTablesFilesArray.push({
+        table: tableFile,
+        id: idTable,
+      });
+      idTablesFilesArray.push(idTable);
       //#region INSERTAR EL ID DE CARGA ARCHIVOS A CADA FILA SEPARADA
       // console.log("arrayDataObject", arrayDataObject);
       const newArrayDataObject = [];
+      // ["id_carga_archivos", "cod_institucion", "fecha_informacion"]
+      console.log(headers);
+      console.log(headers.includes("id_carga_archivos"));
+
+      let stringFinalFile = "";
+      if (headers.includes("id_carga_archivos")) {
+        stringFinalFile += `"${idCargaArchivos}"`;
+      }
+      if (headers.includes("cod_institucion")) {
+        stringFinalFile += `,"${infoTables.code}"`;
+      }
+      if (headers.includes("fecha_informacion")) {
+        stringFinalFile += `,"2022-05-05"`;
+      }
+      stringFinalFile += `\r\n`;
+      console.log("stringFinalFile", stringFinalFile);
       map(arrayDataObject, (item2, index2) => {
-        newArrayDataObject.push([...item2, `"${idCargaArchivos}"\r\n`]);
+        newArrayDataObject.push([...item2, ...stringFinalFile.split(",")]);
       });
       // console.log("newArrayDataObject", newArrayDataObject);
       //#endregion
@@ -438,42 +563,6 @@ async function CargarArchivo3(req, res) {
       const filePathWrite = `./uploads/tmp/${item.originalname}`;
       fs.writeFileSync(filePathWrite, dataFile);
       //#endregion
-      let headers = null;
-      let codeFile = null;
-      let tableFile = null;
-      let idTable = null;
-
-      if (item.originalname.includes("K.")) {
-        codeFile = "K";
-        headers = await formatoArchivo(codeFile);
-        idTable = headers[0];
-        headers.splice(0, 1); // ELIMINAR ID DE TABLA
-        tableFile = "APS_oper_archivo_k";
-      } else if (item.originalname.includes("L.")) {
-        codeFile = "L";
-        headers = await formatoArchivo(codeFile);
-        idTable = headers[0];
-        headers.splice(0, 1); // ELIMINAR ID DE TABLA
-        tableFile = "APS_oper_archivo_l";
-      } else if (item.originalname.includes("N.")) {
-        codeFile = "N";
-        headers = await formatoArchivo(codeFile);
-        idTable = headers[0];
-        headers.splice(0, 1); // ELIMINAR ID DE TABLA
-        tableFile = "APS_oper_archivo_n";
-      } else if (item.originalname.includes("P.")) {
-        codeFile = "P";
-        headers = await formatoArchivo(codeFile);
-        idTable = headers[0];
-        headers.splice(0, 1); // ELIMINAR ID DE TABLA
-        tableFile = "APS_oper_archivo_p";
-      }
-      tablesFilesArray.push(tableFile);
-      sequencesTablesFilesArray.push({
-        table: tableFile,
-        id: idTable,
-      });
-      idTablesFilesArray.push(idTable);
       // console.log(headers);
       // console.log(codeFile);
       // console.log(headers);
@@ -505,8 +594,8 @@ async function CargarArchivo3(req, res) {
         finalData.push(x);
       });
       //#endregion
+      console.log(finalData);
       if (codeFile === "P") {
-        // console.log(finalData);
       }
 
       map([finalData], (itemBPQ, indexBPQ) => {

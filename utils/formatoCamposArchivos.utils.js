@@ -1794,6 +1794,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "fecha_marcacion",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        notValidate: true,
         function: null,
       },
       {
@@ -1828,6 +1829,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "ult_fecha_disponible",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        notValidate: true,
         function: null,
       },
       {
@@ -3901,7 +3903,7 @@ async function mayorIgualACeroDecimal(params) {
         message: `El dato no es un numero entero`,
       };
     } else {
-      if (valueNumber > 0) {
+      if (valueNumber >= 0) {
         return {
           ok: true,
           message: `El valor si es mayor o igual a 0`,
