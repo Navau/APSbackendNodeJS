@@ -36,312 +36,313 @@ const {
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
 
-async function CargarArchivo(req, res) {
-  let fieldMax = "id_carga_archivos";
-  let idCargaArchivos = null;
-  let idArchivo = null;
-  let errors = [];
-  let filesReaded = req.filesReaded;
-  nameTable = req.nameTableAud;
-  let resultFinal = [];
-  let uploadPromise = null;
-  try {
-    uploadPromise = new Promise(async (resolve, reject) => {
-      let queryCargaArchivo = await ListarUtil(nameTable, {});
-      let currentFilesBD = [];
-      await pool
-        .query(queryCargaArchivo)
-        .then(async (result) => {
-          currentFilesBD = await result.rows;
-        })
-        .catch((err) => {
-          console.log(err);
-          errors.push({
-            type: "QUERY SQL ERROR",
-            message: `Hubo un error al obtener los datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-            err,
-          });
-        });
-      try {
-        await map(req.files, async (item, index) => {
-          let existFileBD = {};
-          map(currentFilesBD, (item2, index2) => {
-            if (item2.nombre_archivo === item.originalname) {
-              existFileBD = item2;
-              return;
-            }
-          });
-          const params = {
-            fieldMax,
-            where: [
-              {
-                key: "nombre_archivo",
-                value: item.originalname,
-                like: true,
-              },
-            ],
-          };
-          let filePath =
-            __dirname.substring(0, __dirname.indexOf("controllers")) +
-            item.path;
-          let queryMax = ValorMaximoDeCampoUtil(nameTable, params);
-          await pool
-            .query(queryMax)
-            .then(async (resultMax) => {
-              console.log(resultMax);
-              if (!resultMax.rowCount || resultMax.rowCount < 1) {
-                idCargaArchivos = 1;
-              } else {
-                idCargaArchivos =
-                  (await resultMax.rows[0].max) !== null
-                    ? resultMax.rows[0].max
-                    : 1;
-              }
-            })
-            .catch((err) => {
-              console.log(err);
-              errors.push({
-                file: item.originalname,
-                type: "QUERY SQL ERROR",
-                message: `Hubo un error al obtener el Maximo ID del campo: ${fieldMax} ERROR: ${err.message}`,
-                err,
-              });
-            });
-          let arrayDataObject = [];
-          map(filesReaded[index], (item2, index2) => {
-            let rowSplit = item2.split(",");
-            let resultObject = [];
-            map(rowSplit, (item3, index3) => {
-              if (item3 !== "") {
-                resultObject = [
-                  ...resultObject,
-                  item3.trim(), //QUITAR ESPACIOS
-                ];
-              }
-            });
-            if (item2 !== "") {
-              arrayDataObject.push(resultObject);
-            }
-          });
-          let arrayDataObjectWithIDandStatus = [];
-          map(arrayDataObject, (item2, index2) => {
-            let result = [...item2, `"${idCargaArchivos}","true"\r\n`];
-            arrayDataObjectWithIDandStatus.push(result);
-          });
-          let dataFile = arrayDataObjectWithIDandStatus.join("");
-          const filePathWrite = `./uploads/tmp/${item.originalname}`;
-          fs.writeFileSync(filePathWrite, dataFile);
-          let headers = null;
-          let tableFile = null;
-          let paramsFile = null;
-          if (item.originalname.includes("K.")) {
-            headers = formatoArchivo("k");
-            tableFile = "APS_oper_archivo_k";
-            idArchivo = "id_archivo_k";
+// async function CargarArchivo(req, res) {
+//   let fieldMax = "id_carga_archivos";
+//   let idCargaArchivos = null;
+//   let idArchivo = null;
+//   let errors = [];
+//   let filesReaded = req.filesReaded;
+//   nameTable = req.nameTableAud;
+//   let resultFinal = [];
+//   let uploadPromise = null;
+//   try {
+//     uploadPromise = new Promise(async (resolve, reject) => {
+//       let queryCargaArchivo = await ListarUtil(nameTable, {});
+//       let currentFilesBD = [];
+//       await pool
+//         .query(queryCargaArchivo)
+//         .then(async (result) => {
+//           currentFilesBD = await result.rows;
+//         })
+//         .catch((err) => {
+//           console.log(err);
+//           errors.push({
+//             type: "QUERY SQL ERROR",
+//             message: `Hubo un error al obtener los datos en la tabla '${nameTable}' ERROR: ${err.message}`,
+//             err,
+//           });
+//         });
+//       try {
+//         await map(req.files, async (item, index) => {
+//           let existFileBD = {};
+//           map(currentFilesBD, (item2, index2) => {
+//             if (item2.nombre_archivo === item.originalname) {
+//               existFileBD = item2;
+//               return;
+//             }
+//           });
+//           const params = {
+//             fieldMax,
+//             where: [
+//               {
+//                 key: "nombre_archivo",
+//                 value: item.originalname,
+//                 like: true,
+//               },
+//             ],
+//           };
+//           let filePath =
+//             __dirname.substring(0, __dirname.indexOf("controllers")) +
+//             item.path;
+//           let queryMax = ValorMaximoDeCampoUtil(nameTable, params);
+//           await pool
+//             .query(queryMax)
+//             .then(async (resultMax) => {
+//               console.log(resultMax);
+//               if (!resultMax.rowCount || resultMax.rowCount < 1) {
+//                 idCargaArchivos = 1;
+//               } else {
+//                 idCargaArchivos =
+//                   (await resultMax.rows[0].max) !== null
+//                     ? resultMax.rows[0].max
+//                     : 1;
+//               }
+//             })
+//             .catch((err) => {
+//               console.log(err);
+//               errors.push({
+//                 file: item.originalname,
+//                 type: "QUERY SQL ERROR",
+//                 message: `Hubo un error al obtener el Maximo ID del campo: ${fieldMax} ERROR: ${err.message}`,
+//                 err,
+//               });
+//             });
+//           let arrayDataObject = [];
+//           map(filesReaded[index], (item2, index2) => {
+//             let rowSplit = item2.split(",");
+//             let resultObject = [];
+//             map(rowSplit, (item3, index3) => {
+//               if (item3 !== "") {
+//                 resultObject = [
+//                   ...resultObject,
+//                   item3.trim(), //QUITAR ESPACIOS
+//                 ];
+//               }
+//             });
+//             if (item2 !== "") {
+//               arrayDataObject.push(resultObject);
+//             }
+//           });
+//           let arrayDataObjectWithIDandStatus = [];
+//           map(arrayDataObject, (item2, index2) => {
+//             let result = [...item2, `"${idCargaArchivos}","true"\r\n`];
+//             arrayDataObjectWithIDandStatus.push(result);
+//           });
+//           let dataFile = arrayDataObjectWithIDandStatus.join("");
+//           const filePathWrite = `./uploads/tmp/${item.originalname}`;
+//           fs.writeFileSync(filePathWrite, dataFile);
+//           let headers = null;
+//           let tableFile = null;
+//           let paramsFile = null;
+//           if (item.originalname.includes("K.")) {
+//             headers = formatoArchivo("k");
+//             tableFile = "APS_oper_archivo_k";
+//             idArchivo = "id_archivo_k";
 
-            headers = {
-              ...headers,
-              codigo_activo: headers.tipo_marcacion,
-              id_carga_archivos: idCargaArchivos,
-              estado: true,
-            };
+//             headers = {
+//               ...headers,
+//               codigo_activo: headers.tipo_marcacion,
+//               id_carga_archivos: idCargaArchivos,
+//               estado: true,
+//             };
 
-            delete headers.tipo_marcacion;
+//             delete headers.tipo_marcacion;
 
-            paramsFile = {
-              headers,
-              filePath,
-            };
-          } else if (item.originalname.includes("L.")) {
-          } else if (item.originalname.includes("N.")) {
-          } else if (item.originalname.includes("P.")) {
-          }
-          let queryMain = "";
-          let queryFile = "";
-          let queryDelete = "";
-          let queryMaxFile = "";
-          let queryResetIDFile = "";
-          let lastIDFile = null;
-          queryMaxFile = ValorMaximoDeCampoUtil(tableFile, {
-            fieldMax: idArchivo,
-          });
+//             paramsFile = {
+//               headers,
+//               filePath,
+//             };
+//           } else if (item.originalname.includes("L.")) {
+//           } else if (item.originalname.includes("N.")) {
+//           } else if (item.originalname.includes("P.")) {
+//           }
+//           let queryMain = "";
+//           let queryFile = "";
+//           let queryDelete = "";
+//           let queryMaxFile = "";
+//           let queryResetIDFile = "";
+//           let lastIDFile = null;
+//           queryMaxFile = ValorMaximoDeCampoUtil(tableFile, {
+//             fieldMax: idArchivo,
+//           });
 
-          if (Object.keys(existFileBD).length >= 1) {
-            queryDelete = EliminarUtil(tableFile, {
-              where: {
-                id_carga_archivos: existFileBD.id_carga_archivos,
-              },
-            });
-            queryMain = ActualizarUtil(nameTable, {
-              body: {
-                id_carga_archivos: existFileBD.id_carga_archivos,
-                fecha_operacion: new Date(existFileBD.fecha_operacion),
-                nombre_archivo: item.originalname,
-                nro_carga: existFileBD.nro_carga + 1,
-                fecha_entrega: new Date(),
-                fecha_carga: new Date(),
-                id_usuario: req.user.id_usuario,
-                cargado: true,
-              },
-              idKey: "id_carga_archivos",
-              idValue: existFileBD.id_carga_archivos,
-            });
-            queryFile = CargarArchivoABaseDeDatosUtil(tableFile, {
-              action: "insert",
-              paramsFile,
-              existFileBD,
-            });
-          } else {
-            queryMain = await InsertarUtil(nameTable, {
-              body: {
-                fecha_operacion: new Date(),
-                nombre_archivo: item.originalname,
-                nro_carga: 1,
-                fecha_entrega: new Date(),
-                fecha_carga: new Date(),
-                id_usuario: req.user.id_usuario,
-                cargado: true,
-              },
-            });
+//           if (Object.keys(existFileBD).length >= 1) {
+//             queryDelete = EliminarUtil(tableFile, {
+//               where: {
+//                 id_carga_archivos: existFileBD.id_carga_archivos,
+//               },
+//             });
+//             queryMain = ActualizarUtil(nameTable, {
+//               body: {
+//                 id_carga_archivos: existFileBD.id_carga_archivos,
+//                 fecha_operacion: new Date(existFileBD.fecha_operacion),
+//                 nombre_archivo: item.originalname,
+//                 nro_carga: existFileBD.nro_carga + 1,
+//                 fecha_entrega: new Date(),
+//                 fecha_carga: new Date(),
+//                 id_usuario: req.user.id_usuario,
+//                 cargado: true,
+//               },
+//               idKey: "id_carga_archivos",
+//               idValue: existFileBD.id_carga_archivos,
+//             });
+//             queryFile = CargarArchivoABaseDeDatosUtil(tableFile, {
+//               action: "insert",
+//               paramsFile,
+//               existFileBD,
+//             });
+//           } else {
+//             queryMain = await InsertarUtil(nameTable, {
+//               body: {
+//                 fecha_operacion: new Date(),
+//                 nombre_archivo: item.originalname,
+//                 nro_carga: 1,
+//                 fecha_entrega: new Date(),
+//                 fecha_carga: new Date(),
+//                 id_usuario: req.user.id_usuario,
+//                 cargado: true,
+//               },
+//             });
 
-            queryFile = await CargarArchivoABaseDeDatosUtil(tableFile, {
-              action: "insert",
-              paramsFile,
-            });
-          }
-          await pool
-            .query(queryMain)
-            .then(async (resultMain) => {
-              resultFinal.push({
-                file: item.originalname,
-                message: `El archivo fue insertado correctamente a la tabla ''${nameTable}''`,
-                result: {
-                  rowsUpdate: resultMain.rows,
-                  rowCount: resultMain.rowCount,
-                },
-              });
-              if (queryDelete.length >= 1) {
-                await pool
-                  .query(queryDelete)
-                  .then(async (resultDelete) => {
-                    resultFinal.push({
-                      file: item.originalname,
-                      message: `El archivo fue eliminado correctamente de la tabla '${tableFile}'`,
-                      result: {
-                        rowsUpdate: resultDelete.rows,
-                        rowCount: resultDelete.rowCount,
-                      },
-                    });
-                    await pool
-                      .query(queryMaxFile)
-                      .then(async (resultMaxFile) => {
-                        if (
-                          !resultMaxFile.rowCount ||
-                          resultMaxFile.rowCount < 1
-                        ) {
-                          lastIDFile = 1;
-                        } else {
-                          lastIDFile =
-                            (await resultMaxFile.rows[0]?.max) !== null
-                              ? resultMaxFile.rows[0].max
-                              : 1;
-                        }
-                      });
-                    queryResetIDFile = ResetearIDUtil(tableFile, {
-                      field: idArchivo,
-                      resetValue: lastIDFile + 1,
-                    });
-                    await pool.query(queryResetIDFile);
-                    await pool
-                      .query(queryFile)
-                      .then(async (resultFile) => {
-                        resultFinal.push({
-                          file: item.originalname,
-                          message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
-                          result: {
-                            rowsUpdate: resultFile.rows,
-                            rowCount: resultFile.rowCount,
-                          },
-                        });
-                      })
-                      .catch((err) => {
-                        console.log(err);
-                        errors.push({
-                          file: item.originalname,
-                          type: "QUERY SQL ERROR",
-                          message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
-                          err,
-                        });
-                      });
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                    errors.push({
-                      file: item.originalname,
-                      type: "QUERY SQL ERROR",
-                      message: `Hubo un error al eliminar datos en la tabla ${tableFile} ERROR: ${err.message}`,
-                      err,
-                    });
-                  });
-              } else {
-                await pool.query(queryMaxFile).then(async (resultMaxFile) => {
-                  if (!resultMaxFile.rowCount || resultMaxFile.rowCount < 1) {
-                    lastIDFile = 1;
-                  } else {
-                    lastIDFile =
-                      (await resultMaxFile.rows[0]?.max) !== null
-                        ? resultMaxFile.rows[0].max
-                        : 1;
-                  }
-                });
-                queryResetIDFile = ResetearIDUtil(tableFile, {
-                  field: idArchivo,
-                  resetValue: lastIDFile === 1 ? 1 : lastIDFile + 1,
-                });
-                await pool
-                  .query(queryResetIDFile)
-                  .then((resultResetIDFile) => {});
-              }
-            })
-            .catch((err) => {
-              console.log(err);
-              errors.push({
-                file: item.originalname,
-                type: "QUERY SQL ERROR",
-                message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                err,
-              });
-            });
-        });
-      } catch (err) {
-        respErrorServidor500(res, err, "Ocurrió un error inesperado.");
-      } finally {
-        resolve({ resultFinal, errors });
-      }
-    });
-  } catch (err) {
-    respErrorServidor500(res, err, "Ocurrió un error inesperado.");
-  }
-  uploadPromise
-    .then((response) => {
-      if (response.errors.length >= 1) {
-        respArchivoErroneo415(res, response.errors);
-      } else {
-        respResultadoCorrecto200(
-          res,
-          {
-            rows: response.resultFinal,
-          },
-          "Archivos Cargados correctamente."
-        );
-      }
-    })
-    .catch((err) => {
-      respErrorServidor500(res, err, "Ocurrió un error inesperado.");
-    });
-}
+//             queryFile = await CargarArchivoABaseDeDatosUtil(tableFile, {
+//               action: "insert",
+//               paramsFile,
+//             });
+//           }
+//           await pool
+//             .query(queryMain)
+//             .then(async (resultMain) => {
+//               resultFinal.push({
+//                 file: item.originalname,
+//                 message: `El archivo fue insertado correctamente a la tabla ''${nameTable}''`,
+//                 result: {
+//                   rowsUpdate: resultMain.rows,
+//                   rowCount: resultMain.rowCount,
+//                 },
+//               });
+//               if (queryDelete.length >= 1) {
+//                 await pool
+//                   .query(queryDelete)
+//                   .then(async (resultDelete) => {
+//                     resultFinal.push({
+//                       file: item.originalname,
+//                       message: `El archivo fue eliminado correctamente de la tabla '${tableFile}'`,
+//                       result: {
+//                         rowsUpdate: resultDelete.rows,
+//                         rowCount: resultDelete.rowCount,
+//                       },
+//                     });
+//                     await pool
+//                       .query(queryMaxFile)
+//                       .then(async (resultMaxFile) => {
+//                         if (
+//                           !resultMaxFile.rowCount ||
+//                           resultMaxFile.rowCount < 1
+//                         ) {
+//                           lastIDFile = 1;
+//                         } else {
+//                           lastIDFile =
+//                             (await resultMaxFile.rows[0]?.max) !== null
+//                               ? resultMaxFile.rows[0].max
+//                               : 1;
+//                         }
+//                       });
+//                     queryResetIDFile = ResetearIDUtil(tableFile, {
+//                       field: idArchivo,
+//                       resetValue: lastIDFile + 1,
+//                     });
+//                     await pool.query(queryResetIDFile);
+//                     await pool
+//                       .query(queryFile)
+//                       .then(async (resultFile) => {
+//                         resultFinal.push({
+//                           file: item.originalname,
+//                           message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
+//                           result: {
+//                             rowsUpdate: resultFile.rows,
+//                             rowCount: resultFile.rowCount,
+//                           },
+//                         });
+//                       })
+//                       .catch((err) => {
+//                         console.log(err);
+//                         errors.push({
+//                           file: item.originalname,
+//                           type: "QUERY SQL ERROR",
+//                           message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
+//                           err,
+//                         });
+//                       });
+//                   })
+//                   .catch((err) => {
+//                     console.log(err);
+//                     errors.push({
+//                       file: item.originalname,
+//                       type: "QUERY SQL ERROR",
+//                       message: `Hubo un error al eliminar datos en la tabla ${tableFile} ERROR: ${err.message}`,
+//                       err,
+//                     });
+//                   });
+//               } else {
+//                 await pool.query(queryMaxFile).then(async (resultMaxFile) => {
+//                   if (!resultMaxFile.rowCount || resultMaxFile.rowCount < 1) {
+//                     lastIDFile = 1;
+//                   } else {
+//                     lastIDFile =
+//                       (await resultMaxFile.rows[0]?.max) !== null
+//                         ? resultMaxFile.rows[0].max
+//                         : 1;
+//                   }
+//                 });
+//                 queryResetIDFile = ResetearIDUtil(tableFile, {
+//                   field: idArchivo,
+//                   resetValue: lastIDFile === 1 ? 1 : lastIDFile + 1,
+//                 });
+//                 await pool
+//                   .query(queryResetIDFile)
+//                   .then((resultResetIDFile) => {});
+//               }
+//             })
+//             .catch((err) => {
+//               console.log(err);
+//               errors.push({
+//                 file: item.originalname,
+//                 type: "QUERY SQL ERROR",
+//                 message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
+//                 err,
+//               });
+//             });
+//         });
+//       } catch (err) {
+//         respErrorServidor500(res, err, "Ocurrió un error inesperado.");
+//       } finally {
+//         resolve({ resultFinal, errors });
+//       }
+//     });
+//   } catch (err) {
+//     respErrorServidor500(res, err, "Ocurrió un error inesperado.");
+//   }
+//   uploadPromise
+//     .then((response) => {
+//       if (response.errors.length >= 1) {
+//         respArchivoErroneo415(res, response.errors);
+//       } else {
+//         respResultadoCorrecto200(
+//           res,
+//           {
+//             rows: response.resultFinal,
+//           },
+//           "Archivos Cargados correctamente."
+//         );
+//       }
+//     })
+//     .catch((err) => {
+//       respErrorServidor500(res, err, "Ocurrió un error inesperado.");
+//     });
+// }
 
 async function CargarArchivo3(req, res) {
+  const fechaInicialOperacion = req?.body?.fecha_operacion;
   const filesReaded = req.filesReaded;
   // const filesUploadedBD = req.filesUploadedBD;
   const previousResults = req.results;
@@ -693,7 +694,8 @@ async function CargarArchivo3(req, res) {
             archivo: item,
             cargado: true,
             id_carga_archivos: idCargaArchivos,
-            mensaje: `Archivo ${item} cargado correctamente.`,
+            mensaje: `La información esta correcta.`,
+            fecha_operacion: fechaInicialOperacion,
           });
         });
         actualizarCampoCargado(

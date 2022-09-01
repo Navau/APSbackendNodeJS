@@ -1711,23 +1711,23 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "clave_instrumento",
-        pattern: /^[A-Za-z0-9,-]{1,30}$/,
+        pattern: /^[A-Za-z0-9,-]{5,30}$/,
         function: null,
       },
       {
         columnName: "tasa_promedio",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "monto_negociado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "monto_minimo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "tipo_marcacion",
@@ -1755,17 +1755,17 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "monto_negociado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "monto_minimo",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
-        function: null,
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "tipo_valoracion",
@@ -1799,7 +1799,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
     ],
     P: [
@@ -1821,7 +1821,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "clave_instrumento",
-        pattern: /^[A-Za-z0-9]{5,30}$/,
+        pattern: /^[A-Za-z0-9]{10,30}$/,
         function: null,
       },
       {
@@ -1833,12 +1833,12 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        function: null,
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "precio_bid",
         pattern: /^(0|[1-9][0-9]{0,10})(\.\d{5,5}){1,1}$/,
-        function: null,
+        function: "mayorIgualACeroDecimal",
       },
     ],
     411: [
@@ -3511,6 +3511,12 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     // console.log(dataSplit);
 
     map(dataSplit, (item, index) => {
+      let rowNumberCommas = 0;
+      map(item, (item2, index2) => {
+        if (item2.toLowerCase() === ",") {
+          rowNumberCommas++;
+        }
+      });
       const rowSplit = item.split(",");
 
       if (item.length === 0) {
@@ -3523,6 +3529,14 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas.`,
           row: index,
         });
+      } else if (
+        rowNumberCommas > numberCommas ||
+        rowNumberCommas < numberCommas
+      ) {
+        errors.push({
+          msg: `El formato del archivo debe estar separado por correctamente por comas.`,
+          row: index,
+        });
       } else {
         let resultObject = {};
         let counterAux = 0;
@@ -3530,7 +3544,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           const value = rowSplit[counterAux];
           if (value[0] !== '"' || value[value.length - 1] !== '"') {
             errorsValues.push({
-              msg: `No contiene comillas al inicio y final del campo.`,
+              msg: `El campo debe estar entre comillas.`,
               value: value?.trim().replace(/['"]+/g, ""),
               column: item2,
               row: index,
