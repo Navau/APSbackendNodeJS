@@ -2741,25 +2741,25 @@ exports.validarArchivo2 = async (req, res, next) => {
                     let currentFiles = [];
                     let resultsPromise = [];
                     map(errors, (item, index) => {
-                      let valorFinal = "";
-                      let filaFinal = 0;
-                      if (item.valor === "") {
-                        valorFinal = "VACIO";
-                      } else if (isNaN(item.valor)) {
-                        valorFinal = "NoEsNumero";
-                      } else if (item.hasOwnProperty("valor")) {
-                        valorFinal = item.valor;
-                      } else {
-                        valorFinal = "";
-                      }
+                      // let valorFinal = "";
+                      // let filaFinal = 0;
+                      // if (item.valor === "") {
+                      //   valorFinal = "VACIO";
+                      // } else if (isNaN(item.valor)) {
+                      //   valorFinal = "NoEsNumero";
+                      // } else if (item.hasOwnProperty("valor")) {
+                      //   valorFinal = item.valor;
+                      // } else {
+                      //   valorFinal = "";
+                      // }
 
-                      if (isNaN(item.fila)) {
-                        filaFinal = -1;
-                      } else if (item.hasOwnProperty("fila")) {
-                        filaFinal = parseInt(item.fila) + 1;
-                      } else {
-                        filaFinal = 0;
-                      }
+                      // if (isNaN(item.fila)) {
+                      //   filaFinal = -1;
+                      // } else if (item.hasOwnProperty("fila")) {
+                      //   filaFinal = parseInt(item.fila) + 1;
+                      // } else {
+                      //   filaFinal = 0;
+                      // }
 
                       bodyQuery.push({
                         id_carga_archivos:
@@ -2768,8 +2768,15 @@ exports.validarArchivo2 = async (req, res, next) => {
                         archivo: item.archivo,
                         tipo_error: item.tipo_error,
                         descripcion: item.descripcion,
-                        valor: valorFinal,
-                        fila: filaFinal,
+                        valor:
+                          item.valor === ""
+                            ? "VACIO"
+                            : item.hasOwnProperty("valor")
+                            ? item.valor
+                            : "",
+                        fila: item.hasOwnProperty("fila")
+                          ? parseInt(item.fila) + 1
+                          : 0,
                         columna: item.hasOwnProperty("columna")
                           ? item.columna
                           : 0,
