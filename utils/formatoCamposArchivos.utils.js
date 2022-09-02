@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map } = require("lodash");
+const { map, filter } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -101,6 +101,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsEntidadEmisora: null,
         paramsTasaRendimiento: null,
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
+        paramsUnico: null,
         headers: null,
         paramsCadenaCombinadalugarNegTipoOperTipoInstrum: null,
         tipoOperacionCOP: null,
@@ -304,6 +305,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsUnico = true;
         PARAMS.tipoOperacionCOP = true;
         PARAMS.paramsCantidadValoresMultiplicadoPrecioNegociacion = true;
       } else if (nameFile.includes(".412")) {
@@ -395,6 +397,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsUnico = true;
         PARAMS.tipoOperacionCOP = true;
         PARAMS.paramsCantidadValoresMultiplicadoPrecioNegociacion = true;
       } else if (nameFile.includes(".413")) {
@@ -1866,6 +1869,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        unique: true,
         function: "mayorACeroEntero",
       },
       {
@@ -1927,6 +1931,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        unique: true,
         function: "mayorACeroEntero",
       },
       {
@@ -2031,6 +2036,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -2038,6 +2044,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -2092,12 +2099,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "prepago",
-        pattern: /^[A-Za-z]{1,1}$/,
+        pattern: /^[A-Za-z0-9,-]{1,1}$/,
         function: "prepago",
       },
       {
         columnName: "subordinado",
-        pattern: /^[A-Za-z]{1,1}$/,
+        pattern: /^[A-Za-z0-9,-]{1,1}$/,
         function: "subordinado",
       },
       {
@@ -2247,12 +2254,14 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9,-]{0,3}$/,
+        mayBeEmpty: true,
         function: "calificacion",
       },
       {
         columnName: "calificadora",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
         function: "calificadora",
       },
       {
@@ -3570,6 +3579,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           };
           counterAux++;
         });
+        // console.log(resultObject.sort());
         arrayDataObject.push(resultObject);
       }
     });
@@ -4869,6 +4879,42 @@ async function cartera(params) {
   }
 }
 
+async function unico(params) {
+  const { fileArrayObject, field } = params;
+  const result = [];
+  const indexs = [];
+  const search = fileArrayObject.reduce((acc, item, index) => {
+    // console.log(index);
+    acc[item[field.key]] = ++acc[item[field.key]] || 0;
+    return acc;
+  }, {});
+  const duplicates = fileArrayObject.filter((item, index) => {
+    return search[item[field.key]];
+  });
+
+  map(fileArrayObject, (item, index) => {
+    map(duplicates, (item2, index2) => {
+      if (item === item2) {
+        indexs.push(index);
+      }
+    });
+  });
+
+  if (duplicates.length >= 0) {
+    map(duplicates, (item, index) => {
+      const row = indexs[index];
+      result.push({
+        ok: false,
+        message: `El campo ${field.key} debe ser unico y no puede ser repetido`,
+        value: item[field.key],
+        row,
+      });
+    });
+  }
+
+  return result;
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -4923,4 +4969,5 @@ module.exports = {
   plazoEconomicoConInstrumento,
   tasaRelevanteConInstrumento,
   plazoValorConInstrumento,
+  unico,
 };

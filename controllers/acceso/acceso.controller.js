@@ -76,7 +76,7 @@ function Login(req, res) {
   AND password is NOT NULL 
   AND password = crypt('${password}', password);`;
 
-  console.log(query);
+  // console.log(query);
 
   pool.query(query, (err, result) => {
     if (err) {

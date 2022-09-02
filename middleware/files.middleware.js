@@ -61,6 +61,7 @@ const {
   tipoValoracion210,
   tasaRendimiento,
   entidadEmisora,
+  unico,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -102,6 +103,7 @@ var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
 var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
+var valuesUniquesArray = []; //VALORES UNICOS PARA ARCHIVOS
 
 async function obtenerInstitucion(params) {
   const obtenerListaInstitucion = new Promise(async (resolve, reject) => {
@@ -449,9 +451,12 @@ async function validarArchivosIteraciones(params) {
             dataSplit = data.split("\r\n");
           } else if (data.includes("\n")) {
             dataSplit = data.split("\n");
+          } else if (data.length >= 1) {
+            dataSplit = [data];
           } else {
             dataSplit = null;
           }
+          // console.log(dataSplit);
           if (
             isAllFiles.missingFiles.length === 0 &&
             isErrorPast === false &&
@@ -792,6 +797,7 @@ async function validarArchivosIteraciones(params) {
                     await formatearDatosEInsertarCabeceras(headers, dataSplit)
                       .then(async (response) => {
                         arrayDataObject = response.arrayDataObject;
+
                         if (response?.errorsValues) {
                           map(
                             response?.errorsValues,
@@ -956,6 +962,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
       // console.log(dependenciesArray);
       console.log(codeCurrentFile);
+      // console.log(valuesUniquesArray);
       lengthFilesObject[codeCurrentFile] = arrayDataObject.length;
       const validarCampoIndividual = async (
         value,
@@ -966,11 +973,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         mayBeEmpty,
         operationNotValid,
         notValidate,
+        unique,
         typeError,
         item2,
         index2,
         item3,
-        codeCurrentFile
+        codeCurrentFile,
+        arrayDataObject
       ) => {
         let match;
         if (date === true) {
@@ -1295,7 +1304,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "tipoOperacion") {
             let errFunction = true;
-            if (lugarNegociacionTipoOperacionAux) {
+            if (!lugarNegociacionTipoOperacionAux) {
               map(_tipoOperacion?.resultFinal, (item4, index4) => {
                 if (value === item4.codigo_rmv) {
                   errFunction = false;
@@ -1651,7 +1660,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún tipo de interes`,
+                descripcion: `El campo no corresponde a ningún Tipo de Interés definido`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1668,7 +1677,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún tipo de tasa`,
+                descripcion: `El campo no corresponde a ningún Tipo de Tasa definido`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1709,38 +1718,42 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "calificacion") {
-            let errFunction = true;
-            map(_calificacion?.resultFinal, (item4, index4) => {
-              if (value === item4.descripcion) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna descripcion de calificacion`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            if (value !== "" || value.length >= 1) {
+              let errFunction = true;
+              map(_calificacion?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunction = false;
+                }
               });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguna Calificación definida	calificacion`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           } else if (funct === "calificadora") {
-            let errFunction = true;
-            map(_calificadora?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de calificadora`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            if (value !== "" || value.length >= 1) {
+              let errFunction = true;
+              map(_calificadora?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
               });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguna sigla de Calificadora definida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           } else if (funct === "custodio") {
             let errFunction = true;
@@ -1753,7 +1766,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de custodio`,
+                descripcion: `El campo no corresponde a ninguna sigla de Custodio definida`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2453,7 +2466,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: _plazoCupon?.message,
+                descripcion: errFunction?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2504,6 +2517,32 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           }
+          if (unique === true && index2 === arrayDataObject.length - 1) {
+            const _unico = infoArchivo.paramsUnico
+              ? await unico({
+                  fileArrayObject: arrayDataObject,
+                  field: {
+                    value,
+                    key: columnName,
+                  },
+                })
+              : null;
+
+            // console.log(_unico);
+
+            if (_unico?.length >= 1) {
+              map(_unico, (item4, index4) => {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: item4?.message,
+                  valor: item4?.value,
+                  columna: columnName,
+                  fila: item4?.row,
+                });
+              });
+            }
+          }
         } catch (err) {
           errors.push({
             archivo: item.archivo,
@@ -2541,6 +2580,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 
           let notValidate =
             item3?.notValidate === true ? item3.notValidate : null;
+          let unique = item3?.unique === true ? item3.unique : null;
           // console.log("ANTES DE VALIDACIONES", value);
           // console.log("ANTES DE VALIDACIONES", errors);
           if (!item2[item3.columnName] && mayBeEmpty === false) {
@@ -2567,11 +2607,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               mayBeEmpty,
               operationNotValid,
               notValidate,
+              unique,
               typeError,
               item2,
               index2,
               item3,
-              codeCurrentFile
+              codeCurrentFile,
+              arrayDataObject
             );
           }
           // console.log("DESPUES DE VALIDACIONES", errors);
