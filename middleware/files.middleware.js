@@ -1322,30 +1322,29 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             } else {
               map(_lugarNegociacion?.resultFinal, (item4, index4) => {
-                if (value === item4.codigo_rmv) {
+                if (item2.lugar_negociacion === item4.codigo_rmv) {
                   errFunction = false;
                 }
               });
-              if (errFunction === true) {
-                map(_tipoOperacion?.resultFinal, (item4, index4) => {
-                  if (value === item4.codigo_rmv) {
-                    errFunction = false;
-                  }
-                });
-              }
+              // if (errFunction === true) {
+              //   map(_tipoOperacion?.resultFinal, (item4, index4) => {
+              //     if (value === item4.codigo_rmv) {
+              //       errFunction = false;
+              //     }
+              //   });
+              // }
               if (errFunction === true) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo lugar_negociacion no coincide con ningun codigo_rmv válido`,
-                  valor: value,
-                  columna: columnName,
+                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  valor: item2.lugar_negociacion,
+                  columna: "lugar_negociacion",
                   fila: index2,
                 });
               }
             }
           } else if (funct === "lugarNegociacion") {
-            let errFunction = true;
             let errFunctionEmpty = true;
             map(_lugarNegociacionVacio?.resultFinal, (item4, index4) => {
               if (item3.tipo_operacion === item4.codigo_rmv) {

@@ -600,9 +600,6 @@ async function CargarArchivo3(req, res) {
         let x = {};
         map(itemV1, (itemV2, indexV2) => {
           let valueAux = itemV2;
-          if (valueAux.includes("\r\n")) {
-            valueAux = `"${idCargaArchivos}"`;
-          }
           x = {
             ...x,
             [partialHeaders[indexV2]]: valueAux?.trim().replace(/['"]+/g, ""),
@@ -611,7 +608,7 @@ async function CargarArchivo3(req, res) {
         finalData.push(x);
       });
       //#endregion
-      // console.log(finalData);
+      console.log(finalData);
       if (codeFile === "P") {
       }
 
@@ -626,7 +623,7 @@ async function CargarArchivo3(req, res) {
         returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
       });
 
-      // console.log(queryFiles);
+      console.log(queryFiles);
 
       bodyFinalQuery = [];
 
@@ -800,7 +797,7 @@ async function CargarArchivo3(req, res) {
             archivo: item,
             cargado: true,
             id_carga_archivos: idCargaArchivos,
-            mensaje: `La información esta correcta.`,
+            mensaje: `La información está correcta`,
             fecha_operacion: fechaInicialOperacion,
           });
         });

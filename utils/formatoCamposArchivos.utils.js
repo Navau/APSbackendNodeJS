@@ -4911,7 +4911,7 @@ async function unico(params) {
       const row = indexs[index];
       result.push({
         ok: false,
-        message: `El campo debe ser unico`,
+        message: `El campo debe ser único`,
         value: item[field.key],
         row,
       });
