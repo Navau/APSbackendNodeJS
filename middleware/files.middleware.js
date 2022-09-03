@@ -1625,7 +1625,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún tipo de emisor`,
+                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1728,7 +1728,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguna Calificación definida	calificacion`,
+                  descripcion: `El campo no corresponde a ninguna Calificación definida`,
                   valor: value,
                   columna: columnName,
                   fila: index2,

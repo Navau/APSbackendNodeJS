@@ -2182,6 +2182,16 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorACeroDecimal",
       },
       {
+        columnName: "total_mo",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "total_bs",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
         columnName: "plazo_emision",
         pattern: /^(0|[1-9][0-9]{1,4})$/,
         function: "mayorACeroEntero",
@@ -2213,6 +2223,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -4096,14 +4107,14 @@ async function plazoCupon(params) {
   }
 
   if (nro_pago > 1) {
-    if (plazo_cupon <= 0) {
+    if (plazo_cupon > 0) {
       return {
         ok: false,
         message: `El campo nro_pago es mayor a 1 por lo tanto plazo_cupon debe ser mayor a 0`,
       };
     }
   } else if (nro_pago === 1) {
-    if (plazo_cupon !== 0) {
+    if (plazo_cupon === 0) {
       return {
         ok: false,
         message: `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0`,
