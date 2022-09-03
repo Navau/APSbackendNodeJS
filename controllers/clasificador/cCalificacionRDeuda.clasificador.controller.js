@@ -70,7 +70,7 @@ function Escoger(req, res) {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(
           res,
-          `No existe ningún registro que contenta la llave: ${idClasificadorComunGrupo} o ${valueId}`
+          `No existe ningún registro que contenga la llave: ${idClasificadorComunGrupo} o ${valueId}`
         );
       } else {
         let query = EscogerUtil(nameTable, params);

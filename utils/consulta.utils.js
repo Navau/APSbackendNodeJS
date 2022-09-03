@@ -414,7 +414,9 @@ function EscogerUtil(table, params) {
       valueId: params.valueId,
     });
 
-    query = `SELECT ${idTable} AS ${params.valueId} 
+    query = `SELECT ${idTable} AS ${params.valueId}, 
+    id_clasificador_comun_grupo, descripcion, sigla,
+    es_sistema, activo, id_usuario
     FROM public."APS_param_clasificador_comun" 
     WHERE ${idTable}_grupo = ${params.idClasificadorComunGrupo}`;
 
