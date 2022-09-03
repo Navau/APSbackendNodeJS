@@ -1357,7 +1357,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  descripcion: `El campo debe estar vacío`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
