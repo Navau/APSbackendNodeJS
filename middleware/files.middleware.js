@@ -1789,9 +1789,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "interesMasAmortizacion") {
+          } else if (funct === "plazoCuponMasAmortizacion") {
             let _operacionEntreColumnas =
-              infoArchivo?.paramsInteresMasAmortizacion
+              infoArchivo?.paramsPlazoCuponMasAmortizacion
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
@@ -1821,37 +1821,43 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "flujoTotalMenosAmortizacion") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsFlujoTotalMenosAmortizacion
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: value,
-                    },
-                    fields: [
-                      {
-                        key: "flujo_total",
-                        value: parseFloat(item2.flujo_total),
+          } else if (funct === "saldoCapitalMenosAmortizacionCuponAnterior") {
+            if (index2 >= 1) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsFlujoTotalMenosAmortizacion
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: value,
                       },
-                      "-",
-                      {
-                        key: "amortizacion",
-                        value: parseFloat(item2.amortizacion),
-                      },
-                    ],
-                  })
-                : null;
+                      fields: [
+                        {
+                          key: `saldo_capital (fila anterior: ${index2 - 1})`,
+                          value: parseFloat(
+                            arrayDataObject[index2 - 1].saldo_capital
+                          ),
+                        },
+                        "-",
+                        {
+                          key: `amortizacion (fila anterior: ${index2 - 1})`,
+                          value: parseFloat(
+                            arrayDataObject[index2 - 1].amortizacion
+                          ),
+                        },
+                      ],
+                    })
+                  : null;
 
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           } else if (funct === "calificacionRiesgo") {
             let errFunction = true;
@@ -2414,6 +2420,46 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (
+            funct ===
+            "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000"
+          ) {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsPrecioMercadoMOMultiplicadoCantidadValores
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: value,
+                    },
+                    fields: [
+                      {
+                        key: "saldo_capital",
+                        value: parseFloat(item2.saldo_capital),
+                      },
+                      "*",
+                      {
+                        key: "plazo_cupon",
+                        value: parseFloat(item2.plazo_cupon),
+                      },
+                      "*",
+                      {
+                        key: "interes",
+                        value: parseFloat(item2.interes),
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           } else if (funct === "cartera") {
             const _cartera = infoArchivo?.paramsCartera
               ? await cartera({
@@ -2510,7 +2556,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO OPERACION NO VALIDA",
-                descripcion: `El contenido del archivo no coincide con alguna descripción de calificación de riesgo`,
+                descripcion: `La operacion no es válida`,
                 valor: siglaCombinada,
                 columna: columnName,
                 fila: index2,

@@ -58,8 +58,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsCalfRiesgo: null,
         paramsCodCustodia: null,
         paramsTipoCuenta: null,
-        paramsInteresMasAmortizacion: null,
-        paramsFlujoTotalMenosAmortizacion: null,
+        paramsPlazoCuponMasAmortizacion: null,
+        paramsSaldoCapitalMenosAmortizacionCuponAnterior: null,
         paramsCantidadMultiplicadoPrecio: null,
         paramsTotalBsMenosPrevisionesInversiones: null,
         paramsSaldoAntMasAltasBajasMasActualizacion: null,
@@ -69,7 +69,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsDepreciacionPeriodoMasAltasBajasDepreciacion: null,
         paramsCantidadCuotasMultiplicadoCuotaBs: null,
         paramsCantidadValoresMultiplicadoPrecioNegociacion: null,
-        paramsMultiplicacionDeCamposDe444AInteresDe441: null,
         paramsEntidadFinanciera: null,
         paramsMoneda: null,
         paramsEmisor: null,
@@ -555,7 +554,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsMultiplicacionDeCamposDe444AInteresDe441 = true;
       } else if (nameFile.includes(".442")) {
         console.log("ARCHIVO CORRECTO : 442", nameFile);
         PARAMS.codeCurrentFile = "442";
@@ -721,8 +719,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsInteresMasAmortizacion = true;
-        PARAMS.paramsFlujoTotalMenosAmortizacion = true;
+        PARAMS.paramsPlazoCuponMasAmortizacion = true;
+        PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
       } else if (nameFile.includes(".445")) {
         console.log("ARCHIVO CORRECTO : 445", nameFile);
         PARAMS.codeCurrentFile = "445";
@@ -741,8 +739,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsInteresMasAmortizacion = true;
-        PARAMS.paramsFlujoTotalMenosAmortizacion = true;
+        PARAMS.paramsPlazoCuponMasAmortizacion = true;
+        PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
       } else if (nameFile.includes(".451")) {
         console.log("ARCHIVO CORRECTO : 451", nameFile);
         PARAMS.codeCurrentFile = "451";
@@ -2094,7 +2092,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "plazo_cupon",
-        pattern: /^(0|[1-9]*)$/,
+        pattern: /^(0|[1-9][0-9]*)$/,
         function: "plazoCupon",
       },
       {
@@ -2195,7 +2193,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "plazo_cupon",
-        pattern: /^(0|[1-9]*)$/,
+        pattern: /^(0|[1-9][0-9]*)$/,
         function: "plazoCupon",
       },
       {
@@ -2291,27 +2289,34 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
+      },
+      {
+        columnName: "plazo_cupon",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        function: "mayorACeroEntero",
       },
       {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "multiplicacionDeCamposDe444AInteresDe441",
+        function:
+          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000",
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "interesMasAmortizacion",
+        function: "plazoCuponMasAmortizacion",
       },
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "flujoTotalMenosAmortizacion",
+        function: "saldoCapitalMenosAmortizacionCuponAnterior",
       },
     ],
     445: [
@@ -2340,22 +2345,23 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function:
+          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000",
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "interesMasAmortizacion",
+        function: "plazoCuponMasAmortizacion",
       },
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "flujoTotalMenosAmortizacion",
+        function: "saldoCapitalMenosAmortizacionCuponAnterior",
       },
     ],
     451: [
@@ -4905,7 +4911,7 @@ async function unico(params) {
       const row = indexs[index];
       result.push({
         ok: false,
-        message: `El campo ${field.key} debe ser unico y no puede ser repetido`,
+        message: `El campo debe ser unico`,
         value: item[field.key],
         row,
       });
