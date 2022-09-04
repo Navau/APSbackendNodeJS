@@ -58,7 +58,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsCalfRiesgo: null,
         paramsCodCustodia: null,
         paramsTipoCuenta: null,
-        paramsPlazoCuponMasAmortizacion: null,
+        paramsInteresMasAmortizacion: null,
         paramsSaldoCapitalMenosAmortizacionCuponAnterior: null,
         paramsCantidadMultiplicadoPrecio: null,
         paramsTotalBsMenosPrevisionesInversiones: null,
@@ -94,9 +94,9 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTipoValoracion31: null,
         paramsTipoValoracion210: null,
         paramsTipoActivo: null,
-        paramslugarNegociacion: null,
-        paramslugarNegociacionVacio: null,
-        paramstipoOperacion: null,
+        paramsLugarNegociacion: null,
+        paramsLugarNegociacionVacio: null,
+        paramsTipoOperacion: null,
         paramsEntidadEmisora: null,
         paramsTasaRendimiento: null,
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
@@ -218,7 +218,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.codeCurrentFile = "411";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
-        PARAMS.paramslugarNegociacion = {
+        PARAMS.paramsLugarNegociacion = {
           table: "APS_param_lugar_negociacion",
           params: {
             select: ["codigo_rmv"],
@@ -235,7 +235,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramslugarNegociacionVacio = {
+        PARAMS.paramsLugarNegociacionVacio = {
           table: "APS_param_tipo_operacion",
           params: {
             select: ["codigo_rmv"],
@@ -256,7 +256,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramstipoOperacion = {
+        PARAMS.paramsTipoOperacion = {
           table: "APS_param_tipo_operacion",
           params: {
             select: ["codigo_rmv"],
@@ -301,6 +301,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 key: "activo",
                 value: true,
               },
+              {
+                key: "es_rf",
+                value: true,
+              },
             ],
           },
         };
@@ -312,7 +316,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.codeCurrentFile = "412";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
-        PARAMS.paramslugarNegociacion = {
+        PARAMS.paramsLugarNegociacion = {
           table: "APS_param_lugar_negociacion",
           params: {
             select: ["codigo_rmv"],
@@ -329,7 +333,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramslugarNegociacionVacio = {
+        PARAMS.paramsLugarNegociacionVacio = {
           table: "APS_param_tipo_operacion",
           params: {
             select: ["codigo_rmv"],
@@ -349,7 +353,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramstipoOperacion = {
+        PARAMS.paramsTipoOperacion = {
           table: "APS_param_tipo_operacion",
           params: {
             select: ["codigo_rmv"],
@@ -391,6 +395,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
             where: [
               {
                 key: "activo",
+                value: true,
+              },
+              {
+                key: "es_rf",
                 value: true,
               },
             ],
@@ -611,7 +619,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             where: [
               {
                 key: "id_clasificador_comun_grupo",
-                value: 6,
+                value: 35,
               },
             ],
           },
@@ -739,7 +747,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsPlazoCuponMasAmortizacion = true;
+        PARAMS.paramsInteresMasAmortizacion = true;
         PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
       } else if (nameFile.includes(".451")) {
         console.log("ARCHIVO CORRECTO : 451", nameFile);
@@ -2152,6 +2160,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -2159,6 +2168,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -2178,16 +2188,6 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa_emision",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "total_mo",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         function: "mayorACeroDecimal",
       },
@@ -2262,6 +2262,16 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorACeroDecimal",
       },
       {
+        columnName: "total_mo",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "total_bs",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9,-]{0,3}$/,
         mayBeEmpty: true,
@@ -2292,7 +2302,8 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_cupon",
-        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        unique: true,
         function: "mayorACeroEntero",
       },
       {
@@ -2305,8 +2316,13 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "plazo_cupon",
-        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
         function: "mayorACeroEntero",
+      },
+      {
+        columnName: "tasa_interes",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "interes",
@@ -2322,7 +2338,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "plazoCuponMasAmortizacion",
+        function: "interesMasAmortizacion",
       },
       {
         columnName: "saldo_capital",
@@ -2344,6 +2360,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
+        unqiue: true,
         function: "mayorACeroEntero",
       },
       {
@@ -2352,6 +2369,21 @@ async function obtenerValidaciones(typeFile) {
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: null,
+      },
+      {
+        columnName: "plazo_cupon",
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "plazo_fecha_vencimiento",
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "tasa_interes",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "interes",
@@ -3592,7 +3624,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           }
           resultObject = {
             ...resultObject,
-            [item2]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+            [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
           };
           counterAux++;
         });
@@ -3847,7 +3879,7 @@ async function mayorACeroEntero(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero`,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
       };
     } else {
       if (valueNumber > 0) {
@@ -3865,7 +3897,7 @@ async function mayorACeroEntero(params) {
   } catch (err) {
     return {
       ok: false,
-      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
     };
   }
 }
@@ -3877,7 +3909,7 @@ async function mayorACeroDecimal(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero decimal`,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
       };
     } else {
       if (valueNumber > 0) {
@@ -3895,7 +3927,7 @@ async function mayorACeroDecimal(params) {
   } catch (err) {
     return {
       ok: false,
-      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
     };
   }
 }
@@ -3907,7 +3939,7 @@ async function mayorIgualACeroEntero(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero`,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
       };
     } else {
       if (valueNumber >= 0) {
@@ -3925,7 +3957,7 @@ async function mayorIgualACeroEntero(params) {
   } catch (err) {
     return {
       ok: false,
-      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
     };
   }
 }
@@ -3937,7 +3969,7 @@ async function mayorIgualACeroDecimal(params) {
     if (isNaN(valueNumber)) {
       return {
         ok: false,
-        message: `El dato no es un numero entero`,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
       };
     } else {
       if (valueNumber >= 0) {
@@ -3955,7 +3987,7 @@ async function mayorIgualACeroDecimal(params) {
   } catch (err) {
     return {
       ok: false,
-      message: `El tipo de dato no es correcto. ERROR: ${err.message}`,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
     };
   }
 }
@@ -4766,7 +4798,7 @@ async function operacionEntreColumnas(params) {
     if (fieldsErrorText.length >= 1) {
       return {
         ok: false,
-        message: `El campo ${fieldsErrorText} no son numeros validos`,
+        message: `El campo ${fieldsErrorText} no cumple las especificaciones de Tipo de Dato`,
       };
     }
 

@@ -1304,7 +1304,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "tipoOperacion") {
             let errFunction = true;
-            if (!lugarNegociacionTipoOperacionAux) {
+            if (lugarNegociacionTipoOperacionAux) {
               map(_tipoOperacion?.resultFinal, (item4, index4) => {
                 if (value === item4.codigo_rmv) {
                   errFunction = false;
@@ -1320,31 +1320,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
-            } else {
-              map(_lugarNegociacion?.resultFinal, (item4, index4) => {
-                if (item2.lugar_negociacion === item4.codigo_rmv) {
-                  errFunction = false;
-                }
-              });
-              // if (errFunction === true) {
-              //   map(_tipoOperacion?.resultFinal, (item4, index4) => {
-              //     if (value === item4.codigo_rmv) {
-              //       errFunction = false;
-              //     }
-              //   });
-              // }
-              if (errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
-                  valor: item2.lugar_negociacion,
-                  columna: "lugar_negociacion",
-                  fila: index2,
-                });
-              }
             }
           } else if (funct === "lugarNegociacion") {
+            let errFunction = true;
             let errFunctionEmpty = true;
             map(_lugarNegociacionVacio?.resultFinal, (item4, index4) => {
               if (item3.tipo_operacion === item4.codigo_rmv) {
@@ -1364,7 +1342,22 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             } else {
-              lugarNegociacionTipoOperacionAux = true;
+              lugarNegociacionTipoOperacionAux = true
+              map(_lugarNegociacion?.resultFinal, (item4, index4) => {
+                if (item2.lugar_negociacion === item4.codigo_rmv) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           } else if (funct === "tipoActivo") {
             let errFunction = true;
@@ -1600,7 +1593,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           } else if (funct === "moneda") {
             let errFunction = true;
             map(_moneda?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
+              if (value === item4.codigo_otros_activos) {
                 errFunction = false;
               }
             });
@@ -1788,7 +1781,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "plazoCuponMasAmortizacion") {
+          } else if (funct === "interesMasAmortizacion") {
             let _operacionEntreColumnas =
               infoArchivo?.paramsPlazoCuponMasAmortizacion
                 ? await operacionEntreColumnas({
