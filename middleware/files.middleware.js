@@ -1601,7 +1601,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún tipo de moneda`,
+                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2495,7 +2495,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 if (item2.nro_pago !== 0 || item2.nro_pago !== "0") {
                   errFunction.ok = false;
                   errFunction.message =
-                    "El campo plazo_cupon es mayor a cero por lo tanto el valor de nro_pago debe ser 0";
+                    "El campo plazo_cupon no es mayor a 0 por lo tanto el valor de nro_pago debe ser 0";
                 }
               }
             }

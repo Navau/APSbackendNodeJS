@@ -4139,14 +4139,14 @@ async function plazoCupon(params) {
   }
 
   if (nro_pago > 1) {
-    if (plazo_cupon > 0) {
+    if (plazo_cupon <= 0) {
       return {
         ok: false,
         message: `El campo nro_pago es mayor a 1 por lo tanto plazo_cupon debe ser mayor a 0`,
       };
     }
   } else if (nro_pago === 1) {
-    if (plazo_cupon === 0) {
+    if (plazo_cupon !== 0) {
       return {
         ok: false,
         message: `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0`,
