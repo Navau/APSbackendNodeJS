@@ -551,7 +551,7 @@ async function CargarArchivo3(req, res) {
         arrayHeadersAux.push("cod_institucion");
       }
       if (headers.includes("fecha_informacion")) {
-        stringFinalFile += `,"2022-05-05"`;
+        stringFinalFile += `,"${fechaInicialOperacion}"`;
         arrayHeadersAux.push("fecha_informacion");
       }
       //#region ELIMINANDO LOS CAMPOS DE ID_CARGA_ARCHIVOS, COD_INSTITUCION Y FECHA INFORMACION PARA VOLVER A PONERLOS PERO AL FINAL DEL ARRAY HEADERS

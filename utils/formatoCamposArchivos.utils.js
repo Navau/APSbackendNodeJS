@@ -415,7 +415,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
               },
               {
                 key: "es_rf",
-                value: true,
+                value: false,
               },
             ],
           },
@@ -2087,7 +2087,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9]{5,23}$/,
+        pattern: /^[A-Za-z0-9,-]{5,23}$/,
         function: null,
       },
       {
