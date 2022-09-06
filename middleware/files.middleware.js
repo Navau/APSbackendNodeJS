@@ -455,7 +455,7 @@ async function validarArchivosIteraciones(params) {
           } else if (data.length >= 1) {
             dataSplit = [data];
           } else {
-            dataSplit = null;
+            dataSplit = [""];
           }
           if (
             isAllFiles.missingFiles.length === 0 &&
@@ -488,7 +488,8 @@ async function validarArchivosIteraciones(params) {
                 tipo_error: "CONTENIDO VACIO",
                 descripcion: "El contenido del archivo esta vacío",
               });
-            } else if (data.length === 0) {
+            } else if (data.length === 0 && !item.archivo.includes("444")) {
+              // console.log("DATA", data);
               let myIndex = findIndex(isAllFiles.currentFiles, (itemFI) => {
                 return itemFI.archivo == item.archivo;
               });
@@ -497,7 +498,8 @@ async function validarArchivosIteraciones(params) {
               }
               index--;
             } else {
-              if (dataSplit === null) {
+              // console.log("dataSplit", dataSplit);
+              if (dataSplit.length === 0) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "FORMATO DE INFORMACION ERRONEO",
@@ -995,11 +997,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _instrumento1 = params._instrumento1;
       const _instrumento18 = params._instrumento18;
       let lugarNegociacionTipoOperacionAux = false;
+      let varAux441To444 = false;
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
       // console.log(dependenciesArray);
       console.log(codeCurrentFile);
+      // console.log("arrayDataObject", arrayDataObject);
       // console.log(valuesUniquesArray);
       lengthFilesObject[codeCurrentFile] = arrayDataObject.length;
       const validarCampoIndividual = async (
@@ -1121,8 +1125,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             });
           } else if (item?.archivo?.includes("444")) {
+            console.log(dependenciesArray);
             map(dependenciesArray, (itemDP, indexDP) => {
-              if (itemDP.column === "nro_pago" && itemDP.code === "444") {
+              if (itemDP.column === "nro_pago" && itemDP.code === "441") {
                 const cantidadNroPago = itemDP.value.nro_pago;
                 const siglaInstrumentoSerie = itemDP.value.instrumentoSerie;
                 let countInstrumentoSerie = 0;
@@ -2766,6 +2771,20 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           });
         }
       };
+      if (item?.archivo?.includes("444") && codeCurrentFile !== "441") {
+        map(dependenciesArray, (itemDP, indexDP) => {
+          if (itemDP.column === "nro_pago" && itemDP.code === "441") {
+            errors.push({
+              archivo: item.archivo,
+              tipo_error: "ERROR DE CONTENIDO de 441 a 444",
+              descripcion: `El Archivo 444 no tiene la cuponera de la Serie del Archivo 441`,
+              valor: `VACIO`,
+              columna: "",
+              fila: -1,
+            });
+          }
+        });
+      }
 
       map(arrayDataObject, async (item2, index2) => {
         map(arrayValidateObject, async (item3, index3) => {
@@ -2957,12 +2976,12 @@ exports.validarArchivo2 = async (req, res, next) => {
                 bodyQuery[0].id_periodo = 155;
               }
             }
-            console.log(bodyQuery);
+            // console.log(bodyQuery);
             queryFiles = InsertarVariosUtil(nameTable, {
               body: bodyQuery,
               returnValue: ["id_carga_archivos"],
             });
-            console.log(queryFiles);
+            // console.log(queryFiles);
             await pool
               .query(queryFiles)
               .then(async (resultFiles) => {

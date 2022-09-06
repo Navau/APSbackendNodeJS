@@ -559,6 +559,9 @@ function EscogerInternoUtil(table, params) {
       }
     });
   }
+  if (params?.orderby) {
+    query += ` ORDER BY ${params.orderby.field}`;
+  }
   if (params?.where && !query.includes("WHERE") && query.includes("AND")) {
     let queryAux = query.split("");
     queryAux.splice(query.indexOf(" AND"), 0, " WHERE");

@@ -33,6 +33,7 @@ const {
   respArchivoErroneo415,
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
+  respArchivoErroneo200,
 } = require("../../utils/respuesta.utils");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
@@ -439,6 +440,8 @@ async function CargarArchivo3(req, res) {
       let codeFile = null;
       let tableFile = null;
       let idTable = null;
+      let dateField = null;
+      let institutionField = null;
 
       if (item.originalname.includes("K.")) {
         codeFile = "K";
@@ -534,50 +537,93 @@ async function CargarArchivo3(req, res) {
         table: tableFile,
         id: idTable,
       });
-      // const query = EscogerInternoUtil("INFORMATION_SCHEMA.COLUMNS", {
-      //   select: ["*"],
-      //   where: [
-      //     {
-      //       block: [
-      //         {
-      //           key: "COLUMN_NAME",
-      //           value: "fecha_informacion",
-      //           operatorSQL: "OR",
-      //         },
-      //         {
-      //           key: "COLUMN_NAME",
-      //           value: "fecha",
-      //           operatorSQL: "OR",
-      //         },
-      //         {
-      //           key: "COLUMN_NAME",
-      //           value: "fecha_operacion",
-      //           operatorSQL: "OR",
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       key: "TABLE_NAME",
-      //       value: tableFile,
-      //     },
-      //   ],
-      // });
-      // await pool
-      //   .query(query)
-      //   .then((result) => {
-      //     if (result.rowCount > 0) {
-      //     } else {
-      //       errorsDateArray.push({
-      //         message: `No existe ningun campo con 'fecha' de la tabla ${tableFile}.`,
-      //       });
-      //     }
-      //   })
-      //   .catch((err) => {
-      //     console.log("ERR INFORMATION_SCHEMA.COLUMNS", err);
-      //     errorsDateArray.push({
-      //       message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
-      //     });
-      //   });
+      const queryInfoSchema = EscogerInternoUtil("INFORMATION_SCHEMA.COLUMNS", {
+        select: ["*"],
+        where: [
+          {
+            key: "COLUMN_NAME",
+            valuesWhereIn: [
+              `'fecha_operacion'`,
+              `'fecha'`,
+              `'fecha_informacion'`,
+              `'cod_institucion'`,
+            ],
+            whereIn: true,
+          },
+          {
+            key: "TABLE_NAME",
+            value: tableFile,
+          },
+        ],
+        orderby: {
+          field: "COLUMN_NAME",
+        },
+      });
+      await pool
+        .query(queryInfoSchema)
+        .then((result) => {
+          if (result.rowCount > 0) {
+            if (result.rows?.[0]?.column_name) {
+              institutionField = result.rows[0].column_name;
+            }
+            if (result.rows?.[1]?.column_name) {
+              dateField = result.rows[1].column_name;
+            }
+          } else {
+            errorsDateArray.push({
+              message: `No existe ningun campo que contenga 'fecha' en la tabla ${tableFile}.`,
+            });
+          }
+        })
+        .catch((err) => {
+          console.log("ERR INFORMATION_SCHEMA.COLUMNS", err);
+          errorsDateArray.push({
+            message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+          });
+        });
+
+      if (!dateField || !institutionField) {
+        errorsDateArray.push({
+          message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
+        });
+      } else {
+        const queryUnique = EscogerInternoUtil(tableFile, {
+          select: ["*"],
+          where: [
+            {
+              key: dateField,
+              value: fechaInicialOperacion,
+            },
+            {
+              key: institutionField,
+              value: infoTables.code,
+            },
+          ],
+        });
+        await pool
+          .query(queryUnique)
+          .then((result) => {
+            // console.log(result.rows);
+            if (result.rowCount > 0) {
+              errorsDateArray.push({
+                message: `Ya existe registros con la ${dateField} ${fechaInicialOperacion} y ${institutionField} ${infoTables.code}`,
+              });
+            }
+          })
+          .catch((err) => {
+            console.log("ERR INFORMATION_SCHEMA.COLUMNS", err);
+            errorsDateArray.push({
+              message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+            });
+          });
+      }
+
+      if (errorsDateArray.length >= 1) {
+        if (index === req.files.length - 1) {
+          resolve({ errorsDateArray });
+        }
+      }
+
       idTablesFilesArray.push(idTable);
       //#region INSERTAR EL ID DE CARGA ARCHIVOS, COD_INSTITUCION, FECHA_INFORMACION A CADA FILA SEPARADA
       // console.log("arrayDataObject", arrayDataObject);
@@ -654,7 +700,7 @@ async function CargarArchivo3(req, res) {
         finalData.push(x);
       });
       //#endregion
-      console.log(finalData);
+      // console.log(finalData);
       if (codeFile === "P") {
       }
 
@@ -664,12 +710,14 @@ async function CargarArchivo3(req, res) {
 
       let queryFiles = "";
 
-      queryFiles = InsertarVariosUtil(tableFile, {
-        body: bodyFinalQuery,
-        returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
-      });
+      if (bodyFinalQuery.length >= 1) {
+        queryFiles = InsertarVariosUtil(tableFile, {
+          body: bodyFinalQuery,
+          returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
+        });
+      }
 
-      console.log(queryFiles);
+      // console.log(queryFiles);
 
       bodyFinalQuery = [];
 
@@ -820,6 +868,14 @@ async function CargarArchivo3(req, res) {
 
   uploadPromise
     .then(async (response) => {
+      if (response?.errorsDateArray) {
+        respArchivoErroneo200(
+          res,
+          response.errorsDateArray,
+          ...previousResults
+        );
+        return;
+      }
       if (response.errors.length >= 1) {
         const resultDelete = await eliminarArchivosCargados(
           tablesFilesArray,
