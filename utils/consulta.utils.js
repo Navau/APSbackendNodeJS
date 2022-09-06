@@ -493,6 +493,47 @@ function EscogerUtil(table, params) {
 
 function EscogerInternoUtil(table, params) {
   let query = "";
+  let blockAux = false;
+  const whereFunction = (item, block) => {
+    const operatorSQL = item?.operatorSQL ? item.operatorSQL : "AND";
+    if (blockAux === false) {
+      query =
+        query + ` ${block === true ? `${operatorSQL} (` : `${operatorSQL}`}`;
+      blockAux = true;
+    } else {
+      query = query + ` ${operatorSQL}`;
+    }
+    if (item?.like === true) {
+      query = query + ` ${item.key} like '${item.value}%'`;
+    } else if (item?.whereIn === true) {
+      const searchCriteriaWhereIn = item?.searchCriteria
+        ? item.searchCriteria
+        : "IN";
+      let valuesAux = [];
+      map(item.valuesWhereIn, (itemV, indexV) => {
+        valuesAux.push(itemV);
+      });
+      query =
+        query +
+        ` ${item.key} ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
+    } else {
+      if (typeof item.value === "string") {
+        query =
+          query +
+          ` ${item.key} ${item?.operator ? item.operator : "="} '${
+            item.value
+          }'`;
+      } else if (typeof item.value === "number") {
+        query =
+          query +
+          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+      } else if (typeof item.value === "boolean") {
+        query =
+          query +
+          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+      }
+    }
+  };
   query = `SELECT ${
     params?.select ? params.select.join(", ") : "*"
   } FROM public."${table}"`;
@@ -507,42 +548,14 @@ function EscogerInternoUtil(table, params) {
   if (params?.where) {
     const where = params.where;
     map(where, (item, index) => {
-      const operatorSQL = item?.operatorSQL ? item.operatorSQL : "AND";
-      if (item?.like === true) {
-        query = query + ` ${operatorSQL} ${item.key} like '${item.value}%'`;
-      } else if (item?.whereIn === true) {
-        const searchCriteriaWhereIn = item?.searchCriteria
-          ? item.searchCriteria
-          : "IN";
-        let valuesAux = [];
-        map(item.valuesWhereIn, (itemV, indexV) => {
-          valuesAux.push(itemV);
+      blockAux = false;
+      if (item?.block) {
+        map(item.block, (itemB, indexB) => {
+          whereFunction(itemB, true);
         });
-        query =
-          query +
-          ` ${operatorSQL} ${
-            item.key
-          } ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
+        query = query + ")";
       } else {
-        if (typeof item.value === "string") {
-          query =
-            query +
-            ` ${operatorSQL} ${item.key} ${
-              item?.operator ? item.operator : "="
-            } '${item.value}'`;
-        } else if (typeof item.value === "number") {
-          query =
-            query +
-            ` ${operatorSQL} ${item.key} ${
-              item?.operator ? item.operator : "="
-            } ${item.value}`;
-        } else if (typeof item.value === "boolean") {
-          query =
-            query +
-            ` ${operatorSQL} ${item.key} ${
-              item?.operator ? item.operator : "="
-            } ${item.value}`;
-        }
+        whereFunction(item, false);
       }
     });
   }

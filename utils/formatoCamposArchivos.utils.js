@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map, filter } = require("lodash");
+const { map, filter, isEmpty } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -53,6 +53,9 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTasaRelevanteConInstrumento: null,
         paramsPlazoValorConInstrumento: null,
         paramsPlazoEconomicoConInstrumento: null,
+        paramsTasaRelevanteConInstrumentoDiferente: null,
+        paramsPlazoValorConInstrumentoDiferente: null,
+        paramsPlazoEconomicoConInstrumentoDiferente: null,
         paramsAccionesMO: null,
         paramsCodMercado: null,
         paramsCalfRiesgo: null,
@@ -361,6 +364,19 @@ async function obtenerInformacionDeArchivo(nameFile) {
               {
                 key: "tipo",
                 value: "VAR",
+              },
+              {
+                block: [
+                  {
+                    key: "es_operacion",
+                    value: true,
+                    operatorSQL: "OR",
+                  },
+                  {
+                    key: "tipo",
+                    value: "DIS",
+                  },
+                ],
               },
               {
                 key: "activo",
@@ -835,6 +851,19 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsTasaRelevanteConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
         PARAMS.paramsPlazoValorConInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -847,7 +876,33 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsPlazoValorConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
         PARAMS.paramsPlazoEconomicoConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPlazoEconomicoConInstrumentoDiferente = {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
@@ -906,6 +961,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [9],
                 whereIn: true,
+              },
+              {
+                key: "activo",
+                value: true,
               },
             ],
           },
@@ -996,7 +1055,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsFechaOperacionMenor = true;
         PARAMS.paramsCantidadMultiplicadoPrecioEquivalente = true;
-        PARAMS.paramstipoOperacion = {
+        PARAMS.paramsTipoOperacion = {
           table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
@@ -2297,7 +2356,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9]{5,23}$/,
+        pattern: /^[A-Za-z0-9,-]{5,23}$/,
         function: null,
       },
       {
@@ -2436,12 +2495,13 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: null,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "montoFinalConTipoDeCambio",
+        // function: "montoFinalConTipoDeCambio", // VALIDACION PARA TIPO DE CAMBIO
+        function: "mayorACeroDecimal",
       },
     ],
     481: [
@@ -2512,7 +2572,8 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "custodio",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
         function: "custodio",
       },
       {
@@ -2523,9 +2584,9 @@ async function obtenerValidaciones(typeFile) {
         function: "fechaOperacionMenorAlArchivo",
       },
       {
-        columnName: "tasa_ultimo_hecho",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        function: "mayorACeroDecimal",
+        columnName: "tipo_valoracion",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoValoracionConsultaMultiple",
       },
       {
         columnName: "fecha_ultimo_hecho",
@@ -2535,9 +2596,14 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "tipo_valoracion",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: "tipoValoracionConsultaMultiple",
+        columnName: "tasa_ultimo_hecho",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "precio_ultimo_hecho",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "tipo_operacion",
@@ -2687,7 +2753,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "total_neto_inversiones_bs",
@@ -2916,7 +2982,8 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "montoFinalConTipoDeCambio",
+        // function: "montoFinalConTipoDeCambio", // VALIDACION PARA TIPO DE CAMBIO
+        function: null,
       },
     ],
     471: [
@@ -3579,57 +3646,82 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     // console.log(headers);
     // console.log(dataSplit);
     const numberCommas = headers?.length - 1;
+    // console.log(dataSplit);
+    // map(dataSplit, (item, index) => {
+    //   console.log(item);
+    //   // let myIndex = headers.indexOf(item);
+    //   // if (myIndex !== -1) {
+    //   //   headers.splice(myIndex, 1);
+    //   // }
+    // });
 
     map(dataSplit, (item, index) => {
-      let rowNumberCommas = 0;
-      map(item, (item2, index2) => {
-        if (item2.toLowerCase() === ",") {
-          rowNumberCommas++;
-        }
-      });
-      // console.log(rowNumberCommas);
-      // console.log(numberCommas);
-      const rowSplit = item.split(",");
-
-      if (item.length === 0) {
-        return;
-      } else if (
-        rowSplit.length > headers.length ||
-        rowSplit.length < headers.length
-      ) {
+      if (item.indexOf(" ") !== -1) {
         errors.push({
-          msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
-          row: index,
-        });
-      } else if (
-        rowNumberCommas > numberCommas ||
-        rowNumberCommas < numberCommas
-      ) {
-        errors.push({
-          msg: `El formato del archivo debe estar separado por correctamente por comas`,
+          msg: `El formato del archivo no debe contener espacios entre los campos, comillas o comas, existe un espacio en la posicion ${item.indexOf(
+            " "
+          )}`,
           row: index,
         });
       } else {
-        let resultObject = {};
-        let counterAux = 0;
-        map(headers, (item2, index2) => {
-          const value = rowSplit[counterAux];
-          if (value[0] !== '"' || value[value.length - 1] !== '"') {
-            errorsValues.push({
-              msg: `El campo debe estar entre comillas`,
-              value: value?.trim().replace(/['"]+/g, ""),
-              column: item2,
-              row: index,
-            });
+        let rowNumberCommas = 0;
+        map(item, (item2, index2) => {
+          if (item2.toLowerCase() === ",") {
+            rowNumberCommas++;
           }
-          resultObject = {
-            ...resultObject,
-            [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
-          };
-          counterAux++;
         });
-        // console.log(resultObject.sort());
-        arrayDataObject.push(resultObject);
+        // console.log(rowNumberCommas);
+        // console.log(numberCommas);
+        const rowSplit = item.split(",");
+
+        if (item.length === 0) {
+          return;
+        } else if (
+          rowSplit.length > headers.length ||
+          rowSplit.length < headers.length
+        ) {
+          errors.push({
+            msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
+            row: index,
+          });
+        } else if (
+          rowNumberCommas > numberCommas ||
+          rowNumberCommas < numberCommas
+        ) {
+          errors.push({
+            msg: `El formato del archivo debe estar separado por correctamente por comas`,
+            row: index,
+          });
+        } else {
+          let resultObject = {};
+          let counterAux = 0;
+          map(headers, (item2, index2) => {
+            const value = rowSplit[counterAux];
+
+            //QUITANDO VALOERS UNICODES, EN ESTE CASO 65279 ES UN ESPACIO INVISIBLE QUE LO LEE COMO VACIO PERO EN EL ARCHIVO NO SE VE
+            for (let i = 0; i < value.length; i++) {
+              if (value.charCodeAt(i) === 65279) {
+                value.splice(i, 1);
+              }
+            }
+
+            if (value[0] !== '"' || value[value.length - 1] !== '"') {
+              errorsValues.push({
+                msg: `El campo debe estar entre comillas`,
+                value: value?.trim().replace(/['"]+/g, ""),
+                column: item2,
+                row: index,
+              });
+            }
+            resultObject = {
+              ...resultObject,
+              [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+            };
+            counterAux++;
+          });
+          // console.log(resultObject.sort());
+          arrayDataObject.push(resultObject);
+        }
       }
     });
 
