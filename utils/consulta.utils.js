@@ -534,9 +534,9 @@ function EscogerInternoUtil(table, params) {
       }
     }
   };
-  query = `SELECT ${
-    params?.select ? params.select.join(", ") : "*"
-  } FROM public."${table}"`;
+  query = `SELECT ${params?.select ? params.select.join(", ") : "*"} FROM ${
+    table !== "INFORMATION_SCHEMA.COLUMNS" ? `public."${table}"` : `${table}`
+  }`;
   if (params?.innerjoin) {
     const innerjoin = params.innerjoin;
 

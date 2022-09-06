@@ -1995,6 +1995,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
+        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
         function: "tipoOperacion",
       },
       {

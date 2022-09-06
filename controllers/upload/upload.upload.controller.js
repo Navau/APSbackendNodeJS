@@ -21,6 +21,7 @@ const {
   EliminarMultiplesTablasUtil,
   AlterarSequenciaMultiplesTablasUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -353,6 +354,7 @@ async function CargarArchivo3(req, res) {
   const tablesFilesArray = [];
   const sequencesTablesFilesArray = [];
   const idTablesFilesArray = [];
+  const errorsDateArray = [];
   let bodyFinalQuery = [];
   const filesSort = req.files.sort((a, b) => {
     if (a.originalname.toLowerCase() < b.originalname.toLowerCase()) {
@@ -532,6 +534,50 @@ async function CargarArchivo3(req, res) {
         table: tableFile,
         id: idTable,
       });
+      // const query = EscogerInternoUtil("INFORMATION_SCHEMA.COLUMNS", {
+      //   select: ["*"],
+      //   where: [
+      //     {
+      //       block: [
+      //         {
+      //           key: "COLUMN_NAME",
+      //           value: "fecha_informacion",
+      //           operatorSQL: "OR",
+      //         },
+      //         {
+      //           key: "COLUMN_NAME",
+      //           value: "fecha",
+      //           operatorSQL: "OR",
+      //         },
+      //         {
+      //           key: "COLUMN_NAME",
+      //           value: "fecha_operacion",
+      //           operatorSQL: "OR",
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       key: "TABLE_NAME",
+      //       value: tableFile,
+      //     },
+      //   ],
+      // });
+      // await pool
+      //   .query(query)
+      //   .then((result) => {
+      //     if (result.rowCount > 0) {
+      //     } else {
+      //       errorsDateArray.push({
+      //         message: `No existe ningun campo con 'fecha' de la tabla ${tableFile}.`,
+      //       });
+      //     }
+      //   })
+      //   .catch((err) => {
+      //     console.log("ERR INFORMATION_SCHEMA.COLUMNS", err);
+      //     errorsDateArray.push({
+      //       message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+      //     });
+      //   });
       idTablesFilesArray.push(idTable);
       //#region INSERTAR EL ID DE CARGA ARCHIVOS, COD_INSTITUCION, FECHA_INFORMACION A CADA FILA SEPARADA
       // console.log("arrayDataObject", arrayDataObject);
