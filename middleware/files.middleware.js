@@ -1752,7 +1752,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún codigo de entidad financiera`,
+                descripcion: `El campo no corresponde a ninguna entidad financiera activa`,
                 valor: value,
                 columna: columnName,
                 fila: index2,

@@ -791,6 +791,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 key: "id_sector_economico",
                 value: 6,
               },
+              {
+                key: "activo",
+                value: true,
+              },
             ],
           },
         };
