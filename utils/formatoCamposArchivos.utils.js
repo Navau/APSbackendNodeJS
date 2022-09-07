@@ -2327,12 +2327,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "total_mo",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: "mayorACeroDecimal",
       },
       {
         columnName: "total_bs",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: "mayorACeroDecimal",
       },
       {
@@ -3632,7 +3632,11 @@ async function obtenerValidaciones(typeFile) {
   return TYPE_FILES[typeFile];
 }
 
-async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
+async function formatearDatosEInsertarCabeceras(
+  headers,
+  dataSplit,
+  codeCurrentFile
+) {
   const formatearPromise = new Promise((resolve, reject) => {
     let arrayDataObject = [];
     let errors = [];
@@ -3649,26 +3653,26 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
     // console.log(headers);
-    // console.log(dataSplit);
-    const numberCommas = headers?.length - 1;
-    // console.log(dataSplit);
-    // map(dataSplit, (item, index) => {
-    //   console.log(item);
-    //   // let myIndex = headers.indexOf(item);
-    //   // if (myIndex !== -1) {
-    //   //   headers.splice(myIndex, 1);
-    //   // }
-    // });
 
-    map(dataSplit, (item, index) => {
-      if (item.indexOf(" ") !== -1) {
-        errors.push({
-          msg: `El formato del archivo no debe contener espacios entre los campos, comillas o comas, existe un espacio en la posicion ${item.indexOf(
-            " "
-          )}`,
-          row: index,
-        });
-      } else {
+    const formatFile = () => {
+      const numberCommas = headers?.length - 1;
+      // map(dataSplit, (item, index) => {
+      //   console.log(item);
+      //   // let myIndex = headers.indexOf(item);
+      //   // if (myIndex !== -1) {
+      //   //   headers.splice(myIndex, 1);
+      //   // }
+      // });
+
+      map(dataSplit, (item, index) => {
+        // if (item.indexOf(" ") !== -1) {
+        //   errors.push({
+        //     msg: `El formato del archivo no debe contener espacios entre los campos, comillas o comas, existe un espacio en la posicion ${item.indexOf(
+        //       " "
+        //     )}`,
+        //     row: index,
+        //   });
+        // } else {}
         let rowNumberCommas = 0;
         map(item, (item2, index2) => {
           if (item2.toLowerCase() === ",") {
@@ -3678,6 +3682,7 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         // console.log(rowNumberCommas);
         // console.log(numberCommas);
         const rowSplit = item.split(",");
+        // console.log(item);
 
         if (item.length === 0) {
           return;
@@ -3694,23 +3699,28 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           rowNumberCommas < numberCommas
         ) {
           errors.push({
-            msg: `El formato del archivo debe estar separado por correctamente por comas`,
+            msg: `El formato del archivo debe estar separado correctamente por comas`,
             row: index,
           });
         } else {
           let resultObject = {};
           let counterAux = 0;
           map(headers, (item2, index2) => {
-            const value = rowSplit[counterAux];
+            let value = rowSplit[counterAux];
 
             //QUITANDO VALOERS UNICODES, EN ESTE CASO 65279 ES UN ESPACIO INVISIBLE QUE LO LEE COMO VACIO PERO EN EL ARCHIVO NO SE VE
             for (let i = 0; i < value.length; i++) {
               if (value.charCodeAt(i) === 65279) {
-                value.splice(i, 1);
+                console.log("VALUE", value, "INDEX", i, 65279);
+                value = value.replace(value.slice(i, 1), "");
+                console.log("VALUE", value, "INDEX", i, 65279);
               }
             }
 
             if (value[0] !== '"' || value[value.length - 1] !== '"') {
+              console.log(value);
+              console.log(value[0]);
+              console.log(value[value.length - 1]);
               errorsValues.push({
                 msg: `El campo debe estar entre comillas`,
                 value: value?.trim().replace(/['"]+/g, ""),
@@ -3727,8 +3737,17 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
           // console.log(resultObject.sort());
           arrayDataObject.push(resultObject);
         }
-      }
-    });
+      });
+    };
+
+    console.log(dataSplit);
+    if (codeCurrentFile === "444" && dataSplit[0] !== "") {
+      formatFile();
+    } else if (codeCurrentFile === "445" && dataSplit[0] !== "") {
+      formatFile();
+    } else if (codeCurrentFile !== "444" && codeCurrentFile !== "445") {
+      formatFile();
+    }
 
     if (errors.length >= 1) {
       reject({

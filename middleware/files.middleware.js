@@ -825,7 +825,11 @@ async function validarArchivosIteraciones(params) {
 
                     //#endregion
 
-                    await formatearDatosEInsertarCabeceras(headers, dataSplit)
+                    await formatearDatosEInsertarCabeceras(
+                      headers,
+                      dataSplit,
+                      codeCurrentFile
+                    )
                       .then(async (response) => {
                         arrayDataObject = response.arrayDataObject;
 
@@ -1124,35 +1128,44 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             });
-          } else if (item?.archivo?.includes("444")) {
-            console.log(dependenciesArray);
+          } else if (codeCurrentFile === "444" && varAux441To444 === false) {
+            // console.log(dependenciesArray);
             map(dependenciesArray, (itemDP, indexDP) => {
               if (itemDP.column === "nro_pago" && itemDP.code === "441") {
-                const cantidadNroPago = itemDP.value.nro_pago;
-                const siglaInstrumentoSerie = itemDP.value.instrumentoSerie;
-                let countInstrumentoSerie = 0;
+                // console.log(itemDP);
+                const cantidadNroPago441 = itemDP.value.nro_pago;
+                const siglaInstrumentoSerie441 = itemDP.value.instrumentoSerie;
+                let siglaInstrumentoSerie444 = "";
+                let countInstrumentoSerie444 = 0;
 
                 map(arrayDataObject, (itemArray, indexArray) => {
-                  if (
-                    siglaInstrumentoSerie ===
-                    `${itemArray.tipo_instrumento}${itemArray.serie}`
-                  ) {
-                    countInstrumentoSerie++;
+                  siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                  if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
+                    countInstrumentoSerie444++;
                   }
                 });
+                console.log(
+                  "countInstrumentoSerie444",
+                  countInstrumentoSerie444
+                );
+                console.log("cantidadNroPago441", cantidadNroPago441);
 
-                if (countInstrumentoSerie === cantidadNroPago) {
+                if (
+                  parseInt(countInstrumentoSerie444) !==
+                  parseInt(cantidadNroPago441)
+                ) {
                   errors.push({
-                    archivo: item.archivo,
+                    archivo: `${itemDP.file}, ${item.archivo}`,
                     tipo_error: "VALOR INCORRECTO de 441 a 444",
-                    descripcion: `El tipo_instrumento y serie (${siglaInstrumentoSerie}) del archivo 441 debe existir ${cantidadNroPago} veces en el archivo 444`,
-                    valor: `${itemArray.tipo_instrumento}${itemArray.serie}`,
-                    columna: "",
-                    fila: -1,
+                    descripcion: `El Archivo 444 no tiene la cuponera de la Serie del Archivo 441`,
+                    valor: `441: serie: ${siglaInstrumentoSerie441}, nro_pago: ${cantidadNroPago441}, 444: serie: ${siglaInstrumentoSerie444}, registros: ${countInstrumentoSerie444}`,
+                    columna: `441: nro_pago`,
+                    fila: itemDP.row,
                   });
                 }
               }
             });
+            varAux441To444 = true;
           }
           if (columnName === "nro_pago" && codeCurrentFile === "441") {
             try {
@@ -2771,13 +2784,14 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           });
         }
       };
-      if (item?.archivo?.includes("444") && codeCurrentFile !== "441") {
+
+      if (codeCurrentFile === "444" && arrayDataObject.length === 0) {
         map(dependenciesArray, (itemDP, indexDP) => {
           if (itemDP.column === "nro_pago" && itemDP.code === "441") {
             errors.push({
               archivo: item.archivo,
               tipo_error: "ERROR DE CONTENIDO de 441 a 444",
-              descripcion: `El Archivo 444 no tiene la cuponera de la Serie del Archivo 441`,
+              descripcion: `El Archivo 444 esta vacío o sin información en el cual tiene que tener informacion debido a que en el archivo 441 existe cupones.`,
               valor: `VACIO`,
               columna: "",
               fila: -1,
@@ -2785,8 +2799,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }
         });
       }
+      console.log(arrayDataObject.length);
 
-      map(arrayDataObject, async (item2, index2) => {
+      for (let index2 = 0; index2 < arrayDataObject.length; index2++) {
+        const item2 = arrayDataObject[index2];
+        // console.log("codeCurrentFile", codeCurrentFile);
         map(arrayValidateObject, async (item3, index3) => {
           let value = item2[item3.columnName];
           let columnName = item3.columnName;
@@ -2849,7 +2866,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }
           // console.log("DESPUES DE VALIDACIONES", errors);
         });
-      });
+      }
 
       resolve();
     }
