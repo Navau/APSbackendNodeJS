@@ -31,7 +31,6 @@ const {
   bolsa,
   tipoValoracion,
   cantidadPorPrecio,
-  totalBsMenosPrevisionesInversiones,
   tipoActivo,
   mayorACeroDecimal,
   mayorACeroEntero,
@@ -62,6 +61,8 @@ const {
   tasaRendimiento,
   entidadEmisora,
   unico,
+  igualA,
+  tasaUltimoHecho,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -488,7 +489,10 @@ async function validarArchivosIteraciones(params) {
                 tipo_error: "CONTENIDO VACIO",
                 descripcion: "El contenido del archivo esta vacío",
               });
-            } else if (data.length === 0 && !item.archivo.includes("444")) {
+            } else if (
+              data.length === 0 &&
+              (!item.archivo.includes("444") || !item.archivo.includes("445"))
+            ) {
               // console.log("DATA", data);
               let myIndex = findIndex(isAllFiles.currentFiles, (itemFI) => {
                 return itemFI.archivo == item.archivo;
@@ -621,6 +625,26 @@ async function validarArchivosIteraciones(params) {
                               .params
                           )
                         : null;
+                    const _tasaUltimoHechoConInstrumento =
+                      infoArchivo?.paramsTasaUltimoHechoConInstrumento
+                        ? await tasaUltimoHecho(
+                            infoArchivo.paramsTasaUltimoHechoConInstrumento
+                              .table,
+                            infoArchivo.paramsTasaUltimoHechoConInstrumento
+                              .params
+                          )
+                        : null;
+                    const _tasaUltimoHechoConInstrumentoDiferente =
+                      infoArchivo?.paramsTasaUltimoHechoConInstrumentoDiferente
+                        ? await tasaUltimoHecho(
+                            infoArchivo
+                              .paramsTasaUltimoHechoConInstrumentoDiferente
+                              .table,
+                            infoArchivo
+                              .paramsTasaUltimoHechoConInstrumentoDiferente
+                              .params
+                          )
+                        : null;
                     const codOperacion = infoArchivo?.paramsCodOperacion
                       ? await codigoOperacion(
                           infoArchivo.paramsCodOperacion.table,
@@ -689,12 +713,33 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsCalificacion.params
                         )
                       : null;
+                    const _calificacionVacio =
+                      infoArchivo?.paramsCalificacionVacio
+                        ? await calificacion(
+                            infoArchivo.paramsCalificacionVacio.table,
+                            infoArchivo.paramsCalificacionVacio.params
+                          )
+                        : null;
+                    const _calificacionConInstrumento =
+                      infoArchivo?.paramsCalificacionConInstrumento
+                        ? await calificacion(
+                            infoArchivo.paramsCalificacionConInstrumento.table,
+                            infoArchivo.paramsCalificacionConInstrumento.params
+                          )
+                        : null;
                     const _calificadora = infoArchivo?.paramsCalificadora
                       ? await calificadora(
                           infoArchivo.paramsCalificadora.table,
                           infoArchivo.paramsCalificadora.params
                         )
                       : null;
+                    const _calificadoraConInstrumento =
+                      infoArchivo?.paramsCalificadoraConInstrumento
+                        ? await calificadora(
+                            infoArchivo.paramsCalificadoraConInstrumento.table,
+                            infoArchivo.paramsCalificadoraConInstrumento.params
+                          )
+                        : null;
                     const _custodio = infoArchivo?.paramsCustodio
                       ? await custodio(
                           infoArchivo.paramsCustodio.table,
@@ -891,6 +936,8 @@ async function validarArchivosIteraciones(params) {
                             _tasaRelevanteConInstrumentoDiferente,
                             _plazoEconomicoConInstrumento,
                             _plazoEconomicoConInstrumentoDiferente,
+                            _tasaUltimoHechoConInstrumento,
+                            _tasaUltimoHechoConInstrumentoDiferente,
                             codOperacion,
                             _tipoCuenta,
                             _entidadFinanciera,
@@ -902,7 +949,10 @@ async function validarArchivosIteraciones(params) {
                             _prepago,
                             _subordinado,
                             _calificacion,
+                            _calificacionVacio,
+                            _calificacionConInstrumento,
                             _calificadora,
+                            _calificadoraConInstrumento,
                             _custodio,
                             codMercado,
                             calfRiesgo,
@@ -961,7 +1011,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _tasaRendimiento = params._tasaRendimiento;
       const _entidadEmisora = params._entidadEmisora;
       const _plazoValorConInstrumento = params._plazoValorConInstrumento;
-      const _plazoValorConInstrumentDiferente =
+      const _plazoValorConInstrumentoDiferente =
         params._plazoValorConInstrumentoDiferente;
       const _tasaRelevanteConInstrumento = params._tasaRelevanteConInstrumento;
       const _tasaRelevanteConInstrumentoDiferente =
@@ -970,6 +1020,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         params._plazoEconomicoConInstrumento;
       const _plazoEconomicoConInstrumentoDiferente =
         params._plazoEconomicoConInstrumentoDiferente;
+      const _tasaUltimoHechoConInstrumento =
+        params._tasaUltimoHechoConInstrumento;
+      const _tasaUltimoHechoConInstrumentoDiferente =
+        params._tasaUltimoHechoConInstrumentoDiferente;
       const codOperacion = params.codOperacion;
       const _tipoCuenta = params._tipoCuenta;
       const _entidadFinanciera = params._entidadFinanciera;
@@ -981,7 +1035,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _prepago = params._prepago;
       const _subordinado = params._subordinado;
       const _calificacion = params._calificacion;
+      const _calificacionVacio = params._calificacionVacio;
+      const _calificacionConInstrumento = params._calificacionConInstrumento;
       const _calificadora = params._calificadora;
+      const _calificadoraConInstrumento = params._calificadoraConInstrumento;
       const _custodio = params._custodio;
       const codMercado = params.codMercado;
       const calfRiesgo = params._entidadFinanciera;
@@ -1001,7 +1058,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _instrumento1 = params._instrumento1;
       const _instrumento18 = params._instrumento18;
       let lugarNegociacionTipoOperacionAux = false;
-      let varAux441To444 = false;
+      const VARS_AUX = {
+        var441To444: false,
+        var442To445: false,
+      };
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
@@ -1025,7 +1085,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         index2,
         item3,
         codeCurrentFile,
-        arrayDataObject
+        arrayDataObject,
+        arrayValidateObject,
+        index3
       ) => {
         let match;
         if (date === true) {
@@ -1096,21 +1158,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           }
-          if (item?.archivo?.includes("44C")) {
-            map(dependenciesArray, (itemDP, indexDP) => {
-              if (
-                itemDP?.file?.includes("44C") &&
-                itemDP?.code === "441" &&
-                (itemDP?.value === "1" || itemDP?.value === 1)
-              ) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El archivo no debe tener contenido debido a que el archivo ${itemDP.code} tiene la columna nro_pago con el valor de ${itemDP.value}`,
-                });
-              }
-            });
-          } else if (item?.archivo?.includes("441")) {
+          if (item?.archivo?.includes("441")) {
             const serieCombinada441 = `${item2.tipo_instrumento}${item2.serie}`;
             map(dependenciesArray, (itemDP, indexDP) => {
               if (
@@ -1128,27 +1176,127 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             });
-          } else if (codeCurrentFile === "444" && varAux441To444 === false) {
+          } else if (
+            codeCurrentFile === "444" &&
+            index2 === arrayDataObject.length - 1 &&
+            index3 === arrayValidateObject.length - 1
+          ) {
             // console.log(dependenciesArray);
             map(dependenciesArray, (itemDP, indexDP) => {
-              if (itemDP.column === "nro_pago" && itemDP.code === "441") {
+              if (itemDP.code === "441") {
+                if (itemDP.column === "nro_pago") {
+                  // console.log(itemDP);
+                  const cantidadNroPago441 = itemDP.value.nro_pago;
+                  const siglaInstrumentoSerie441 =
+                    itemDP.value.instrumentoSerie;
+                  let siglaInstrumentoSerie444 = "";
+                  let siglaInstrumentoSerie444Aux = "";
+                  let countInstrumentoSerie444 = 0;
+
+                  map(arrayDataObject, (itemArray, indexArray) => {
+                    siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                    if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
+                      siglaInstrumentoSerie444Aux = siglaInstrumentoSerie444;
+                      countInstrumentoSerie444++;
+                    }
+                  });
+                  // console.log("cantidadNroPago441", cantidadNroPago441);
+                  // console.log(
+                  //   "countInstrumentoSerie444",
+                  //   countInstrumentoSerie444
+                  // );
+
+                  if (
+                    parseInt(countInstrumentoSerie444) !==
+                    parseInt(cantidadNroPago441)
+                  ) {
+                    errors.push({
+                      archivo: `${itemDP.file}, ${item.archivo}`,
+                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
+                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
+                      valor: `${
+                        itemDP.code
+                      }: serie: ${siglaInstrumentoSerie441}, ${
+                        itemDP.column
+                      }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
+                        siglaInstrumentoSerie444Aux &&
+                        `serie: ${siglaInstrumentoSerie444Aux}, `
+                      }registros: ${countInstrumentoSerie444}`,
+                      columna: `${itemDP.code}: ${itemDP.column}`,
+                      fila: itemDP.row,
+                    });
+                  }
+                } else if (itemDP.column === "tipo_tasa") {
+                  const tipoTasa441 = itemDP.value.tipo_tasa;
+                  const siglaInstrumentoSerie441 =
+                    itemDP.value.instrumentoSerie;
+                  let siglaInstrumentoSerie444 = "";
+                  let siglaInstrumentoSerie444Aux = "";
+                  let countInstrumentoSerie444 = 0;
+
+                  map(arrayDataObject, (itemArray, indexArray) => {
+                    siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                    if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
+                      siglaInstrumentoSerie444Aux = siglaInstrumentoSerie444;
+                      countInstrumentoSerie444++;
+                    }
+                  });
+                  // console.log("cantidadNroPago441", cantidadNroPago441);
+                  // console.log(
+                  //   "countInstrumentoSerie444",
+                  //   countInstrumentoSerie444
+                  // );
+
+                  if (
+                    parseInt(countInstrumentoSerie444) !==
+                    parseInt(cantidadNroPago441)
+                  ) {
+                    errors.push({
+                      archivo: `${itemDP.file}, ${item.archivo}`,
+                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
+                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
+                      valor: `${
+                        itemDP.code
+                      }: serie: ${siglaInstrumentoSerie441}, ${
+                        itemDP.column
+                      }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
+                        siglaInstrumentoSerie444Aux &&
+                        `serie: ${siglaInstrumentoSerie444Aux}, `
+                      }registros: ${countInstrumentoSerie444}`,
+                      columna: `${itemDP.code}: ${itemDP.column}`,
+                      fila: itemDP.row,
+                    });
+                  }
+                }
+              }
+            });
+          } else if (
+            codeCurrentFile === "445" &&
+            index2 === arrayDataObject.length - 1 &&
+            index3 === arrayValidateObject.length - 1
+          ) {
+            // console.log(dependenciesArray);
+            map(dependenciesArray, (itemDP, indexDP) => {
+              if (itemDP.column === "nro_pago" && itemDP.code === "442") {
                 // console.log(itemDP);
                 const cantidadNroPago441 = itemDP.value.nro_pago;
                 const siglaInstrumentoSerie441 = itemDP.value.instrumentoSerie;
                 let siglaInstrumentoSerie444 = "";
+                let siglaInstrumentoSerie444Aux = "";
                 let countInstrumentoSerie444 = 0;
 
                 map(arrayDataObject, (itemArray, indexArray) => {
                   siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
                   if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
+                    siglaInstrumentoSerie444Aux = siglaInstrumentoSerie444;
                     countInstrumentoSerie444++;
                   }
                 });
-                console.log(
-                  "countInstrumentoSerie444",
-                  countInstrumentoSerie444
-                );
-                console.log("cantidadNroPago441", cantidadNroPago441);
+                // console.log("cantidadNroPago441", cantidadNroPago441);
+                // console.log(
+                //   "countInstrumentoSerie444",
+                //   countInstrumentoSerie444
+                // );
 
                 if (
                   parseInt(countInstrumentoSerie444) !==
@@ -1156,19 +1304,25 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ) {
                   errors.push({
                     archivo: `${itemDP.file}, ${item.archivo}`,
-                    tipo_error: "VALOR INCORRECTO de 441 a 444",
-                    descripcion: `El Archivo 444 no tiene la cuponera de la Serie del Archivo 441`,
-                    valor: `441: serie: ${siglaInstrumentoSerie441}, nro_pago: ${cantidadNroPago441}, 444: serie: ${siglaInstrumentoSerie444}, registros: ${countInstrumentoSerie444}`,
-                    columna: `441: nro_pago`,
+                    tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
+                    descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
+                    valor: `${
+                      itemDP.code
+                    }: serie: ${siglaInstrumentoSerie441}, ${
+                      itemDP.column
+                    }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
+                      siglaInstrumentoSerie444Aux &&
+                      `serie: ${siglaInstrumentoSerie444Aux}, `
+                    }registros: ${countInstrumentoSerie444}`,
+                    columna: `${itemDP.code}: ${itemDP.column}`,
                     fila: itemDP.row,
                   });
                 }
               }
             });
-            varAux441To444 = true;
           }
-          if (columnName === "nro_pago" && codeCurrentFile === "441") {
-            try {
+          if (codeCurrentFile === "441" || codeCurrentFile === "442") {
+            if (columnName === "nro_pago") {
               if (isNaN(parseInt(value))) {
                 errors.push({
                   archivo: item.archivo,
@@ -1184,21 +1338,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   dependenciesArray.push({
                     file: item.archivo,
                     code: codeCurrentFile,
-                    value: { instrumentoSerie, nro_pago: value },
+                    value: { instrumentoSerie, [columnName]: value },
                     row: index2,
                     column: columnName,
                   });
                 }
               }
-            } catch (err) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error inesperado. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
+            } else if (columnName === "tipo_tasa") {
+              if (value === "F") {
+                const instrumentoSerie = `${item2.tipo_instrumento}${item2.serie}`;
+                dependenciesArray.push({
+                  file: item.archivo,
+                  code: codeCurrentFile,
+                  value: { instrumentoSerie, [columnName]: value },
+                  row: index2,
+                  column: columnName,
+                });
+              }
             }
           }
           if (
@@ -1498,7 +1654,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "plazoValorConInstrumento") {
-            let _mayorACeroDecimal = null;
+            let _igualA = null;
             let _mayorIgualACeroDecimal = null;
             let functionAux = null;
             map(_plazoValorConInstrumento?.resultFinal, (item4, index4) => {
@@ -1516,14 +1672,15 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             );
 
             if (functionAux === 1) {
-              _mayorACeroDecimal = mayorACeroDecimal({
-                value: value,
+              _igualA = igualA({
+                value: parseInt(value),
+                equalTo: 0,
               });
-              if (_mayorACeroDecimal?.ok === false) {
+              if (_igualA?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
+                  descripcion: _igualA?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -1554,7 +1711,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "tasaRelevanteConInstrumento") {
-            let _mayorACeroDecimal = null;
+            let _igualA = null;
             let _mayorIgualACeroDecimal = null;
             let functionAux = null;
             map(_tasaRelevanteConInstrumento?.resultFinal, (item4, index4) => {
@@ -1572,14 +1729,15 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             );
 
             if (functionAux === 1) {
-              _mayorACeroDecimal = mayorACeroDecimal({
-                value: value,
+              _igualA = igualA({
+                value: parseInt(value),
+                equalTo: 0,
               });
-              if (_mayorACeroDecimal?.ok === false) {
+              if (_igualA?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
+                  descripcion: _igualA?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -1610,7 +1768,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "plazoEconomicoConInstrumento") {
-            let _mayorACeroDecimal = null;
+            let _igualA = null;
             let _mayorIgualACeroDecimal = null;
             let functionAux = null;
             map(_plazoEconomicoConInstrumento?.resultFinal, (item4, index4) => {
@@ -1628,14 +1786,75 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             );
 
             if (functionAux === 1) {
-              _mayorACeroDecimal = mayorACeroDecimal({
+              _igualA = igualA({
+                value: parseInt(value),
+                equalTo: 0,
+              });
+              if (_igualA?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _igualA?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (functionAux === 2) {
+              _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
                 value: value,
               });
-              if (_mayorACeroDecimal?.ok === false) {
+              if (_mayorIgualACeroDecimal?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: _mayorACeroDecimal?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tasaUltimoHechoConInstrumento") {
+            let _igualA = null;
+            let _mayorIgualACeroDecimal = null;
+            let functionAux = null;
+            map(
+              _tasaUltimoHechoConInstrumento?.resultFinal,
+              (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  functionAux = 1;
+                }
+              }
+            );
+            map(
+              _tasaUltimoHechoConInstrumentoDiferente?.resultFinal,
+              (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  functionAux = 2;
+                }
+              }
+            );
+
+            if (functionAux === 1) {
+              _igualA = igualA({
+                value: parseInt(value),
+                equalTo: 0,
+              });
+              if (_igualA?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _igualA?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -1900,8 +2119,33 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "calificacion") {
-            if (value !== "" || value.length >= 1) {
-              let errFunction = true;
+            let errFunction = true;
+            let errFunctionInstrumento = true;
+            let errFunctionVacio = true;
+            map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                errFunctionInstrumento = false;
+              }
+            });
+            if (!errFunctionInstrumento) {
+              map(_calificacionVacio?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunctionVacio = false;
+                }
+              });
+              if (errFunctionVacio === true) {
+                if (value !== "" || value.length >= 1) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificacion debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificación válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else {
               map(_calificacion?.resultFinal, (item4, index4) => {
                 if (value === item4.descripcion) {
                   errFunction = false;
@@ -1911,7 +2155,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguna Calificación definida`,
+                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -1919,9 +2163,26 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           } else if (funct === "calificadora") {
-            if (value !== "" || value.length >= 1) {
-              let errFunction = true;
-              map(_calificadora?.resultFinal, (item4, index4) => {
+            let errFunction = true;
+            let errFunctionInstrumento = true;
+            map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                errFunctionInstrumento = false;
+              }
+            });
+            if (!errFunctionInstrumento) {
+              if (value !== "" || value.length >= 1) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificadora debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificadora válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else {
+              map(_calificacion?.resultFinal, (item4, index4) => {
                 if (value === item4.sigla) {
                   errFunction = false;
                 }
@@ -1930,7 +2191,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguna sigla de Calificadora definida`,
+                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -2267,9 +2528,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "totalBsMenosPrevisionesInversiones") {
+          } else if (funct === "totalBsMenosPrevisionesInversionesBs") {
             let _operacionEntreColumnas =
-              infoArchivo?.paramsTotalBsMenosPrevisionesInversiones
+              infoArchivo?.paramsTotalBsMenosPrevisionesInversionesBs
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
@@ -2720,6 +2981,39 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "fechaVencimientoMenosFechaEmision") {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsFechaVencimientoMenosFechaEmision
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: parseInt(value),
+                    },
+                    fields: [
+                      {
+                        key: "fecha_vencimiento (en dias)",
+                        value: item2.fecha_vencimiento,
+                      },
+                      "-",
+                      {
+                        key: "fecha_emision (en dias)",
+                        value: item2.fecha_emision,
+                      },
+                    ],
+                    dates: true,
+                  })
+                : null;
+
+            if (_operacionEntreColumnas?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
           if (
             operationNotValid === "cadenaCombinadalugarNegTipoOperTipoInstrum"
@@ -2805,6 +3099,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         const item2 = arrayDataObject[index2];
         // console.log("codeCurrentFile", codeCurrentFile);
         map(arrayValidateObject, async (item3, index3) => {
+          // console.log("INDEX3", index3);
           let value = item2[item3.columnName];
           let columnName = item3.columnName;
           let pattern = item3.pattern;
@@ -2861,7 +3156,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               index2,
               item3,
               codeCurrentFile,
-              arrayDataObject
+              arrayDataObject,
+              arrayValidateObject,
+              index3
             );
           }
           // console.log("DESPUES DE VALIDACIONES", errors);

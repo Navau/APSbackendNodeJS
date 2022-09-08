@@ -64,7 +64,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsInteresMasAmortizacion: null,
         paramsSaldoCapitalMenosAmortizacionCuponAnterior: null,
         paramsCantidadMultiplicadoPrecio: null,
-        paramsTotalBsMenosPrevisionesInversiones: null,
+        paramsTotalBsMenosPrevisionesInversionesBs: null,
         paramsSaldoAntMasAltasBajasMasActualizacion: null,
         paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion: null,
         paramsSaldoFinalMenosSaldoFinalDep: null,
@@ -81,10 +81,14 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTipoTasa: null,
         paramsNroPago: null,
         paramsPlazoCupon: null,
+        paramsFechaVencimientoMenosFechaEmision: null,
         paramsPrepago: null,
         paramsSubordinado: null,
         paramsCalificacion: null,
+        paramsCalificacionVacio: null,
+        paramsCalificacionConInstrumento: null,
         paramsCalificadora: null,
+        paramsCalificadoraConInstrumento: null,
         paramsCustodio: null,
         paramsFechaOperacionMenor: null,
         paramsCantidadMultiplicadoPrecioEquivalente: null,
@@ -96,6 +100,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTipoValoracion22: null,
         paramsTipoValoracion31: null,
         paramsTipoValoracion210: null,
+        paramsTasaUltimoHechoConInstrumento: null,
+        paramsTasaUltimoHechoConInstrumentoDiferente: null,
         paramsTipoActivo: null,
         paramsLugarNegociacion: null,
         paramsLugarNegociacionVacio: null,
@@ -515,6 +521,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         };
         PARAMS.paramsNroPago = true;
         PARAMS.paramsPlazoCupon = true;
+        PARAMS.paramsFechaVencimientoMenosFechaEmision = true;
+
         PARAMS.paramsPrepago = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -901,7 +909,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
               {
                 key: "id_tipo_renta",
                 value: 136,
-                operatorSQL: "<>",
               },
             ],
           },
@@ -914,6 +921,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
               {
                 key: "id_tipo_renta",
                 value: 136,
+                operatorSQL: "<>",
               },
             ],
           },
@@ -943,6 +951,30 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsCalificacionVacio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 5,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacionConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
         PARAMS.paramsCalificadora = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -952,6 +984,18 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [7],
                 whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadoraConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
               },
             ],
           },
@@ -1057,6 +1101,32 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsTipoValoracionConsultaMultiple = true;
 
+        PARAMS.paramsTasaUltimoHechoConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTasaUltimoHechoConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
+
         PARAMS.paramsFechaOperacionMenor = true;
         PARAMS.paramsCantidadMultiplicadoPrecioEquivalente = true;
         PARAMS.paramsTipoOperacion = {
@@ -1101,6 +1171,19 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsTasaRelevanteConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
         PARAMS.paramsPlazoValorConInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1113,6 +1196,19 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsPlazoValorConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
         PARAMS.paramsPlazoEconomicoConInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1121,6 +1217,19 @@ async function obtenerInformacionDeArchivo(nameFile) {
               {
                 key: "id_tipo_renta",
                 value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPlazoEconomicoConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
               },
             ],
           },
@@ -1150,6 +1259,30 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsCalificacionVacio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 5,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacionConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
         PARAMS.paramsCalificadora = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -1163,6 +1296,18 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsCalificadoraConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
         PARAMS.paramsCustodio = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -1172,6 +1317,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 key: "id_clasificador_comun_grupo",
                 valuesWhereIn: [9],
                 whereIn: true,
+              },
+              {
+                key: "activo",
+                value: true,
               },
             ],
           },
@@ -1237,7 +1386,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 value: 31,
               },
               {
-                key: "id_clasificador_comun_grupo",
+                key: "id_clasificador_comun",
                 valuesWhereIn: [210],
                 whereIn: true,
                 searchCriteriaWhereIn: "NOT IN",
@@ -1251,14 +1400,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun_grupo",
-                value: 31,
-              },
-              {
-                key: "id_clasificador_comun_grupo",
-                valuesWhereIn: [210],
-                whereIn: true,
-                searchCriteriaWhereIn: "NOT IN",
+                key: "id_clasificador_comun",
+                value: 210,
               },
             ],
           },
@@ -1266,9 +1409,35 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsTipoValoracionConsultaMultiple = true;
 
+        PARAMS.paramsTasaUltimoHechoConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTasaUltimoHechoConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operatorSQL: "<>",
+              },
+            ],
+          },
+        };
+
         PARAMS.paramsFechaOperacionMenor = true;
         PARAMS.paramsCantidadMultiplicadoPrecioEquivalente = true;
-        PARAMS.paramstipoOperacion = {
+        PARAMS.paramsTipoOperacion = {
           table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
@@ -1298,20 +1467,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsEntidadEmisora = {
-          table: "APS_param_emisor",
-          params: {
-            select: ["codigo_rmv"],
-            where: [
-              {
-                key: "id_pais",
-                value: 8,
-              },
-            ],
-          },
-        };
         PARAMS.paramsCantidadMultiplicadoPrecio = true;
-        PARAMS.paramsTotalBsMenosPrevisionesInversiones = true;
+        PARAMS.paramsTotalBsMenosPrevisionesInversionesBs = true;
       } else if (nameFile.includes(".484")) {
         console.log("ARCHIVO CORRECTO : 484", nameFile);
         PARAMS.codeCurrentFile = "484";
@@ -1479,7 +1636,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
           },
         };
         PARAMS.paramsCantidadMultiplicadoPrecio = true;
-        PARAMS.paramsTotalBsMenosPrevisionesInversiones = true;
+        PARAMS.paramsTotalBsMenosPrevisionesInversionesBs = true;
       } else if (nameFile.includes(".461")) {
         console.log("ARCHIVO CORRECTO : 461", nameFile);
         PARAMS.codeCurrentFile = "461";
@@ -1783,7 +1940,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "clave_instrumento",
-        pattern: /^[A-Za-z0-9,-]{5,30}$/,
+        pattern: /^[A-Za-z0-9\-]{5,30}$/,
         function: null,
       },
       {
@@ -1925,7 +2082,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "lugar_negociacion",
-        pattern: /^[A-Za-z0-9,-]{0,4}$/,
+        pattern: /^[A-Za-z0-9\-]{0,4}$/,
         mayBeEmpty: true,
         function: "lugarNegociacion",
       },
@@ -1948,7 +2105,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         operationNotValid: "tipoOperacionCOP",
         function: null,
       },
@@ -1988,7 +2145,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "lugar_negociacion",
-        pattern: /^[A-Za-z0-9,-]{0,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
         mayBeEmpty: true,
         function: "lugarNegociacion",
       },
@@ -2011,7 +2168,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         operationNotValid: "tipoOperacionCOP",
         function: null,
       },
@@ -2061,7 +2218,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
@@ -2088,7 +2245,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
@@ -2155,7 +2312,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "plazo_emision",
         pattern: /^(0|[1-9][0-9]{1,4})$/,
-        function: "mayorACeroEntero",
+        function: "fechaVencimientoMenosFechaEmision",
       },
       {
         columnName: "nro_pago",
@@ -2169,17 +2326,17 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "prepago",
-        pattern: /^[A-Za-z0-9,-]{1,1}$/,
+        pattern: /^[A-Za-z0-9\-]{1,1}$/,
         function: "prepago",
       },
       {
         columnName: "subordinado",
-        pattern: /^[A-Za-z0-9,-]{1,1}$/,
+        pattern: /^[A-Za-z0-9\-]{1,1}$/,
         function: "subordinado",
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
         function: "calificacion",
       },
       {
@@ -2272,7 +2429,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
         function: "calificacion",
       },
       {
@@ -2297,7 +2454,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
@@ -2337,7 +2494,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9,-]{0,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
         mayBeEmpty: true,
         function: "calificacion",
       },
@@ -2361,7 +2518,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
@@ -2484,12 +2641,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_cuenta",
-        pattern: /^[A-Za-z0-9,-]{10,20}$/,
+        pattern: /^[A-Za-z0-9\-]{8,20}$/,
         function: null,
       },
       {
         columnName: "codigo_cuenta_contable",
-        pattern: /^[A-Za-z0-9,-]{12,12}$/,
+        pattern: /^[A-Za-z0-9\-]{12,12}$/,
         function: null,
       },
       {
@@ -2517,12 +2674,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z0-9,-]{7,10}$/,
+        pattern: /^[A-Za-z0-9\-]{7,10}$/,
         function: null,
       },
       {
@@ -2548,7 +2705,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroEntero",
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "total_mo",
@@ -2567,7 +2724,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
         function: "calificacion",
       },
       {
@@ -2603,7 +2760,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "tasaUltimoHechoConInstrumento",
       },
       {
         columnName: "precio_ultimo_hecho",
@@ -2624,12 +2781,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z0-9,-]{7,10}$/,
+        pattern: /^[A-Za-z0-9\-]{7,10}$/,
         function: null,
       },
       {
@@ -2639,8 +2796,8 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad",
-        pattern: /^(0|[1-9][0-9]{0,6})$/,
-        function: null,
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: "mayorACeroEntero",
       },
       {
         columnName: "plazo_valor",
@@ -2655,7 +2812,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroEntero",
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "total_mo",
@@ -2674,7 +2831,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
         function: "calificacion",
       },
       {
@@ -2684,7 +2841,8 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "custodio",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
         function: "custodio",
       },
       {
@@ -2695,9 +2853,9 @@ async function obtenerValidaciones(typeFile) {
         function: "fechaOperacionMenorAlArchivo",
       },
       {
-        columnName: "tasa_ultimo_hecho",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        function: "mayorACeroDecimal",
+        columnName: "tipo_valoracion",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoValoracionConsultaMultiple",
       },
       {
         columnName: "fecha_ultimo_hecho",
@@ -2707,9 +2865,14 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "tipo_valoracion",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: "tipoValoracionConsultaMultiple",
+        columnName: "tasa_ultimo_hecho",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "tasaUltimoHechoConInstrumento",
+      },
+      {
+        columnName: "precio_ultimo_hecho",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "tipo_operacion",
@@ -2725,7 +2888,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "entidad_emisora",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9\.\- ]{5,50}$/,
         function: "entidadEmisora",
       },
       {
@@ -2763,7 +2926,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "total_neto_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "totalBsMenosPrevisionesInversiones",
+        function: "totalBsMenosPrevisionesInversionesBs",
       },
     ],
     484: [
@@ -2814,7 +2977,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion_riesgo",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
         function: null,
       },
       {
@@ -2883,7 +3046,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion_riesgo",
-        pattern: /^[A-Za-z0-9,-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
         function: null,
       },
       {
@@ -2950,7 +3113,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "total_neto_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "totalBsMenosPrevisionesInversiones",
+        function: "totalBsMenosPrevisionesInversionesBs",
       },
     ],
     461: [
@@ -2966,12 +3129,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_cuenta",
-        pattern: /^[A-Za-z0-9,-]{5,20}$/,
+        pattern: /^[A-Za-z0-9\-]{5,20}$/,
         function: null,
       },
       {
         columnName: "codigo_cuenta_contable",
-        pattern: /^[A-Za-z0-9,-]{1,12}$/,
+        pattern: /^[A-Za-z0-9\-]{1,12}$/,
         function: null,
       },
       {
@@ -2999,17 +3162,17 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "detalle_2",
-        pattern: /^[A-Za-z0-9,-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\-]{5,25}$/,
         function: null,
       },
       {
         columnName: "detalle_2",
-        pattern: /^[A-Za-z0-9,-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\-]{5,25}$/,
         function: null,
       },
       {
         columnName: "cuenta_contable",
-        pattern: /^[A-Za-z0-9,-]{1,7}$/,
+        pattern: /^[A-Za-z0-9\-]{1,7}$/,
         function: null,
       },
       {
@@ -3031,7 +3194,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "ciudad",
-        pattern: /^[A-Za-z0-9,-]{5,30}$/,
+        pattern: /^[A-Za-z0-9\-]{5,30}$/,
         function: null,
       },
       {
@@ -3043,17 +3206,17 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "superficie",
-        pattern: /^[A-Za-z0-9,-]{5,13}$/,
+        pattern: /^[A-Za-z0-9\-]{5,13}$/,
         function: null,
       },
       {
         columnName: "nro_registro_ddrr",
-        pattern: /^[A-Za-z0-9,-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\-]{5,25}$/,
         function: null,
       },
       {
         columnName: "nro_testimonio",
-        pattern: /^[A-Za-z0-9,-]{5,15}$/,
+        pattern: /^[A-Za-z0-9\-]{5,15}$/,
         function: null,
       },
       {
@@ -3163,7 +3326,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "ciudad",
-        pattern: /^[A-Za-z0-9,-]{5,30}$/,
+        pattern: /^[A-Za-z0-9\-]{5,30}$/,
         function: null,
       },
       {
@@ -3175,17 +3338,17 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "superficie",
-        pattern: /^[A-Za-z0-9,-]{5,13}$/,
+        pattern: /^[A-Za-z0-9\-]{5,13}$/,
         function: null,
       },
       {
         columnName: "nro_registro_ddrr",
-        pattern: /^[A-Za-z0-9,-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\-]{5,25}$/,
         function: null,
       },
       {
         columnName: "nro_testimonio",
-        pattern: /^[A-Za-z0-9,-]{5,15}$/,
+        pattern: /^[A-Za-z0-9\-]{5,15}$/,
         function: null,
       },
       {
@@ -3442,7 +3605,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "frecuencia_pago",
-        pattern: /^[A-Za-z0-9,-]{3,7}$/,
+        pattern: /^[A-Za-z0-9\-]{3,7}$/,
         function: "mayorACeroEntero",
       },
       {
@@ -3479,7 +3642,7 @@ async function obtenerValidaciones(typeFile) {
     498: [
       {
         columnName: "nro_poliza",
-        pattern: /^[A-Za-z0-9,-]{5,10}$/,
+        pattern: /^[A-Za-z0-9\-]{5,10}$/,
         function: null,
       },
       {
@@ -3583,7 +3746,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9,-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: null,
       },
       {
@@ -3652,7 +3815,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    // console.log(headers);
+    console.log(headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
@@ -3718,9 +3881,6 @@ async function formatearDatosEInsertarCabeceras(
             }
 
             if (value[0] !== '"' || value[value.length - 1] !== '"') {
-              console.log(value);
-              console.log(value[0]);
-              console.log(value[value.length - 1]);
               errorsValues.push({
                 msg: `El campo debe estar entre comillas`,
                 value: value?.trim().replace(/['"]+/g, ""),
@@ -3741,9 +3901,10 @@ async function formatearDatosEInsertarCabeceras(
     };
 
     console.log(dataSplit);
-    if (codeCurrentFile === "444" && dataSplit[0] !== "") {
-      formatFile();
-    } else if (codeCurrentFile === "445" && dataSplit[0] !== "") {
+    if (
+      (codeCurrentFile === "444" || codeCurrentFile === "445") &&
+      dataSplit[0] !== ""
+    ) {
       formatFile();
     } else if (codeCurrentFile !== "444" && codeCurrentFile !== "445") {
       formatFile();
@@ -3812,6 +3973,23 @@ async function plazoValorConInstrumento(table, params) {
 }
 
 async function plazoEconomicoConInstrumento(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function tasaUltimoHecho(table, params) {
   let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
   await pool
@@ -4099,6 +4277,29 @@ async function mayorIgualACeroDecimal(params) {
           message: `El valor no es mayor o igual a 0`,
         };
       }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function igualA(params) {
+  const { value, equalTo } = params;
+
+  try {
+    if (value === equalTo) {
+      return {
+        ok: true,
+        message: `El valor ${value} si es igual a ${equalTo}`,
+      };
+    } else {
+      return {
+        ok: false,
+        message: `El valor ${value} no es igual a ${equalTo}`,
+      };
     }
   } catch (err) {
     return {
@@ -4666,41 +4867,6 @@ async function tipoValoracionConsultaMultiple(params) {
   };
 }
 
-async function totalBsMenosPrevisionesInversiones(params) {
-  const { total_neto_inversiones_bs, total_bs, prevision_inversion_bs } =
-    params;
-  try {
-    const totalBsValue = parseFloat(total_bs);
-    const previsionInversionBsValue = parseFloat(prevision_inversion_bs);
-    if (isNaN(totalBsValue) || isNaN(previsionInversionBsValue)) {
-      return {
-        ok: false,
-        message: `El campo total en bolivianos o la prevision de inversiones no son numeros`,
-      };
-    } else {
-      const result = totalBsValue - previsionInversionBsValue;
-      if (
-        result.toFixed(2) === parseFloat(total_neto_inversiones_bs).toFixed(2)
-      ) {
-        return {
-          ok: true,
-          message: `El valor si es correcto`,
-        };
-      } else {
-        return {
-          ok: false,
-          message: `El total en bolivianos restado por la prevision de inversiones en bolivianos no es igual a total neto de inversiones en bolivianos`,
-        };
-      }
-    }
-  } catch (err) {
-    return {
-      ok: false,
-      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
-    };
-  }
-}
-
 async function lugarNegociacion(table, params) {
   let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
@@ -4898,16 +5064,14 @@ async function depreciacionPeriodoMasAltasBajasDepreciacion(params) {
 }
 
 async function operacionEntreColumnas(params) {
-  const { total, fields } = params;
+  const { total, fields, dates } = params;
   try {
-    // console.log("total", total);
-    // console.log("fields", fields);
     let fieldsErrorText = "";
     let result = fields[0].value;
     let fieldsResultText = `${fields[0].key}`;
 
     map(fields, (item, index) => {
-      if (isNaN(parseFloat(item.value)) && index % 2 === 0) {
+      if (isNaN(item.value) && index % 2 === 0) {
         fieldsErrorText += `${item.key} o`;
       }
     });
@@ -4946,20 +5110,31 @@ async function operacionEntreColumnas(params) {
       }
     });
 
-    // console.log("fieldsResultText", fieldsResultText);
-    // console.log("result", result.toFixed(2));
-    // console.log(parseFloat(total.value).toFixed(2));
-
-    if (result.toFixed(2) === parseFloat(total.value).toFixed(2)) {
-      return {
-        ok: true,
-        message: `El valor si es correcto`,
-      };
+    if (dates) {
+      result = Math.abs(result) / (1000 * 3600 * 24);
+      if (result !== total.value) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El resultado de ${fieldsResultText} en dias no es igual a ${total.key} en dias`,
+        };
+      }
     } else {
-      return {
-        ok: false,
-        message: `El resultado de ${fieldsResultText} no es igual a ${total.key}`,
-      };
+      if (result.toFixed(2) === parseFloat(total.value).toFixed(2)) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El resultado de ${fieldsResultText} no es igual a ${total.key}`,
+        };
+      }
     }
   } catch (err) {
     return {
@@ -5112,7 +5287,7 @@ module.exports = {
   mayorACeroDecimal,
   mayorIgualACeroDecimal,
   mayorIgualACeroEntero,
-  totalBsMenosPrevisionesInversiones,
+  igualA,
   tipoActivo,
   tasaRendimiento,
   entidadEmisora,
@@ -5134,5 +5309,6 @@ module.exports = {
   plazoEconomicoConInstrumento,
   tasaRelevanteConInstrumento,
   plazoValorConInstrumento,
+  tasaUltimoHecho,
   unico,
 };
