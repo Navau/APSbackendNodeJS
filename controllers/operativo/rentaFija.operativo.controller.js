@@ -117,7 +117,6 @@ async function Insertar(req, res) {
   const claveInstrumentoValidacion = await pool
     .query(queryClaveInstrumento)
     .then((result) => {
-      console.log(result.rows);
       if (result.rowCount > 0) {
         return false;
       } else {
