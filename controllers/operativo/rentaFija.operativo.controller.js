@@ -118,25 +118,26 @@ async function Insertar(req, res) {
     .query(queryClaveInstrumento)
     .then((result) => {
       if (result.rowCount > 0) {
-        return false;
+        return { ok: false, data: result };
       } else {
-        return true;
+        return { ok: true, data: result };
       }
     })
     .catch((err) => {
-      respErrorServidor500END(res, err);
-      return null;
+      return { ok: null, err };
     });
 
-  if (claveInstrumentoValidacion === false) {
+  if (claveInstrumentoValidacion.ok === false) {
     respResultadoIncorrectoObjeto200(
       res,
       null,
-      result.rows,
+      claveInstrumentoValidacion?.data.rows,
       "Clave de Instrumento ya se encuentra registrada"
     );
+    return;
   }
-  if (claveInstrumentoValidacion === null) {
+  if (claveInstrumentoValidacion.ok === null) {
+    respErrorServidor500END(res, claveInstrumentoValidacion?.err);
     return;
   }
 
