@@ -114,16 +114,13 @@ async function Insertar(req, res) {
         key: "clave_instrumento",
         value: clave_instrumento,
       },
-      {
-        key: "fecha_emision",
-        value: fecha_emision,
-      },
     ],
   });
 
   const claveInstrumentoValidacion = await pool
     .query(queryClaveInstrumento)
     .then((result) => {
+      console.log(result.rows);
       if (result.rowCount > 0) {
         return false;
       } else {
