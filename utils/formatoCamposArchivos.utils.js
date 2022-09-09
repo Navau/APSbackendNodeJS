@@ -3921,6 +3921,23 @@ async function formatearDatosEInsertarCabeceras(
   return formatearPromise;
 }
 
+async function selectComun(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
 async function clasificadorComun(table, params) {
   let query = ListarUtil(table, params);
   let resultFinal = null;
@@ -4378,6 +4395,23 @@ async function moneda(table, params) {
 }
 
 async function emisor(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function pais(table, params) {
   let query = EscogerInternoUtil(table, params);
   let resultFinal = null;
   await pool
@@ -5272,6 +5306,7 @@ module.exports = {
   entidadFinanciera,
   moneda,
   emisor,
+  pais,
   tipoAmortizacion,
   tipoInteres,
   tipoTasa,
@@ -5311,4 +5346,5 @@ module.exports = {
   plazoValorConInstrumento,
   tasaUltimoHecho,
   unico,
+  selectComun,
 };

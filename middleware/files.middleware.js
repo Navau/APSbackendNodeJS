@@ -63,6 +63,8 @@ const {
   unico,
   igualA,
   tasaUltimoHecho,
+  pais,
+  selectComun,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -530,59 +532,59 @@ async function validarArchivosIteraciones(params) {
 
                     //#region VALIDADORES
                     const instrumento = infoArchivo?.paramsInstrumento
-                      ? await tipoInstrumento(
+                      ? await selectComun(
                           infoArchivo.paramsInstrumento.table,
                           infoArchivo.paramsInstrumento.params
                         )
                       : null;
                     const _tipoOperacion = infoArchivo?.paramsTipoOperacion
-                      ? await tipoOperacion(
+                      ? await selectComun(
                           infoArchivo.paramsTipoOperacion.table,
                           infoArchivo.paramsTipoOperacion.params
                         )
                       : null;
                     const _lugarNegociacion =
                       infoArchivo?.paramsLugarNegociacion
-                        ? await lugarNegociacion(
+                        ? await selectComun(
                             infoArchivo.paramsLugarNegociacion.table,
                             infoArchivo.paramsLugarNegociacion.params
                           )
                         : null;
                     const _lugarNegociacionVacio =
                       infoArchivo?.paramsLugarNegociacionVacio
-                        ? await lugarNegociacion(
+                        ? await selectComun(
                             infoArchivo.paramsLugarNegociacionVacio.table,
                             infoArchivo.paramsLugarNegociacionVacio.params
                           )
                         : null;
                     const _tipoActivo = infoArchivo?.paramsTipoActivo
-                      ? await tipoActivo(
+                      ? await selectComun(
                           infoArchivo.paramsTipoActivo.table,
                           infoArchivo.paramsTipoActivo.params
                         )
                       : null;
                     const _tasaRendimiento = infoArchivo?.paramsTasaRendimiento
-                      ? await tasaRendimiento(
+                      ? await selectComun(
                           infoArchivo.paramsTasaRendimiento.table,
                           infoArchivo.paramsTasaRendimiento.params
                         )
                       : null;
                     const _entidadEmisora = infoArchivo?.paramsEntidadEmisora
-                      ? await entidadEmisora(
+                      ? await selectComun(
                           infoArchivo.paramsEntidadEmisora.table,
                           infoArchivo.paramsEntidadEmisora.params
                         )
                       : null;
                     const _plazoValorConInstrumento =
                       infoArchivo?.paramsPlazoValorConInstrumento
-                        ? await plazoValorConInstrumento(
+                        ? await selectComun(
                             infoArchivo.paramsPlazoValorConInstrumento.table,
                             infoArchivo.paramsPlazoValorConInstrumento.params
                           )
                         : null;
                     const _plazoValorConInstrumentoDiferente =
                       infoArchivo?.paramsPlazoValorConInstrumentoDiferente
-                        ? await plazoValorConInstrumento(
+                        ? await selectComun(
                             infoArchivo.paramsPlazoValorConInstrumentoDiferente
                               .table,
                             infoArchivo.paramsPlazoValorConInstrumentoDiferente
@@ -591,14 +593,14 @@ async function validarArchivosIteraciones(params) {
                         : null;
                     const _tasaRelevanteConInstrumento =
                       infoArchivo?.paramsTasaRelevanteConInstrumento
-                        ? await tasaRelevanteConInstrumento(
+                        ? await selectComun(
                             infoArchivo.paramsTasaRelevanteConInstrumento.table,
                             infoArchivo.paramsTasaRelevanteConInstrumento.params
                           )
                         : null;
                     const _tasaRelevanteConInstrumentoDiferente =
                       infoArchivo?.paramsTasaRelevanteConInstrumentoDiferente
-                        ? await tasaRelevanteConInstrumento(
+                        ? await selectComun(
                             infoArchivo
                               .paramsTasaRelevanteConInstrumentoDiferente.table,
                             infoArchivo
@@ -607,7 +609,7 @@ async function validarArchivosIteraciones(params) {
                         : null;
                     const _plazoEconomicoConInstrumento =
                       infoArchivo?.paramsPlazoEconomicoConInstrumento
-                        ? await plazoEconomicoConInstrumento(
+                        ? await selectComun(
                             infoArchivo.paramsPlazoEconomicoConInstrumento
                               .table,
                             infoArchivo.paramsPlazoEconomicoConInstrumento
@@ -616,7 +618,7 @@ async function validarArchivosIteraciones(params) {
                         : null;
                     const _plazoEconomicoConInstrumentoDiferente =
                       infoArchivo?.paramsPlazoEconomicoConInstrumentoDiferente
-                        ? await plazoEconomicoConInstrumento(
+                        ? await selectComun(
                             infoArchivo
                               .paramsPlazoEconomicoConInstrumentoDiferente
                               .table,
@@ -627,7 +629,7 @@ async function validarArchivosIteraciones(params) {
                         : null;
                     const _tasaUltimoHechoConInstrumento =
                       infoArchivo?.paramsTasaUltimoHechoConInstrumento
-                        ? await tasaUltimoHecho(
+                        ? await selectComun(
                             infoArchivo.paramsTasaUltimoHechoConInstrumento
                               .table,
                             infoArchivo.paramsTasaUltimoHechoConInstrumento
@@ -636,7 +638,7 @@ async function validarArchivosIteraciones(params) {
                         : null;
                     const _tasaUltimoHechoConInstrumentoDiferente =
                       infoArchivo?.paramsTasaUltimoHechoConInstrumentoDiferente
-                        ? await tasaUltimoHecho(
+                        ? await selectComun(
                             infoArchivo
                               .paramsTasaUltimoHechoConInstrumentoDiferente
                               .table,
@@ -646,209 +648,215 @@ async function validarArchivosIteraciones(params) {
                           )
                         : null;
                     const codOperacion = infoArchivo?.paramsCodOperacion
-                      ? await codigoOperacion(
+                      ? await selectComun(
                           infoArchivo.paramsCodOperacion.table,
                           infoArchivo.paramsCodOperacion.params
                         )
                       : null;
                     const _tipoCuenta = infoArchivo?.paramsTipoCuenta
-                      ? await tipoCuenta(
+                      ? await selectComun(
                           infoArchivo.paramsTipoCuenta.table,
                           infoArchivo.paramsTipoCuenta.params
                         )
                       : null;
                     const _entidadFinanciera =
                       infoArchivo?.paramsEntidadFinanciera
-                        ? await entidadFinanciera(
+                        ? await selectComun(
                             infoArchivo.paramsEntidadFinanciera.table,
                             infoArchivo.paramsEntidadFinanciera.params
                           )
                         : null;
                     const _moneda = infoArchivo?.paramsMoneda
-                      ? await moneda(
+                      ? await selectComun(
                           infoArchivo.paramsMoneda.table,
                           infoArchivo.paramsMoneda.params
                         )
                       : null;
                     const _emisor = infoArchivo?.paramsEmisor
-                      ? await emisor(
+                      ? await selectComun(
                           infoArchivo.paramsEmisor.table,
                           infoArchivo.paramsEmisor.params
                         )
                       : null;
+                    const _pais = infoArchivo?.paramsPais
+                      ? await selectComun(
+                          infoArchivo.paramsPais.table,
+                          infoArchivo.paramsPais.params
+                        )
+                      : null;
                     const _tipoAmortizacion =
                       infoArchivo?.paramsTipoAmortizacion
-                        ? await emisor(
+                        ? await selectComun(
                             infoArchivo.paramsTipoAmortizacion.table,
                             infoArchivo.paramsTipoAmortizacion.params
                           )
                         : null;
                     const _tipoInteres = infoArchivo?.paramsTipoInteres
-                      ? await emisor(
+                      ? await selectComun(
                           infoArchivo.paramsTipoInteres.table,
                           infoArchivo.paramsTipoInteres.params
                         )
                       : null;
                     const _tipoTasa = infoArchivo?.paramsTipoTasa
-                      ? await emisor(
+                      ? await selectComun(
                           infoArchivo.paramsTipoTasa.table,
                           infoArchivo.paramsTipoTasa.params
                         )
                       : null;
                     const _prepago = infoArchivo?.paramsPrepago
-                      ? await prepago(
+                      ? await selectComun(
                           infoArchivo.paramsPrepago.table,
                           infoArchivo.paramsPrepago.params
                         )
                       : null;
                     const _subordinado = infoArchivo?.paramsSubordinado
-                      ? await subordinado(
+                      ? await selectComun(
                           infoArchivo.paramsSubordinado.table,
                           infoArchivo.paramsSubordinado.params
                         )
                       : null;
                     const _calificacion = infoArchivo?.paramsCalificacion
-                      ? await calificacion(
+                      ? await selectComun(
                           infoArchivo.paramsCalificacion.table,
                           infoArchivo.paramsCalificacion.params
                         )
                       : null;
                     const _calificacionVacio =
                       infoArchivo?.paramsCalificacionVacio
-                        ? await calificacion(
+                        ? await selectComun(
                             infoArchivo.paramsCalificacionVacio.table,
                             infoArchivo.paramsCalificacionVacio.params
                           )
                         : null;
                     const _calificacionConInstrumento =
                       infoArchivo?.paramsCalificacionConInstrumento
-                        ? await calificacion(
+                        ? await selectComun(
                             infoArchivo.paramsCalificacionConInstrumento.table,
                             infoArchivo.paramsCalificacionConInstrumento.params
                           )
                         : null;
                     const _calificadora = infoArchivo?.paramsCalificadora
-                      ? await calificadora(
+                      ? await selectComun(
                           infoArchivo.paramsCalificadora.table,
                           infoArchivo.paramsCalificadora.params
                         )
                       : null;
                     const _calificadoraConInstrumento =
                       infoArchivo?.paramsCalificadoraConInstrumento
-                        ? await calificadora(
+                        ? await selectComun(
                             infoArchivo.paramsCalificadoraConInstrumento.table,
                             infoArchivo.paramsCalificadoraConInstrumento.params
                           )
                         : null;
                     const _custodio = infoArchivo?.paramsCustodio
-                      ? await custodio(
+                      ? await selectComun(
                           infoArchivo.paramsCustodio.table,
                           infoArchivo.paramsCustodio.params
                         )
                       : null;
                     const codMercado = infoArchivo?.paramsCodMercado
-                      ? await codigoMercado(
+                      ? await selectComun(
                           infoArchivo.paramsCodMercado.table,
                           infoArchivo.paramsCodMercado.params
                         )
                       : null;
                     const calfRiesgo = infoArchivo?.paramsCalfRiesgo
-                      ? await calificacionRiesgo(
+                      ? await selectComun(
                           infoArchivo.paramsCalfRiesgo.table,
                           infoArchivo.paramsCalfRiesgo.params
                         )
                       : null;
                     const codCustodia = infoArchivo?.paramsCodCustodia
-                      ? await codigoCustodia(
+                      ? await selectComun(
                           infoArchivo.paramsCodCustodia.table,
                           infoArchivo.paramsCodCustodia.params
                         )
                       : null;
 
                     const instrumento135 = infoArchivo?.paramsInstrumento135
-                      ? await tipoInstrumento(
+                      ? await selectComun(
                           infoArchivo.paramsInstrumento135.table,
                           infoArchivo.paramsInstrumento135.params
                         )
                       : null;
                     const instrumento136 = infoArchivo?.paramsInstrumento136
-                      ? await tipoInstrumento(
+                      ? await selectComun(
                           infoArchivo.paramsInstrumento136.table,
                           infoArchivo.paramsInstrumento136.params
                         )
                       : null;
                     const cortoPlazo = infoArchivo?.paramsCortoPlazo
-                      ? await CortoLargoPlazo(
+                      ? await selectComun(
                           infoArchivo.paramsCortoPlazo.table,
                           infoArchivo.paramsCortoPlazo.params
                         )
                       : null;
                     const largoPlazo = infoArchivo?.paramsLargoPlazo
-                      ? await CortoLargoPlazo(
+                      ? await selectComun(
                           infoArchivo.paramsLargoPlazo.table,
                           infoArchivo.paramsLargoPlazo.params
                         )
                       : null;
                     const calfRiesgoNormal = infoArchivo?.paramsCalfRiesgo
-                      ? await calificacionRiesgo(
+                      ? await selectComun(
                           infoArchivo.paramsCalfRiesgo.table,
                           infoArchivo.paramsCalfRiesgo.params
                         )
                       : null;
                     const tipoCambio = infoArchivo?.paramsTipoDeCambio
-                      ? await tipoDeCambio(
+                      ? await selectComun(
                           infoArchivo.paramsTipoDeCambio.table,
                           infoArchivo.paramsTipoDeCambio.params
                         )
                       : null;
                     const _bolsa = infoArchivo?.paramsBolsa
-                      ? await bolsa(
+                      ? await selectComun(
                           infoArchivo.paramsBolsa.table,
                           infoArchivo.paramsBolsa.params
                         )
                       : null;
                     const _tipoValoracion = infoArchivo?.paramsTipoValoracion
-                      ? await tipoValoracion(
+                      ? await selectComun(
                           infoArchivo.paramsTipoValoracion.table,
                           infoArchivo.paramsTipoValoracion.params
                         )
                       : null;
                     const _tipoValoracion22 =
                       infoArchivo?.paramsTipoValoracion22
-                        ? await tipoValoracion(
+                        ? await selectComun(
                             infoArchivo.paramsTipoValoracion22.table,
                             infoArchivo.paramsTipoValoracion22.params
                           )
                         : null;
                     const _tipoValoracion31 =
                       infoArchivo?.paramsTipoValoracion31
-                        ? await tipoValoracion(
+                        ? await selectComun(
                             infoArchivo.paramsTipoValoracion31.table,
                             infoArchivo.paramsTipoValoracion31.params
                           )
                         : null;
                     const _tipoValoracion210 =
                       infoArchivo?.paramsTipoValoracion22
-                        ? await tipoValoracion(
+                        ? await selectComun(
                             infoArchivo.paramsTipoValoracion210.table,
                             infoArchivo.paramsTipoValoracion210.params
                           )
                         : null;
 
                     const _instrumento135 = infoArchivo?.paramsInstrumento135
-                      ? await tipoInstrumento(
+                      ? await selectComun(
                           infoArchivo.paramsInstrumento135.table,
                           infoArchivo.paramsInstrumento135.params
                         )
                       : null;
                     const _instrumento1 = infoArchivo?.paramsInstrumento1
-                      ? await tipoInstrumento(
+                      ? await selectComun(
                           infoArchivo.paramsInstrumento1.table,
                           infoArchivo.paramsInstrumento1.params
                         )
                       : null;
                     const _instrumento18 = infoArchivo?.paramsInstrumento18
-                      ? await tipoInstrumento(
+                      ? await selectComun(
                           infoArchivo.paramsInstrumento18.table,
                           infoArchivo.paramsInstrumento18.params
                         )
@@ -856,7 +864,7 @@ async function validarArchivosIteraciones(params) {
 
                     const _cadenaCombinadalugarNegTipoOperTipoInstrum =
                       infoArchivo?.paramsCadenaCombinadalugarNegTipoOperTipoInstrum
-                        ? await tipoValoracion(
+                        ? await selectComun(
                             infoArchivo
                               .paramsCadenaCombinadalugarNegTipoOperTipoInstrum
                               .table,
@@ -943,6 +951,7 @@ async function validarArchivosIteraciones(params) {
                             _entidadFinanciera,
                             _moneda,
                             _emisor,
+                            _pais,
                             _tipoAmortizacion,
                             _tipoInteres,
                             _tipoTasa,
@@ -1029,6 +1038,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _entidadFinanciera = params._entidadFinanciera;
       const _moneda = params._moneda;
       const _emisor = params._emisor;
+      const _pais = params._pais;
       const _tipoAmortizacion = params._tipoAmortizacion;
       const _tipoInteres = params._tipoInteres;
       const _tipoTasa = params._tipoTasa;
@@ -1058,10 +1068,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _instrumento1 = params._instrumento1;
       const _instrumento18 = params._instrumento18;
       let lugarNegociacionTipoOperacionAux = false;
-      const VARS_AUX = {
-        var441To444: false,
-        var442To445: false,
-      };
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
@@ -2020,6 +2026,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             let errFunction = true;
             map(_emisor?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_rmv) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "pais") {
+            let errFunction = true;
+            map(_pais?.resultFinal, (item4, index4) => {
+              if (value === item4.codigo) {
                 errFunction = false;
               }
             });

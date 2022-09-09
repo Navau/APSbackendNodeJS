@@ -96,6 +96,16 @@ function respResultadoCorrecto200(res, result, msg) {
   });
 }
 
+function respResultadoIncorrectoObjeto200(res, err, data, msg) {
+  res.status(200).send({
+    resultado: 0,
+    datos: data,
+    mensaje: msg ? msg : "La petición no fue realizada correctamente.",
+    mensaje_error: err?.message,
+    err,
+  });
+}
+
 function respResultadoCorrectoObjeto200(res, data, msg) {
   res.status(200).send({
     resultado: 1,
@@ -169,4 +179,5 @@ module.exports = {
   respErrorServidor500END,
   respArchivoErroneo200,
   respResultadoVacioObject200,
+  respResultadoIncorrectoObjeto200,
 };
