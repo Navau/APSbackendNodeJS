@@ -99,11 +99,8 @@ async function Insertar(req, res) {
   const body = req.body;
   const { clave_instrumento, fecha_emision } = body;
 
-  if (!clave_instrumento || !fecha_emision) {
-    respDatosNoRecibidos400(
-      res,
-      "No se recibio clave_instrumento y fecha_emision"
-    );
+  if (!clave_instrumento) {
+    respDatosNoRecibidos400(res, "No se recibio clave_instrumento");
     return;
   }
 
