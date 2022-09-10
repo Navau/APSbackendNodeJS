@@ -2559,7 +2559,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "flujo_total",
@@ -5103,6 +5103,10 @@ async function operacionEntreColumnas(params) {
     let fieldsErrorText = "";
     let result = fields[0].value;
     let fieldsResultText = `${fields[0].key}`;
+    if (!dates) {
+      console.log("TOTAL", total);
+      console.log("FIELDS", fields);
+    }
 
     map(fields, (item, index) => {
       if (isNaN(item.value) && index % 2 === 0) {
@@ -5146,6 +5150,7 @@ async function operacionEntreColumnas(params) {
 
     if (dates) {
       result = Math.abs(result) / (1000 * 3600 * 24);
+      console.log(result);
       if (result !== total.value) {
         return {
           ok: true,

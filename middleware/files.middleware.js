@@ -2078,7 +2078,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000"
           ) {
             let _operacionEntreColumnas =
-              infoArchivo?.paramsFlujoTotalMenosAmortizacion
+              infoArchivo?.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
@@ -2806,17 +2806,30 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     fields: [
                       {
                         key: "fecha_vencimiento (en dias)",
-                        value: item2.fecha_vencimiento,
+                        value: new Date(
+                          item2.fecha_vencimiento?.slice(0, 4) +
+                            "-" +
+                            item2.fecha_vencimiento?.slice(4, 6) +
+                            "-" +
+                            item2.fecha_vencimiento?.slice(6)
+                        ),
                       },
                       "-",
                       {
                         key: "fecha_emision (en dias)",
-                        value: item2.fecha_emision,
+                        value: new Date(
+                          item2.fecha_emision?.slice(0, 4) +
+                            "-" +
+                            item2.fecha_emision?.slice(4, 6) +
+                            "-" +
+                            item2.fecha_emision?.slice(6)
+                        ),
                       },
                     ],
                     dates: true,
                   })
                 : null;
+            console.log(_operacionEntreColumnas);
 
             if (_operacionEntreColumnas?.ok === false) {
               errors.push({
