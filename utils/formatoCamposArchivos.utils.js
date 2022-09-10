@@ -56,13 +56,14 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTasaRelevanteConInstrumentoDiferente: null,
         paramsPlazoValorConInstrumentoDiferente: null,
         paramsPlazoEconomicoConInstrumentoDiferente: null,
-        paramsAccionesMO: null,
         paramsCodMercado: null,
         paramsCalfRiesgo: null,
         paramsCodCustodia: null,
         paramsTipoCuenta: null,
         paramsInteresMasAmortizacion: null,
         paramsSaldoCapitalMenosAmortizacionCuponAnterior: null,
+        paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000:
+          null,
         paramsCantidadMultiplicadoPrecio: null,
         paramsTotalBsMenosPrevisionesInversionesBs: null,
         paramsSaldoAntMasAltasBajasMasActualizacion: null,
@@ -111,6 +112,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
         paramsUnico: null,
         headers: null,
+        detailsHeaders: null,
         paramsCadenaCombinadalugarNegTipoOperTipoInstrum: null,
         tipoOperacionCOP: null,
       };
@@ -119,7 +121,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : K", nameFile);
         PARAMS.codeCurrentFile = "K";
         PARAMS.nameTable = "APS_aud_carga_archivos_bolsa";
-        PARAMS.headers = await formatoArchivo("K");
         PARAMS.paramsBolsa = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -150,7 +151,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : L", nameFile);
         PARAMS.codeCurrentFile = "L";
         PARAMS.nameTable = "APS_aud_carga_archivos_bolsa";
-        PARAMS.headers = await formatoArchivo("L");
         PARAMS.paramsBolsa = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -180,7 +180,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : N", nameFile);
         PARAMS.codeCurrentFile = "N";
         PARAMS.nameTable = "APS_aud_carga_archivos_bolsa";
-        PARAMS.headers = await formatoArchivo("N");
         PARAMS.paramsBolsa = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -197,7 +196,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : P", nameFile);
         PARAMS.codeCurrentFile = "P";
         PARAMS.nameTable = "APS_aud_carga_archivos_bolsa";
-        PARAMS.headers = await formatoArchivo("P");
         PARAMS.paramsBolsa = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -226,7 +224,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 411", nameFile);
         PARAMS.codeCurrentFile = "411";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsLugarNegociacion = {
           table: "APS_param_lugar_negociacion",
           params: {
@@ -324,7 +322,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 412", nameFile);
         PARAMS.codeCurrentFile = "412";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsLugarNegociacion = {
           table: "APS_param_lugar_negociacion",
           params: {
@@ -433,7 +431,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 413", nameFile);
         PARAMS.codeCurrentFile = "413";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -451,7 +449,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 441", nameFile);
         PARAMS.codeCurrentFile = "441";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -590,7 +588,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 442", nameFile);
         PARAMS.codeCurrentFile = "442";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -665,7 +663,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 443", nameFile);
         PARAMS.codeCurrentFile = "443";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -737,7 +735,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 444", nameFile);
         PARAMS.codeCurrentFile = "444";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -751,13 +749,14 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsPlazoCuponMasAmortizacion = true;
+        PARAMS.paramsInteresMasAmortizacion = true;
         PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
+        PARAMS.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000 = true;
       } else if (nameFile.includes(".445")) {
         console.log("ARCHIVO CORRECTO : 445", nameFile);
         PARAMS.codeCurrentFile = "445";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -773,11 +772,12 @@ async function obtenerInformacionDeArchivo(nameFile) {
         };
         PARAMS.paramsInteresMasAmortizacion = true;
         PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
+        PARAMS.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000 = true;
       } else if (nameFile.includes(".451")) {
         console.log("ARCHIVO CORRECTO : 451", nameFile);
         PARAMS.codeCurrentFile = "451";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsTipoCuenta = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -837,7 +837,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 481", nameFile);
         PARAMS.codeCurrentFile = "481";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1145,7 +1145,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 482", nameFile);
         PARAMS.codeCurrentFile = "482";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1453,7 +1453,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 483", nameFile);
         PARAMS.codeCurrentFile = "483";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1473,7 +1473,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 484", nameFile);
         PARAMS.codeCurrentFile = "484";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsTipoActivo = {
           table: "APS_param_tipo_instrumento",
           select: ["sigla"],
@@ -1538,7 +1538,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 485", nameFile);
         PARAMS.codeCurrentFile = "485";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsTipoActivo = {
           table: "APS_param_tipo_instrumento",
           select: ["sigla"],
@@ -1603,7 +1603,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 486", nameFile);
         PARAMS.codeCurrentFile = "486";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1641,7 +1641,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 461", nameFile);
         PARAMS.codeCurrentFile = "461";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsTipoCuenta = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -1697,7 +1697,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 471", nameFile);
         PARAMS.codeCurrentFile = "471";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsTipoActivo = {
           table: "APS_param_clasificador_comun",
           select: ["sigla"],
@@ -1712,7 +1712,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 491", nameFile);
         PARAMS.codeCurrentFile = "491";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
         PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
         PARAMS.paramsSaldoFinalMenosSaldoFinalDep = true;
@@ -1720,7 +1720,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 492", nameFile);
         PARAMS.codeCurrentFile = "492";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
         PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
         PARAMS.paramsSaldoFinalMenosSaldoFinalDep = true;
@@ -1728,30 +1728,29 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 494", nameFile);
         PARAMS.codeCurrentFile = "494";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs = true;
       } else if (nameFile.includes(".496")) {
         console.log("ARCHIVO CORRECTO : 496", nameFile);
         PARAMS.codeCurrentFile = "496";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsDepreciacionPeriodoMasAltasBajasDepreciacion = true;
       } else if (nameFile.includes(".497")) {
         console.log("ARCHIVO CORRECTO : 497", nameFile);
         PARAMS.codeCurrentFile = "497";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsCantidadCuotasMultiplicadoCuotaBs = true;
       } else if (nameFile.includes(".498")) {
         console.log("ARCHIVO CORRECTO : 498", nameFile);
         PARAMS.codeCurrentFile = "498";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
       } else if (nameFile.includes(".CC")) {
         console.log("ARCHIVO CORRECTO : CC", nameFile);
         PARAMS.codeCurrentFile = "CC";
         PARAMS.nameTable = "APS_aud_carga_archivos_custodio";
-        PARAMS.headers = await formatoArchivo(PARAMS.codeCurrentFile);
+
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1785,6 +1784,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
       } else {
         reject();
       }
+      const columnsHeaders = await formatoArchivo(PARAMS.codeCurrentFile);
+      PARAMS.detailsHeaders = await columnsHeaders.detailsHeaders;
+      PARAMS.headers = await columnsHeaders.headers;
+      // console.log(columnsHeaders);
       // console.log(PARAMS.codeCurrentFile);
       // console.log(PARAMS.headers);
       resolve(PARAMS);
@@ -1898,17 +1901,18 @@ async function formatoArchivo(type) {
     },
   };
   // console.log(HEADERS[type].table);
-  let resultFinal = null;
-  await obtenerCabeceras(HEADERS[type].table)
+  const resultFinal = await obtenerCabeceras(HEADERS[type].table)
     .then((response) => {
-      let resultAux = [];
+      const detailsHeaders = [];
+      const headers = [];
       map(response.rows, (item, index) => {
-        resultAux.push(item.column_name);
+        detailsHeaders.push(item);
+        headers.push(item.column_name);
       });
-      resultFinal = resultAux;
+      return { detailsHeaders, headers };
     })
     .catch((err) => {
-      resultFinal = { err };
+      return { err };
     });
   return resultFinal;
 }
@@ -2523,7 +2527,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_cupon",
-        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
         unique: true,
         function: "mayorACeroEntero",
       },
@@ -2549,7 +2553,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function:
-          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000",
+          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
       },
       {
         columnName: "amortizacion",
@@ -2610,7 +2614,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function:
-          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000",
+          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
       },
       {
         columnName: "amortizacion",
@@ -2620,7 +2624,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "plazoCuponMasAmortizacion",
+        function: "amortizacionMasInteres",
       },
       {
         columnName: "saldo_capital",
@@ -2896,7 +2900,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
-        function: null,
+        function: "fechaOperacionMenorAlArchivo",
       },
       {
         columnName: "cantidad",
@@ -3797,6 +3801,7 @@ async function obtenerValidaciones(typeFile) {
 
 async function formatearDatosEInsertarCabeceras(
   headers,
+  detailsHeaders,
   dataSplit,
   codeCurrentFile
 ) {
@@ -3804,18 +3809,18 @@ async function formatearDatosEInsertarCabeceras(
     let arrayDataObject = [];
     let errors = [];
     let errorsValues = [];
-    headers.splice(0, 1); // ELIMINAR ID DE TABLA
+    headers?.splice(0, 1); // ELIMINAR ID DE TABLA
 
     map(
       ["id_carga_archivos", "cod_institucion", "fecha_informacion"],
       (item, index) => {
         let myIndex = headers.indexOf(item);
         if (myIndex !== -1) {
-          headers.splice(myIndex, 1);
+          headers?.splice(myIndex, 1);
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    console.log(headers);
+    console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
@@ -3900,7 +3905,7 @@ async function formatearDatosEInsertarCabeceras(
       });
     };
 
-    console.log(dataSplit);
+    console.log("INFORMACION", codeCurrentFile, dataSplit);
     if (
       (codeCurrentFile === "444" || codeCurrentFile === "445") &&
       dataSplit[0] !== ""
@@ -4124,12 +4129,6 @@ async function tipoMarcacion(params) {
     ok: true,
     message: "Valores correctos",
   };
-}
-
-async function accionesMonedaOriginal(params) {
-  const { numero_acciones, precio_unitario } = params;
-
-  return parseFloat(numero_acciones) * parseFloat(precio_unitario);
 }
 
 async function codigoOperacion(table, params) {
@@ -5158,7 +5157,7 @@ async function operacionEntreColumnas(params) {
         };
       }
     } else {
-      if (result.toFixed(2) === parseFloat(total.value).toFixed(2)) {
+      if (result === total.value) {
         return {
           ok: true,
           message: `El valor si es correcto`,
@@ -5299,7 +5298,6 @@ module.exports = {
   codigoMercado,
   calificacionRiesgo,
   codigoCustodia,
-  accionesMonedaOriginal,
   formatearDatosEInsertarCabeceras,
   obtenerInformacionDeArchivo,
   tipoCuenta,

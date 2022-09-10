@@ -10,9 +10,9 @@ api.post(
   [
     md_auth.AsegurarAutenticacionConToken,
     md_files.subirArchivo,
-    md_files.validarArchivo2,
+    md_files.validarArchivo,
   ],
-  controller.CargarArchivo3
+  controller.CargarArchivo
 );
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);

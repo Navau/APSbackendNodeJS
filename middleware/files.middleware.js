@@ -6,139 +6,47 @@ const pool = require("../database");
 const moment = require("moment");
 
 const {
-  formatoArchivo,
   obtenerValidaciones,
-  clasificadorComun,
   tipoMarcacion,
-  tipoInstrumento,
-  codigoOperacion,
-  codigoMercado,
-  calificacionRiesgo,
-  codigoCustodia,
   formatearDatosEInsertarCabeceras,
-  accionesMonedaOriginal,
   obtenerInformacionDeArchivo,
-  flujoTotal,
-  tipoCuenta,
-  entidadFinanciera,
-  moneda,
   calificacionRiesgoConsultaMultiple,
-  CortoLargoPlazo,
-  codigoValoracionConInstrumento,
   fechaOperacionMenor,
   montoFinalConTipoDeCambio,
-  tipoDeCambio,
-  bolsa,
-  tipoValoracion,
-  cantidadPorPrecio,
-  tipoActivo,
   mayorACeroDecimal,
   mayorACeroEntero,
-  saldoAntMasAltasBajasMasActualizacion,
-  saldoAntMenosBajasMasDepreciacionMesMasActualizacion,
-  saldoFinalMesAnteriorBsMasMovimientoMesBs,
-  depreciacionPeriodoMasAltasBajasDepreciacion,
   operacionEntreColumnas,
-  emisor,
-  tipoOperacion,
-  lugarNegociacion,
   cartera,
-  prepago,
-  subordinado,
-  calificacion,
-  calificadora,
-  custodio,
   plazoCupon,
   mayorIgualACeroDecimal,
   mayorIgualACeroEntero,
-  plazoEconomicoConInstrumento,
-  tasaRelevanteConInstrumento,
-  plazoValorConInstrumento,
   tipoValoracionConsultaMultiple,
-  tipoValoracion22,
-  tipoValoracion31,
-  tipoValoracion210,
-  tasaRendimiento,
-  entidadEmisora,
   unico,
   igualA,
-  tasaUltimoHecho,
-  pais,
   selectComun,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  DeshabilitarUtil,
-  ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
-  CargarArchivoABaseDeDatosUtil,
-  EliminarUtil,
-  ResetearIDUtil,
   InsertarVariosUtil,
-  ObtenerColumnasDeTablaUtil,
 } = require("../utils/consulta.utils");
 
 const {
   respErrorServidor500,
   respErrorMulter500,
   respDatosNoRecibidos400,
-  respArchivoErroneo415,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respResultadoCorrectoObjeto200,
   respErrorServidor500END,
   respArchivoErroneo200,
 } = require("../utils/respuesta.utils");
-const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
 var nameTable = "";
 var codeCurrentFile = "";
 var codeCurrentFilesArray = [];
-var periodicidadFinal = null;
 var nameTableErrors = "";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
 var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
-var valuesUniquesArray = []; //VALORES UNICOS PARA ARCHIVOS
-
-async function obtenerInstitucion(params) {
-  const obtenerListaInstitucion = new Promise(async (resolve, reject) => {
-    const params = {
-      select: [
-        `"APS_seg_institucion".codigo`,
-        `"APS_param_clasificador_comun".descripcion`,
-      ],
-      from: [`"APS_seg_institucion"`],
-      innerjoin: [
-        {
-          join: `"APS_param_clasificador_comun"`,
-          on: [
-            `"APS_param_clasificador_comun".id_clasificador_comun = "APS_seg_institucion".id_tipo_mercado`,
-          ],
-        },
-      ],
-      // where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
-    };
-    let query = SelectInnerJoinSimple(params);
-    await pool
-      .query(query)
-      .then((result) => {
-        resolve(result);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-
-  return obtenerListaInstitucion;
-}
 
 function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
   const verificarArchivos = new Promise((resolve, reject) => {
@@ -227,13 +135,11 @@ async function obtenerListaArchivos(params) {
       tipo_periodo === "D"
     ) {
       periodicidad = [154];
-      periodicidadFinal = 154;
     } else if (
       typeFiles[0].originalname.toUpperCase().substring(0, 3) === "108" &&
       tipo_periodo === "M"
     ) {
       periodicidad = [155];
-      periodicidadFinal = 155;
     }
   }
 
@@ -515,6 +421,7 @@ async function validarArchivosIteraciones(params) {
               } else {
                 isOkQuerys = true;
                 let headers = null;
+                let detailsHeaders = null;
                 let infoArchivo = null;
                 let arrayDataObject = null;
 
@@ -526,6 +433,7 @@ async function validarArchivosIteraciones(params) {
                     codeCurrentFile = await infoArchivo.codeCurrentFile;
                     nameTable = await infoArchivo.nameTable;
                     headers = await infoArchivo.headers;
+                    detailsHeaders = await infoArchivo.detailsHeaders;
                     // console.log(headers);
 
                     codeCurrentFilesArray.push(codeCurrentFile);
@@ -880,6 +788,7 @@ async function validarArchivosIteraciones(params) {
 
                     await formatearDatosEInsertarCabeceras(
                       headers,
+                      detailsHeaders,
                       dataSplit,
                       codeCurrentFile
                     )
@@ -1072,7 +981,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
       // console.log(dependenciesArray);
-      console.log(codeCurrentFile);
+      // console.log(codeCurrentFile);
       // console.log("arrayDataObject", arrayDataObject);
       // console.log(valuesUniquesArray);
       lengthFilesObject[codeCurrentFile] = arrayDataObject.length;
@@ -1164,57 +1073,63 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           }
-          if (item?.archivo?.includes("441")) {
-            const serieCombinada441 = `${item2.tipo_instrumento}${item2.serie}`;
+          //#region EJECUCION DE VALIDACIONES DE DEPENDENCIAS DE ARCHIVOS
+          if (codeCurrentFile === "441" || codeCurrentFile === "443") {
+            const serieCombinada = `${item2.tipo_instrumento}${item2.serie}`;
             map(dependenciesArray, (itemDP, indexDP) => {
               if (
-                (itemDP?.file?.includes("411") ||
-                  itemDP?.file?.includes("413")) &&
-                serieCombinada441 !== itemDP.value
+                serieCombinada !== itemDP.value &&
+                (itemDP.code === "411" || itemDP.code === "413")
               ) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO OPERACION NO VALIDA",
-                  descripcion: `El tipo_instrumento combinado con la serie del archivo ${itemDP.file} no debe ser igual a el tipo_instrumento combinado con la serie del archivo ${item.archivo} debido a que el tipo_operacion en el archivo ${itemDP.file} es igual a "COP". SERIE DEL ARCHIVO ${itemDP.file}: ${itemDP.value}, SERIE DEL ARCHIVO ${item.archivo}: ${serieCombinada441}`,
+                  descripcion: `El tipo_instrumento combinado con la serie del archivo ${itemDP.file} no debe ser igual a el tipo_instrumento combinado con la serie del archivo ${item.archivo} debido a que el tipo_operacion en el archivo ${itemDP.file} es igual a "COP". SERIE DEL ARCHIVO ${itemDP.file}: ${itemDP.value}, SERIE DEL ARCHIVO ${item.archivo}: ${serieCombinada}`,
                   valor: itemDP.value,
                   columna: itemDP.column,
                   fila: itemDP.row,
                 });
               }
             });
-          } else if (
-            codeCurrentFile === "444" &&
+          }
+          if (
+            (codeCurrentFile === "444" || codeCurrentFile === "445") &&
             index2 === arrayDataObject.length - 1 &&
             index3 === arrayValidateObject.length - 1
           ) {
             // console.log(dependenciesArray);
             map(dependenciesArray, (itemDP, indexDP) => {
-              if (itemDP.code === "441") {
+              if (
+                (itemDP.code === "441" && codeCurrentFile === "444") ||
+                (itemDP.code === "442" && codeCurrentFile === "445")
+              ) {
                 if (itemDP.column === "nro_pago") {
-                  // console.log(itemDP);
-                  const cantidadNroPago441 = itemDP.value.nro_pago;
-                  const siglaInstrumentoSerie441 =
+                  const cantidadNroPago = itemDP.value.nro_pago;
+                  const tipoTasa = itemDP.value.tipo_tasa;
+                  const dependencyInstrumentoSerie =
                     itemDP.value.instrumentoSerie;
-                  let siglaInstrumentoSerie444 = "";
-                  let siglaInstrumentoSerie444Aux = "";
-                  let countInstrumentoSerie444 = 0;
+                  let currentInstrumentoSerie = "";
+                  let currentInstrumentoSerieAux = "";
+                  let countCurrentInstrumentoSerie = 0;
 
                   map(arrayDataObject, (itemArray, indexArray) => {
-                    siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
-                    if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
-                      siglaInstrumentoSerie444Aux = siglaInstrumentoSerie444;
-                      countInstrumentoSerie444++;
+                    currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                    if (
+                      dependencyInstrumentoSerie === currentInstrumentoSerie
+                    ) {
+                      currentInstrumentoSerieAux = currentInstrumentoSerie;
+                      countCurrentInstrumentoSerie++;
                     }
                   });
                   // console.log("cantidadNroPago441", cantidadNroPago441);
                   // console.log(
-                  //   "countInstrumentoSerie444",
-                  //   countInstrumentoSerie444
+                  //   "countCurrentInstrumentoSerie",
+                  //   countCurrentInstrumentoSerie
                   // );
 
                   if (
-                    parseInt(countInstrumentoSerie444) !==
-                    parseInt(cantidadNroPago441)
+                    parseInt(countCurrentInstrumentoSerie) !==
+                    parseInt(cantidadNroPago)
                   ) {
                     errors.push({
                       archivo: `${itemDP.file}, ${item.archivo}`,
@@ -1222,39 +1137,37 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
                       valor: `${
                         itemDP.code
-                      }: serie: ${siglaInstrumentoSerie441}, ${
+                      }: serie: ${dependencyInstrumentoSerie}, ${
                         itemDP.column
-                      }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
-                        siglaInstrumentoSerie444Aux &&
-                        `serie: ${siglaInstrumentoSerie444Aux}, `
-                      }registros: ${countInstrumentoSerie444}`,
+                      }: ${cantidadNroPago}, ${codeCurrentFile}: ${
+                        currentInstrumentoSerieAux &&
+                        `serie: ${currentInstrumentoSerieAux}, `
+                      }registros: ${countCurrentInstrumentoSerie}`,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
                     });
                   }
                 } else if (itemDP.column === "tipo_tasa") {
-                  const tipoTasa441 = itemDP.value.tipo_tasa;
+                  const tipoTasa = itemDP.value.tipo_tasa;
                   const siglaInstrumentoSerie441 =
                     itemDP.value.instrumentoSerie;
-                  let siglaInstrumentoSerie444 = "";
-                  let siglaInstrumentoSerie444Aux = "";
-                  let countInstrumentoSerie444 = 0;
-
+                  let currentInstrumentoSerie = "";
+                  let currentInstrumentoSerieAux = "";
+                  let countCurrentInstrumentoSerie = 0;
                   map(arrayDataObject, (itemArray, indexArray) => {
-                    siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
-                    if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
-                      siglaInstrumentoSerie444Aux = siglaInstrumentoSerie444;
-                      countInstrumentoSerie444++;
+                    currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                    if (siglaInstrumentoSerie441 === currentInstrumentoSerie) {
+                      currentInstrumentoSerieAux = currentInstrumentoSerie;
+                      countCurrentInstrumentoSerie++;
                     }
                   });
                   // console.log("cantidadNroPago441", cantidadNroPago441);
                   // console.log(
-                  //   "countInstrumentoSerie444",
-                  //   countInstrumentoSerie444
+                  //   "countCurrentInstrumentoSerie",
+                  //   countCurrentInstrumentoSerie
                   // );
-
                   if (
-                    parseInt(countInstrumentoSerie444) !==
+                    parseInt(countCurrentInstrumentoSerie) !==
                     parseInt(cantidadNroPago441)
                   ) {
                     errors.push({
@@ -1266,9 +1179,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       }: serie: ${siglaInstrumentoSerie441}, ${
                         itemDP.column
                       }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
-                        siglaInstrumentoSerie444Aux &&
-                        `serie: ${siglaInstrumentoSerie444Aux}, `
-                      }registros: ${countInstrumentoSerie444}`,
+                        currentInstrumentoSerieAux &&
+                        `serie: ${currentInstrumentoSerieAux}, `
+                      }registros: ${countCurrentInstrumentoSerie}`,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
                     });
@@ -1276,57 +1189,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               }
             });
-          } else if (
-            codeCurrentFile === "445" &&
-            index2 === arrayDataObject.length - 1 &&
-            index3 === arrayValidateObject.length - 1
-          ) {
-            // console.log(dependenciesArray);
-            map(dependenciesArray, (itemDP, indexDP) => {
-              if (itemDP.column === "nro_pago" && itemDP.code === "442") {
-                // console.log(itemDP);
-                const cantidadNroPago441 = itemDP.value.nro_pago;
-                const siglaInstrumentoSerie441 = itemDP.value.instrumentoSerie;
-                let siglaInstrumentoSerie444 = "";
-                let siglaInstrumentoSerie444Aux = "";
-                let countInstrumentoSerie444 = 0;
-
-                map(arrayDataObject, (itemArray, indexArray) => {
-                  siglaInstrumentoSerie444 = `${itemArray.tipo_instrumento}${itemArray.serie}`;
-                  if (siglaInstrumentoSerie441 === siglaInstrumentoSerie444) {
-                    siglaInstrumentoSerie444Aux = siglaInstrumentoSerie444;
-                    countInstrumentoSerie444++;
-                  }
-                });
-                // console.log("cantidadNroPago441", cantidadNroPago441);
-                // console.log(
-                //   "countInstrumentoSerie444",
-                //   countInstrumentoSerie444
-                // );
-
-                if (
-                  parseInt(countInstrumentoSerie444) !==
-                  parseInt(cantidadNroPago441)
-                ) {
-                  errors.push({
-                    archivo: `${itemDP.file}, ${item.archivo}`,
-                    tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
-                    descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                    valor: `${
-                      itemDP.code
-                    }: serie: ${siglaInstrumentoSerie441}, ${
-                      itemDP.column
-                    }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
-                      siglaInstrumentoSerie444Aux &&
-                      `serie: ${siglaInstrumentoSerie444Aux}, `
-                    }registros: ${countInstrumentoSerie444}`,
-                    columna: `${itemDP.code}: ${itemDP.column}`,
-                    fila: itemDP.row,
-                  });
-                }
-              }
-            });
           }
+          //#endregion
+
+          //#region CREACION DE VALIDACIONES DE DEPENDENCIAS DE ARCHIVOS
           if (codeCurrentFile === "441" || codeCurrentFile === "442") {
             if (columnName === "nro_pago") {
               if (isNaN(parseInt(value))) {
@@ -1363,102 +1229,24 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           }
-          if (
-            columnName === "serie" &&
-            codeCurrentFile === "411" &&
-            operationNotValid === "tipoOperacionCOP" &&
-            infoArchivo.tipoOperacionCOP
-          ) {
-            if (item2.tipo_operacion === "COP") {
-              const serieCombinada411 = `${item2.tipo_instrumento}${item2.serie}`;
-              if (dependenciesArray.length >= 1) {
-                map(dependenciesArray, (itemDP, indexDP) => {
-                  if (!itemDP?.file?.includes("411")) {
-                    dependenciesArray.push({
-                      file: item.archivo,
-                      code: codeCurrentFile,
-                      value: serieCombinada411,
-                      row: index2,
-                      column: columnName,
-                    });
-                  }
-                });
-              } else {
+          if (codeCurrentFile === "411" || codeCurrentFile === "413") {
+            if (
+              columnName === "serie" &&
+              operationNotValid === "tipoOperacionCOP"
+            ) {
+              if (item2.tipo_operacion === "COP") {
+                const serieCombinada = `${item2.tipo_instrumento}${item2.serie}`;
                 dependenciesArray.push({
                   file: item.archivo,
                   code: codeCurrentFile,
-                  value: serieCombinada411,
+                  value: serieCombinada,
                   row: index2,
                   column: columnName,
                 });
               }
             }
           }
-          if (
-            columnName === "serie" &&
-            codeCurrentFile === "413" &&
-            operationNotValid === "tipoOperacionCOP" &&
-            infoArchivo.tipoOperacionCOP
-          ) {
-            if (item2.tipo_operacion === "COP") {
-              const serieCombinada411 = `${item2.tipo_instrumento}${item2.serie}`;
-              if (dependenciesArray.length >= 1) {
-                map(dependenciesArray, (itemDP, indexDP) => {
-                  if (!itemDP?.file?.includes("413")) {
-                    dependenciesArray.push({
-                      file: item.archivo,
-                      code: codeCurrentFile,
-                      value: serieCombinada411,
-                      row: index2,
-                      column: columnName,
-                    });
-                  }
-                });
-              } else {
-                dependenciesArray.push({
-                  file: item.archivo,
-                  code: codeCurrentFile,
-                  value: serieCombinada411,
-                  row: index2,
-                  column: columnName,
-                });
-              }
-            }
-          }
-          if (codeCurrentFile === "441") {
-            if (columnName === "precio_nominal") {
-              dependenciesArray.push({
-                file: item.archivo,
-                code: codeCurrentFile,
-                value: value,
-                row: index2,
-                column: columnName,
-              });
-            }
-            if (columnName === "tasa_emision") {
-              dependenciesArray.push({
-                file: item.archivo,
-                code: codeCurrentFile,
-                value: value,
-                row: index2,
-                column: columnName,
-              });
-            }
-            if (columnName === "plaza_emision") {
-              dependenciesArray.push({
-                file: item.archivo,
-                code: codeCurrentFile,
-                value: value,
-                row: index2,
-                column: columnName,
-              });
-            }
-          } // TO DO: HACER LA VALIDACION DEL INTERES DEL ARCHIVO 441 CON EL ARCHIVO 444 Y DE IGUAL FORMA EL ARCHIVO 442 CON EL ARCHIVO 445
-
-          // if (columnName === "lugar_negociacion") {
-          //   console.log(codeCurrentFile);
-          //   console.log(item3);
-          // }
+          //#endregion
 
           if (funct === "bolsa") {
             let errFunction = true;
@@ -1750,10 +1538,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             } else if (functionAux === 2) {
-              _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
+              _mayorACeroDecimal = mayorACeroDecimal({
                 value: value,
               });
-              if (_mayorIgualACeroDecimal?.ok === false) {
+              if (_mayorACeroDecimal?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
@@ -1931,37 +1719,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `Error en tipo de dato. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "accionesMonedaOriginal") {
-            let _operacionEntreColumnas = infoArchivo?.paramsAccionesMO
-              ? await operacionEntreColumnas({
-                  total: {
-                    key: columnName,
-                    value: value,
-                  },
-                  fields: [
-                    {
-                      key: "numero_acciones",
-                      value: parseFloat(item2.numero_acciones),
-                    },
-                    "*",
-                    {
-                      key: "precio_unitario",
-                      value: parseFloat(item2.precio_unitario),
-                    },
-                  ],
-                })
-              : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2188,7 +1945,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           } else if (funct === "calificadora") {
             let errFunction = true;
             let errFunctionInstrumento = true;
-            map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
+            map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
               if (item2.tipo_instrumento === item4.sigla) {
                 errFunctionInstrumento = false;
               }
@@ -2205,7 +1962,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             } else {
-              map(_calificacion?.resultFinal, (item4, index4) => {
+              map(_calificadora?.resultFinal, (item4, index4) => {
                 if (value === item4.sigla) {
                   errFunction = false;
                 }
@@ -2259,11 +2016,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "interesMasAmortizacion") {
             let _operacionEntreColumnas =
-              infoArchivo?.paramsPlazoCuponMasAmortizacion
+              infoArchivo?.paramsInteresMasAmortizacion
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2296,7 +2053,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   ? await operacionEntreColumnas({
                       total: {
                         key: columnName,
-                        value: value,
+                        value: parseFloat(value),
                       },
                       fields: [
                         {
@@ -2326,6 +2083,51 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
+            }
+          } else if (
+            funct ===
+            "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000"
+          ) {
+            let _operacionEntreColumnas =
+              infoArchivo?.paramsFlujoTotalMenosAmortizacion
+                ? await operacionEntreColumnas({
+                    total: {
+                      key: columnName,
+                      value: parseFloat(value),
+                    },
+                    fields: [
+                      {
+                        key: `saldo_capital`,
+                        value: parseFloat(item2.saldo_capital),
+                      },
+                      "*",
+                      {
+                        key: `plazo_cupon`,
+                        value: parseFloat(item2.plazo_cupon),
+                      },
+                      "*",
+                      {
+                        key: `tasa_interes`,
+                        value: parseFloat(item2.tasa_interes),
+                      },
+                      "/",
+                      {
+                        key: `36000`,
+                        value: 36000,
+                      },
+                    ],
+                  })
+                : null;
+
+            if (_operacionEntreColumnas?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _operacionEntreColumnas?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
             }
           } else if (funct === "calificacionRiesgo") {
             let errFunction = true;
@@ -2525,7 +2327,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2557,7 +2359,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2589,7 +2391,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2628,7 +2430,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2670,7 +2472,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2702,7 +2504,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2734,7 +2536,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2766,7 +2568,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2798,7 +2600,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2830,7 +2632,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2862,7 +2664,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2897,7 +2699,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
-                      value: value,
+                      value: parseFloat(value),
                     },
                     fields: [
                       {
@@ -2953,7 +2755,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 _nroPago = operacionEntreColumnas({
                   total: {
                     key: columnName,
-                    value: value,
+                    value: parseFloat(value),
                   },
                   fields: [
                     {
@@ -3116,7 +2918,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }
         });
       }
-      console.log(arrayDataObject.length);
+      console.log("FILAS: ", codeCurrentFile, arrayDataObject.length);
 
       for (let index2 = 0; index2 < arrayDataObject.length; index2++) {
         const item2 = arrayDataObject[index2];
@@ -3194,7 +2996,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
   return validacionesCamposArchivosFragmentoCodigoPromise;
 }
 
-exports.validarArchivo2 = async (req, res, next) => {
+exports.validarArchivo = async (req, res, next) => {
   const fechaInicialOperacion = req?.body?.fecha_operacion;
   const tipo_periodo = req?.body?.tipo_periodo;
   const fecha_entrega = req?.body?.fecha_entrega;
@@ -3495,7 +3297,6 @@ exports.subirArchivo = async (req, res, next) => {
   nameTableErrors = "";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
-  periodicidadFinal = null;
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {

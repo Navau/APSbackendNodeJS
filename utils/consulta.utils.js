@@ -103,7 +103,7 @@ function ObtenerMenuAngUtil(data) {
 
 function ObtenerColumnasDeTablaUtil(table, params) {
   let query = "";
-  query = `SELECT column_name 
+  query = `SELECT * 
   FROM information_schema.columns 
   WHERE table_schema = 'public' 
   AND table_name  = '${table}'`;
