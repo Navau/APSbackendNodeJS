@@ -1811,7 +1811,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             map(_moneda?.resultFinal, (item4, index4) => {
               if (
                 value === item4.codigo_otros_activos ||
-                value === item4.sigla
+                value === item4.sigla ||
+                value === item4.codigo_valoracion
               ) {
                 errFunction = false;
               }
