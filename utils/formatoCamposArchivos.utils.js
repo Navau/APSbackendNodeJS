@@ -634,6 +634,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         };
         PARAMS.paramsNroPago = true;
         PARAMS.paramsPlazoCupon = true;
+        PARAMS.paramsFechaVencimientoMenosFechaEmision = true;
         PARAMS.paramsCalificacion = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -2419,7 +2420,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "plazo_emision",
         pattern: /^(0|[1-9][0-9]{1,4})$/,
-        function: "mayorACeroEntero",
+        function: "fechaVencimientoMenosFechaEmision",
       },
       {
         columnName: "nro_pago",
@@ -2438,7 +2439,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificadora",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z\&]{3,3}$/,
         function: "calificadora",
       },
     ],

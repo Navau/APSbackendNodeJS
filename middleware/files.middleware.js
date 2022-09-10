@@ -1148,44 +1148,44 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     });
                   }
                 } else if (itemDP.column === "tipo_tasa") {
-                  const tipoTasa = itemDP.value.tipo_tasa;
-                  const siglaInstrumentoSerie441 =
-                    itemDP.value.instrumentoSerie;
-                  let currentInstrumentoSerie = "";
-                  let currentInstrumentoSerieAux = "";
-                  let countCurrentInstrumentoSerie = 0;
-                  map(arrayDataObject, (itemArray, indexArray) => {
-                    currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
-                    if (siglaInstrumentoSerie441 === currentInstrumentoSerie) {
-                      currentInstrumentoSerieAux = currentInstrumentoSerie;
-                      countCurrentInstrumentoSerie++;
-                    }
-                  });
-                  // console.log("cantidadNroPago441", cantidadNroPago441);
-                  // console.log(
-                  //   "countCurrentInstrumentoSerie",
-                  //   countCurrentInstrumentoSerie
-                  // );
-                  if (
-                    parseInt(countCurrentInstrumentoSerie) !==
-                    parseInt(cantidadNroPago441)
-                  ) {
-                    errors.push({
-                      archivo: `${itemDP.file}, ${item.archivo}`,
-                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
-                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                      valor: `${
-                        itemDP.code
-                      }: serie: ${siglaInstrumentoSerie441}, ${
-                        itemDP.column
-                      }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
-                        currentInstrumentoSerieAux &&
-                        `serie: ${currentInstrumentoSerieAux}, `
-                      }registros: ${countCurrentInstrumentoSerie}`,
-                      columna: `${itemDP.code}: ${itemDP.column}`,
-                      fila: itemDP.row,
-                    });
-                  }
+                  // const tipoTasa = itemDP.value.tipo_tasa;
+                  // const siglaInstrumentoSerie441 =
+                  //   itemDP.value.instrumentoSerie;
+                  // let currentInstrumentoSerie = "";
+                  // let currentInstrumentoSerieAux = "";
+                  // let countCurrentInstrumentoSerie = 0;
+                  // map(arrayDataObject, (itemArray, indexArray) => {
+                  //   currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                  //   if (siglaInstrumentoSerie441 === currentInstrumentoSerie) {
+                  //     currentInstrumentoSerieAux = currentInstrumentoSerie;
+                  //     countCurrentInstrumentoSerie++;
+                  //   }
+                  // });
+                  // // console.log("cantidadNroPago441", cantidadNroPago441);
+                  // // console.log(
+                  // //   "countCurrentInstrumentoSerie",
+                  // //   countCurrentInstrumentoSerie
+                  // // );
+                  // if (
+                  //   parseInt(countCurrentInstrumentoSerie) !==
+                  //   parseInt(cantidadNroPago441)
+                  // ) {
+                  //   errors.push({
+                  //     archivo: `${itemDP.file}, ${item.archivo}`,
+                  //     tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
+                  //     descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
+                  //     valor: `${
+                  //       itemDP.code
+                  //     }: serie: ${siglaInstrumentoSerie441}, ${
+                  //       itemDP.column
+                  //     }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
+                  //       currentInstrumentoSerieAux &&
+                  //       `serie: ${currentInstrumentoSerieAux}, `
+                  //     }registros: ${countCurrentInstrumentoSerie}`,
+                  //     columna: `${itemDP.code}: ${itemDP.column}`,
+                  //     fila: itemDP.row,
+                  //   });
+                  // }
                 }
               }
             });
