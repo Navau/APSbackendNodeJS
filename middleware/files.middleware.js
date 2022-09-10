@@ -1105,18 +1105,33 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               ) {
                 if (itemDP.column === "nro_pago") {
                   const cantidadNroPago = itemDP.value.nro_pago;
-                  const tipoTasa = itemDP.value.tipo_tasa;
+                  const tasa = itemDP.value.tasa;
+                  const tipoTasa = itemDP.value.tasa?.tipo_tasa;
+                  const tasaEmision = itemDP.value.tasa?.tasa_emision;
                   const dependencyInstrumentoSerie =
                     itemDP.value.instrumentoSerie;
                   let currentInstrumentoSerie = "";
                   let currentInstrumentoSerieAux = "";
                   let countCurrentInstrumentoSerie = 0;
+                  const errTasaArray = [];
 
                   map(arrayDataObject, (itemArray, indexArray) => {
                     currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
                     if (
                       dependencyInstrumentoSerie === currentInstrumentoSerie
                     ) {
+                      if (tasa !== null) {
+                        if (tasaEmision !== itemArray.tasa_interes) {
+                          errTasaArray.push({
+                            value: itemArray.tasa_interes,
+                            valuePrevious: tasaEmision,
+                            column: "tasa_interes",
+                            serie: currentInstrumentoSerie,
+                            row: indexArray,
+                            message: `No es la misma Tasa que indica el archivo ${itemDP.code}`,
+                          });
+                        }
+                      }
                       currentInstrumentoSerieAux = currentInstrumentoSerie;
                       countCurrentInstrumentoSerie++;
                     }
@@ -1126,6 +1141,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   //   "countCurrentInstrumentoSerie",
                   //   countCurrentInstrumentoSerie
                   // );
+                  // console.log(tasa, tipoTasa, tasaEmision);
+                  // console.log("errTasaArray", errTasaArray);
 
                   if (
                     parseInt(countCurrentInstrumentoSerie) !==
@@ -1147,43 +1164,16 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       fila: itemDP.row,
                     });
                   }
-                } else if (itemDP.column === "tipo_tasa") {
-                  const tipoTasa = itemDP.value.tipo_tasa;
-                  const siglaInstrumentoSerie441 =
-                    itemDP.value.instrumentoSerie;
-                  let currentInstrumentoSerie = "";
-                  let currentInstrumentoSerieAux = "";
-                  let countCurrentInstrumentoSerie = 0;
-                  map(arrayDataObject, (itemArray, indexArray) => {
-                    currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
-                    if (siglaInstrumentoSerie441 === currentInstrumentoSerie) {
-                      currentInstrumentoSerieAux = currentInstrumentoSerie;
-                      countCurrentInstrumentoSerie++;
-                    }
-                  });
-                  // console.log("cantidadNroPago441", cantidadNroPago441);
-                  // console.log(
-                  //   "countCurrentInstrumentoSerie",
-                  //   countCurrentInstrumentoSerie
-                  // );
-                  if (
-                    parseInt(countCurrentInstrumentoSerie) !==
-                    parseInt(cantidadNroPago441)
-                  ) {
-                    errors.push({
-                      archivo: `${itemDP.file}, ${item.archivo}`,
-                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
-                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                      valor: `${
-                        itemDP.code
-                      }: serie: ${siglaInstrumentoSerie441}, ${
-                        itemDP.column
-                      }: ${cantidadNroPago441}, ${codeCurrentFile}: ${
-                        currentInstrumentoSerieAux &&
-                        `serie: ${currentInstrumentoSerieAux}, `
-                      }registros: ${countCurrentInstrumentoSerie}`,
-                      columna: `${itemDP.code}: ${itemDP.column}`,
-                      fila: itemDP.row,
+                  if (errTasaArray.length >= 1) {
+                    map(errTasaArray, (itemErr, indexErr) => {
+                      errors.push({
+                        archivo: item.archivo,
+                        tipo_error: `VALOR INCORRECTO`,
+                        descripcion: itemErr.message,
+                        valor: `serie: ${currentInstrumentoSerie} 444: tasa_interes: ${itemErr.value}, 441: tasa_emision: ${itemErr.valuePrevious}`,
+                        columna: itemErr.column,
+                        fila: itemErr.row,
+                      });
                     });
                   }
                 }
@@ -1210,22 +1200,21 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   dependenciesArray.push({
                     file: item.archivo,
                     code: codeCurrentFile,
-                    value: { instrumentoSerie, [columnName]: value },
+                    value: {
+                      instrumentoSerie,
+                      [columnName]: value,
+                      tasa:
+                        item2.tipo_tasa === "F"
+                          ? {
+                              tipo_tasa: item2.tipo_tasa,
+                              tasa_emision: item2.tasa_emision,
+                            }
+                          : null,
+                    },
                     row: index2,
                     column: columnName,
                   });
                 }
-              }
-            } else if (columnName === "tipo_tasa") {
-              if (value === "F") {
-                const instrumentoSerie = `${item2.tipo_instrumento}${item2.serie}`;
-                dependenciesArray.push({
-                  file: item.archivo,
-                  code: codeCurrentFile,
-                  value: { instrumentoSerie, [columnName]: value },
-                  row: index2,
-                  column: columnName,
-                });
               }
             }
           }
