@@ -5103,10 +5103,10 @@ async function operacionEntreColumnas(params) {
     let fieldsErrorText = "";
     let result = fields[0].value;
     let fieldsResultText = `${fields[0].key}`;
-    if (!dates) {
-      console.log("TOTAL", total);
-      console.log("FIELDS", fields);
-    }
+    // if (!dates) {
+    //   console.log("TOTAL", total);
+    //   console.log("FIELDS", fields);
+    // }
 
     map(fields, (item, index) => {
       if (isNaN(item.value) && index % 2 === 0) {
@@ -5125,24 +5125,23 @@ async function operacionEntreColumnas(params) {
         const operator = fields[index];
         if (operator === "+") {
           result = result + fields[index + 1].value;
-          index !== fields.length - 1 && (fieldsResultText += ` sumado con `);
+          index !== fields.length - 1 && (fieldsResultText += ` + `);
           fieldsResultText += `${fields[index + 1].key}`;
         } else if (operator === "-") {
           result = result - fields[index + 1].value;
-          index !== fields.length - 1 && (fieldsResultText += ` restado con `);
+          index !== fields.length - 1 && (fieldsResultText += ` - `);
           fieldsResultText += `${fields[index + 1].key}`;
         } else if (operator === "*") {
           result = result * fields[index + 1].value;
-          index !== fields.length - 1 &&
-            (fieldsResultText += `multiplicado con `);
+          index !== fields.length - 1 && (fieldsResultText += ` * `);
           fieldsResultText += `${fields[index + 1].key}`;
         } else if (operator === "/") {
           result = result / fields[index + 1].value;
-          index !== fields.length - 1 && (fieldsResultText += ` dividido con `);
+          index !== fields.length - 1 && (fieldsResultText += ` / `);
           fieldsResultText += `${fields[index + 1].key}`;
         } else {
           result = result + fields[index + 1].value;
-          index !== fields.length - 1 && (fieldsResultText += ` sumado con `);
+          index !== fields.length - 1 && (fieldsResultText += ` + `);
           fieldsResultText += `${fields[index + 1].key}`;
         }
       }
@@ -5150,19 +5149,6 @@ async function operacionEntreColumnas(params) {
 
     if (dates) {
       result = Math.abs(result) / (1000 * 3600 * 24);
-      console.log(result);
-      if (result !== total.value) {
-        return {
-          ok: true,
-          message: `El valor si es correcto`,
-        };
-      } else {
-        return {
-          ok: false,
-          message: `El resultado de ${fieldsResultText} en dias no es igual a ${total.key} en dias`,
-        };
-      }
-    } else {
       if (result === total.value) {
         return {
           ok: true,
@@ -5171,7 +5157,29 @@ async function operacionEntreColumnas(params) {
       } else {
         return {
           ok: false,
-          message: `El resultado de ${fieldsResultText} no es igual a ${total.key}`,
+          message: `El resultado (${result}) de ${fieldsResultText} (en dias) no es igual a ${total.key}`,
+        };
+      }
+    } else {
+      let indexPattern = new RegExp(total.pattern).toString().indexOf(".");
+      let textPattern = new RegExp(total.pattern).toString();
+      if (textPattern.slice(indexPattern, indexPattern + 4) === ".\\d{") {
+        let fixed = parseInt(
+          textPattern.slice(indexPattern + 6, indexPattern + 7)
+        );
+        if (!isNaN(fixed) && fixed) {
+          result = result.toFixed(fixed);
+        }
+      }
+      if (result === total.value.toString()) {
+        return {
+          ok: true,
+          message: `El valor si es correcto`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El resultado (${result}) de ${fieldsResultText} no es igual a ${total.key}`,
         };
       }
     }

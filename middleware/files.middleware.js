@@ -2010,6 +2010,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2083,6 +2084,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2317,6 +2319,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2349,6 +2352,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2381,6 +2385,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2420,6 +2425,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2462,6 +2468,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2494,6 +2501,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2526,6 +2534,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2558,6 +2567,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2590,6 +2600,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2622,6 +2633,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2654,6 +2666,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2689,6 +2702,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseFloat(value),
+                      pattern,
                     },
                     fields: [
                       {
@@ -2802,6 +2816,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     total: {
                       key: columnName,
                       value: parseInt(value),
+                      pattern,
                     },
                     fields: [
                       {
