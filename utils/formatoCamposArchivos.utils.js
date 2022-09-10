@@ -108,7 +108,8 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsLugarNegociacionVacio: null,
         paramsTipoOperacion: null,
         paramsEntidadEmisora: null,
-        paramsTasaRendimiento: null,
+        paramsTasaRendimientoConInstrumento139: null,
+        paramsTasaRendimientoConInstrumento138: null,
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
         paramsUnico: null,
         headers: null,
@@ -1486,13 +1487,23 @@ async function obtenerInformacionDeArchivo(nameFile) {
             },
           ],
         };
-        PARAMS.paramsTasaRendimiento = {
+        PARAMS.paramsTasaRendimientoConInstrumento139 = {
           table: "APS_param_tipo_instrumento",
           select: ["sigla"],
           where: [
             {
               key: "id_tipo_renta",
               value: 139,
+            },
+          ],
+        };
+        PARAMS.paramsTasaRendimientoConInstrumento138 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 138,
             },
           ],
         };
@@ -1551,13 +1562,23 @@ async function obtenerInformacionDeArchivo(nameFile) {
             },
           ],
         };
-        PARAMS.paramsTasaRendimiento = {
+        PARAMS.paramsTasaRendimientoConInstrumento139 = {
           table: "APS_param_tipo_instrumento",
           select: ["sigla"],
           where: [
             {
               key: "id_tipo_renta",
               value: 139,
+            },
+          ],
+        };
+        PARAMS.paramsTasaRendimientoConInstrumento138 = {
+          table: "APS_param_tipo_instrumento",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 138,
             },
           ],
         };
@@ -2892,6 +2913,12 @@ async function obtenerValidaciones(typeFile) {
         function: "tipoInstrumento",
       },
       {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{0,23}$/,
+        mayBeEmpty: true,
+        function: null,
+      },
+      {
         columnName: "entidad_emisora",
         pattern: /^[A-Za-z0-9\.\- ]{5,50}$/,
         function: "entidadEmisora",
@@ -2948,7 +2975,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8}){1,1}$/,
-        function: "tasaRendimiento",
+        function: "tasaRendimientoConInstrumento",
       },
       {
         columnName: "cantidad",
@@ -3017,7 +3044,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8}){1,1}$/,
-        function: "tasaRendimiento",
+        function: "tasaRendimientoConInstrumento",
       },
       {
         columnName: "cantidad",
