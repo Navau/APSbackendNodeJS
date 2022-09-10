@@ -5171,7 +5171,11 @@ async function operacionEntreColumnas(params) {
           result = result.toFixed(fixed);
         }
       }
-      if (result === total.value.toString()) {
+      let isEqual =
+        typeof result === "string"
+          ? result === total.value.toString()
+          : result === total.value;
+      if (isEqual) {
         return {
           ok: true,
           message: `El valor si es correcto`,

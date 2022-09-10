@@ -1888,83 +1888,87 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "calificacion") {
-            let errFunction = true;
-            let errFunctionInstrumento = true;
-            let errFunctionVacio = true;
-            map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                errFunctionInstrumento = false;
-              }
-            });
-            if (!errFunctionInstrumento) {
-              map(_calificacionVacio?.resultFinal, (item4, index4) => {
-                if (value === item4.descripcion) {
-                  errFunctionVacio = false;
+            if (mayBeEmpty !== true && value !== "") {
+              let errFunction = true;
+              let errFunctionInstrumento = true;
+              let errFunctionVacio = true;
+              map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  errFunctionInstrumento = false;
                 }
               });
-              if (errFunctionVacio === true) {
-                if (value !== "" || value.length >= 1) {
+              if (!errFunctionInstrumento) {
+                map(_calificacionVacio?.resultFinal, (item4, index4) => {
+                  if (value === item4.descripcion) {
+                    errFunctionVacio = false;
+                  }
+                });
+                if (errFunctionVacio === true) {
+                  if (value !== "" || value.length >= 1) {
+                    errors.push({
+                      archivo: item.archivo,
+                      tipo_error: "VALOR INCORRECTO",
+                      descripcion: `La calificacion debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificación válida`,
+                      valor: value,
+                      columna: columnName,
+                      fila: index2,
+                    });
+                  }
+                }
+              } else {
+                map(_calificacion?.resultFinal, (item4, index4) => {
+                  if (value === item4.descripcion) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificacion debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificación válida`,
+                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
                     valor: value,
                     columna: columnName,
                     fila: index2,
                   });
                 }
               }
-            } else {
-              map(_calificacion?.resultFinal, (item4, index4) => {
-                if (value === item4.descripcion) {
-                  errFunction = false;
-                }
-              });
-              if (errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
             }
           } else if (funct === "calificadora") {
-            let errFunction = true;
-            let errFunctionInstrumento = true;
-            map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                errFunctionInstrumento = false;
-              }
-            });
-            if (!errFunctionInstrumento) {
-              if (value !== "" || value.length >= 1) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificadora debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificadora válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              map(_calificadora?.resultFinal, (item4, index4) => {
-                if (value === item4.sigla) {
-                  errFunction = false;
+            if (mayBeEmpty !== true && value !== "") {
+              let errFunction = true;
+              let errFunctionInstrumento = true;
+              map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  errFunctionInstrumento = false;
                 }
               });
-              if (errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
+              if (!errFunctionInstrumento) {
+                if (value !== "" || value.length >= 1) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificadora debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificadora válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                map(_calificadora?.resultFinal, (item4, index4) => {
+                  if (value === item4.sigla) {
+                    errFunction = false;
+                  }
                 });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
               }
             }
           } else if (funct === "custodio") {
