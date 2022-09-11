@@ -955,6 +955,18 @@ function AlterarSequenciaMultiplesTablasUtil(sequences, params) {
   return queryFinal;
 }
 
+function AlterarSequenciaUtil(sequence, params) {
+  let query = `ALTER SEQUENCE "${sequence.table}_${sequence.id}_seq"`;
+  if (params?.restartValue) {
+    query += ` RESTART WITH ${params.restartValue}`;
+  }
+  query && (query = query + ";");
+
+  // console.log(querys);
+  console.log(query);
+  return query;
+}
+
 function ValorMaximoDeCampoMultiplesTablasUtil(tables, params) {
   let querys = [];
   let queryFinal = "";
@@ -1093,5 +1105,6 @@ module.exports = {
   VerificarPermisoUtil,
   EliminarMultiplesTablasUtil,
   AlterarSequenciaMultiplesTablasUtil,
+  AlterarSequenciaUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
 };

@@ -22,6 +22,7 @@ const {
   AlterarSequenciaMultiplesTablasUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
   EscogerInternoUtil,
+  AlterarSequenciaUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -138,6 +139,7 @@ async function CargarArchivo(req, res) {
           let detailsHeaders = null;
           let codeFile = null;
           let tableFile = null;
+          let sequenceTableFile = null;
           let idTable = null;
           let dateField = null;
           let institutionField = null;
@@ -231,6 +233,10 @@ async function CargarArchivo(req, res) {
           detailsHeaders = await columnsHeaders.detailsHeaders;
           headers = await columnsHeaders.headers;
           idTable = headers[0];
+          sequenceTableFile = {
+            table: tableFile,
+            id: idTable,
+          };
           headers?.splice(0, 1); // ELIMINAR ID DE TABLA
 
           tablesFilesArray.push(tableFile);
@@ -238,6 +244,8 @@ async function CargarArchivo(req, res) {
             table: tableFile,
             id: idTable,
           });
+          idTablesFilesArray.push(idTable);
+
           const queryInfoSchema = EscogerInternoUtil(
             "INFORMATION_SCHEMA.COLUMNS",
             {
@@ -291,35 +299,22 @@ async function CargarArchivo(req, res) {
               message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
             });
           } else {
-            const queryUnique = EscogerInternoUtil(tableFile, {
-              select: ["*"],
-              where: [
-                {
-                  key: dateField,
-                  value: fechaInicialOperacion,
-                },
-                {
-                  key: institutionField,
-                  value: infoTables.code,
-                },
-              ],
-            });
-            await pool
-              .query(queryUnique)
-              .then((result) => {
-                // console.log(result.rows);
-                if (result.rowCount > 0) {
-                  errorsDateArray.push({
-                    message: `Ya existe registros con la ${dateField} ${fechaInicialOperacion} y ${institutionField} ${infoTables.code}`,
-                  });
-                }
-              })
-              .catch((err) => {
-                console.log("ERR INFORMATION_SCHEMA.COLUMNS", err);
-                errorsDateArray.push({
-                  message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
-                });
-              });
+            const whereDelete = [
+              {
+                key: dateField,
+                value: fechaInicialOperacion,
+              },
+              {
+                key: institutionField,
+                value: infoTables.code,
+              },
+            ];
+            await eliminarInformacionDuplicada(
+              tableFile,
+              whereDelete,
+              sequenceTableFile,
+              idTable
+            );
           }
 
           if (errorsDateArray.length >= 1) {
@@ -328,7 +323,6 @@ async function CargarArchivo(req, res) {
             }
           }
 
-          idTablesFilesArray.push(idTable);
           //#region INSERTAR EL ID DE CARGA ARCHIVOS, COD_INSTITUCION, FECHA_INFORMACION A CADA FILA SEPARADA
           // console.log("arrayDataObject", arrayDataObject);
           const newArrayDataObject = [];
@@ -477,6 +471,100 @@ async function CargarArchivo(req, res) {
         });
     };
 
+    const eliminarInformacionDuplicada = async (
+      table,
+      where,
+      sequence,
+      idTable
+    ) => {
+      const resultFinal = [];
+      const queryDelete = EliminarMultiplesTablasUtil([table], {
+        where,
+      });
+      const infoDelete = await pool
+        .query(queryDelete)
+        .then((result) => {
+          resultFinal.push({
+            query: "Eliminando registros duplicados.",
+            table,
+            ok: true,
+          });
+          return result;
+        })
+        .catch((err) => {
+          console.log(err);
+          resultFinal.push({
+            query: "Eliminando registros duplicados.",
+            table,
+            ok: false,
+            err,
+          });
+          return null;
+        });
+
+      const queryMax = ValorMaximoDeCampoUtil(table, {
+        fieldMax: idTable,
+      });
+      const maxIdTables = await pool
+        .query(queryMax)
+        .then((result) => {
+          resultFinal.push({
+            query: "Seleccionando Maximo de tabla.",
+            table,
+            idTable,
+            ok: true,
+          });
+          if (result.rows?.[0]?.max === null) {
+            return 0;
+          } else {
+            return result.rows?.[0]?.max;
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          resultFinal.push({
+            query: "Seleccionando Maximo de tabla.",
+            table,
+            idTable,
+            ok: false,
+            err,
+          });
+          return 0;
+        });
+
+      let idRestartValue = null;
+      idRestartValue = parseInt(maxIdTables) + 1;
+
+      const querySequence = AlterarSequenciaUtil(sequence, {
+        restartValue: idRestartValue,
+      });
+
+      const alterSquences = await pool
+        .query(querySequence)
+        .then((result) => {
+          resultFinal.push({
+            query: "Alterando secuencia.",
+            table,
+            idRestartValue,
+            ok: true,
+          });
+          return result;
+        })
+        .catch((err) => {
+          console.log(err);
+          resultFinal.push({
+            query: "Alterando secuencia.",
+            table,
+            idRestartValue,
+            ok: false,
+            err,
+          });
+          return null;
+        });
+
+      return resultFinal;
+    };
+
     const eliminarArchivosCargados = async (tables, sequences, idTables) => {
       const resultFinal = [];
       const idsSequencesArray = [];
@@ -526,7 +614,11 @@ async function CargarArchivo(req, res) {
               id,
               ok: true,
             });
-            return result;
+            if (result.rows?.[0]?.max === null) {
+              return 0;
+            } else {
+              return result.rows?.[0]?.max;
+            }
           })
           .catch((err) => {
             console.log(err);
@@ -540,7 +632,7 @@ async function CargarArchivo(req, res) {
             return null;
           });
         if (maxIdTables !== null) {
-          const idReturn = parseInt(maxIdTables?.rows?.[0]?.max) + 1;
+          const idReturn = parseInt(maxIdTables) + 1;
           idsSequencesArray.push(idReturn);
         }
       }
