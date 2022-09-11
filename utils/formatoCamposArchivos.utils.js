@@ -1520,6 +1520,18 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 35,
+              },
+            ],
+          },
+        };
         PARAMS.paramsCalificadora = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -1591,6 +1603,18 @@ async function obtenerInformacionDeArchivo(nameFile) {
                 key: "id_moneda",
                 valuesWhereIn: [1, 3],
                 whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 35,
               },
             ],
           },
@@ -2480,7 +2504,8 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        pattern: /^[A-Za-z0-9\-]{0,23}$/,
+        mayBeEmpty: true,
         function: null,
       },
       {
@@ -2615,6 +2640,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -2633,15 +2659,15 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorACeroDecimal",
       },
       {
+        columnName: "amortizacion",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function:
           "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
-      },
-      {
-        columnName: "amortizacion",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
       },
       {
         columnName: "flujo_total",
@@ -2750,13 +2776,15 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
+        mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        function: "calificacion",
+        function: "calificacionConInstrumento",
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{3,3}$/,
-        function: "calificadora",
+        mayBeEmpty: true,
+        function: "calificadoraConInstrumento",
       },
       {
         columnName: "custodio",
@@ -2774,7 +2802,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tipo_valoracion",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9\-]{2,3}$/,
         function: "tipoValoracionConsultaMultiple",
       },
       {
@@ -2859,13 +2887,15 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
+        mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        function: "calificacion",
+        function: "calificacionConInstrumento",
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{3,3}$/,
-        function: "calificadora",
+        mayBeEmpty: true,
+        function: "calificadoraConInstrumento",
       },
       {
         columnName: "custodio",
@@ -2883,7 +2913,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tipo_valoracion",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9\-]{2,3}$/,
         function: "tipoValoracionConsultaMultiple",
       },
       {
@@ -2912,9 +2942,9 @@ async function obtenerValidaciones(typeFile) {
     ],
     483: [
       {
-        columnName: "tipo_instrumento",
+        columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
-        function: "tipoInstrumento",
+        function: null,
       },
       {
         columnName: "serie",
@@ -2925,7 +2955,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "entidad_emisora",
         pattern: /^[A-Za-z0-9\.\- ]{5,50}$/,
-        function: "entidadEmisora",
+        function: null,
       },
       {
         columnName: "fecha_adquisicion",
@@ -2988,77 +3018,7 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorACeroEntero",
       },
       {
-        columnName: "plazo_valor",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: "mayorACeroEntero",
-      },
-      {
-        columnName: "precio_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "total_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "moneda",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: "moneda",
-      },
-      {
-        columnName: "total_bs",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "calificacion",
-        pattern: /^[A-Za-z0-9\-]{1,3}$/,
-        function: null,
-      },
-      {
-        columnName: "calificadora",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: "calificadora",
-      },
-      {
-        columnName: "custodio",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: "custodio",
-      },
-      {
-        columnName: "fecha_adquisicion",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
-        function: "fechaOperacionMenorAlArchivo",
-      },
-    ],
-    485: [
-      {
-        columnName: "tipo_activo",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: "tipoActivo",
-      },
-      {
-        columnName: "serie",
-        pattern: /^[A-Za-z0-9]{5,23}$/,
-        function: null,
-      },
-      {
-        columnName: "tasa_rendimiento",
-        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8}){1,1}$/,
-        function: "tasaRendimientoConInstrumento",
-      },
-      {
-        columnName: "cantidad",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: "mayorACeroEntero",
-      },
-      {
-        columnName: "plazo_valor",
+        columnName: "plazo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: "mayorACeroEntero",
       },
@@ -3094,7 +3054,79 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "custodio",
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
+        function: "custodio",
+      },
+      {
+        columnName: "fecha_adquisicion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: "fechaOperacionMenorAlArchivo",
+      },
+    ],
+    485: [
+      {
+        columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoActivo",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        function: null,
+      },
+      {
+        columnName: "tasa_rendimiento",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: "tasaRendimientoConInstrumento",
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "plazo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "precio_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "total_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: "moneda",
+      },
+      {
+        columnName: "total_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "mayorACeroDecimal",
+      },
+      {
+        columnName: "calificacion",
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        function: "calificacion",
+      },
+      {
+        columnName: "calificadora",
+        pattern: /^[A-Za-z\&]{3,3}$/,
+        function: "calificadora",
+      },
+      {
+        columnName: "custodio",
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
         function: "custodio",
       },
       {
@@ -5203,12 +5235,15 @@ async function operacionEntreColumnas(params) {
         );
         if (!isNaN(fixed) && fixed) {
           result = result.toFixed(fixed);
+          total.value = total.value.toFixed(fixed);
         }
       }
       let isEqual =
         typeof result === "string"
           ? result === total.value.toString()
           : result === total.value;
+      // console.log("RESULT", typeof result, result);
+      // console.log("total.value", typeof total.value, total.value);
       if (isEqual) {
         return {
           ok: true,

@@ -1423,7 +1423,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             map(
               _tasaRendimientoConInstrumento138?.resultFinal,
               (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
+                if (item2.tipo_activo === item4.sigla) {
                   functionAux = 1;
                 }
               }
@@ -1431,7 +1431,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             map(
               _tasaRendimientoConInstrumento139?.resultFinal,
               (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
+                if (item2.tipo_activo === item4.sigla) {
                   functionAux = 2;
                 }
               }
@@ -1470,7 +1470,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_activo es ${item2.tipo_activo}`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1488,7 +1488,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               errors.push({
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna tasa_rendimiento`,
+                descripcion: `El contenido del archivo no coincide con alguna entidad emisora`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -1947,87 +1947,122 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "calificacion") {
-            if (mayBeEmpty !== true && value !== "") {
+            if (mayBeEmpty !== true && (value.length !== 0 || value !== "")) {
               let errFunction = true;
-              let errFunctionInstrumento = true;
-              let errFunctionVacio = true;
-              map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  errFunctionInstrumento = false;
+              map(_calificacion?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunction = false;
                 }
               });
-              if (!errFunctionInstrumento) {
-                map(_calificacionVacio?.resultFinal, (item4, index4) => {
-                  if (value === item4.descripcion) {
-                    errFunctionVacio = false;
-                  }
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
                 });
-                if (errFunctionVacio === true) {
-                  if (value !== "" || value.length >= 1) {
-                    errors.push({
-                      archivo: item.archivo,
-                      tipo_error: "VALOR INCORRECTO",
-                      descripcion: `La calificacion debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificación válida`,
-                      valor: value,
-                      columna: columnName,
-                      fila: index2,
-                    });
-                  }
-                }
-              } else {
-                map(_calificacion?.resultFinal, (item4, index4) => {
-                  if (value === item4.descripcion) {
-                    errFunction = false;
-                  }
-                });
-                if (errFunction === true) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
-                }
               }
             }
           } else if (funct === "calificadora") {
-            if (mayBeEmpty !== true && value !== "") {
+            if (mayBeEmpty !== true && (value.length !== 0 || value !== "")) {
               let errFunction = true;
-              let errFunctionInstrumento = true;
-              map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  errFunctionInstrumento = false;
+              map(_calificadora?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
                 }
               });
-              if (!errFunctionInstrumento) {
-                if (value !== "" || value.length >= 1) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificadora debe estar vacia debido a que el tipo_instrumento es ${item2.tipo_instrumento} y no se encuentra en ninguna calificadora válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
-                }
-              } else {
-                map(_calificadora?.resultFinal, (item4, index4) => {
-                  if (value === item4.sigla) {
-                    errFunction = false;
-                  }
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
                 });
-                if (errFunction === true) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
+              }
+            }
+          } else if (funct === "calificadoraConInstrumento") {
+            let errFunction = true;
+            let errFunctionInstrumento = true;
+            map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                errFunctionInstrumento = false;
+              }
+            });
+            map(_calificadora?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunctionInstrumento) {
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else {
+              if ((value !== "" || value.length >= 1) && errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            }
+          } else if (funct === "calificacionConInstrumento") {
+            let errFunction = true;
+            let errFunctionInstrumento = true;
+            let errFunctionVacio = true;
+            map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
+              if (item2.tipo_instrumento === item4.sigla) {
+                errFunctionInstrumento = false;
+              }
+            });
+            if (!errFunctionInstrumento) {
+              map(_calificacionVacio?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunctionVacio = false;
                 }
+              });
+              if (
+                (value !== "" || value.length >= 1) &&
+                errFunctionVacio === true
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else {
+              map(_calificacion?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
             }
           } else if (funct === "custodio") {
@@ -2941,7 +2976,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 tipo_error: "VALOR INCORRECTO OPERACION NO VALIDA",
                 descripcion: `La operacion no es válida`,
                 valor: siglaCombinada,
-                columna: columnName,
+                columna: `lugar_negociacion, tipo_operacion, tipo_instrumento`,
                 fila: index2,
               });
             }
@@ -3377,6 +3412,7 @@ exports.subirArchivo = async (req, res, next) => {
   nameTableErrors = "";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
+  dependenciesArray = [];
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
