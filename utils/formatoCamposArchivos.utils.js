@@ -5191,7 +5191,7 @@ async function operacionEntreColumnas(params) {
       } else {
         return {
           ok: false,
-          message: `El resultado (${result}) de ${fieldsResultText} (en dias) no es igual a ${total.key}`,
+          message: `El resultado (${result}) de ${fieldsResultText} no es igual a ${total.key}`,
         };
       }
     } else {
