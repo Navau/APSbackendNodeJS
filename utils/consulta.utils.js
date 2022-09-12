@@ -506,8 +506,8 @@ function EscogerInternoUtil(table, params) {
     if (item?.like === true) {
       query = query + ` ${item.key} like '${item.value}%'`;
     } else if (item?.whereIn === true) {
-      const searchCriteriaWhereIn = item?.searchCriteria
-        ? item.searchCriteria
+      const searchCriteriaWhereIn = item?.searchCriteriaWhereIn
+        ? item.searchCriteriaWhereIn
         : "IN";
       let valuesAux = [];
       map(item.valuesWhereIn, (itemV, indexV) => {

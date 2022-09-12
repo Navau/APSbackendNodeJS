@@ -752,6 +752,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
           },
         };
         PARAMS.paramsInteresMasAmortizacion = true;
+        PARAMS.paramsUnico = true;
         PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
         PARAMS.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000 = true;
       } else if (nameFile.includes(".445")) {
@@ -773,6 +774,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
           },
         };
         PARAMS.paramsInteresMasAmortizacion = true;
+        PARAMS.paramsUnico = true;
         PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
         PARAMS.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000 = true;
       } else if (nameFile.includes(".451")) {
@@ -2632,7 +2634,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        unqiue: true,
+        unique: true,
         function: "mayorACeroEntero",
       },
       {
@@ -2651,6 +2653,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "plazo_fecha_vencimiento",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
+        notValidate: true,
         function: "mayorACeroEntero",
       },
       {

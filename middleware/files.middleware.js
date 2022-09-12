@@ -1212,6 +1212,19 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               } else {
                 if (parseInt(value) > 1) {
+                  let tasaAux = null;
+                  if (codeCurrentFile === "441") {
+                    item2.tipo_tasa === "F"
+                      ? (tasaAux = {
+                          tipo_tasa: item2.tipo_tasa,
+                          tasa_emision: item2.tasa_emision,
+                        })
+                      : null;
+                  } else if (codeCurrentFile === "442") {
+                    tasaAux = {
+                      tasa_emision: item2.tasa_emision,
+                    };
+                  }
                   const instrumentoSerie = `${item2.tipo_instrumento}${item2.serie}`;
                   dependenciesArray.push({
                     file: item.archivo,
@@ -1219,13 +1232,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     value: {
                       instrumentoSerie,
                       [columnName]: value,
-                      tasa:
-                        item2.tipo_tasa === "F"
-                          ? {
-                              tipo_tasa: item2.tipo_tasa,
-                              tasa_emision: item2.tasa_emision,
-                            }
-                          : null,
+                      tasa: tasaAux,
                     },
                     row: index2,
                     column: columnName,

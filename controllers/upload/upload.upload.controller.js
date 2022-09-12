@@ -72,6 +72,7 @@ async function CargarArchivo(req, res) {
     // console.log("returnsValues", returnsValues);
     let infoTables = {
       code: null,
+      cod_institution: null,
       table: null,
       tableErrors: null,
     };
@@ -82,6 +83,7 @@ async function CargarArchivo(req, res) {
       ) {
         infoTables = {
           code: "108",
+          cod_institution: "108",
           table: "APS_aud_carga_archivos_pensiones_seguros",
           tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
         };
@@ -94,12 +96,14 @@ async function CargarArchivo(req, res) {
       ) {
         infoTables = {
           code: "M",
+          cod_institution: "bolsa",
           table: "APS_aud_carga_archivos_bolsa",
           tableErrors: "APS_aud_errores_carga_archivos_bolsa",
         };
       } else if (item.originalname.toUpperCase().includes(".CC")) {
         infoTables = {
           code: "CC",
+          cod_institution: "CC",
           table: "APS_aud_carga_archivos_custodio",
           tableErrors: "APS_aud_errores_carga_archivos_custodio",
         };
@@ -306,7 +310,7 @@ async function CargarArchivo(req, res) {
               },
               {
                 key: institutionField,
-                value: infoTables.code,
+                value: infoTables.cod_institution,
               },
             ];
             await eliminarInformacionDuplicada(
@@ -337,7 +341,7 @@ async function CargarArchivo(req, res) {
             arrayHeadersAux.push("id_carga_archivos");
           }
           if (headers.includes("cod_institucion")) {
-            stringFinalFile += `,"${infoTables.code}"`;
+            stringFinalFile += `,"${infoTables.cod_institution}"`;
             arrayHeadersAux.push("cod_institucion");
           }
           if (headers.includes("fecha_informacion")) {
