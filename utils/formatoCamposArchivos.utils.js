@@ -2664,7 +2664,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "interes",
@@ -2785,7 +2785,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificadora",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: "calificadoraConInstrumento",
       },
@@ -2896,7 +2896,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificadora",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: "calificadoraConInstrumento",
       },
