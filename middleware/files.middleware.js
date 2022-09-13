@@ -24,6 +24,7 @@ const {
   unico,
   igualA,
   selectComun,
+  grupoUnico,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -793,6 +794,19 @@ async function validarArchivosIteraciones(params) {
                               .params
                           )
                         : null;
+                    const _ciudad = infoArchivo?.paramsCiudad
+                      ? await selectComun(
+                          infoArchivo.paramsCiudad.table,
+                          infoArchivo.paramsCiudad.params
+                        )
+                      : null;
+                    const _tipoBienInmueble =
+                      infoArchivo?.paramsTipoBienInmueble
+                        ? await selectComun(
+                            infoArchivo.paramsTipoBienInmueble.table,
+                            infoArchivo.paramsTipoBienInmueble.params
+                          )
+                        : null;
 
                     // console.log("TEST AAAAA");
 
@@ -902,6 +916,8 @@ async function validarArchivosIteraciones(params) {
                             _instrumento135,
                             _instrumento1,
                             _instrumento18,
+                            _ciudad,
+                            _tipoBienInmueble,
                             _cadenaCombinadalugarNegTipoOperTipoInstrum,
                           });
                         }
@@ -992,6 +1008,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _instrumento135 = params._instrumento135;
       const _instrumento1 = params._instrumento1;
       const _instrumento18 = params._instrumento18;
+      const _ciudad = params._ciudad;
+      const _tipoBienInmueble = params._tipoBienInmueble;
+
       let lugarNegociacionTipoOperacionAux = false;
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
@@ -1011,6 +1030,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         operationNotValid,
         notValidate,
         unique,
+        singleGroup,
+        endSingleGroup,
         typeError,
         item2,
         index2,
@@ -1186,7 +1207,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                         archivo: item.archivo,
                         tipo_error: `VALOR INCORRECTO`,
                         descripcion: itemErr.message,
-                        valor: `serie: ${currentInstrumentoSerie} 444: tasa_interes: ${itemErr.value}, 441: tasa_emision: ${itemErr.valuePrevious}`,
+                        valor: `serie: ${currentInstrumentoSerie} ${codeCurrentFile}: tasa_interes: ${itemErr.value}, ${itemDP.code}: tasa_emision: ${itemErr.valuePrevious}`,
                         columna: itemErr.column,
                         fila: itemErr.row,
                       });
@@ -2961,6 +2982,40 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "ciudad") {
+            let errFunction = true;
+            map(_ciudad?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El campo no corresponde a ninguno de los autorizados`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "tipoBienInmueble") {
+            let errFunction = true;
+            map(_tipoBienInmueble?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El campo no corresponde a ninguno de los autorizados`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           }
           if (
             operationNotValid === "cadenaCombinadalugarNegTipoOperTipoInstrum"
@@ -3014,6 +3069,32 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           }
+          if (
+            endSingleGroup === true &&
+            index2 === arrayDataObject.length - 1
+          ) {
+            const _singleGroup = infoArchivo.paramsSingleGroup
+              ? await grupoUnico({
+                  fileArrayValidateObject: arrayValidateObject,
+                  fileArrayObject: arrayDataObject,
+                })
+              : null;
+
+            // console.log(_unico);
+
+            if (_singleGroup?.length >= 1) {
+              map(_singleGroup, (item4, index4) => {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: item4?.message,
+                  valor: item4?.value,
+                  columna: item4?.column,
+                  fila: item4?.row,
+                });
+              });
+            }
+          }
         } catch (err) {
           errors.push({
             archivo: item.archivo,
@@ -3040,7 +3121,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }
         });
       }
-      console.log("FILAS: ", codeCurrentFile, arrayDataObject.length);
+      console.log(
+        "ARCHIVO:",
+        codeCurrentFile,
+        "FILAS:",
+        arrayDataObject.length
+      );
 
       for (let index2 = 0; index2 < arrayDataObject.length; index2++) {
         const item2 = arrayDataObject[index2];
@@ -3071,6 +3157,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let notValidate =
             item3?.notValidate === true ? item3.notValidate : null;
           let unique = item3?.unique === true ? item3.unique : null;
+          let singleGroup =
+            item3?.singleGroup === true ? item3.singleGroup : null;
+          let endSingleGroup =
+            item3?.endSingleGroup === true ? item3.endSingleGroup : null;
           // console.log("ANTES DE VALIDACIONES", value);
           // console.log("ANTES DE VALIDACIONES", errors);
           if (!value && (mayBeEmpty === false || mayBeEmpty === null)) {
@@ -3098,6 +3188,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               operationNotValid,
               notValidate,
               unique,
+              singleGroup,
+              endSingleGroup,
               typeError,
               item2,
               index2,

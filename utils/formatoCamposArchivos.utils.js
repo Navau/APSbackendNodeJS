@@ -112,6 +112,9 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsTasaRendimientoConInstrumento138: null,
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
         paramsUnico: null,
+        paramsSingleGroup: null,
+        paramsCiudad: null,
+        paramsTipoBienInmueble: null,
         headers: null,
         detailsHeaders: null,
         paramsCadenaCombinadalugarNegTipoOperTipoInstrum: null,
@@ -1746,6 +1749,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.codeCurrentFile = "471";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
+        PARAMS.paramsSingleGroup = true;
         PARAMS.paramsTipoActivo = {
           table: "APS_param_clasificador_comun",
           select: ["sigla"],
@@ -1761,6 +1765,30 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.codeCurrentFile = "491";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
+        PARAMS.paramsCiudad = {
+          table: "APS_param_clasificador_comun",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 34,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        };
+        PARAMS.paramsTipoBienInmueble = {
+          table: "APS_param_clasificador_comun",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 33,
+            },
+          ],
+        };
         PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
         PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
         PARAMS.paramsSaldoFinalMenosSaldoFinalDep = true;
@@ -1769,6 +1797,30 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.codeCurrentFile = "492";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
+        PARAMS.paramsCiudad = {
+          table: "APS_param_clasificador_comun",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 34,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        };
+        PARAMS.paramsTipoBienInmueble = {
+          table: "APS_param_clasificador_comun",
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 33,
+            },
+          ],
+        };
         PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
         PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
         PARAMS.paramsSaldoFinalMenosSaldoFinalDep = true;
@@ -3232,21 +3284,26 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
+        singleGroup: true,
         function: "tipoActivo",
       },
       {
-        columnName: "detalle_2",
-        pattern: /^[A-Za-z0-9\-]{5,25}$/,
+        columnName: "detalle_1",
+        pattern: /^[A-Za-z0-9]{5,25}$/,
+        singleGroup: true,
         function: null,
       },
       {
         columnName: "detalle_2",
-        pattern: /^[A-Za-z0-9\-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\.\- ]{5,25}$/,
+        singleGroup: true,
         function: null,
       },
       {
         columnName: "cuenta_contable",
-        pattern: /^[A-Za-z0-9\-]{1,7}$/,
+        pattern: /^[A-Za-z]{1,7}$/,
+        singleGroup: true,
+        endSingleGroup: true,
         function: null,
       },
       {
@@ -3258,7 +3315,7 @@ async function obtenerValidaciones(typeFile) {
     491: [
       {
         columnName: "codigo_contable",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z\.]{3,3}$/,
         function: null,
       },
       {
@@ -3269,7 +3326,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "ciudad",
         pattern: /^[A-Za-z0-9\-]{5,30}$/,
-        function: null,
+        function: "ciudad",
       },
       {
         columnName: "fecha_compra",
@@ -3280,50 +3337,52 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "superficie",
-        pattern: /^[A-Za-z0-9\-]{5,13}$/,
-        function: null,
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "nro_registro_ddrr",
-        pattern: /^[A-Za-z0-9\-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\.\-]{5,25}$/,
         function: null,
       },
       {
         columnName: "nro_testimonio",
-        pattern: /^[A-Za-z0-9\-]{5,15}$/,
+        pattern: /^[A-Za-z0-9\/\-]{5,15}$/,
         function: null,
       },
       {
         columnName: "saldo_anterior",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "incremento",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "decremento",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "fecha",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
+        mayBeEmpty: true,
         function: null,
       },
       {
         columnName: "altas_bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "actualizacion",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "saldo_final",
@@ -3338,12 +3397,12 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "actualizacion_depreciacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "depreciacion_periodo",
@@ -3372,8 +3431,15 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "total_vida_util",
-        pattern: /^[1-9]*$/,
-        function: "mayorACeroEntero",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        range: [3, 480],
+        function: "mayorIgualACeroDecimal",
+      },
+      {
+        columnName: "vida_util_restante",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        range: [3, 480],
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "observaciones",
@@ -3384,13 +3450,18 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "prevision",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
+      },
+      {
+        columnName: "tipo_bien_inmueble",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoBienInmueble",
       },
     ],
     492: [
       {
         columnName: "codigo_contable",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z\.]{3,3}$/,
         function: null,
       },
       {
@@ -3401,7 +3472,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "ciudad",
         pattern: /^[A-Za-z0-9\-]{5,30}$/,
-        function: null,
+        function: "ciudad",
       },
       {
         columnName: "fecha_compra",
@@ -3412,50 +3483,52 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "superficie",
-        pattern: /^[A-Za-z0-9\-]{5,13}$/,
-        function: null,
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: "mayorACeroDecimal",
       },
       {
         columnName: "nro_registro_ddrr",
-        pattern: /^[A-Za-z0-9\-]{5,25}$/,
+        pattern: /^[A-Za-z0-9\.\-]{5,25}$/,
         function: null,
       },
       {
         columnName: "nro_testimonio",
-        pattern: /^[A-Za-z0-9\-]{5,15}$/,
+        pattern: /^[A-Za-z0-9\/\-]{5,15}$/,
         function: null,
       },
       {
         columnName: "saldo_anterior",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "incremento",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "decremento",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "fecha",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
+        mayBeEmpty: true,
         function: null,
       },
       {
         columnName: "altas_bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "actualizacion",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "saldo_final",
@@ -3470,12 +3543,12 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "actualizacion_depreciacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "depreciacion_periodo",
@@ -3504,8 +3577,15 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "total_vida_util",
-        pattern: /^[1-9]*$/,
-        function: "mayorACeroEntero",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        range: [3, 480],
+        function: "mayorIgualACeroDecimal",
+      },
+      {
+        columnName: "vida_util_restante",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        range: [3, 480],
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "observaciones",
@@ -3516,7 +3596,12 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "prevision",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
+      },
+      {
+        columnName: "tipo_bien_inmueble",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoBienInmueble",
       },
     ],
     494: [
@@ -3902,7 +3987,8 @@ async function formatearDatosEInsertarCabeceras(
       //   // }
       // });
 
-      map(dataSplit, (item, index) => {
+      map(dataSplit, (itemDS, index) => {
+        let item = itemDS;
         // if (item.indexOf(" ") !== -1) {
         //   errors.push({
         //     msg: `El formato del archivo no debe contener espacios entre los campos, comillas o comas, existe un espacio en la posicion ${item.indexOf(
@@ -3911,66 +3997,101 @@ async function formatearDatosEInsertarCabeceras(
         //     row: index,
         //   });
         // } else {}
-        let rowNumberCommas = 0;
-        map(item, (item2, index2) => {
-          if (item2.toLowerCase() === ",") {
-            rowNumberCommas++;
+        //QUITANDO VALOERS UNICODES, EN ESTE CASO 65279 ES UN ESPACIO INVISIBLE QUE LO LEE COMO VACIO PERO EN EL ARCHIVO NO SE VE
+        for (let i = 0; i < item.length; i++) {
+          if (item.charCodeAt(i) === 65279) {
+            console.log("VALUE", item, "INDEX", i, 65279);
+            item = item.replace(item.slice(i, 1), "");
+            console.log("VALUE", item, "INDEX", i, 65279);
+            console.log("ROW", index);
           }
-        });
-        // console.log(rowNumberCommas);
-        // console.log(numberCommas);
-        const rowSplit = item.split(",");
-        // console.log(item);
+        }
 
         if (item.length === 0) {
           return;
-        } else if (
-          rowSplit.length > headers.length ||
-          rowSplit.length < headers.length
-        ) {
-          errors.push({
-            msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
-            row: index,
-          });
-        } else if (
-          rowNumberCommas > numberCommas ||
-          rowNumberCommas < numberCommas
-        ) {
-          errors.push({
-            msg: `El formato del archivo debe estar separado correctamente por comas`,
-            row: index,
-          });
         } else {
-          let resultObject = {};
-          let counterAux = 0;
-          map(headers, (item2, index2) => {
-            let value = rowSplit[counterAux];
-
-            //QUITANDO VALOERS UNICODES, EN ESTE CASO 65279 ES UN ESPACIO INVISIBLE QUE LO LEE COMO VACIO PERO EN EL ARCHIVO NO SE VE
-            for (let i = 0; i < value.length; i++) {
-              if (value.charCodeAt(i) === 65279) {
-                console.log("VALUE", value, "INDEX", i, 65279);
-                value = value.replace(value.slice(i, 1), "");
-                console.log("VALUE", value, "INDEX", i, 65279);
+          if (item[0] !== '"' || item[item.length - 1] !== '"') {
+            errors.push({
+              msg: `El formato del archivo no contiene los campos entre comillas correctamente`,
+              row: index,
+            });
+          } else if (!item.includes('","')) {
+            errors.push({
+              msg: `El formato del archivo debe estar separado correctamente por comas (,) y comillas dobles ("")`,
+              row: index,
+            });
+          } else {
+            let rowNumberCommas = 0;
+            const rowWithoutQuotationMarks = item.slice(1, item.length - 1);
+            const rowSplit = rowWithoutQuotationMarks.split('","');
+            let position1 = 0;
+            let position2 = 1;
+            let position3 = 2;
+            for (
+              let index2 = 0;
+              index2 < rowWithoutQuotationMarks.length;
+              index2++
+            ) {
+              const item2 = rowWithoutQuotationMarks;
+              const stringValue =
+                item2[position1] + item2[position2] + item2[position3];
+              if (stringValue.toLowerCase() === '","') {
+                rowNumberCommas++;
+              }
+              position1++;
+              position2++;
+              position3++;
+              if (position2 > rowWithoutQuotationMarks.length) {
+                break;
               }
             }
 
-            if (value[0] !== '"' || value[value.length - 1] !== '"') {
-              errorsValues.push({
-                msg: `El campo debe estar entre comillas`,
-                value: value?.trim().replace(/['"]+/g, ""),
-                column: item2,
+            // console.log("rowNumberCommas", rowNumberCommas);
+            // console.log("numberCommas", numberCommas);
+            // console.log("rowWithoutQuotationMarks", rowWithoutQuotationMarks);
+            // console.log("rowSplit.length", rowSplit.length);
+            // console.log("rowSplit", rowSplit);
+
+            if (
+              rowSplit.length > headers.length ||
+              rowSplit.length < headers.length
+            ) {
+              errors.push({
+                msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
                 row: index,
               });
+            } else if (
+              rowNumberCommas > numberCommas ||
+              rowNumberCommas < numberCommas
+            ) {
+              errors.push({
+                msg: `El formato del archivo debe estar separado correctamente por comas (,) y comillas dobles ("")`,
+                row: index,
+              });
+            } else {
+              let resultObject = {};
+              let counterAux = 0;
+              map(headers, (item2, index2) => {
+                let value = rowSplit[counterAux];
+
+                // if (value[0] !== '"' || value[value.length - 1] !== '"') {
+                //   errorsValues.push({
+                //     msg: `El campo debe estar entre comillas`,
+                //     value: value?.trim().replace(/['"]+/g, ""),
+                //     column: item2,
+                //     row: index,
+                //   });
+                // }
+                resultObject = {
+                  ...resultObject,
+                  [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+                };
+                counterAux++;
+              });
+              // console.log(resultObject.sort());
+              arrayDataObject.push(resultObject);
             }
-            resultObject = {
-              ...resultObject,
-              [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
-            };
-            counterAux++;
-          });
-          // console.log(resultObject.sort());
-          arrayDataObject.push(resultObject);
+          }
         }
       });
     };
@@ -5378,6 +5499,55 @@ async function unico(params) {
   return result;
 }
 
+async function grupoUnico(params) {
+  const { fileArrayValidateObject, fileArrayObject } = params;
+  const fields = [];
+  const result = [];
+  for (let i = 0; i < fileArrayObject.length; i++) {
+    const item = fileArrayObject[i];
+    let keyFinal = "";
+    let valueFinal = "";
+    for (let j = 0; j < fileArrayValidateObject.length; j++) {
+      const item2 = fileArrayValidateObject[j];
+      const value = item[item2.columnName];
+      const columnName = item2.columnName;
+      if (item2?.singleGroup === true) {
+        keyFinal +=
+          item2.endSingleGroup === true ? `${columnName}` : `${columnName},`;
+        valueFinal += `${value}`;
+      }
+    }
+    fields.push({
+      keys: keyFinal,
+      values: valueFinal,
+      row: i,
+    });
+  }
+  // console.log(fields);
+  const search = fields.reduce((acc, item, index) => {
+    // console.log(index);
+    acc[item.values] = ++acc[item.values] || 0;
+    return acc;
+  }, {});
+  const duplicates = fields.filter((item, index) => {
+    return search[item.values];
+  });
+
+  if (duplicates.length >= 0) {
+    map(duplicates, (item, index) => {
+      result.push({
+        ok: false,
+        message: `La combinación de las columnas debe ser único`,
+        value: item.values,
+        column: item.keys,
+        row: item.row,
+      });
+    });
+  }
+
+  return result;
+}
+
 module.exports = {
   formatoArchivo,
   obtenerValidaciones,
@@ -5434,5 +5604,6 @@ module.exports = {
   plazoValorConInstrumento,
   tasaUltimoHecho,
   unico,
+  grupoUnico,
   selectComun,
 };
