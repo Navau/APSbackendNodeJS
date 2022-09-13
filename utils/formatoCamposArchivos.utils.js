@@ -1483,34 +1483,40 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsTipoActivo = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              valuesWhereIn: [138, 139],
-              whereIn: true,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [138, 139],
+                whereIn: true,
+              },
+            ],
+          },
         };
         PARAMS.paramsTasaRendimientoConInstrumento139 = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 139,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 139,
+              },
+            ],
+          },
         };
         PARAMS.paramsTasaRendimientoConInstrumento138 = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 138,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 138,
+              },
+            ],
+          },
         };
         PARAMS.paramsMoneda = {
           table: "APS_param_moneda",
@@ -1570,34 +1576,40 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsTipoActivo = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              valuesWhereIn: [138, 139],
-              whereIn: true,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [138, 139],
+                whereIn: true,
+              },
+            ],
+          },
         };
         PARAMS.paramsTasaRendimientoConInstrumento139 = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 139,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 139,
+              },
+            ],
+          },
         };
         PARAMS.paramsTasaRendimientoConInstrumento138 = {
           table: "APS_param_tipo_instrumento",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_tipo_renta",
-              value: 138,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 138,
+              },
+            ],
+          },
         };
         PARAMS.paramsMoneda = {
           table: "APS_param_moneda",
@@ -1752,13 +1764,15 @@ async function obtenerInformacionDeArchivo(nameFile) {
         PARAMS.paramsSingleGroup = true;
         PARAMS.paramsTipoActivo = {
           table: "APS_param_clasificador_comun",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 30,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 30,
+              },
+            ],
+          },
         };
       } else if (nameFile.includes(".491")) {
         console.log("ARCHIVO CORRECTO : 491", nameFile);
@@ -1767,27 +1781,31 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsCiudad = {
           table: "APS_param_clasificador_comun",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 34,
-            },
-            {
-              key: "activo",
-              value: true,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 34,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
         };
         PARAMS.paramsTipoBienInmueble = {
           table: "APS_param_clasificador_comun",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 33,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 33,
+              },
+            ],
+          },
         };
         PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
         PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
@@ -1799,27 +1817,31 @@ async function obtenerInformacionDeArchivo(nameFile) {
 
         PARAMS.paramsCiudad = {
           table: "APS_param_clasificador_comun",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 34,
-            },
-            {
-              key: "activo",
-              value: true,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 34,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
         };
         PARAMS.paramsTipoBienInmueble = {
           table: "APS_param_clasificador_comun",
-          select: ["sigla"],
-          where: [
-            {
-              key: "id_clasificador_comun_grupo",
-              value: 33,
-            },
-          ],
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 33,
+              },
+            ],
+          },
         };
         PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
         PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
@@ -2752,13 +2774,13 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "codigo_cuenta_contable",
-        pattern: /^[A-Za-z0-9\-]{12,12}$/,
+        columnName: "cuenta_contable",
+        pattern: /^[0-9]{12,12}$/,
         function: null,
       },
       {
         columnName: "moneda",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[0-9]{3,3}$/,
         function: "moneda",
       },
       {
@@ -3259,8 +3281,8 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "codigo_cuenta_contable",
-        pattern: /^[A-Za-z0-9\-]{1,12}$/,
+        columnName: "cuenta_contable",
+        pattern: /^[0-9]{12,12}$/,
         function: null,
       },
       {
@@ -3289,19 +3311,19 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "detalle_1",
-        pattern: /^[A-Za-z0-9]{5,25}$/,
+        pattern: /^[A-Za-z0-9]{3,25}$/,
         singleGroup: true,
         function: null,
       },
       {
         columnName: "detalle_2",
-        pattern: /^[A-Za-z0-9\.\- ]{5,25}$/,
+        pattern: /^[A-Za-z0-9À-ÿ\u00f1\u00d1\.\- ]{5,25}$/,
         singleGroup: true,
         function: null,
       },
       {
         columnName: "cuenta_contable",
-        pattern: /^[A-Za-z]{1,7}$/,
+        pattern: /^[0-9]{12,12}$/,
         singleGroup: true,
         endSingleGroup: true,
         function: null,
@@ -3315,7 +3337,7 @@ async function obtenerValidaciones(typeFile) {
     491: [
       {
         columnName: "codigo_contable",
-        pattern: /^[A-Za-z\.]{3,3}$/,
+        pattern: /^[0-9]{12,12}$/,
         function: null,
       },
       {
@@ -3461,7 +3483,7 @@ async function obtenerValidaciones(typeFile) {
     492: [
       {
         columnName: "codigo_contable",
-        pattern: /^[A-Za-z\.]{3,3}$/,
+        pattern: /^[0-9]{12,12}$/,
         function: null,
       },
       {
@@ -4057,7 +4079,7 @@ async function formatearDatosEInsertarCabeceras(
               rowSplit.length < headers.length
             ) {
               errors.push({
-                msg: `El archivo contiene ${rowSplit.length} columnas y la cantidad esperada es de ${headers.length} columnas`,
+                msg: `La fila tiene ${rowSplit.length} campos y la cantidad esperada es de ${headers.length} campos`,
                 row: index,
               });
             } else if (
@@ -5513,7 +5535,7 @@ async function grupoUnico(params) {
       const columnName = item2.columnName;
       if (item2?.singleGroup === true) {
         keyFinal +=
-          item2.endSingleGroup === true ? `${columnName}` : `${columnName},`;
+          item2.endSingleGroup === true ? `${columnName}` : `${columnName}+`;
         valueFinal += `${value}`;
       }
     }
