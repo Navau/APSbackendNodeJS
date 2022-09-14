@@ -66,8 +66,10 @@ async function obtenerInformacionDeArchivo(nameFile) {
           null,
         paramsCantidadMultiplicadoPrecio: null,
         paramsTotalBsMenosPrevisionesInversionesBs: null,
-        paramsSaldoAntMasAltasBajasMasActualizacion: null,
-        paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion: null,
+        "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion":
+          null,
+        "paramsSaldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo":
+          null,
         paramsSaldoFinalMenosSaldoFinalDep: null,
         paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs: null,
         paramsDepreciacionPeriodoMasAltasBajasDepreciacion: null,
@@ -1807,8 +1809,12 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
-        PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
+        PARAMS[
+          "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
+        ] = true;
+        PARAMS[
+          "paramsSaldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
+        ] = true;
         PARAMS.paramsSaldoFinalMenosSaldoFinalDep = true;
       } else if (nameFile.includes(".492")) {
         console.log("ARCHIVO CORRECTO : 492", nameFile);
@@ -1843,8 +1849,12 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        PARAMS.paramsSaldoAntMasAltasBajasMasActualizacion = true;
-        PARAMS.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion = true;
+        PARAMS[
+          "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
+        ] = true;
+        PARAMS[
+          "paramsSaldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
+        ] = true;
         PARAMS.paramsSaldoFinalMenosSaldoFinalDep = true;
       } else if (nameFile.includes(".494")) {
         console.log("ARCHIVO CORRECTO : 494", nameFile);
@@ -3347,7 +3357,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "ciudad",
-        pattern: /^[A-Za-z0-9\-]{5,30}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         function: "ciudad",
       },
       {
@@ -3355,6 +3365,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -3378,17 +3389,17 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorIgualACeroDecimal",
       },
       {
-        columnName: "incremento",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        columnName: "incremento_rev_tec",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: "mayorIgualACeroDecimal",
       },
       {
-        columnName: "decremento",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        columnName: "decremento_rev_tec",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: "menorIgualACeroDecimal",
       },
       {
-        columnName: "fecha",
+        columnName: "fecha_rev_tec",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
@@ -3399,42 +3410,44 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "altas_bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        function: null,
       },
       {
         columnName: "actualizacion",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        function: null,
       },
       {
         columnName: "saldo_final",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "saldoAntMasAltasBajasMasActualizacion",
+        function:
+          "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion",
       },
       {
-        columnName: "saldo_anterior_depreciacion_acumulada",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "bajas",
+        columnName: "saldo_anterior_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: "mayorIgualACeroDecimal",
       },
       {
-        columnName: "actualizacion_depreciacion",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        columnName: "bajas_dep_acum",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: "menorIgualACeroDecimal",
+      },
+      {
+        columnName: "actualizacion_dep_acum",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: "menorIgualACeroDecimal",
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "menorIgualACeroDecimal",
       },
       {
-        columnName: "saldo_final_dep",
+        columnName: "saldo_final_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "saldoAntMenosBajasMasDepreciacionMesMasActualizacion",
+        function:
+          "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo",
       },
       {
         columnName: "valor_neto_bs",
@@ -3444,24 +3457,23 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "valor_neto_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "valor_neto_ufv",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "total_vida_util",
-        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        pattern: /^(0|[1-9][0-9]{0,3})$/,
         range: [3, 480],
-        function: "mayorIgualACeroDecimal",
+        function: "mayorIgualACeroEntero",
       },
       {
         columnName: "vida_util_restante",
-        pattern: /^(0|[1-9][0-9]{0,2})$/,
-        range: [3, 480],
-        function: "mayorIgualACeroDecimal",
+        pattern: /^(0|[1-9][0-9]{0,3})$/,
+        function: "mayorIgualACeroEntero",
       },
       {
         columnName: "observaciones",
@@ -3493,7 +3505,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "ciudad",
-        pattern: /^[A-Za-z0-9\-]{5,30}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         function: "ciudad",
       },
       {
@@ -3501,6 +3513,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: null,
       },
       {
@@ -3524,17 +3537,17 @@ async function obtenerValidaciones(typeFile) {
         function: "mayorIgualACeroDecimal",
       },
       {
-        columnName: "incremento",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        columnName: "incremento_rev_tec",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: "mayorIgualACeroDecimal",
       },
       {
-        columnName: "decremento",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        columnName: "decremento_rev_tec",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: "menorIgualACeroDecimal",
       },
       {
-        columnName: "fecha",
+        columnName: "fecha_rev_tec",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
@@ -3545,42 +3558,44 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "altas_bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        function: null,
       },
       {
         columnName: "actualizacion",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        function: null,
       },
       {
         columnName: "saldo_final",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "saldoAntMasAltasBajasMasActualizacion",
+        function:
+          "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion",
       },
       {
-        columnName: "saldo_anterior_depreciacion_acumulada",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
-      },
-      {
-        columnName: "bajas",
+        columnName: "saldo_anterior_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: "mayorIgualACeroDecimal",
       },
       {
-        columnName: "actualizacion_depreciacion",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorIgualACeroDecimal",
+        columnName: "bajas_dep_acum",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: "menorIgualACeroDecimal",
+      },
+      {
+        columnName: "actualizacion_dep_acum",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: "menorIgualACeroDecimal",
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "menorIgualACeroDecimal",
       },
       {
-        columnName: "saldo_final_dep",
+        columnName: "saldo_final_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: "saldoAntMenosBajasMasDepreciacionMesMasActualizacion",
+        function:
+          "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo",
       },
       {
         columnName: "valor_neto_bs",
@@ -3590,24 +3605,23 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "valor_neto_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "valor_neto_ufv",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: "mayorACeroDecimal",
+        function: "mayorIgualACeroDecimal",
       },
       {
         columnName: "total_vida_util",
-        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        pattern: /^(0|[1-9][0-9]{0,3})$/,
         range: [3, 480],
-        function: "mayorIgualACeroDecimal",
+        function: "mayorIgualACeroEntero",
       },
       {
         columnName: "vida_util_restante",
-        pattern: /^(0|[1-9][0-9]{0,2})$/,
-        range: [3, 480],
-        function: "mayorIgualACeroDecimal",
+        pattern: /^(0|[1-9][0-9]{0,3})$/,
+        function: "mayorIgualACeroEntero",
       },
       {
         columnName: "observaciones",
@@ -3674,6 +3688,7 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
+        notValidate: true,
         function: "fechaOperacionMenor",
       },
       {
@@ -4028,6 +4043,64 @@ async function formatearDatosEInsertarCabeceras(
             console.log("ROW", index);
           }
         }
+        // let position1 = 0;
+        // let position2 = 1;
+        // let position3 = 2;
+        // let errorsFormatAuxArray = [];
+        // try {
+        //   for (let i = 0; i < item.length; i++) {
+        //     let stringValue = "";
+        //     for (let j = position1 - 7; j < position3 + 7; j++) {
+        //       if (item?.[j]) {
+        //         stringValue += item[j];
+        //       }
+        //     }
+        //     // stringValue = `${item[position1 - 7] && item[position1 - 7]}${
+        //     //   item[position1 - 6] && item[position1 - 6]
+        //     // }${item[position1 - 5] && item[position1 - 5]}${
+        //     //   item[position1 - 4] && item[position1 - 4]
+        //     // }${item[position1 - 3] && item[position1 - 3]}${
+        //     //   item[position1 - 2] && item[position1 - 2]
+        //     // }${item[position1 - 1] && item[position1 - 1]}${item[position1]}${
+        //     //   item[position2]
+        //     // }${item[position3]}${item[position3 - 1] && item[position3 - 1]}${
+        //     //   item[position3 - 2] && item[position3 - 2]
+        //     // }`;
+        //     if (
+        //       (item[position1] !== '"' &&
+        //         item[position2] === "," &&
+        //         item[position3] === '"') ||
+        //       (item[position1 - 1] === "," &&
+        //         item[position1] === '"' &&
+        //         item[position2] !== "," &&
+        //         item[position3] === '"') ||
+        //       (item[position1] === '"' &&
+        //         item[position2] === "," &&
+        //         item[position3] !== '"')
+        //     ) {
+        //       console.log(
+        //         "POS1",
+        //         item[position1],
+        //         "POS2",
+        //         item[position2],
+        //         "POS3",
+        //         item[position3]
+        //       );
+        //       errorsFormatAuxArray.push({
+        //         msg: `Error de formato de archivo (posicion ${i}) cerca del valor: ${stringValue}`,
+        //         row: index,
+        //       });
+        //     }
+        //     position1++;
+        //     position2++;
+        //     position3++;
+        //     if (position2 > item.length) {
+        //       break;
+        //     }
+        //   }
+        // } catch (err) {
+        //   console.log(err);
+        // }
 
         if (item.length === 0) {
           return;
@@ -4036,7 +4109,7 @@ async function formatearDatosEInsertarCabeceras(
             errors.push({
               msg: `El formato del archivo no contiene los campos entre comillas correctamente`,
               row: index,
-            });
+            }); //TODO: validar tambien el '."' y '".'
           } else if (!item.includes('","')) {
             errors.push({
               msg: `El formato del archivo debe estar separado correctamente por comas (,) y comillas dobles ("")`,
@@ -4504,6 +4577,126 @@ async function mayorIgualACeroDecimal(params) {
         return {
           ok: false,
           message: `El valor no es mayor o igual a 0`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function menorACeroEntero(params) {
+  const { value } = params;
+  try {
+    const valueNumber = parseInt(value);
+    if (isNaN(valueNumber)) {
+      return {
+        ok: false,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
+      };
+    } else {
+      if (valueNumber > 0) {
+        return {
+          ok: true,
+          message: `El valor si es menor a 0`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El valor debe ser menor a 0`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function menorACeroDecimal(params) {
+  const { value } = params;
+  try {
+    const valueNumber = parseFloat(value);
+    if (isNaN(valueNumber)) {
+      return {
+        ok: false,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
+      };
+    } else {
+      if (valueNumber > 0) {
+        return {
+          ok: true,
+          message: `El valor si es menor a 0`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El valor debe ser menor a 0`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function menorIgualACeroEntero(params) {
+  const { value } = params;
+  try {
+    const valueNumber = parseInt(value);
+    if (isNaN(valueNumber)) {
+      return {
+        ok: false,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
+      };
+    } else {
+      if (valueNumber >= 0) {
+        return {
+          ok: true,
+          message: `El valor si es menor o igual a 0`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El valor no es menor o igual a 0`,
+        };
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function menorIgualACeroDecimal(params) {
+  const { value } = params;
+  try {
+    const valueNumber = parseFloat(value);
+    if (isNaN(valueNumber)) {
+      return {
+        ok: false,
+        message: `El campo no cumple las especificaciones de Tipo de Dato`,
+      };
+    } else {
+      if (valueNumber >= 0) {
+        return {
+          ok: true,
+          message: `El valor si es menor o igual a 0`,
+        };
+      } else {
+        return {
+          ok: false,
+          message: `El valor no es menor o igual a 0`,
         };
       }
     }
@@ -5602,6 +5795,10 @@ module.exports = {
   mayorACeroDecimal,
   mayorIgualACeroDecimal,
   mayorIgualACeroEntero,
+  menorACeroEntero,
+  menorACeroDecimal,
+  menorIgualACeroDecimal,
+  menorIgualACeroEntero,
   igualA,
   tipoActivo,
   tasaRendimiento,

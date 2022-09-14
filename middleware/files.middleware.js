@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map, reduce, findIndex, filter } = require("lodash");
+const { map, reduce, findIndex, filter, isEmpty } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -25,6 +25,10 @@ const {
   igualA,
   selectComun,
   grupoUnico,
+  menorACeroDecimal,
+  menorACeroEntero,
+  menorIgualACeroDecimal,
+  menorIgualACeroEntero,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1043,7 +1047,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       ) => {
         let match;
         if (date === true) {
-          let valueAux =
+          const valueAux =
             value?.slice(0, 4) +
             "-" +
             value?.slice(4, 6) +
@@ -1053,18 +1057,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         } else {
           match = value?.match(pattern);
         }
-        if (match === null) {
-          errors.push({
-            archivo: item.archivo,
-            tipo_error: "TIPO DE DATO INCORRECTO",
-            descripcion:
-              typeError === "format"
-                ? "El campo no cumple el formato establecido"
-                : `El campo no cumple las especificaciones de Tipo de Dato`,
-            valor: value,
-            columna: columnName,
-            fila: index2,
-          }); //FORMATO DE VALOR DE DOMINIO
+
+        if (mayBeEmpty === true && !value) {
+        } else {
+          if (match === null) {
+            // SI NO PUEDE ESTAR VACIO Y EL VALRFO ES VACIO
+            errors.push({
+              archivo: item.archivo,
+              tipo_error: "TIPO DE DATO INCORRECTO",
+              descripcion:
+                typeError === "format"
+                  ? "El campo no cumple el formato establecido"
+                  : `El campo no cumple las especificaciones de Tipo de Dato`,
+              valor: value,
+              columna: columnName,
+              fila: index2,
+            }); //FORMATO DE VALOR DE DOMINIO
+          }
         }
         try {
           if (columnName.includes("fecha") && notValidate === null) {
@@ -1975,7 +1984,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (funct === "calificacion") {
-            if (mayBeEmpty !== true && (value.length !== 0 || value !== "")) {
+            if (mayBeEmpty === true && !value) {
+            } else {
               let errFunction = true;
               map(_calificacion?.resultFinal, (item4, index4) => {
                 if (value === item4.descripcion) {
@@ -1994,7 +2004,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           } else if (funct === "calificadora") {
-            if (mayBeEmpty !== true && (value.length !== 0 || value !== "")) {
+            if (mayBeEmpty === true && !value) {
+            } else {
               let errFunction = true;
               map(_calificadora?.resultFinal, (item4, index4) => {
                 if (value === item4.sigla) {
@@ -2094,7 +2105,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           } else if (funct === "custodio") {
-            if (mayBeEmpty !== true && (value.length !== 0 || value !== "")) {
+            if (mayBeEmpty === true && !value) {
+            } else {
               let errFunction = true;
               map(_custodio?.resultFinal, (item4, index4) => {
                 if (value === item4.sigla) {
@@ -2438,6 +2450,68 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
+          } else if (funct === "mayorACeroDecimal") {
+            const _menorACeroDecimal = await menorACeroDecimal({
+              value: value,
+            });
+            // console.log(_menorACeroDecimal);
+
+            if (_menorACeroDecimal?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _menorACeroDecimal?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "menorACeroEntero") {
+            const _menorACeroEntero = await menorACeroEntero({
+              value: value,
+            });
+
+            if (_menorACeroEntero?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _menorACeroEntero?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "menorIgualACeroDecimal") {
+            const _menorIgualACeroDecimal = await menorIgualACeroDecimal({
+              value: value,
+            });
+            // console.log(_menorIgualACeroDecimal);
+
+            if (_menorIgualACeroDecimal?.ok === false) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _menorIgualACeroDecimal?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "menorIgualACeroEntero") {
+            const _menorIgualACeroEntero = await menorIgualACeroEntero({
+              value: value,
+            });
+
+            if (_menorIgualACeroEntero?.ok === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: _menorIgualACeroEntero?.message,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
           } else if (funct === "cantidadMultiplicadoPrecio") {
             const _operacionEntreColumnas =
               infoArchivo?.paramsCantidadMultiplicadoPrecio
@@ -2504,33 +2578,47 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 fila: index2,
               });
             }
-          } else if (funct === "saldoAntMasAltasBajasMasActualizacion") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsSaldoAntMasAltasBajasMasActualizacion
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
+          } else if (
+            funct ===
+            "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
+          ) {
+            let _operacionEntreColumnas = infoArchivo?.[
+              "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
+            ]
+              ? await operacionEntreColumnas({
+                  total: {
+                    key: columnName,
+                    value: parseFloat(value),
+                    pattern,
+                  },
+                  fields: [
+                    {
+                      key: "saldo_anterior",
+                      value: parseFloat(item2.saldo_anterior),
                     },
-                    fields: [
-                      {
-                        key: "saldo_anterior",
-                        value: parseFloat(item2.saldo_anterior),
-                      },
-                      "+",
-                      {
-                        key: "altas_bajas",
-                        value: parseFloat(item2.altas_bajas),
-                      },
-                      "+",
-                      {
-                        key: "actualizacion",
-                        value: parseFloat(item2.actualizacion),
-                      },
-                    ],
-                  })
-                : null;
+                    "+",
+                    {
+                      key: "incremento_rev_tec",
+                      value: parseFloat(item2.incremento_rev_tec),
+                    },
+                    "+",
+                    {
+                      key: "decremento_rev_tec",
+                      value: parseFloat(item2.decremento_rev_tec),
+                    },
+                    "+",
+                    {
+                      key: "altas_bajas",
+                      value: parseFloat(item2.altas_bajas),
+                    },
+                    "+",
+                    {
+                      key: "actualizacion",
+                      value: parseFloat(item2.actualizacion),
+                    },
+                  ],
+                })
+              : null;
 
             if (_operacionEntreColumnas?.ok === false) {
               errors.push({
@@ -2543,39 +2631,41 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           } else if (
-            funct === "saldoAntMenosBajasMasDepreciacionMesMasActualizacion"
+            funct ===
+            "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
           ) {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsSaldoAntMenosBajasMasDepreciacionMesMasActualizacion
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
+            let _operacionEntreColumnas = infoArchivo?.[
+              "paramsSaldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
+            ]
+              ? await operacionEntreColumnas({
+                  total: {
+                    key: columnName,
+                    value: parseFloat(value),
+                    pattern,
+                  },
+                  fields: [
+                    {
+                      key: "saldo_anterior",
+                      value: parseFloat(item2.saldo_anterior),
                     },
-                    fields: [
-                      {
-                        key: "saldo_anterior",
-                        value: parseFloat(item2.saldo_anterior),
-                      },
-                      "-",
-                      {
-                        key: "bajas",
-                        value: parseFloat(item2.bajas),
-                      },
-                      "+",
-                      {
-                        key: "depreciacion_periodo",
-                        value: parseFloat(item2.depreciacion_periodo),
-                      },
-                      "+",
-                      {
-                        key: "actualizacion",
-                        value: parseFloat(item2.actualizacion),
-                      },
-                    ],
-                  })
-                : null;
+                    "-",
+                    {
+                      key: "bajas_dep_acum",
+                      value: parseFloat(item2.bajas_dep_acum),
+                    },
+                    "+",
+                    {
+                      key: "actualizacion_dep_acum",
+                      value: parseFloat(item2.actualizacion_dep_acum),
+                    },
+                    "+",
+                    {
+                      key: "depreciacion_periodo",
+                      value: parseFloat(item2.depreciacion_periodo),
+                    },
+                  ],
+                })
+              : null;
 
             if (_operacionEntreColumnas?.ok === false) {
               errors.push({
