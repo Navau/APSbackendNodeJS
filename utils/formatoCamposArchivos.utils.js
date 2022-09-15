@@ -46,6 +46,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsInstrumento1: null,
         paramsInstrumento18: null,
         paramsInstrumento136: null,
+        paramsCodigoOperacion: null,
         paramsCartera: null,
         paramsCortoPlazo: null,
         paramsLargoPlazo: null,
@@ -1878,11 +1879,15 @@ async function obtenerInformacionDeArchivo(nameFile) {
         console.log("ARCHIVO CORRECTO : 498", nameFile);
         PARAMS.codeCurrentFile = "498";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-      } else if (nameFile.includes(".CC")) {
-        console.log("ARCHIVO CORRECTO : CC", nameFile);
-        PARAMS.codeCurrentFile = "CC";
+      } else if (nameFile.includes("DM")) {
+        console.log(
+          `ARCHIVO CORRECTO : DM.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "DM";
         PARAMS.nameTable = "APS_aud_carga_archivos_custodio";
 
+        PARAMS.paramsCodigoOperacion = {};
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -3923,7 +3928,80 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
     ],
-    DM: [],
+    DM: [
+      {
+        columnName: "fecha_operacion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        function: "fechaOperacionMenor",
+      },
+      {
+        columnName: "codigo_operacion",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: "codigoOperacion",
+      },
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        operationNotValid: "tipoOperacionCOP",
+        function: null,
+      },
+      {
+        columnName: "cantidad_valores",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: "mayorACeroEntero",
+      },
+      {
+        columnName: "tasa_negociacion",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "tasa_relevante",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{8,8}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_negociacion",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_total_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "precio_total_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "codigo_mercado",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "codigoMercado",
+      },
+      {
+        columnName: "precio_unitario",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: null,
+      },
+      {
+        columnName: "codigo_custodia",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "codigoCustodia",
+      },
+      {
+        columnName: "traspaso_custodia",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: "traspasoCustodia",
+      },
+    ],
     DU: [],
     UA: [],
     TD: [],
