@@ -122,7 +122,19 @@ async function obtenerListaArchivos(params) {
   let periodicidad = [154]; //VALOR POR DEFECTO
   let typeFileAux = null;
 
-  if (typeFiles[0].originalname.toUpperCase().includes(".CC")) {
+  if (
+    typeFiles[0].originalname.toUpperCase().includes("DM") ||
+    typeFiles[0].originalname.toUpperCase().includes("DU") ||
+    typeFiles[0].originalname.toUpperCase().includes("UA") ||
+    typeFiles[0].originalname.toUpperCase().includes("TD") ||
+    typeFiles[0].originalname.toUpperCase().includes("UD") ||
+    typeFiles[0].originalname.toUpperCase().includes("DC") ||
+    typeFiles[0].originalname.toUpperCase().includes("DR") ||
+    typeFiles[0].originalname.toUpperCase().includes("TV") ||
+    typeFiles[0].originalname.toUpperCase().includes("BG") ||
+    typeFiles[0].originalname.toUpperCase().includes("FE") ||
+    typeFiles[0].originalname.toUpperCase().includes("VC")
+  ) {
     typeFileAux = "CUSTODIO";
   } else {
     typeFileAux = "PENSIONES O BOLSA";
@@ -251,6 +263,24 @@ async function seleccionarTablas(params) {
         code: "M",
         table: "APS_aud_carga_archivos_bolsa",
         tableErrors: "APS_aud_errores_carga_archivos_bolsa",
+      };
+    } else if (
+      item.originalname.toUpperCase().includes("DM") ||
+      item.originalname.toUpperCase().includes("DU") ||
+      item.originalname.toUpperCase().includes("UA") ||
+      item.originalname.toUpperCase().includes("TD") ||
+      item.originalname.toUpperCase().includes("UD") ||
+      item.originalname.toUpperCase().includes("DC") ||
+      item.originalname.toUpperCase().includes("DR") ||
+      item.originalname.toUpperCase().includes("TV") ||
+      item.originalname.toUpperCase().includes("BG") ||
+      item.originalname.toUpperCase().includes("FE") ||
+      item.originalname.toUpperCase().includes("VC")
+    ) {
+      result = {
+        code: "CC",
+        table: "APS_aud_carga_archivos_custodio",
+        tableErrors: "APS_aud_errores_carga_archivos_custodio",
       };
     } else if (item.originalname.toUpperCase().includes(".CC")) {
       result = {
@@ -430,7 +460,10 @@ async function validarArchivosIteraciones(params) {
                 let infoArchivo = null;
                 let arrayDataObject = null;
 
-                await obtenerInformacionDeArchivo(item.archivo)
+                await obtenerInformacionDeArchivo(
+                  item.archivo,
+                  fechaInicialOperacion
+                )
                   .then((response) => {
                     infoArchivo = response;
                   })
@@ -578,6 +611,12 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsCodOperacion.params
                         )
                       : null;
+                    const _codigoOperacion = infoArchivo?.paramsCodigoOperacion
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoOperacion.table,
+                          infoArchivo.paramsCodigoOperacion.params
+                        )
+                      : null;
                     const _tipoCuenta = infoArchivo?.paramsTipoCuenta
                       ? await selectComun(
                           infoArchivo.paramsTipoCuenta.table,
@@ -679,10 +718,10 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsCustodio.params
                         )
                       : null;
-                    const codMercado = infoArchivo?.paramsCodMercado
+                    const _codigoMercado = infoArchivo?.paramsCodigoMercado
                       ? await selectComun(
-                          infoArchivo.paramsCodMercado.table,
-                          infoArchivo.paramsCodMercado.params
+                          infoArchivo.paramsCodigoMercado.table,
+                          infoArchivo.paramsCodigoMercado.params
                         )
                       : null;
                     const calfRiesgo = infoArchivo?.paramsCalfRiesgo
@@ -695,6 +734,62 @@ async function validarArchivosIteraciones(params) {
                       ? await selectComun(
                           infoArchivo.paramsCodCustodia.table,
                           infoArchivo.paramsCodCustodia.params
+                        )
+                      : null;
+                    const _codigoCustodia = infoArchivo?.paramsCodigoCustodia
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoCustodia.table,
+                          infoArchivo.paramsCodigoCustodia.params
+                        )
+                      : null;
+                    const _traspasoCustodia =
+                      infoArchivo?.paramsTraspasoCustodia
+                        ? await selectComun(
+                            infoArchivo.paramsTraspasoCustodia.table,
+                            infoArchivo.paramsTraspasoCustodia.params
+                          )
+                        : null;
+                    const _codigoEmisor = infoArchivo?.paramsCodigoEmisor
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoEmisor.table,
+                          infoArchivo.paramsCodigoEmisor.params
+                        )
+                      : null;
+                    const _precioNominalBs = infoArchivo?.paramsPrecioNominalBs
+                      ? await selectComun(
+                          infoArchivo.paramsPrecioNominalBs.table,
+                          infoArchivo.paramsPrecioNominalBs.params
+                        )
+                      : null;
+                    const _cantidadPagos = infoArchivo?.paramsCantidadPagos
+                      ? await selectComun(
+                          infoArchivo.paramsCantidadPagos.table,
+                          infoArchivo.paramsCantidadPagos.params
+                        )
+                      : null;
+                    const _subordinacion = infoArchivo?.paramsSubordinacion
+                      ? await selectComun(
+                          infoArchivo.paramsSubordinacion.table,
+                          infoArchivo.paramsSubordinacion.params
+                        )
+                      : null;
+                    const _codigoTraspasoCustodia =
+                      infoArchivo?.paramsCodigoTraspasoCustodia
+                        ? await selectComun(
+                            infoArchivo.paramsCodigoTraspasoCustodia.table,
+                            infoArchivo.paramsCodigoTraspasoCustodia.params
+                          )
+                        : null;
+                    const _valorNominalBs = infoArchivo?.paramsValorNominalBs
+                      ? await selectComun(
+                          infoArchivo.paramsValorNominalBs.table,
+                          infoArchivo.paramsValorNominalBs.params
+                        )
+                      : null;
+                    const _codigoCuenta = infoArchivo?.paramsCodigoCuenta
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoCuenta.table,
+                          infoArchivo.paramsCodigoCuenta.params
                         )
                       : null;
 
@@ -923,6 +1018,17 @@ async function validarArchivosIteraciones(params) {
                             _ciudad,
                             _tipoBienInmueble,
                             _cadenaCombinadalugarNegTipoOperTipoInstrum,
+                            _codigoOperacion,
+                            _codigoMercado,
+                            _codigoCustodia,
+                            _traspasoCustodia,
+                            _codigoCuenta,
+                            _codigoEmisor,
+                            _precioNominalBs,
+                            _cantidadPagos,
+                            _subordinacion,
+                            _codigoTraspasoCustodia,
+                            _valorNominalBs,
                           });
                         }
                       });
@@ -1014,6 +1120,18 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _instrumento18 = params._instrumento18;
       const _ciudad = params._ciudad;
       const _tipoBienInmueble = params._tipoBienInmueble;
+
+      const _codigoOperacion = params._codigoOperacion;
+      const _codigoMercado = params._codigoMercado;
+      const _codigoCustodia = params._codigoCustodia;
+      const _traspasoCustodia = params._traspasoCustodia;
+      const _codigoCuenta = params._codigoCuenta;
+      const _codigoEmisor = params._codigoEmisor;
+      const _precioNominalBs = params._precioNominalBs;
+      const _cantidadPagos = params._cantidadPagos;
+      const _subordinacion = params._subordinacion;
+      const _codigoTraspasoCustodia = params._codigoTraspasoCustodia;
+      const _valorNominalBs = params._valorNominalBs;
 
       let lugarNegociacionTipoOperacionAux = false;
 
@@ -1764,7 +1882,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "codigoOperacion") {
             let errFunction = true;
-            map(codOperacion?.resultFinal, (item4, index4) => {
+            map(_codigoOperacion?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_aps) {
                 errFunction = false;
               }
@@ -2126,7 +2244,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "codigoMercado") {
             let errFunction = true;
-            map(codMercado?.resultFinal, (item4, index4) => {
+            map(_codigoMercado?.resultFinal, (item4, index4) => {
               if (value === item4.codigo_aps) {
                 errFunction = false;
               }
@@ -2136,6 +2254,108 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `El contenido del archivo no coincide con algún codigo de mercado`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoCuenta") {
+            let errFunction = true;
+            map(_codigoCuenta?.resultFinal, (item4, index4) => {
+              if (value === item4.cuenta) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún codigo de cuenta`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoEmisor") {
+            let errFunction = true;
+            map(_codigoEmisor?.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_aps) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún codigo de emisor`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "precioNominalBs") {
+            let errFunction = true;
+            map(_precioNominalBs?.resultFinal, (item4, index4) => {
+              if (value === item4.codigo_valoracion) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algún precio nominal en bolivianos`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "cantidadPagos") {
+            let errFunction = true;
+            map(_cantidadPagos?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla_clasificador) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna cantidad de pagos`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "subordinacion") {
+            let errFunction = true;
+            map(_subordinacion?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna cantidad de pagos`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "valorNominalBs") {
+            let errFunction = true;
+            map(_valorNominalBs?.resultFinal, (item4, index4) => {
+              if (value === item4.compra) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con algun valor válido`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
@@ -2277,7 +2497,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           } else if (funct === "codigoCustodia") {
             let errFunction = true;
-            map(codCustodia?.resultFinal, (item4, index4) => {
+            map(_codigoCustodia?.resultFinal, (item4, index4) => {
               if (value === item4.sigla) {
                 errFunction = false;
               }
@@ -2287,6 +2507,40 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 archivo: item.archivo,
                 tipo_error: "VALOR INCORRECTO",
                 descripcion: `El contenido del archivo no coincide con alguna sigla de código de custodia`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "traspasoCustodia") {
+            let errFunction = true;
+            map(_traspasoCustodia?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
+                valor: value,
+                columna: columnName,
+                fila: index2,
+              });
+            }
+          } else if (funct === "codigoTraspasoCustodia") {
+            let errFunction = true;
+            map(_codigoTraspasoCustodia?.resultFinal, (item4, index4) => {
+              if (value === item4.sigla) {
+                errFunction = false;
+              }
+            });
+            if (errFunction === true) {
+              errors.push({
+                archivo: item.archivo,
+                tipo_error: "VALOR INCORRECTO",
+                descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
                 valor: value,
                 columna: columnName,
                 fila: index2,
