@@ -29,6 +29,8 @@ const {
   menorACeroEntero,
   menorIgualACeroDecimal,
   menorIgualACeroEntero,
+  compararFechas,
+  monedaTipoCambio,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -122,19 +124,7 @@ async function obtenerListaArchivos(params) {
   let periodicidad = [154]; //VALOR POR DEFECTO
   let typeFileAux = null;
 
-  if (
-    typeFiles[0].originalname.toUpperCase().includes("DM") ||
-    typeFiles[0].originalname.toUpperCase().includes("DU") ||
-    typeFiles[0].originalname.toUpperCase().includes("UA") ||
-    typeFiles[0].originalname.toUpperCase().includes("TD") ||
-    typeFiles[0].originalname.toUpperCase().includes("UD") ||
-    typeFiles[0].originalname.toUpperCase().includes("DC") ||
-    typeFiles[0].originalname.toUpperCase().includes("DR") ||
-    typeFiles[0].originalname.toUpperCase().includes("TV") ||
-    typeFiles[0].originalname.toUpperCase().includes("BG") ||
-    typeFiles[0].originalname.toUpperCase().includes("FE") ||
-    typeFiles[0].originalname.toUpperCase().includes("VC")
-  ) {
+  if (typeFiles[0].originalname.toUpperCase().includes(".CC")) {
     typeFileAux = "CUSTODIO";
   } else {
     typeFileAux = "PENSIONES O BOLSA";
@@ -154,6 +144,18 @@ async function obtenerListaArchivos(params) {
       periodicidad = [154];
     } else if (
       typeFiles[0].originalname.toUpperCase().substring(0, 3) === "108" &&
+      tipo_periodo === "M"
+    ) {
+      periodicidad = [155];
+    } else if (
+      (typeFiles[0].originalname.toUpperCase().substring(0, 2) === "01" ||
+        typeFiles[0].originalname.toUpperCase().substring(0, 2) === "02") &&
+      tipo_periodo === "D"
+    ) {
+      periodicidad = [154];
+    } else if (
+      (typeFiles[0].originalname.toUpperCase().substring(0, 2) === "01" ||
+        typeFiles[0].originalname.toUpperCase().substring(0, 2) === "02") &&
       tipo_periodo === "M"
     ) {
       periodicidad = [155];
@@ -265,22 +267,23 @@ async function seleccionarTablas(params) {
         tableErrors: "APS_aud_errores_carga_archivos_bolsa",
       };
     } else if (
-      item.originalname.toUpperCase().includes("DM") ||
-      item.originalname.toUpperCase().includes("DU") ||
-      item.originalname.toUpperCase().includes("UA") ||
-      item.originalname.toUpperCase().includes("TD") ||
-      item.originalname.toUpperCase().includes("UD") ||
-      item.originalname.toUpperCase().includes("DC") ||
-      item.originalname.toUpperCase().includes("DR") ||
-      item.originalname.toUpperCase().includes("TV") ||
-      item.originalname.toUpperCase().includes("BG") ||
-      item.originalname.toUpperCase().includes("FE") ||
-      item.originalname.toUpperCase().includes("VC")
+      (item.originalname.toUpperCase().includes("DM") ||
+        item.originalname.toUpperCase().includes("DU") ||
+        item.originalname.toUpperCase().includes("UA") ||
+        item.originalname.toUpperCase().includes("TD") ||
+        item.originalname.toUpperCase().includes("UD") ||
+        item.originalname.toUpperCase().includes("DC") ||
+        item.originalname.toUpperCase().includes("DR") ||
+        item.originalname.toUpperCase().includes("TV") ||
+        item.originalname.toUpperCase().includes("BG") ||
+        item.originalname.toUpperCase().includes("FE") ||
+        item.originalname.toUpperCase().includes("VC")) &&
+      !item.originalname.toUpperCase().includes(".CC")
     ) {
       result = {
-        code: "CC",
-        table: "APS_aud_carga_archivos_custodio",
-        tableErrors: "APS_aud_errores_carga_archivos_custodio",
+        code: item.originalname.toUpperCase().substring(0, 2),
+        table: "APS_aud_carga_archivos_pensiones_seguros",
+        tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
     } else if (item.originalname.toUpperCase().includes(".CC")) {
       result = {
@@ -398,6 +401,8 @@ async function validarArchivosIteraciones(params) {
             dataSplit = data.split("\n");
           } else if (data.length >= 1) {
             dataSplit = [data];
+          } else if (!data.replace(/\s/g, "").length) {
+            dataSplit = [""];
           } else {
             dataSplit = [""];
           }
@@ -998,7 +1003,6 @@ async function validarArchivosIteraciones(params) {
                             _calificadora,
                             _calificadoraConInstrumento,
                             _custodio,
-                            codMercado,
                             calfRiesgo,
                             codCustodia,
                             instrumento135,
@@ -1084,7 +1088,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         params._tasaUltimoHechoConInstrumento;
       const _tasaUltimoHechoConInstrumentoDiferente =
         params._tasaUltimoHechoConInstrumentoDiferente;
-      const codOperacion = params.codOperacion;
       const _tipoCuenta = params._tipoCuenta;
       const _entidadFinanciera = params._entidadFinanciera;
       const _moneda = params._moneda;
@@ -1101,15 +1104,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _calificadora = params._calificadora;
       const _calificadoraConInstrumento = params._calificadoraConInstrumento;
       const _custodio = params._custodio;
-      const codMercado = params.codMercado;
       const calfRiesgo = params._entidadFinanciera;
-      const codCustodia = params.codCustodia;
       const instrumento135 = params.instrumento135;
       const instrumento136 = params.instrumento136;
       const cortoPlazo = params.cortoPlazo;
       const largoPlazo = params.largoPlazo;
       const calfRiesgoNormal = params.calfRiesgoNormal;
-      const tipoCambio = params.tipoCambio;
+      const _tipoCambio = params.tipoCambio;
       const _bolsa = params._bolsa;
       const _tipoValoracion = params._tipoValoracion;
       const _tipoValoracion22 = params._tipoValoracion22;
@@ -1408,97 +1409,664 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }
           //#endregion
 
-          if (funct === "bolsa") {
-            let errFunction = true;
-            map(_bolsa?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                // console.log(value);
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de Bolsa de Valores`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+          for (
+            let indexFunction = 0;
+            indexFunction < funct?.length;
+            indexFunction++
+          ) {
+            const itemFunction = funct[indexFunction];
+
+            if (itemFunction === "bolsa") {
+              let errFunction = true;
+              map(_bolsa?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  // console.log(value);
+                  errFunction = false;
+                }
               });
-            }
-          } else if (funct === "tipoValoracion") {
-            let errFunction = true;
-            map(_tipoValoracion?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                // console.log(value);
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Valoración`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoValoracionConsultaMultiple") {
-            try {
-              const _tipoValoracionConsultaMultiple =
-                await tipoValoracionConsultaMultiple({
-                  tipo_instrumento: item2.tipo_instrumento,
-                  tipo_valoracion: item2.tipo_valoracion,
-                  _instrumento135,
-                  _instrumento1,
-                  _instrumento18,
-                  _tipoValoracion22,
-                  _tipoValoracion31,
-                  _tipoValoracion210,
-                });
-              if (_tipoValoracionConsultaMultiple?.ok === false) {
+              if (errFunction === true) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: _tipoValoracionConsultaMultiple?.message,
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de Bolsa de Valores`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
                 });
               }
-            } catch (err) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            } else if (itemFunction === "tipoValoracion") {
+              let errFunction = true;
+              map(_tipoValoracion?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  // console.log(value);
+                  errFunction = false;
+                }
               });
-            }
-          } else if (funct === "tipoInstrumento") {
-            let errFunction = true;
-            map(instrumento?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                // console.log(value);
-                errFunction = false;
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Valoración`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            } else if (itemFunction === "precioNominalBs") {
+              try {
+                const _monedaTipoCambio = await monedaTipoCambio({
+                  moneda: item2.moneda,
+                  value1: {
+                    key: "precio_nominal_bs",
+                    value: item2.precio_nominal_bs,
+                  },
+                  value2: {
+                    key: "precio_nominal_mo",
+                    value: item2.precio_nominal_mo,
+                  },
+                  tipoCambio: _tipoCambio,
+                });
+                if (_monedaTipoCambio?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _monedaTipoCambio?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "valorNominalBs") {
+              try {
+                const _monedaTipoCambio = await monedaTipoCambio({
+                  moneda: item2.moneda,
+                  value1: {
+                    key: "valor_nominal_bs",
+                    value: item2.valor_nominal_bs,
+                  },
+                  value2: {
+                    key: "valor_nominal_mo",
+                    value: item2.valor_nominal_mo,
+                  },
+                  tipoCambio: _tipoCambio,
+                });
+                if (_monedaTipoCambio?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _monedaTipoCambio?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoValoracionConsultaMultiple") {
+              try {
+                const _tipoValoracionConsultaMultiple =
+                  await tipoValoracionConsultaMultiple({
+                    tipo_instrumento: item2.tipo_instrumento,
+                    tipo_valoracion: item2.tipo_valoracion,
+                    _instrumento135,
+                    _instrumento1,
+                    _instrumento18,
+                    _tipoValoracion22,
+                    _tipoValoracion31,
+                    _tipoValoracion210,
+                  });
+                if (_tipoValoracionConsultaMultiple?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _tipoValoracionConsultaMultiple?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoInstrumento") {
+              let errFunction = true;
+              map(instrumento?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  // console.log(value);
+                  errFunction = false;
+                }
               });
-            }
-          } else if (funct === "tipoOperacion") {
-            let errFunction = true;
-            if (lugarNegociacionTipoOperacionAux) {
-              map(_tipoOperacion?.resultFinal, (item4, index4) => {
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoOperacion") {
+              let errFunction = true;
+              if (lugarNegociacionTipoOperacionAux) {
+                map(_tipoOperacion?.resultFinal, (item4, index4) => {
+                  if (value === item4.codigo_rmv) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "lugarNegociacion") {
+              let errFunction = true;
+              let errFunctionEmpty = true;
+              map(_lugarNegociacionVacio?.resultFinal, (item4, index4) => {
+                if (item2.tipo_operacion === item4.codigo_rmv) {
+                  errFunctionEmpty = false;
+                }
+              });
+              if (!errFunctionEmpty) {
+                lugarNegociacionTipoOperacionAux = false;
+                // descripcion: `El campo lugar_negociacion debe estar vacio debido a que el tipo_operacion es ${item3.tipo_operacion}`,
+                if (value !== "" || value?.length !== 0) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `El campo debe estar vacío`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                lugarNegociacionTipoOperacionAux = true;
+                map(_lugarNegociacion?.resultFinal, (item4, index4) => {
+                  if (item2.lugar_negociacion === item4.codigo_rmv) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "tipoActivo") {
+              let errFunction = true;
+              map(_tipoActivo?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  // console.log(value);
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con algun tipo de activo`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tasaRendimientoConInstrumento") {
+              let _igualA = null;
+              let _mayorACeroDecimal = null;
+              let functionAux = null;
+              map(
+                _tasaRendimientoConInstrumento138?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_activo === item4.sigla) {
+                    functionAux = 1;
+                  }
+                }
+              );
+              map(
+                _tasaRendimientoConInstrumento139?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_activo === item4.sigla) {
+                    functionAux = 2;
+                  }
+                }
+              );
+
+              if (functionAux === 1) {
+                _igualA = igualA({
+                  value: parseInt(value),
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _mayorACeroDecimal = mayorACeroDecimal({
+                  value: value,
+                });
+                if (_mayorACeroDecimal?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _mayorACeroDecimal?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_activo es ${item2.tipo_activo}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "entidadEmisora") {
+              let errFunction = true;
+              map(_entidadEmisora?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  // console.log(value);
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna entidad emisora`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "plazoValorConInstrumento") {
+              let _igualA = null;
+              let _mayorIgualACeroDecimal = null;
+              let functionAux = null;
+              map(_plazoValorConInstrumento?.resultFinal, (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  functionAux = 1;
+                }
+              });
+              map(
+                _plazoValorConInstrumentoDiferente?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 2;
+                  }
+                }
+              );
+
+              if (functionAux === 1) {
+                _igualA = igualA({
+                  value: parseInt(value),
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
+                  value: value,
+                });
+                if (_mayorIgualACeroDecimal?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _mayorACeroDecimal?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tasaRelevanteConInstrumento") {
+              let _igualA = null;
+              let _mayorACeroDecimal = null;
+              let functionAux = null;
+              map(
+                _tasaRelevanteConInstrumento?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 1;
+                  }
+                }
+              );
+              map(
+                _tasaRelevanteConInstrumentoDiferente?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 2;
+                  }
+                }
+              );
+
+              if (functionAux === 1) {
+                _igualA = igualA({
+                  value: parseInt(value),
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _mayorACeroDecimal = mayorACeroDecimal({
+                  value: value,
+                });
+                if (_mayorACeroDecimal?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _mayorACeroDecimal?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "plazoEconomicoConInstrumento") {
+              let _igualA = null;
+              let _mayorIgualACeroDecimal = null;
+              let functionAux = null;
+              map(
+                _plazoEconomicoConInstrumento?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 1;
+                  }
+                }
+              );
+              map(
+                _plazoEconomicoConInstrumentoDiferente?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 2;
+                  }
+                }
+              );
+
+              if (functionAux === 1) {
+                _igualA = igualA({
+                  value: parseInt(value),
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
+                  value: value,
+                });
+                if (_mayorIgualACeroDecimal?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _mayorACeroDecimal?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tasaUltimoHechoConInstrumento") {
+              let _igualA = null;
+              let _mayorIgualACeroDecimal = null;
+              let functionAux = null;
+              map(
+                _tasaUltimoHechoConInstrumento?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 1;
+                  }
+                }
+              );
+              map(
+                _tasaUltimoHechoConInstrumentoDiferente?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 2;
+                  }
+                }
+              );
+
+              if (functionAux === 1) {
+                _igualA = igualA({
+                  value: parseInt(value),
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
+                  value: value,
+                });
+                if (_mayorIgualACeroDecimal?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _mayorACeroDecimal?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoOperacion") {
+              let errFunction = true;
+              map(_codigoOperacion?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo_aps) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con algún código de operación`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "marcacion") {
+              try {
+                const _tipoMarcacion = infoArchivo.paramsTipoMarcacion
+                  ? await tipoMarcacion({
+                      tipo_marcacion: item2.tipo_marcacion,
+                      monto_negociado: parseFloat(item2.monto_negociado),
+                      monto_minimo: parseFloat(item2.monto_minimo),
+                    })
+                  : null;
+                if (_tipoMarcacion?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _tipoMarcacion?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoCuenta") {
+              let errFunction = true;
+              map(_tipoCuenta?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de tipo de cuenta`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "entidadFinanciera") {
+              let errFunction = true;
+              map(_entidadFinanciera?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo_rmv) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguna entidad financiera activa`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "moneda") {
+              let errFunction = true;
+              // console.log(_moneda);
+              map(_moneda?.resultFinal, (item4, index4) => {
+                if (
+                  value === item4.codigo_otros_activos ||
+                  value === item4.sigla ||
+                  value === item4.codigo_valoracion
+                ) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "emisor") {
+              let errFunction = true;
+              map(_emisor?.resultFinal, (item4, index4) => {
                 if (value === item4.codigo_rmv) {
                   errFunction = false;
                 }
@@ -1513,32 +2081,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
-            }
-          } else if (funct === "lugarNegociacion") {
-            let errFunction = true;
-            let errFunctionEmpty = true;
-            map(_lugarNegociacionVacio?.resultFinal, (item4, index4) => {
-              if (item2.tipo_operacion === item4.codigo_rmv) {
-                errFunctionEmpty = false;
-              }
-            });
-            if (!errFunctionEmpty) {
-              lugarNegociacionTipoOperacionAux = false;
-              // descripcion: `El campo lugar_negociacion debe estar vacio debido a que el tipo_operacion es ${item3.tipo_operacion}`,
-              if (value !== "" || value?.length !== 0) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo debe estar vacío`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              lugarNegociacionTipoOperacionAux = true;
-              map(_lugarNegociacion?.resultFinal, (item4, index4) => {
-                if (item2.lugar_negociacion === item4.codigo_rmv) {
+            } else if (itemFunction === "pais") {
+              let errFunction = true;
+              map(_pais?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo) {
                   errFunction = false;
                 }
               });
@@ -1552,561 +2098,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
-            }
-          } else if (funct === "tipoActivo") {
-            let errFunction = true;
-            map(_tipoActivo?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                // console.log(value);
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algun tipo de activo`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tasaRendimientoConInstrumento") {
-            let _igualA = null;
-            let _mayorACeroDecimal = null;
-            let functionAux = null;
-            map(
-              _tasaRendimientoConInstrumento138?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_activo === item4.sigla) {
-                  functionAux = 1;
-                }
-              }
-            );
-            map(
-              _tasaRendimientoConInstrumento139?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_activo === item4.sigla) {
-                  functionAux = 2;
-                }
-              }
-            );
-
-            if (functionAux === 1) {
-              _igualA = igualA({
-                value: parseInt(value),
-                equalTo: 0,
-              });
-              if (_igualA?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _igualA?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else if (functionAux === 2) {
-              _mayorACeroDecimal = mayorACeroDecimal({
-                value: value,
-              });
-              if (_mayorACeroDecimal?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_activo es ${item2.tipo_activo}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "entidadEmisora") {
-            let errFunction = true;
-            map(_entidadEmisora?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                // console.log(value);
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna entidad emisora`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "plazoValorConInstrumento") {
-            let _igualA = null;
-            let _mayorIgualACeroDecimal = null;
-            let functionAux = null;
-            map(_plazoValorConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                functionAux = 1;
-              }
-            });
-            map(
-              _plazoValorConInstrumentoDiferente?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  functionAux = 2;
-                }
-              }
-            );
-
-            if (functionAux === 1) {
-              _igualA = igualA({
-                value: parseInt(value),
-                equalTo: 0,
-              });
-              if (_igualA?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _igualA?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else if (functionAux === 2) {
-              _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
-                value: value,
-              });
-              if (_mayorIgualACeroDecimal?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tasaRelevanteConInstrumento") {
-            let _igualA = null;
-            let _mayorACeroDecimal = null;
-            let functionAux = null;
-            map(_tasaRelevanteConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                functionAux = 1;
-              }
-            });
-            map(
-              _tasaRelevanteConInstrumentoDiferente?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  functionAux = 2;
-                }
-              }
-            );
-
-            if (functionAux === 1) {
-              _igualA = igualA({
-                value: parseInt(value),
-                equalTo: 0,
-              });
-              if (_igualA?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _igualA?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else if (functionAux === 2) {
-              _mayorACeroDecimal = mayorACeroDecimal({
-                value: value,
-              });
-              if (_mayorACeroDecimal?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "plazoEconomicoConInstrumento") {
-            let _igualA = null;
-            let _mayorIgualACeroDecimal = null;
-            let functionAux = null;
-            map(_plazoEconomicoConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                functionAux = 1;
-              }
-            });
-            map(
-              _plazoEconomicoConInstrumentoDiferente?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  functionAux = 2;
-                }
-              }
-            );
-
-            if (functionAux === 1) {
-              _igualA = igualA({
-                value: parseInt(value),
-                equalTo: 0,
-              });
-              if (_igualA?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _igualA?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else if (functionAux === 2) {
-              _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
-                value: value,
-              });
-              if (_mayorIgualACeroDecimal?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tasaUltimoHechoConInstrumento") {
-            let _igualA = null;
-            let _mayorIgualACeroDecimal = null;
-            let functionAux = null;
-            map(
-              _tasaUltimoHechoConInstrumento?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  functionAux = 1;
-                }
-              }
-            );
-            map(
-              _tasaUltimoHechoConInstrumentoDiferente?.resultFinal,
-              (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  functionAux = 2;
-                }
-              }
-            );
-
-            if (functionAux === 1) {
-              _igualA = igualA({
-                value: parseInt(value),
-                equalTo: 0,
-              });
-              if (_igualA?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _igualA?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else if (functionAux === 2) {
-              _mayorIgualACeroDecimal = mayorIgualACeroDecimal({
-                value: value,
-              });
-              if (_mayorIgualACeroDecimal?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _mayorACeroDecimal?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "codigoOperacion") {
-            let errFunction = true;
-            map(_codigoOperacion?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_aps) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún código de operación`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoMarcacion") {
-            try {
-              const _tipoMarcacion = infoArchivo.paramsTipoMarcacion
-                ? await tipoMarcacion({
-                    tipo_marcacion: item2.tipo_marcacion,
-                    monto_negociado: parseFloat(item2.monto_negociado),
-                    monto_minimo: parseFloat(item2.monto_minimo),
-                  })
-                : null;
-              if (_tipoMarcacion?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _tipoMarcacion?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } catch (err) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoCuenta") {
-            let errFunction = true;
-            map(_tipoCuenta?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de tipo de cuenta`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "entidadFinanciera") {
-            let errFunction = true;
-            map(_entidadFinanciera?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_rmv) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguna entidad financiera activa`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "moneda") {
-            let errFunction = true;
-            // console.log(_moneda);
-            map(_moneda?.resultFinal, (item4, index4) => {
-              if (
-                value === item4.codigo_otros_activos ||
-                value === item4.sigla ||
-                value === item4.codigo_valoracion
-              ) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "emisor") {
-            let errFunction = true;
-            map(_emisor?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_rmv) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "pais") {
-            let errFunction = true;
-            map(_pais?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoAmortizacion") {
-            let errFunction = true;
-            map(_tipoAmortizacion?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún tipo de amortizacion`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoInteres") {
-            let errFunction = true;
-            map(_tipoInteres?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ningún Tipo de Interés definido`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoTasa") {
-            let errFunction = true;
-            map(_tipoTasa?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ningún Tipo de Tasa definido`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "prepago") {
-            let errFunction = true;
-            map(_prepago?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de prepago`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "subordinado") {
-            let errFunction = true;
-            map(_subordinado?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de subordinado`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "calificacion") {
-            if (mayBeEmpty === true && !value) {
-            } else {
+            } else if (itemFunction === "tipoAmortizacion") {
               let errFunction = true;
-              map(_calificacion?.resultFinal, (item4, index4) => {
-                if (value === item4.descripcion) {
+              map(_tipoAmortizacion?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
                   errFunction = false;
                 }
               });
@@ -2114,100 +2109,228 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                  descripcion: `El contenido del archivo no coincide con algún tipo de amortizacion`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
                 });
               }
-            }
-          } else if (funct === "calificadora") {
-            if (mayBeEmpty === true && !value) {
-            } else {
+            } else if (itemFunction === "tipoInteres") {
               let errFunction = true;
+              map(_tipoInteres?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ningún Tipo de Interés definido`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoTasa") {
+              let errFunction = true;
+              map(_tipoTasa?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ningún Tipo de Tasa definido`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "prepago") {
+              let errFunction = true;
+              map(_prepago?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de prepago`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "subordinado") {
+              let errFunction = true;
+              map(_subordinado?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de subordinado`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "calificacion") {
+              if (mayBeEmpty === true && !value) {
+              } else {
+                let errFunction = true;
+                map(_calificacion?.resultFinal, (item4, index4) => {
+                  if (value === item4.descripcion) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "calificadora") {
+              if (mayBeEmpty === true && !value) {
+              } else {
+                let errFunction = true;
+                map(_calificadora?.resultFinal, (item4, index4) => {
+                  if (value === item4.sigla) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "calificadoraConInstrumento") {
+              let errFunction = true;
+              let errFunctionInstrumento = true;
+              map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  errFunctionInstrumento = false;
+                }
+              });
               map(_calificadora?.resultFinal, (item4, index4) => {
                 if (value === item4.sigla) {
                   errFunction = false;
                 }
               });
-              if (errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
+              if (errFunctionInstrumento) {
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                if (
+                  (value !== "" || value.length >= 1) &&
+                  errFunction === true
+                ) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
               }
-            }
-          } else if (funct === "calificadoraConInstrumento") {
-            let errFunction = true;
-            let errFunctionInstrumento = true;
-            map(_calificadoraConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                errFunctionInstrumento = false;
-              }
-            });
-            map(_calificadora?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunctionInstrumento) {
-              if (errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } else {
-              if ((value !== "" || value.length >= 1) && errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificadora no se encuentra en ninguna calificadora válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            }
-          } else if (funct === "calificacionConInstrumento") {
-            let errFunction = true;
-            let errFunctionInstrumento = true;
-            let errFunctionVacio = true;
-            map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
-              if (item2.tipo_instrumento === item4.sigla) {
-                errFunctionInstrumento = false;
-              }
-            });
-            if (!errFunctionInstrumento) {
-              map(_calificacionVacio?.resultFinal, (item4, index4) => {
-                if (value === item4.descripcion) {
-                  errFunctionVacio = false;
+            } else if (itemFunction === "calificacionConInstrumento") {
+              let errFunction = true;
+              let errFunctionInstrumento = true;
+              let errFunctionVacio = true;
+              map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla) {
+                  errFunctionInstrumento = false;
                 }
               });
-              if (
-                (value !== "" || value.length >= 1) &&
-                errFunctionVacio === true
-              ) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
+              if (!errFunctionInstrumento) {
+                map(_calificacionVacio?.resultFinal, (item4, index4) => {
+                  if (value === item4.descripcion) {
+                    errFunctionVacio = false;
+                  }
                 });
+                if (
+                  (value !== "" || value.length >= 1) &&
+                  errFunctionVacio === true
+                ) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                map(_calificacion?.resultFinal, (item4, index4) => {
+                  if (value === item4.descripcion) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
               }
-            } else {
-              map(_calificacion?.resultFinal, (item4, index4) => {
-                if (value === item4.descripcion) {
+            } else if (itemFunction === "custodio") {
+              if (mayBeEmpty === true && !value) {
+              } else {
+                let errFunction = true;
+                map(_custodio?.resultFinal, (item4, index4) => {
+                  if (value === item4.sigla) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `El campo no corresponde a ninguna sigla de Custodio definida`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "codigoMercado") {
+              let errFunction = true;
+              map(_codigoMercado?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo_aps) {
                   errFunction = false;
                 }
               });
@@ -2215,18 +2338,96 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                  descripcion: `El contenido del archivo no coincide con algún codigo de mercado`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
                 });
               }
-            }
-          } else if (funct === "custodio") {
-            if (mayBeEmpty === true && !value) {
-            } else {
+            } else if (itemFunction === "codigoCuenta") {
               let errFunction = true;
-              map(_custodio?.resultFinal, (item4, index4) => {
+              map(_codigoCuenta?.resultFinal, (item4, index4) => {
+                if (value === item4.cuenta) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con algún codigo de cuenta`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoEmisor") {
+              let errFunction = true;
+              map(_codigoEmisor?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo_aps) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con algún codigo de emisor`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "precioNominalBs") {
+              let errFunction = true;
+              map(_precioNominalBs?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo_valoracion) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con algún precio nominal en bolivianos`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "cantidadPagos") {
+              let errFunction = false;
+              let _instrumentoClasificador = null;
+              map(_cantidadPagos?.resultFinal, (item4, index4) => {
+                if (item2.tipo_instrumento === item4.sigla_instrumento) {
+                  _instrumentoClasificador = item4;
+                }
+              });
+
+              if (_instrumentoClasificador.sigla_clasificador === "RF") {
+                if (value > 0) {
+                  errFunction = true;
+                }
+              } else if (
+                _instrumentoClasificador.sigla_clasificador === "EXRF"
+              ) {
+                if (value === 1) {
+                  errFunction = true;
+                }
+              }
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna cantidad de pagos válida`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "subordinacion") {
+              let errFunction = true;
+              map(_subordinacion?.resultFinal, (item4, index4) => {
                 if (value === item4.sigla) {
                   errFunction = false;
                 }
@@ -2235,187 +2436,47 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguna sigla de Custodio definida`,
+                  descripcion: `El contenido del archivo no coincide con alguna cantidad de pagos`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
                 });
               }
-            }
-          } else if (funct === "codigoMercado") {
-            let errFunction = true;
-            map(_codigoMercado?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_aps) {
-                errFunction = false;
+            } else if (itemFunction === "valorNominalBs") {
+              let errFunction = true;
+              map(_valorNominalBs?.resultFinal, (item4, index4) => {
+                if (value === item4.compra) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con algun valor válido`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún codigo de mercado`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "codigoCuenta") {
-            let errFunction = true;
-            map(_codigoCuenta?.resultFinal, (item4, index4) => {
-              if (value === item4.cuenta) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún codigo de cuenta`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "codigoEmisor") {
-            let errFunction = true;
-            map(_codigoEmisor?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_aps) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún codigo de emisor`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "precioNominalBs") {
-            let errFunction = true;
-            map(_precioNominalBs?.resultFinal, (item4, index4) => {
-              if (value === item4.codigo_valoracion) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algún precio nominal en bolivianos`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "cantidadPagos") {
-            let errFunction = true;
-            map(_cantidadPagos?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla_clasificador) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna cantidad de pagos`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "subordinacion") {
-            let errFunction = true;
-            map(_subordinacion?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna cantidad de pagos`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "valorNominalBs") {
-            let errFunction = true;
-            map(_valorNominalBs?.resultFinal, (item4, index4) => {
-              if (value === item4.compra) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con algun valor válido`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "interesMasAmortizacion") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsInteresMasAmortizacion
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "interes",
-                        value: parseFloat(item2.interes),
-                      },
-                      "+",
-                      {
-                        key: "amortizacion",
-                        value: parseFloat(item2.amortizacion),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "saldoCapitalMenosAmortizacionCuponAnterior") {
-            if (index2 >= 1) {
+            } else if (itemFunction === "interesMasAmortizacion") {
               let _operacionEntreColumnas =
-                infoArchivo?.paramsFlujoTotalMenosAmortizacion
+                infoArchivo?.paramsInteresMasAmortizacion
                   ? await operacionEntreColumnas({
                       total: {
                         key: columnName,
                         value: parseFloat(value),
+                        pattern,
                       },
                       fields: [
                         {
-                          key: `saldo_capital (fila anterior: ${index2 - 1})`,
-                          value: parseFloat(
-                            arrayDataObject[index2 - 1].saldo_capital
-                          ),
+                          key: "interes",
+                          value: parseFloat(item2.interes),
                         },
-                        "-",
+                        "+",
                         {
-                          key: `amortizacion (fila anterior: ${index2 - 1})`,
-                          value: parseFloat(
-                            arrayDataObject[index2 - 1].amortizacion
-                          ),
+                          key: "amortizacion",
+                          value: parseFloat(item2.amortizacion),
                         },
                       ],
                     })
@@ -2431,344 +2492,493 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
-            }
-          } else if (
-            funct ===
-            "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000"
-          ) {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: `saldo_capital`,
-                        value: parseFloat(item2.saldo_capital),
-                      },
-                      "*",
-                      {
-                        key: `plazo_cupon`,
-                        value: parseFloat(item2.plazo_cupon),
-                      },
-                      "*",
-                      {
-                        key: `tasa_interes`,
-                        value: parseFloat(item2.tasa_interes),
-                      },
-                      "/",
-                      {
-                        key: `36000`,
-                        value: 36000,
-                      },
-                    ],
-                  })
-                : null;
+            } else if (
+              itemFunction === "saldoCapitalMenosAmortizacionCuponAnterior"
+            ) {
+              if (index2 >= 1) {
+                let _operacionEntreColumnas =
+                  infoArchivo?.paramsSaldoCapitalMenosAmortizacionCuponAnterior
+                    ? await operacionEntreColumnas({
+                        total: {
+                          key: columnName,
+                          value: parseFloat(value),
+                        },
+                        fields: [
+                          {
+                            key: `saldo_capital (fila anterior: ${index2 - 1})`,
+                            value: parseFloat(
+                              arrayDataObject[index2 - 1].saldo_capital
+                            ),
+                          },
+                          "-",
+                          {
+                            key: `amortizacion (fila anterior: ${index2 - 1})`,
+                            value: parseFloat(
+                              arrayDataObject[index2 - 1].amortizacion
+                            ),
+                          },
+                        ],
+                      })
+                    : null;
 
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "calificacionRiesgo") {
-            let errFunction = true;
-            map(calfRiesgo?.resultFinal, (item4, index4) => {
-              if (value === item4.descripcion) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna descripción de calificación de riesgo`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "codigoCustodia") {
-            let errFunction = true;
-            map(_codigoCustodia?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de código de custodia`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "traspasoCustodia") {
-            let errFunction = true;
-            map(_traspasoCustodia?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "codigoTraspasoCustodia") {
-            let errFunction = true;
-            map(_codigoTraspasoCustodia?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
-              }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "calificacionRiesgoMultiple") {
-            try {
-              const calfRiesgoMultiple =
-                await calificacionRiesgoConsultaMultiple({
-                  tipo_instrumento: item2.tipo_instrumento,
-                  plazo_valor: item2.plazo_valor,
-                  calificacion_riesgo: value,
-                  instrumento135,
-                  instrumento136,
-                  cortoPlazo,
-                  largoPlazo,
-                  calfRiesgoNormal,
-                });
-              if (calfRiesgoMultiple?.ok !== true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: calfRiesgoMultiple?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } catch (err) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "fechaOperacionMenorAlArchivo") {
-            try {
-              const _fechaOperacionMenor =
-                infoArchivo?.paramsFechaOperacionMenor === true
-                  ? await fechaOperacionMenor({
-                      fecha_nombre_archivo: fechaInicialOperacion,
-                      fecha_contenido_operacion: value,
-                    })
-                  : null;
-              if (_fechaOperacionMenor?.ok === false) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: _fechaOperacionMenor?.message,
-                  valor: value,
-                  columna: columnName,
-                  fila: index2,
-                });
-              }
-            } catch (err) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "montoFinalConTipoDeCambio") {
-            try {
-              let errFunction = { ok: false, message: "" };
-              map(tipoCambio, (item, index) => {
-                if (errFunction?.ok === false) {
-                  montoFinalConTipoDeCambio({
-                    saldo_mo: item2.saldo_mo,
-                    saldo_bs: value,
-                    tipo_cambio: item,
-                    errFunction,
+                if (_operacionEntreColumnas?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _operacionEntreColumnas?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
                   });
                 }
-              });
+              }
+            } else if (
+              funct ===
+              "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: `saldo_capital`,
+                          value: parseFloat(item2.saldo_capital),
+                        },
+                        "*",
+                        {
+                          key: `plazo_cupon`,
+                          value: parseFloat(item2.plazo_cupon),
+                        },
+                        "*",
+                        {
+                          key: `tasa_interes`,
+                          value: parseFloat(item2.tasa_interes),
+                        },
+                        "/",
+                        {
+                          key: `36000`,
+                          value: 36000,
+                        },
+                      ],
+                    })
+                  : null;
 
-              if (errFunction?.ok === false) {
+              if (_operacionEntreColumnas?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: errFunction?.message,
+                  descripcion: _operacionEntreColumnas?.message,
                   valor: value,
                   columna: columnName,
                   fila: index2,
                 });
               }
-            } catch (err) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `Error en tipo de dato. ${err.message}`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            } else if (itemFunction === "calificacionRiesgo") {
+              let errFunction = true;
+              map(calfRiesgo?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunction = false;
+                }
               });
-            }
-          } else if (funct === "mayorACeroDecimal") {
-            const _mayorACeroDecimal = await mayorACeroDecimal({
-              value: value,
-            });
-            // console.log(_mayorACeroDecimal);
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna descripción de calificación de riesgo`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoCustodia") {
+              let errFunction = true;
+              map(_codigoCustodia?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de código de custodia`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "traspasoCustodia") {
+              let errFunction = true;
+              map(_traspasoCustodia?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "traspasoCustodiaConCodigoOperacion") {
+              if (item2.codigo_operacion === "T") {
+                let errFunction = true;
+                map(_traspasoCustodia?.resultFinal, (item4, index4) => {
+                  if (value === item4.sigla) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "codigoTraspasoCustodiaConCodigoOperacion") {
+              if (item2.codigo_operacion === "T") {
+                let errFunction = true;
+                map(_traspasoCustodia?.resultFinal, (item4, index4) => {
+                  if (value === item4.sigla) {
+                    errFunction = false;
+                  }
+                });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              }
+            } else if (itemFunction === "codigoTraspasoCustodia") {
+              let errFunction = true;
+              map(_codigoTraspasoCustodia?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de código de traspaso custodia`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "calificacionRiesgoMultiple") {
+              try {
+                const calfRiesgoMultiple =
+                  await calificacionRiesgoConsultaMultiple({
+                    tipo_instrumento: item2.tipo_instrumento,
+                    plazo_valor: item2.plazo_valor,
+                    calificacion_riesgo: value,
+                    instrumento135,
+                    instrumento136,
+                    cortoPlazo,
+                    largoPlazo,
+                    calfRiesgoNormal,
+                  });
+                if (calfRiesgoMultiple?.ok !== true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: calfRiesgoMultiple?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "fechaOperacionMenorAlArchivo") {
+              try {
+                const _fechaOperacionMenor =
+                  infoArchivo?.paramsFechaOperacionMenor === true
+                    ? await fechaOperacionMenor({
+                        fecha_nombre_archivo: fechaInicialOperacion,
+                        fecha_contenido_operacion: value,
+                      })
+                    : null;
+                if (_fechaOperacionMenor?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _fechaOperacionMenor?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "montoFinalConTipoDeCambio") {
+              try {
+                let errFunction = { ok: false, message: "" };
+                map(_tipoCambio, (item, index) => {
+                  if (errFunction?.ok === false) {
+                    montoFinalConTipoDeCambio({
+                      saldo_mo: item2.saldo_mo,
+                      saldo_bs: value,
+                      tipo_cambio: item,
+                      errFunction,
+                    });
+                  }
+                });
 
-            if (_mayorACeroDecimal?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorACeroDecimal?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+                if (errFunction?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: errFunction?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } catch (err) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `Error en tipo de dato. ${err.message}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "mayorACeroDecimal") {
+              const _mayorACeroDecimal = await mayorACeroDecimal({
+                value: value,
               });
-            }
-          } else if (funct === "mayorACeroEntero") {
-            const _mayorACeroEntero = await mayorACeroEntero({
-              value: value,
-            });
+              // console.log(_mayorACeroDecimal);
 
-            if (_mayorACeroEntero?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorACeroEntero?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_mayorACeroDecimal?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _mayorACeroDecimal?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "mayorACeroEntero") {
+              const _mayorACeroEntero = await mayorACeroEntero({
+                value: value,
               });
-            }
-          } else if (funct === "mayorIgualACeroDecimal") {
-            const _mayorIgualACeroDecimal = await mayorIgualACeroDecimal({
-              value: value,
-            });
-            // console.log(mayorACeroDecimal);
 
-            if (_mayorIgualACeroDecimal?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorIgualACeroDecimal?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_mayorACeroEntero?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _mayorACeroEntero?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "mayorIgualACeroDecimal") {
+              const _mayorIgualACeroDecimal = await mayorIgualACeroDecimal({
+                value: value,
               });
-            }
-          } else if (funct === "mayorIgualACeroEntero") {
-            const _mayorIgualACeroEntero = await mayorIgualACeroEntero({
-              value: value,
-            });
+              // console.log(mayorACeroDecimal);
 
-            if (_mayorIgualACeroEntero?.ok === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _mayorIgualACeroEntero?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_mayorIgualACeroDecimal?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _mayorIgualACeroDecimal?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "mayorIgualACeroEntero") {
+              const _mayorIgualACeroEntero = await mayorIgualACeroEntero({
+                value: value,
               });
-            }
-          } else if (funct === "mayorACeroDecimal") {
-            const _menorACeroDecimal = await menorACeroDecimal({
-              value: value,
-            });
-            // console.log(_menorACeroDecimal);
 
-            if (_menorACeroDecimal?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _menorACeroDecimal?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_mayorIgualACeroEntero?.ok === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _mayorIgualACeroEntero?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "menorACeroDecimal") {
+              const _menorACeroDecimal = await menorACeroDecimal({
+                value: value,
               });
-            }
-          } else if (funct === "menorACeroEntero") {
-            const _menorACeroEntero = await menorACeroEntero({
-              value: value,
-            });
+              // console.log(_menorACeroDecimal);
 
-            if (_menorACeroEntero?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _menorACeroEntero?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_menorACeroDecimal?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _menorACeroDecimal?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "menorACeroEntero") {
+              const _menorACeroEntero = await menorACeroEntero({
+                value: value,
               });
-            }
-          } else if (funct === "menorIgualACeroDecimal") {
-            const _menorIgualACeroDecimal = await menorIgualACeroDecimal({
-              value: value,
-            });
-            // console.log(_menorIgualACeroDecimal);
 
-            if (_menorIgualACeroDecimal?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _menorIgualACeroDecimal?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_menorACeroEntero?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _menorACeroEntero?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "menorIgualACeroDecimal") {
+              const _menorIgualACeroDecimal = await menorIgualACeroDecimal({
+                value: value,
               });
-            }
-          } else if (funct === "menorIgualACeroEntero") {
-            const _menorIgualACeroEntero = await menorIgualACeroEntero({
-              value: value,
-            });
+              // console.log(_menorIgualACeroDecimal);
 
-            if (_menorIgualACeroEntero?.ok === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _menorIgualACeroEntero?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+              if (_menorIgualACeroDecimal?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _menorIgualACeroDecimal?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "menorIgualACeroEntero") {
+              const _menorIgualACeroEntero = await menorIgualACeroEntero({
+                value: value,
               });
-            }
-          } else if (funct === "cantidadMultiplicadoPrecio") {
-            const _operacionEntreColumnas =
-              infoArchivo?.paramsCantidadMultiplicadoPrecio
+
+              if (_menorIgualACeroEntero?.ok === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _menorIgualACeroEntero?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "cantidadMultiplicadoPrecio") {
+              const _operacionEntreColumnas =
+                infoArchivo?.paramsCantidadMultiplicadoPrecio
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "cantidad",
+                          value: parseFloat(item2.cantidad),
+                        },
+                        "*",
+                        {
+                          key: "precio",
+                          value: parseFloat(item2.precio),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              itemFunction === "totalBsMenosPrevisionesInversionesBs"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsTotalBsMenosPrevisionesInversionesBs
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "total_bs",
+                          value: parseFloat(item2.total_bs),
+                        },
+                        "-",
+                        {
+                          key: "prevision_inversion_bs",
+                          value: parseFloat(item2.prevision_inversiones_bs),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              funct ===
+              "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
+            ) {
+              let _operacionEntreColumnas = infoArchivo?.[
+                "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
+              ]
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
@@ -2777,229 +2987,50 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     },
                     fields: [
                       {
-                        key: "cantidad",
-                        value: parseFloat(item2.cantidad),
-                      },
-                      "*",
-                      {
-                        key: "precio",
-                        value: parseFloat(item2.precio),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "totalBsMenosPrevisionesInversionesBs") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsTotalBsMenosPrevisionesInversionesBs
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "total_bs",
-                        value: parseFloat(item2.total_bs),
-                      },
-                      "-",
-                      {
-                        key: "prevision_inversion_bs",
-                        value: parseFloat(item2.prevision_inversiones_bs),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (
-            funct ===
-            "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
-          ) {
-            let _operacionEntreColumnas = infoArchivo?.[
-              "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
-            ]
-              ? await operacionEntreColumnas({
-                  total: {
-                    key: columnName,
-                    value: parseFloat(value),
-                    pattern,
-                  },
-                  fields: [
-                    {
-                      key: "saldo_anterior",
-                      value: parseFloat(item2.saldo_anterior),
-                    },
-                    "+",
-                    {
-                      key: "incremento_rev_tec",
-                      value: parseFloat(item2.incremento_rev_tec),
-                    },
-                    "+",
-                    {
-                      key: "decremento_rev_tec",
-                      value: parseFloat(item2.decremento_rev_tec),
-                    },
-                    "+",
-                    {
-                      key: "altas_bajas",
-                      value: parseFloat(item2.altas_bajas),
-                    },
-                    "+",
-                    {
-                      key: "actualizacion",
-                      value: parseFloat(item2.actualizacion),
-                    },
-                  ],
-                })
-              : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (
-            funct ===
-            "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
-          ) {
-            let _operacionEntreColumnas = infoArchivo?.[
-              "paramsSaldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
-            ]
-              ? await operacionEntreColumnas({
-                  total: {
-                    key: columnName,
-                    value: parseFloat(value),
-                    pattern,
-                  },
-                  fields: [
-                    {
-                      key: "saldo_anterior",
-                      value: parseFloat(item2.saldo_anterior),
-                    },
-                    "-",
-                    {
-                      key: "bajas_dep_acum",
-                      value: parseFloat(item2.bajas_dep_acum),
-                    },
-                    "+",
-                    {
-                      key: "actualizacion_dep_acum",
-                      value: parseFloat(item2.actualizacion_dep_acum),
-                    },
-                    "+",
-                    {
-                      key: "depreciacion_periodo",
-                      value: parseFloat(item2.depreciacion_periodo),
-                    },
-                  ],
-                })
-              : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "saldoFinalMenosSaldoFinalDep") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsSaldoFinalMenosSaldoFinalDep
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "saldo_final",
-                        value: parseFloat(item2.saldo_final),
-                      },
-                      "-",
-                      {
-                        key: "saldo_final_dep",
-                        value: parseFloat(item2.saldo_final_dep),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "saldoFinalMesAnteriorBsMasMovimientoMesBs") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "saldo_final_mes_anterior_bs",
-                        value: parseFloat(item2.saldo_final_mes_anterior_bs),
+                        key: "saldo_anterior",
+                        value: parseFloat(item2.saldo_anterior),
                       },
                       "+",
                       {
-                        key: "movimiento_mes_bs",
-                        value: parseFloat(item2.movimiento_mes_bs),
+                        key: "incremento_rev_tec",
+                        value: parseFloat(item2.incremento_rev_tec),
+                      },
+                      "+",
+                      {
+                        key: "decremento_rev_tec",
+                        value: parseFloat(item2.decremento_rev_tec),
+                      },
+                      "+",
+                      {
+                        key: "altas_bajas",
+                        value: parseFloat(item2.altas_bajas),
+                      },
+                      "+",
+                      {
+                        key: "actualizacion",
+                        value: parseFloat(item2.actualizacion),
                       },
                     ],
                   })
                 : null;
 
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "depreciacionPeriodoMasAltasBajasDepreciacion") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsDepreciacionPeriodoMasAltasBajasDepreciacion
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              funct ===
+              "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
+            ) {
+              let _operacionEntreColumnas = infoArchivo?.[
+                "paramsSaldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo"
+              ]
                 ? await operacionEntreColumnas({
                     total: {
                       key: columnName,
@@ -3007,360 +3038,519 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       pattern,
                     },
                     fields: [
+                      {
+                        key: "saldo_anterior",
+                        value: parseFloat(item2.saldo_anterior),
+                      },
+                      "-",
+                      {
+                        key: "bajas_dep_acum",
+                        value: parseFloat(item2.bajas_dep_acum),
+                      },
+                      "+",
+                      {
+                        key: "actualizacion_dep_acum",
+                        value: parseFloat(item2.actualizacion_dep_acum),
+                      },
+                      "+",
                       {
                         key: "depreciacion_periodo",
                         value: parseFloat(item2.depreciacion_periodo),
                       },
-                      "+",
-                      {
-                        key: "altas_bajas_depreciacion",
-                        value: parseFloat(item2.altas_bajas_depreciacion),
-                      },
                     ],
                   })
                 : null;
 
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "cantidadCuotasMultiplicadoCuotaBs") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsCantidadCuotasMultiplicadoCuotaBs
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "cantidad_cuotas",
-                        value: parseFloat(item2.cantidad_cuotas),
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "saldoFinalMenosSaldoFinalDep") {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsSaldoFinalMenosSaldoFinalDep
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
                       },
-                      "*",
-                      {
-                        key: "cuota_bs",
-                        value: parseFloat(item2.cuota_bs),
+                      fields: [
+                        {
+                          key: "saldo_final",
+                          value: parseFloat(item2.saldo_final),
+                        },
+                        "-",
+                        {
+                          key: "saldo_final_dep",
+                          value: parseFloat(item2.saldo_final_dep),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              itemFunction === "saldoFinalMesAnteriorBsMasMovimientoMesBs"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsSaldoFinalMesAnteriorBsMasMovimientoMesBs
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
                       },
-                    ],
+                      fields: [
+                        {
+                          key: "saldo_final_mes_anterior_bs",
+                          value: parseFloat(item2.saldo_final_mes_anterior_bs),
+                        },
+                        "+",
+                        {
+                          key: "movimiento_mes_bs",
+                          value: parseFloat(item2.movimiento_mes_bs),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              itemFunction === "depreciacionPeriodoMasAltasBajasDepreciacion"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsDepreciacionPeriodoMasAltasBajasDepreciacion
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "depreciacion_periodo",
+                          value: parseFloat(item2.depreciacion_periodo),
+                        },
+                        "+",
+                        {
+                          key: "altas_bajas_depreciacion",
+                          value: parseFloat(item2.altas_bajas_depreciacion),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "cantidadCuotasMultiplicadoCuotaBs") {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsCantidadCuotasMultiplicadoCuotaBs
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "cantidad_cuotas",
+                          value: parseFloat(item2.cantidad_cuotas),
+                        },
+                        "*",
+                        {
+                          key: "cuota_bs",
+                          value: parseFloat(item2.cuota_bs),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              itemFunction === "cantidadValoresMultiplicadoPrecioNegociacion"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsCantidadCuotasMultiplicadoCuotaBs
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "cantidad_valores",
+                          value: parseFloat(item2.cantidad_valores),
+                        },
+                        "*",
+                        {
+                          key: "precio_negociacion",
+                          value: parseFloat(item2.precio_negociacion),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              itemFunction === "cantidadMultiplicadoPrecioEquivalente"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsCantidadMultiplicadoPrecioEquivalente
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "cantidad",
+                          value: parseFloat(item2.cantidad),
+                        },
+                        "*",
+                        {
+                          key: "precio_equivalente",
+                          value: parseFloat(item2.precio_equivalente),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              itemFunction === "precioMercadoMOMultiplicadoCantidadValores"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsPrecioMercadoMOMultiplicadoCantidadValores
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "precio_mercado_mo",
+                          value: parseFloat(item2.precio_mercado_mo),
+                        },
+                        "*",
+                        {
+                          key: "cantidad_valores",
+                          value: parseFloat(item2.cantidad_valores),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (
+              funct ===
+              "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000"
+            ) {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsPrecioMercadoMOMultiplicadoCantidadValores
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseFloat(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "saldo_capital",
+                          value: parseFloat(item2.saldo_capital),
+                        },
+                        "*",
+                        {
+                          key: "plazo_cupon",
+                          value: parseFloat(item2.plazo_cupon),
+                        },
+                        "*",
+                        {
+                          key: "interes",
+                          value: parseFloat(item2.interes),
+                        },
+                      ],
+                    })
+                  : null;
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "cartera") {
+              const _cartera = infoArchivo?.paramsCartera
+                ? await cartera({
+                    cartera_origen: item2.cartera_origen,
+                    cartera_destino: item2.cartera_destino,
                   })
                 : null;
 
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "cantidadValoresMultiplicadoPrecioNegociacion") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsCantidadCuotasMultiplicadoCuotaBs
-                ? await operacionEntreColumnas({
+              if (_cartera?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _cartera?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "nroPago") {
+              let _nroPago = { ok: true, message: "" };
+              if (infoArchivo?.paramsNroPago) {
+                if (parseInt(item2.plazo_cupon) > 0) {
+                  _nroPago = operacionEntreColumnas({
                     total: {
                       key: columnName,
                       value: parseFloat(value),
-                      pattern,
                     },
                     fields: [
                       {
-                        key: "cantidad_valores",
-                        value: parseFloat(item2.cantidad_valores),
+                        key: "plazo_emision",
+                        value: parseInt(item2.plazo_emision),
                       },
-                      "*",
-                      {
-                        key: "precio_negociacion",
-                        value: parseFloat(item2.precio_negociacion),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "cantidadMultiplicadoPrecioEquivalente") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsCantidadMultiplicadoPrecioEquivalente
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "cantidad",
-                        value: parseFloat(item2.cantidad),
-                      },
-                      "*",
-                      {
-                        key: "precio_equivalente",
-                        value: parseFloat(item2.precio_equivalente),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "precioMercadoMOMultiplicadoCantidadValores") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsPrecioMercadoMOMultiplicadoCantidadValores
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "precio_mercado_mo",
-                        value: parseFloat(item2.precio_mercado_mo),
-                      },
-                      "*",
-                      {
-                        key: "cantidad_valores",
-                        value: parseFloat(item2.cantidad_valores),
-                      },
-                    ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (
-            funct ===
-            "saldoCapitalMultiplicadoPlazoCuponMultiplicadoInteresDividido36000"
-          ) {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsPrecioMercadoMOMultiplicadoCantidadValores
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseFloat(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "saldo_capital",
-                        value: parseFloat(item2.saldo_capital),
-                      },
-                      "*",
+                      "/",
                       {
                         key: "plazo_cupon",
-                        value: parseFloat(item2.plazo_cupon),
-                      },
-                      "*",
-                      {
-                        key: "interes",
-                        value: parseFloat(item2.interes),
+                        value: parseInt(item2.plazo_cupon),
                       },
                     ],
-                  })
-                : null;
-
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "cartera") {
-            const _cartera = infoArchivo?.paramsCartera
-              ? await cartera({
-                  cartera_origen: item2.cartera_origen,
-                  cartera_destino: item2.cartera_destino,
-                })
-              : null;
-
-            if (_cartera?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _cartera?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "nroPago") {
-            let _nroPago = { ok: true, message: "" };
-            if (infoArchivo?.paramsNroPago) {
-              if (parseInt(item2.plazo_cupon) > 0) {
-                _nroPago = operacionEntreColumnas({
-                  total: {
-                    key: columnName,
-                    value: parseFloat(value),
-                  },
-                  fields: [
-                    {
-                      key: "plazo_emision",
-                      value: parseInt(item2.plazo_emision),
-                    },
-                    "/",
-                    {
-                      key: "plazo_cupon",
-                      value: parseInt(item2.plazo_cupon),
-                    },
-                  ],
-                });
-              } else if (item2.plazo_cupon === 0 || item2.plazo_cupon === "0") {
-                if (item2.nro_pago !== "1") {
-                  _nroPago.ok = false;
-                  _nroPago.message =
-                    "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 0";
+                  });
+                } else if (
+                  item2.plazo_cupon === 0 ||
+                  item2.plazo_cupon === "0"
+                ) {
+                  if (item2.nro_pago !== "1") {
+                    _nroPago.ok = false;
+                    _nroPago.message =
+                      "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 0";
+                  }
                 }
               }
-            }
 
-            if (_nroPago?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _nroPago?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "plazoCupon") {
-            const _plazoCupon = infoArchivo?.paramsPlazoCupon
-              ? await plazoCupon({
-                  nro_pago: parseInt(item2.nro_pago),
-                  plazo_cupon: parseInt(item2.plazo_cupon),
-                })
-              : null;
-
-            if (_plazoCupon?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _plazoCupon?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "fechaVencimientoMenosFechaEmision") {
-            let _operacionEntreColumnas =
-              infoArchivo?.paramsFechaVencimientoMenosFechaEmision
-                ? await operacionEntreColumnas({
-                    total: {
-                      key: columnName,
-                      value: parseInt(value),
-                      pattern,
-                    },
-                    fields: [
-                      {
-                        key: "fecha_vencimiento (en dias)",
-                        value: new Date(
-                          item2.fecha_vencimiento?.slice(0, 4) +
-                            "-" +
-                            item2.fecha_vencimiento?.slice(4, 6) +
-                            "-" +
-                            item2.fecha_vencimiento?.slice(6)
-                        ),
-                      },
-                      "-",
-                      {
-                        key: "fecha_emision (en dias)",
-                        value: new Date(
-                          item2.fecha_emision?.slice(0, 4) +
-                            "-" +
-                            item2.fecha_emision?.slice(4, 6) +
-                            "-" +
-                            item2.fecha_emision?.slice(6)
-                        ),
-                      },
-                    ],
-                    dates: true,
+              if (_nroPago?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _nroPago?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "plazoCupon") {
+              const _plazoCupon = infoArchivo?.paramsPlazoCupon
+                ? await plazoCupon({
+                    nro_pago: parseInt(item2.nro_pago),
+                    plazo_cupon: parseInt(item2.plazo_cupon),
                   })
                 : null;
-            console.log(_operacionEntreColumnas);
 
-            if (_operacionEntreColumnas?.ok === false) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: _operacionEntreColumnas?.message,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "ciudad") {
-            let errFunction = true;
-            map(_ciudad?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
+              if (_plazoCupon?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _plazoCupon?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguno de los autorizados`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
-              });
-            }
-          } else if (funct === "tipoBienInmueble") {
-            let errFunction = true;
-            map(_tipoBienInmueble?.resultFinal, (item4, index4) => {
-              if (value === item4.sigla) {
-                errFunction = false;
+            } else if (itemFunction === "fechaVencimientoMenosFechaEmision") {
+              let _operacionEntreColumnas =
+                infoArchivo?.paramsFechaVencimientoMenosFechaEmision
+                  ? await operacionEntreColumnas({
+                      total: {
+                        key: columnName,
+                        value: parseInt(value),
+                        pattern,
+                      },
+                      fields: [
+                        {
+                          key: "fecha_vencimiento (en dias)",
+                          value: new Date(
+                            item2.fecha_vencimiento?.slice(0, 4) +
+                              "-" +
+                              item2.fecha_vencimiento?.slice(4, 6) +
+                              "-" +
+                              item2.fecha_vencimiento?.slice(6)
+                          ),
+                        },
+                        "-",
+                        {
+                          key: "fecha_emision (en dias)",
+                          value: new Date(
+                            item2.fecha_emision?.slice(0, 4) +
+                              "-" +
+                              item2.fecha_emision?.slice(4, 6) +
+                              "-" +
+                              item2.fecha_emision?.slice(6)
+                          ),
+                        },
+                      ],
+                      dates: true,
+                    })
+                  : null;
+              console.log(_operacionEntreColumnas);
+
+              if (_operacionEntreColumnas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _operacionEntreColumnas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
-            });
-            if (errFunction === true) {
-              errors.push({
-                archivo: item.archivo,
-                tipo_error: "VALOR INCORRECTO",
-                descripcion: `El campo no corresponde a ninguno de los autorizados`,
-                valor: value,
-                columna: columnName,
-                fila: index2,
+            } else if (itemFunction === "ciudad") {
+              let errFunction = true;
+              map(_ciudad?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
               });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoBienInmueble") {
+              let errFunction = true;
+              map(_tipoBienInmueble?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "mayorAFechaEmision") {
+              const _compararFechas = infoArchivo?.paramsMayorAFechaEmision
+                ? await compararFechas({
+                    date1: new Date(
+                      !value.includes("-")
+                        ? value?.slice(0, 4) +
+                          "-" +
+                          value?.slice(4, 6) +
+                          "-" +
+                          value?.slice(6)
+                        : value
+                    ),
+                    operator: ">",
+                    date2: new Date(
+                      !item.fecha_emision.includes("-")
+                        ? item.fecha_emision?.slice(0, 4) +
+                          "-" +
+                          item.fecha_emision?.slice(4, 6) +
+                          "-" +
+                          item.fecha_emision?.slice(6)
+                        : item.fecha_emision
+                    ),
+                  })
+                : null;
+
+              if (_compararFechas?.ok === false) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: _compararFechas?.message,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           }
+
           if (
             operationNotValid === "cadenaCombinadalugarNegTipoOperTipoInstrum"
           ) {
@@ -3665,7 +3855,11 @@ exports.validarArchivo = async (req, res, next) => {
             if (fecha_entrega) {
               bodyQuery[0].fecha_entrega = fecha_entrega;
             }
-            if (infoTables.code === "108") {
+            if (
+              infoTables.code === "108" ||
+              infoTables.code === "01" ||
+              infoTables.code === "02"
+            ) {
               bodyQuery[0].cod_institucion = infoTables.code;
               if (tipo_periodo === "D") {
                 bodyQuery[0].id_periodo = 154;

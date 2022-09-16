@@ -229,6 +229,39 @@ async function CargarArchivo(req, res) {
           } else if (item.originalname.includes(".498")) {
             codeFile = "498";
             tableFile = "APS_seguro_archivo_498";
+          } else if (item.originalname.includes("DM")) {
+            codeFile = "DM";
+            tableFile = "APS_seguro_archivo_DM";
+          } else if (item.originalname.includes("DU")) {
+            codeFile = "DU";
+            tableFile = "APS_seguro_archivo_DU";
+          } else if (item.originalname.includes("UA")) {
+            codeFile = "UA";
+            tableFile = "APS_seguro_archivo_UA";
+          } else if (item.originalname.includes("TD")) {
+            codeFile = "TD";
+            tableFile = "APS_seguro_archivo_TD";
+          } else if (item.originalname.includes("UD")) {
+            codeFile = "UD";
+            tableFile = "APS_seguro_archivo_UD";
+          } else if (item.originalname.includes("DC")) {
+            codeFile = "DC";
+            tableFile = "APS_seguro_archivo_DC";
+          } else if (item.originalname.includes("DR")) {
+            codeFile = "DR";
+            tableFile = "APS_seguro_archivo_DR";
+          } else if (item.originalname.includes("TV")) {
+            codeFile = "TV";
+            tableFile = "APS_seguro_archivo_TV";
+          } else if (item.originalname.includes("BG")) {
+            codeFile = "BG";
+            tableFile = "APS_seguro_archivo_BG";
+          } else if (item.originalname.includes("FE")) {
+            codeFile = "FE";
+            tableFile = "APS_seguro_archivo_FE";
+          } else if (nameFile.includes("VC")) {
+            codeFile = "VC";
+            tableFile = "APS_seguro_archivo_VC";
           } else if (item.originalname.includes(".CC")) {
             codeFile = "CC";
             tableFile = "APS_oper_archivo_Custodio";
