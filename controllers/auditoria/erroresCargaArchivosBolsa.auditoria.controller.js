@@ -12,6 +12,7 @@ const {
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
   ObtenerInstitucion,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -21,6 +22,9 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
+  respResultadoVacio404END,
+  respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_errores_carga_archivos_bolsa";
@@ -148,26 +152,64 @@ async function Reporte(req, res) {
       body,
     };
     const query = EscogerUtil(nameTable.replace("errores_", ""), params);
-    const cargaArchivos = pool
+    const cargaArchivos = await pool
       .query(query)
       .then((result) => {
-        return result.rows;
-        respResultadoCorrecto200(res, result);
+        if (result.rowCount > 0) {
+          return result.rows?.[0];
+        } else {
+          return result.rows;
+        }
       })
       .catch((err) => {
         console.log(err);
         return null;
       });
 
-    if (!cargaArchivos) {
+    // console.log(cargaArchivos);
+
+    if (cargaArchivos === null) {
       respErrorServidor500END(res, err);
       return null;
     }
+    if (cargaArchivos.length <= 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        cargaArchivos,
+        `No existe ningún registro de carga para la fecha`
+      );
+      return null;
+    }
 
-    const paramsErrores = {};
-    const queryErrores = EscogerUtil(nameTable, paramsErrores);
+    const paramsErrores = {
+      select: ["*"],
+      where: [
+        {
+          key: "id_carga_archivos",
+          value: cargaArchivos.id_carga_archivos,
+        },
+      ],
+    };
+    const queryErrores = EscogerInternoUtil(nameTable, paramsErrores);
 
-    const erroresReporte = null;
+    pool
+      .query(queryErrores)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(
+            res,
+            null,
+            result.rows,
+            `No existen errores registrados para esa fecha`
+          );
+        }
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
   }
 }
 

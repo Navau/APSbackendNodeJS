@@ -11,6 +11,8 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
+  ObtenerInstitucion,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -19,6 +21,9 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_errores_carga_archivos_pensiones_seguros";
@@ -134,6 +139,81 @@ function Escoger(req, res) {
   }
 }
 
+async function Reporte(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const cod_institucion = await ObtenerInstitucion(req.user);
+    const params = {
+      body: {
+        ...body,
+        cod_institucion: cod_institucion?.result?.[0]?.codigo,
+      },
+    };
+    const query = EscogerUtil(nameTable.replace("errores_", ""), params);
+    const cargaArchivos = await pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          return result.rows?.[0];
+        } else {
+          return result.rows;
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        return null;
+      });
+
+    // console.log(cargaArchivos);
+
+    if (cargaArchivos === null) {
+      respErrorServidor500END(res, err);
+      return null;
+    }
+    if (cargaArchivos.length <= 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        cargaArchivos,
+        `No existe ningún registro de carga para la fecha`
+      );
+      return null;
+    }
+
+    const paramsErrores = {
+      select: ["*"],
+      where: [
+        {
+          key: "id_carga_archivos",
+          value: cargaArchivos.id_carga_archivos,
+        },
+      ],
+    };
+    const queryErrores = EscogerInternoUtil(nameTable, paramsErrores);
+
+    pool
+      .query(queryErrores)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(
+            res,
+            null,
+            result.rows,
+            `No existen errores registrados para esa fecha`
+          );
+        }
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
 function Insertar(req, res) {
   const body = req.body;
@@ -234,4 +314,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   ValorMaximo,
+  Reporte,
 };
