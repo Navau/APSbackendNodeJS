@@ -4957,7 +4957,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    console.log("CABECERAS", codeCurrentFile, headers);
+    // console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
@@ -5136,7 +5136,7 @@ async function formatearDatosEInsertarCabeceras(
       });
     };
 
-    console.log("INFORMACION", codeCurrentFile, dataSplit);
+    // console.log("INFORMACION", codeCurrentFile, dataSplit);
     if (
       (codeCurrentFile === "444" || codeCurrentFile === "445") &&
       dataSplit[0] !== ""
@@ -6567,7 +6567,12 @@ async function operacionEntreColumnas(params) {
     if (fieldsErrorText.length >= 1) {
       return {
         ok: false,
-        message: `El campo ${fieldsErrorText} no cumple las especificaciones de Tipo de Dato`,
+        message: `El campo ${fieldsErrorText.substring(
+          0,
+          fieldsErrorText.lastIndexOf("o")
+        )}no cumple las especificaciones de Tipo de Dato para realizar la operación de ${
+          total.key
+        }`,
       };
     }
 

@@ -2648,7 +2648,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   });
                 }
               }
-            } else if (itemFunction === "codigoTraspasoCustodiaConCodigoOperacion") {
+            } else if (
+              itemFunction === "codigoTraspasoCustodiaConCodigoOperacion"
+            ) {
               if (item2.codigo_operacion === "T") {
                 let errFunction = true;
                 map(_traspasoCustodia?.resultFinal, (item4, index4) => {
@@ -2832,7 +2834,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 value: value,
               });
 
-              if (_mayorIgualACeroEntero?.ok === true) {
+              if (_mayorIgualACeroEntero?.ok === false) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
