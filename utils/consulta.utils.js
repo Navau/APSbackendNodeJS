@@ -1,5 +1,6 @@
 const moment = require("moment");
 const { map } = require("lodash");
+const pool = require("../database");
 
 function ObtenerRolUtil(table, data, idPK) {
   let query = "";
@@ -451,6 +452,8 @@ function EscogerUtil(table, params) {
                   ` AND ${index} = '${moment(item).format(
                     "YYYY-MM-DD HH:mm:ss.SSS"
                   )}'`);
+            } else if (Array.isArray(item)) {
+              index && (query = query + ` AND ${index} IN (${item.join()})`);
             } else if (typeof item === "string") {
               if (index === "password") {
                 index &&
@@ -1081,6 +1084,59 @@ function ponerComillasACamposConMayuscula(index) {
   return index;
 }
 
+async function ObtenerInstitucion(user) {
+  const { id_usuario, id_rol } = user;
+  const queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+    select: [`"APS_seg_institucion".codigo`],
+    innerjoin: [
+      {
+        table: `APS_seg_institucion`,
+        on: [
+          {
+            table: `APS_seg_institucion`,
+            key: "id_institucion",
+          },
+          {
+            table: `APS_seg_usuario`,
+            key: "id_institucion",
+          },
+        ],
+      },
+      {
+        table: `APS_seg_usuario_rol`,
+        on: [
+          {
+            table: `APS_seg_usuario_rol`,
+            key: "id_usuario",
+          },
+          {
+            table: `APS_seg_usuario`,
+            key: "id_usuario",
+          },
+        ],
+      },
+    ],
+    where: [
+      { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+      { key: `"APS_seg_usuario_rol".id_rol`, value: id_rol },
+    ],
+  });
+
+  const resultFinal = await pool
+    .query(queryInstitucion)
+    .then((result) => {
+      if (result.rowCount >= 1) {
+        return { ok: true, result: result?.rows?.[0] };
+      } else {
+        return { ok: false, result: result?.rows?.[0] };
+      }
+    })
+    .catch((err) => {
+      return { ok: false, err };
+    });
+  return resultFinal;
+}
+
 module.exports = {
   ListarUtil,
   BuscarUtil,
@@ -1107,4 +1163,5 @@ module.exports = {
   AlterarSequenciaMultiplesTablasUtil,
   AlterarSequenciaUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
+  ObtenerInstitucion,
 };

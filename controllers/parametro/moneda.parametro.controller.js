@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -76,6 +77,28 @@ function Escoger(req, res) {
       body: body,
     };
     let query = EscogerUtil(nameTable, params);
+    pool.query(query, (err, result) => {
+      if (err) {
+        respErrorServidor500(res, err);
+      } else {
+        if (!result.rowCount || result.rowCount < 1) {
+          respResultadoVacio404(res);
+        } else {
+          respResultadoCorrecto200(res, result);
+        }
+      }
+    });
+  }
+}
+
+function EscogerInterno(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = body;
+    let query = EscogerInternoUtil(nameTable, params);
     pool.query(query, (err, result) => {
       if (err) {
         respErrorServidor500(res, err);
@@ -194,6 +217,7 @@ module.exports = {
   Listar,
   Buscar,
   Escoger,
+  EscogerInterno,
   Insertar,
   Actualizar,
   Deshabilitar,

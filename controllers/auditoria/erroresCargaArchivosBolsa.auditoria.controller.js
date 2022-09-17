@@ -11,6 +11,7 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
+  ObtenerInstitucion,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -19,6 +20,7 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_errores_carga_archivos_bolsa";
@@ -134,6 +136,41 @@ function Escoger(req, res) {
   }
 }
 
+async function Reporte(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    // const cod_institucion = await ObtenerInstitucion(req.user);
+    // console.log(cod_institucion);
+    const params = {
+      body,
+    };
+    const query = EscogerUtil(nameTable.replace("errores_", ""), params);
+    const cargaArchivos = pool
+      .query(query)
+      .then((result) => {
+        return result.rows;
+        respResultadoCorrecto200(res, result);
+      })
+      .catch((err) => {
+        console.log(err);
+        return null;
+      });
+
+    if (!cargaArchivos) {
+      respErrorServidor500END(res, err);
+      return null;
+    }
+
+    const paramsErrores = {};
+    const queryErrores = EscogerUtil(nameTable, paramsErrores);
+
+    const erroresReporte = null;
+  }
+}
+
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
 function Insertar(req, res) {
   const body = req.body;
@@ -242,4 +279,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   ValorMaximo,
+  Reporte,
 };

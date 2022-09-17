@@ -2320,6 +2320,41 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             select: ["cuenta"],
           },
         };
+      } else if (nameFile.includes(".CC")) {
+        console.log("ARCHIVO CORRECTO : CC", nameFile);
+        PARAMS.codeCurrentFile = "CC";
+        PARAMS.nameTable = "APS_aud_carga_archivos_custodio";
+
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [135],
+                whereIn: true,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCustodio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 19,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPrecioMercadoMOMultiplicadoCantidadValores = true;
       } else {
         reject();
       }

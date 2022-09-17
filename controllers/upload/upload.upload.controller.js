@@ -259,7 +259,7 @@ async function CargarArchivo(req, res) {
           } else if (item.originalname.includes("FE")) {
             codeFile = "FE";
             tableFile = "APS_seguro_archivo_FE";
-          } else if (nameFile.includes("VC")) {
+          } else if (item.originalname.includes("VC")) {
             codeFile = "VC";
             tableFile = "APS_seguro_archivo_VC";
           } else if (item.originalname.includes(".CC")) {
