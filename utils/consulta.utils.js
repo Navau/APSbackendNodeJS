@@ -577,6 +577,29 @@ function EscogerInternoUtil(table, params) {
   return query;
 }
 
+function EjecutarFuncionSQL(functionName, params) {
+  let query = "";
+  query += `SELECT * FROM public.${functionName}(`;
+
+  map(params.body, (item, index) => {
+    if (item instanceof Date) {
+      query += `'${moment(item).format("YYYY-MM-DD")}, '`;
+    } else if (typeof item === "string") {
+      query += `'${item}', `;
+    } else if (typeof item === "number") {
+      query += `${item}, `;
+    } else if (typeof item === "boolean") {
+      query += `${item}, `;
+    }
+  });
+  query = query.substring(0, query.length - 2);
+
+  query && (query = query + ");");
+
+  console.log(query);
+  return query;
+}
+
 function InsertarUtil(table, params) {
   let query = "";
   params.body && (query = query + `INSERT INTO public."${table}"`);
@@ -1164,4 +1187,5 @@ module.exports = {
   AlterarSequenciaUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
   ObtenerInstitucion,
+  EjecutarFuncionSQL,
 };

@@ -2044,7 +2044,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             } else if (itemFunction === "moneda") {
               let errFunction = true;
-              // console.log(_moneda);
+              console.log(_moneda);
               map(_moneda?.resultFinal, (item4, index4) => {
                 if (
                   value === item4.codigo_otros_activos ||

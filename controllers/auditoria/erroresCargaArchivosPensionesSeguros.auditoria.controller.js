@@ -13,6 +13,7 @@ const {
   ValorMaximoDeCampoUtil,
   ObtenerInstitucion,
   EscogerInternoUtil,
+  EjecutarFuncionSQL,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -140,6 +141,41 @@ function Escoger(req, res) {
 }
 
 async function Reporte(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body,
+    };
+    const query = EjecutarFuncionSQL(
+      "aps_reporte_validacion_preliminar",
+      params
+    );
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(
+            res,
+            null,
+            result.rows,
+            `No existen errores registrados para esa fecha`
+          );
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
+async function Reporte2(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
