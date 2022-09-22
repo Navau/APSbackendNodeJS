@@ -143,13 +143,18 @@ function Escoger(req, res) {
 }
 
 async function Reporte(req, res) {
-  const body = req.body;
+  const { fecha, periodo } = req.body;
 
-  if (Object.entries(body).length === 0) {
+  if (Object.entries(req.body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
+    const cod_institucion = await ObtenerInstitucion(req.user);
     const params = {
-      body,
+      body: {
+        fecha,
+        cod_institucion: cod_institucion.result.codigo,
+        periodo,
+      },
     };
     const query = EjecutarFuncionSQL(
       "aps_reporte_validacion_preliminar",
