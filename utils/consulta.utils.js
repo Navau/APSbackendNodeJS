@@ -104,8 +104,9 @@ function ObtenerMenuAngUtil(data) {
 
 function ObtenerColumnasDeTablaUtil(table, params) {
   let query = "";
-  query = `SELECT * 
-  FROM information_schema.columns 
+  query = `SELECT ${
+    params?.select ? params.select : "*"
+  } FROM information_schema.columns 
   WHERE table_schema = 'public' 
   AND table_name  = '${table}'`;
 
@@ -1160,6 +1161,28 @@ async function ObtenerInstitucion(user) {
   return resultFinal;
 }
 
+async function ObtenerUsuario(user) {
+  const { id_usuario } = user;
+  const queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+    select: [`*`],
+    where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
+  });
+
+  const resultFinal = await pool
+    .query(queryInstitucion)
+    .then((result) => {
+      if (result.rowCount >= 1) {
+        return { ok: true, result: result?.rows?.[0] };
+      } else {
+        return { ok: false, result: result?.rows?.[0] };
+      }
+    })
+    .catch((err) => {
+      return { ok: false, err };
+    });
+  return resultFinal;
+}
+
 module.exports = {
   ListarUtil,
   BuscarUtil,
@@ -1188,4 +1211,5 @@ module.exports = {
   ValorMaximoDeCampoMultiplesTablasUtil,
   ObtenerInstitucion,
   EjecutarFuncionSQL,
+  ObtenerUsuario,
 };

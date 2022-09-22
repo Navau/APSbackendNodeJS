@@ -1,6 +1,7 @@
 const { map } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
+const nodemailer = require("nodemailer");
 
 const {
   ListarUtil,
@@ -14,6 +15,7 @@ const {
   ObtenerInstitucion,
   EscogerInternoUtil,
   EjecutarFuncionSQL,
+  ObtenerUsuario,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -250,6 +252,47 @@ async function Reporte2(req, res) {
   }
 }
 
+async function EnviarCorreo(req, res) {
+  const { email, subject, description } = req.body;
+  const user = await ObtenerUsuario(req.user);
+
+  const emailFinal = email ? email : user.result.email;
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: "contactojosegutierrez10@gmail.com",
+      // user: "admin-jose-aps",
+      pass: "zwnytvxpkcbnztob",
+    },
+  });
+
+  const mailOptions = {
+    from: "APS validaciones",
+    to: emailFinal,
+    subject: subject ? subject : "Asunto APS",
+    html: `
+    <div>
+      <h3>${description}</h3>
+    </div>
+    `,
+  };
+
+  await transporter
+    .sendMail(mailOptions)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(
+        res,
+        result,
+        `Correo enviado correctamente a ${emailFinal}`
+      );
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
 function Insertar(req, res) {
   const body = req.body;
@@ -351,4 +394,5 @@ module.exports = {
   Deshabilitar,
   ValorMaximo,
   Reporte,
+  EnviarCorreo,
 };

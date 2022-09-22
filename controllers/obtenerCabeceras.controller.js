@@ -21,8 +21,8 @@ const {
 
 //FUNCION PARA OBTENER TODOS LOS LOGDET DE SEGURIDAD
 function CabecerasTabla(req, res) {
-  const { table } = req.body;
-  let query = ObtenerColumnasDeTablaUtil(table);
+  const { table, select } = req.body;
+  let query = ObtenerColumnasDeTablaUtil(table, { select });
   pool.query(query, (err, result) => {
     if (err) {
       respErrorServidor500(res, err);

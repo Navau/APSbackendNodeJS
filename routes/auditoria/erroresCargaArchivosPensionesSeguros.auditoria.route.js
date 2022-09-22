@@ -22,6 +22,11 @@ api.post(
   controller.Reporte
 );
 api.post(
+  "/EnviarCorreo",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.EnviarCorreo
+);
+api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Insertar
