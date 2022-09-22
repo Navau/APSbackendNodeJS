@@ -35,6 +35,7 @@ const rentaFijaRoute = require("./operativo/rentaFija.operativo.route");
 const rentaFijaCuponRoute = require("./operativo/rentaFijaCupon.operativo.route");
 const rentaVariableRoute = require("./operativo/rentaVariable.operativo.route");
 const tipoCambioRoute = require("./operativo/tipoCambio.operativo.route");
+const rirRoute = require("./operativo/rir.operativo.route");
 
 // Rutas de Parametro (Se llama Parametro por la division en la base de datos)
 const actividadEconomicaRoute = require("./parametro/actividadEconomica.parametro.route");
@@ -57,6 +58,7 @@ const sectorEconomicoRoute = require("./parametro/sectorEconomico.parametro.rout
 const tipoInstrumentoRoute = require("./parametro/tipoInstrumento.parametro.route");
 const tipoOperacionRoute = require("./parametro/tipoOperacion.parametro.route");
 const archivosPensionesSegurosRoute = require("./parametro/archivosPensionesSeguros.parametro.route");
+const limiteRoute = require("./parametro/limite.parametro.controller");
 
 // Rutas de Acceso (Se llama Acceso por la autenticacion)
 const accessRoutes = require("./acceso/acceso.route");
@@ -162,6 +164,7 @@ function routerApi(app) {
   router.use("/Tabla", tablaRoutes);
   router.use("/TablaAccion", tablaAccionRoutes);
   router.use("/TipoCambio", tipoCambioRoute);
+  router.use("/Rir", rirRoute);
   router.use("/TipoInstrumento", tipoInstrumentoRoute);
   router.use("/TipoOperacion", tipoOperacionRoute);
   router.use("/Usuario", usuarioRoutes);
@@ -169,6 +172,7 @@ function routerApi(app) {
   // router.use('/WeatherForecast', )
 
   router.use("/ArchivosPensionesSeguros", archivosPensionesSegurosRoute);
+  router.use("/Limite", limiteRoute);
 
   //Clasificador
   router.use("/cBolsaValores", cBolsaValoresRoute);
