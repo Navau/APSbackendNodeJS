@@ -99,6 +99,7 @@ const cTipoReporteRoute = require("./clasificador/cTipoReporte.clasificador.rout
 
 // OTROS
 const obtenerCabecerasRoute = require("./obtenerCabeceras.route");
+const selectComunRoute = require("./selectComun.route");
 
 function routerApi(app) {
   const router = express.Router();
@@ -106,6 +107,7 @@ function routerApi(app) {
 
   router.use("/Acceso", accessRoutes);
   router.use("/obtenerCabeceras", obtenerCabecerasRoute);
+  router.use("/EscogerInterno", selectComunRoute);
   // router.use('/AccesoExterno', )
   router.use("/Upload", uploadRoute);
   router.use("/Accion", accionRoute);

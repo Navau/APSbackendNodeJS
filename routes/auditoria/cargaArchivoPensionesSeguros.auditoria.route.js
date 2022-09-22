@@ -15,6 +15,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.UltimaCarga2
 );
+api.post(
+  "/ReporteEnvio",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ReporteEnvio
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

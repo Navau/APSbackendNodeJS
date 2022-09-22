@@ -13,6 +13,7 @@ const {
   ValorMaximoDeCampoUtil,
   ObtenerUltimoRegistro,
   EscogerInternoUtil,
+  EjecutarFuncionSQL,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -25,6 +26,7 @@ const {
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
   respResultadoVacio404END,
+  respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
@@ -349,6 +351,37 @@ async function UltimaCarga2(req, res) {
     });
 }
 
+async function ReporteEnvio(req, res) {
+  const { fecha, id_rol } = req.body;
+  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+
+  if (Object.entries(req.body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body: {
+        fecha,
+        idRolFinal,
+      },
+    };
+    const query = EjecutarFuncionSQL("aps_reporte_control_envio", params);
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(res, null, result.rows);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 function Listar(req, res) {
   let query = ListarUtil(nameTable);
@@ -525,4 +558,5 @@ module.exports = {
   ValorMaximo,
   UltimaCarga,
   UltimaCarga2,
+  ReporteEnvio,
 };

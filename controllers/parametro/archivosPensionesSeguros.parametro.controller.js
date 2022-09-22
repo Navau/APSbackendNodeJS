@@ -12,6 +12,7 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
+  EjecutarFuncionSQL,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +24,7 @@ const {
   respErrorServidor500END,
   respResultadoVacio404END,
   respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 const { map } = require("lodash");
 
@@ -326,6 +328,37 @@ async function SeleccionarArchivosCustodio(req, res) {
   }
 }
 
+async function SeleccionarArchivosValidar(req, res) {
+  const { fecha, id_rol } = req.body;
+  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+
+  if (Object.entries(req.body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body: {
+        fecha,
+        idRolFinal,
+      },
+    };
+    const query = EjecutarFuncionSQL("aps_archivos_a_validar", params);
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(res, null, result.rows);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE PARAMETRO
 function Listar(req, res) {
   const params = {
@@ -506,4 +539,5 @@ module.exports = {
   SeleccionarArchivos,
   SeleccionarArchivosBolsa,
   SeleccionarArchivosCustodio,
+  SeleccionarArchivosValidar,
 };
