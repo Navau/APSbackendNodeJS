@@ -251,6 +251,43 @@ function Escoger(req, res) {
   }
 }
 
+async function Reporte(req, res) {
+  const { fecha } = req.body;
+
+  if (Object.entries(req.body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body: {
+        fecha,
+      },
+    };
+    const query = EjecutarFuncionSQL(
+      "aps_reporte_validacion_preliminar",
+      params
+    );
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(
+            res,
+            null,
+            result.rows,
+            `No existen errores registrados para esa fecha`
+          );
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO BOLSA
 function Insertar(req, res) {
   const body = req.body;
