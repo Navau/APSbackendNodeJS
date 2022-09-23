@@ -454,7 +454,7 @@ async function CargarArchivo(req, res) {
             });
           }
 
-          // console.log(queryFiles);
+          console.log(queryFiles);
 
           bodyFinalQuery = [];
 
@@ -497,11 +497,13 @@ async function CargarArchivo(req, res) {
         idKey: "id_carga_archivos",
         idValue: idCargaArchivos,
       });
-      console.log(queryUpdateForError);
+      console.log("queryUpdateForError", queryUpdateForError);
 
       await pool
         .query(queryUpdateForError)
-        .then((response) => {})
+        .then((response) => {
+          // console.log(response);
+        })
         .catch((err) => {})
         .finally(() => {
           resp;
@@ -558,7 +560,7 @@ async function CargarArchivo(req, res) {
           }
         })
         .catch((err) => {
-          console.log(err);
+          console.log("ERR UPLOAD", err);
           resultFinal.push({
             query: "Seleccionando Maximo de tabla.",
             table,
@@ -748,6 +750,7 @@ async function CargarArchivo(req, res) {
         }
       })
       .catch(async (err) => {
+        console.log("ERR UPLOAD", err);
         const resultDelete = await eliminarArchivosCargados(
           tablesFilesArray,
           sequencesTablesFilesArray,
@@ -769,6 +772,7 @@ async function CargarArchivo(req, res) {
         );
       });
   } catch (err) {
+    console.log("ERR UPLOAD", err);
     respErrorServidor500END(res, err);
   }
 }

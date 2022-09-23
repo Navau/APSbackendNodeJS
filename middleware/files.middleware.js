@@ -2044,7 +2044,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             } else if (itemFunction === "moneda") {
               let errFunction = true;
-              console.log(_moneda);
+              // console.log(_moneda);
+              // console.log([value]);
               map(_moneda?.resultFinal, (item4, index4) => {
                 if (
                   value === item4.codigo_otros_activos ||
@@ -3963,7 +3964,7 @@ exports.validarArchivo = async (req, res, next) => {
                       body: bodyQuery,
                       returnValue: ["id_error_archivo"],
                     });
-                    // console.log(queryFiles);
+                    console.log(queryFiles);
 
                     await pool
                       .query(queryFiles)
@@ -4001,6 +4002,7 @@ exports.validarArchivo = async (req, res, next) => {
                     // console.log(response);
                   })
                   .catch((err) => {
+                    console.log("ERR", err);
                     respErrorServidor500(
                       res,
                       err,
@@ -4011,6 +4013,7 @@ exports.validarArchivo = async (req, res, next) => {
                     respArchivoErroneo200(res, errors, response.resultsPromise);
                   });
               } else {
+                // console.log("PASE");
                 req.errors = errors;
                 req.errorsCode = errorsCode;
                 req.results = response.resultsPromise;
@@ -4028,7 +4031,8 @@ exports.validarArchivo = async (req, res, next) => {
                 next();
               }
             })
-            .catch(() => {
+            .catch((err) => {
+              console.log({ err, errorsCode });
               respErrorServidor500END(res, errorsCode);
               return;
             });
