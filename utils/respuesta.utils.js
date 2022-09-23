@@ -165,6 +165,10 @@ function respIDNoRecibido400(res, msg) {
   });
 }
 
+function respDescargarArchivos200(res, file, msg) {
+  res.download(file);
+}
+
 module.exports = {
   respErrorServidor500,
   respErrorMulter500,
@@ -180,4 +184,5 @@ module.exports = {
   respArchivoErroneo200,
   respResultadoVacioObject200,
   respResultadoIncorrectoObjeto200,
+  respDescargarArchivos200,
 };

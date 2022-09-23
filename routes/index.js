@@ -63,8 +63,9 @@ const limiteRoute = require("./parametro/limite.parametro.controller");
 // Rutas de Acceso (Se llama Acceso por la autenticacion)
 const accessRoutes = require("./acceso/acceso.route");
 
-// Rutas de Subida de Archivos
+// Rutas de Subida y Descarga de Archivos
 const uploadRoute = require("./upload/upload.upload.route");
+const downloadRoute = require("./download/descargaArchivos.download.route");
 
 //Rutas de Clasificador (Se llama Clasificador por la Base de datos)
 const cBolsaValoresRoute = require("./clasificador/cBolsaValores.clasificador.route");
@@ -110,6 +111,7 @@ function routerApi(app) {
   router.use("/EscogerInterno", selectComunRoute);
   // router.use('/AccesoExterno', )
   router.use("/Upload", uploadRoute);
+  router.use("/Descargar", downloadRoute);
   router.use("/Accion", accionRoute);
   router.use("/ActividadEconomica", actividadEconomicaRoute);
   router.use("/ArchivoK", archivoKRoute);
