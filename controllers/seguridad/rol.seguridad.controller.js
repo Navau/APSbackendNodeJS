@@ -12,6 +12,7 @@ const {
   ObtenerRolUtil,
   ObtenerMenuAngUtil,
   FormatearObtenerMenuAngUtil,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -21,6 +22,8 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_rol";
@@ -50,6 +53,65 @@ function ObtenerRol(req, res) {
       });
     }
   }
+}
+
+async function InfoUsuario(req, res) {
+  const { id_usuario, id_rol } = req.user;
+  const query = EscogerInternoUtil(nameTable, {
+    select: [
+      `"APS_seg_usuario".id_usuario`,
+      `"APS_seg_rol".id_rol`,
+      `"APS_seg_usuario".usuario`,
+      `"APS_seg_rol".rol`,
+      `"APS_seg_rol".descripcion`,
+      `"APS_seg_usuario".status`,
+    ],
+    innerjoin: [
+      {
+        table: `APS_seg_usuario_rol`,
+        on: [
+          {
+            table: `APS_seg_usuario_rol`,
+            key: "id_rol",
+          },
+          {
+            table: `APS_seg_rol`,
+            key: "id_rol",
+          },
+        ],
+      },
+      {
+        table: `APS_seg_usuario`,
+        on: [
+          {
+            table: `APS_seg_usuario`,
+            key: "id_usuario",
+          },
+          {
+            table: `APS_seg_usuario_rol`,
+            key: "id_usuario",
+          },
+        ],
+      },
+    ],
+    where: [
+      { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+      { key: `"APS_seg_rol".id_rol`, value: id_rol },
+    ],
+  });
+
+  await pool
+    .query(query)
+    .then((result) => {
+      if (result.rowCount > 0) {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      } else {
+        respResultadoIncorrectoObjeto200(res, result.rows);
+      }
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 function ObtenerMenuAng(req, res) {
@@ -273,4 +335,5 @@ module.exports = {
   Deshabilitar,
   ObtenerRol,
   ObtenerMenuAng,
+  InfoUsuario,
 };

@@ -21,6 +21,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Escoger
 );
+api.get(
+  "/InfoUsuario",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.InfoUsuario
+);
 api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
