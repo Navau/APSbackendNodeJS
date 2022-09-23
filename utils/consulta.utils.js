@@ -1097,8 +1097,6 @@ function ponerComillasACamposConMayuscula(index) {
       itemStr !== "_" &&
       auxArreglarMayuscula === false
     ) {
-      console.log("ITEMSTR", itemStr);
-      console.log("INDEXSTR", indexStr);
       index = comilla + index + comilla;
       index = index.slice(0, index.length);
       auxArreglarMayuscula = true;
