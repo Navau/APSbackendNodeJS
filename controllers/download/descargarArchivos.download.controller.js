@@ -53,7 +53,7 @@ async function DescargarArchivosPorFecha(req, res) {
   fileZipPromise
     .then((result) => {
       if (result.length >= 1) {
-        respDescargarArchivos200(res, nameExportZip);
+        respDescargarArchivos200(res, nameExportZip, result);
       } else {
         respResultadoVacioObject200(
           res,

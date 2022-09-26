@@ -827,6 +827,13 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_moneda",
           params: {
             select: ["sigla"],
+            where: [
+              {
+                key: "id_moneda",
+                values: [1, 2, 3],
+                valuesWhereIn: true,
+              },
+            ],
           },
         };
         PARAMS.paramsTipoDeCambio = {
@@ -3258,7 +3265,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "moneda",
-        pattern: /^[0-9]{3,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         function: ["moneda"],
       },
       {

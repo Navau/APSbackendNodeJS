@@ -165,8 +165,11 @@ function respIDNoRecibido400(res, msg) {
   });
 }
 
-function respDescargarArchivos200(res, file, msg) {
-  res.download(file);
+function respDescargarArchivos200(res, file, data, msg) {
+  res.status(200).download(file, (err) => {
+    console.log(err);
+    console.log(data);
+  });
 }
 
 module.exports = {
