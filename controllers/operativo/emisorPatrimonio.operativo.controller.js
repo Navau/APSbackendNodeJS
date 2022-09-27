@@ -98,7 +98,11 @@ async function Insertar(req, res) {
   } else {
     const id = ValidarIDActualizarUtil(nameTable, body);
     delete body[id.idKey];
-    const queryExist = EscogerUtil(nameTable, { body });
+    const queryExist = EscogerUtil(nameTable, {
+      body: {
+        fecha_actualizacion: body.fecha_actualizacion,
+      },
+    });
     const exist = { ok: false, data: null };
     await pool
       .query(queryExist)
