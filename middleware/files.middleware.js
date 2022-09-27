@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map, reduce, findIndex, filter, isEmpty } = require("lodash");
+const { map, reduce, findIndex, filter, isEmpty, range } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -31,6 +31,7 @@ const {
   menorIgualACeroEntero,
   compararFechas,
   monedaTipoCambio,
+  rango,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -912,6 +913,34 @@ async function validarArchivosIteraciones(params) {
                           )
                         : null;
 
+                    const _totalVidaUtil = infoArchivo?.paramsTotalVidaUtil
+                      ? await selectComun(
+                          infoArchivo.paramsTotalVidaUtil.table,
+                          infoArchivo.paramsTotalVidaUtil.params
+                        )
+                      : null;
+                    const _totalVidaUtilDiferente =
+                      infoArchivo?.paramsTotalVidaUtilDiferente
+                        ? await selectComun(
+                            infoArchivo.paramsTotalVidaUtilDiferente.table,
+                            infoArchivo.paramsTotalVidaUtilDiferente.params
+                          )
+                        : null;
+                    const _vidaUtilRestante =
+                      infoArchivo?.paramsVidaUtilRestante
+                        ? await selectComun(
+                            infoArchivo.paramsVidaUtilRestante.table,
+                            infoArchivo.paramsVidaUtilRestante.params
+                          )
+                        : null;
+                    const _vidaUtilRestanteDiferente =
+                      infoArchivo?.paramsVidaUtilRestanteDiferente
+                        ? await selectComun(
+                            infoArchivo.paramsVidaUtilRestanteDiferente.table,
+                            infoArchivo.paramsVidaUtilRestanteDiferente.params
+                          )
+                        : null;
+
                     // console.log("TEST AAAAA");
 
                     //#endregion
@@ -1033,6 +1062,10 @@ async function validarArchivosIteraciones(params) {
                             _subordinacion,
                             _codigoTraspasoCustodia,
                             _valorNominalBs,
+                            _totalVidaUtil,
+                            _totalVidaUtilDiferente,
+                            _vidaUtilRestante,
+                            _vidaUtilRestanteDiferente,
                           });
                         }
                       });
@@ -1121,6 +1154,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _instrumento18 = params._instrumento18;
       const _ciudad = params._ciudad;
       const _tipoBienInmueble = params._tipoBienInmueble;
+      const _totalVidaUtil = params._totalVidaUtil;
+      const _totalVidaUtilDiferente = params._totalVidaUtilDiferente;
+      const _vidaUtilRestante = params._vidaUtilRestante;
+      const _vidaUtilRestanteDiferente = params._vidaUtilRestanteDiferente;
+      console.log("_totalVidaUtil", _totalVidaUtil);
+      console.log("_totalVidaUtilDiferente", _totalVidaUtilDiferente);
 
       const _codigoOperacion = params._codigoOperacion;
       const _codigoMercado = params._codigoMercado;
@@ -3090,8 +3129,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                         },
                         "-",
                         {
-                          key: "saldo_final_dep",
-                          value: parseFloat(item2.saldo_final_dep),
+                          key: "saldo_final_dep_acum",
+                          value: parseFloat(item2.saldo_final_dep_acum),
                         },
                       ],
                     })
@@ -3551,6 +3590,118 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
+            } else if (itemFunction === "totalVidaUtil") {
+              let _igualA = null;
+              let _rango = null;
+              let functionAux = null;
+              map(_totalVidaUtil?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  functionAux = 1;
+                }
+              });
+              map(_totalVidaUtilDiferente?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  functionAux = 2;
+                }
+              });
+
+              if (functionAux === 1) {
+                _rango = rango({
+                  value: parseInt(value),
+                  valueTo: range?.[0],
+                  valueFrom: range?.[1],
+                });
+                if (_rango?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _rango?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _igualA = igualA({
+                  value: value,
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "vidaUtilRestante") {
+              let _igualA = null;
+              let _rango = null;
+              let functionAux = null;
+              map(_vidaUtilRestante?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  functionAux = 1;
+                }
+              });
+              map(_vidaUtilRestanteDiferente?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  functionAux = 2;
+                }
+              });
+
+              if (functionAux === 1) {
+                _rango = rango({
+                  value: parseInt(value),
+                  valueTo: range?.[0],
+                  valueFrom: range?.[1],
+                });
+                if (_rango?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _rango?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _igualA = igualA({
+                  value: value,
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El campo no corresponde a ninguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             }
           }
 
@@ -3964,7 +4115,7 @@ exports.validarArchivo = async (req, res, next) => {
                       body: bodyQuery,
                       returnValue: ["id_error_archivo"],
                     });
-                    console.log(queryFiles);
+                    // console.log(queryFiles);
 
                     await pool
                       .query(queryFiles)

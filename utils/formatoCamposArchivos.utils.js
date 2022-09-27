@@ -124,6 +124,10 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsSingleGroup: null,
         paramsCiudad: null,
         paramsTipoBienInmueble: null,
+        paramsTotalVidaUtil: null,
+        paramsTotalVidaUtilDiferente: null,
+        paramsVidaUtilRestante: null,
+        paramsVidaUtilRestanteDiferente: null,
         paramsMayorAFechaEmision: null,
         headers: null,
         detailsHeaders: null,
@@ -1824,6 +1828,57 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsTotalVidaUtil = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTotalVidaUtilDiferente = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsVidaUtilRestante = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsVidaUtilRestanteDiferente = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+
         PARAMS[
           "paramsSaldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion"
         ] = true;
@@ -1860,6 +1915,56 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
               {
                 key: "id_clasificador_comun_grupo",
                 value: 33,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTotalVidaUtil = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTotalVidaUtilDiferente = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsVidaUtilRestante = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsVidaUtilRestanteDiferente = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 255,
+                operator: "<>",
               },
             ],
           },
@@ -3943,14 +4048,15 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "total_vida_util",
-        pattern: /^(0|[1-9][0-9]{0,3})$/,
-        range: [3, 480],
-        function: ["mayorIgualACeroEntero"],
+        pattern: /^(0|[1-9][0-9]{1,3})$/,
+        range: [0, 480],
+        function: ["totalVidaUtil"],
       },
       {
         columnName: "vida_util_restante",
-        pattern: /^(0|[1-9][0-9]{0,3})$/,
-        function: ["mayorIgualACeroEntero"],
+        pattern: /^(0|[1-9][0-9]{1,3})$/,
+        range: [0, 480],
+        function: ["vidaUtilRestante"],
       },
       {
         columnName: "observaciones",
@@ -4093,14 +4199,15 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "total_vida_util",
-        pattern: /^(0|[1-9][0-9]{0,3})$/,
-        range: [3, 480],
-        function: ["mayorIgualACeroEntero"],
+        pattern: /^(0|[1-9][0-9]{1,3})$/,
+        range: [0, 480],
+        function: ["totalVidaUtil"],
       },
       {
         columnName: "vida_util_restante",
-        pattern: /^(0|[1-9][0-9]{0,3})$/,
-        function: ["mayorIgualACeroEntero"],
+        pattern: /^(0|[1-9][0-9]{1,3})$/,
+        range: [0, 480],
+        function: ["vidaUtilRestante"],
       },
       {
         columnName: "observaciones",
@@ -4964,7 +5071,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    // console.log("CABECERAS", codeCurrentFile, headers);
+    console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
@@ -5143,7 +5250,7 @@ async function formatearDatosEInsertarCabeceras(
       });
     };
 
-    // console.log("INFORMACION", codeCurrentFile, dataSplit);
+    console.log("INFORMACION", codeCurrentFile, dataSplit);
     if (
       (codeCurrentFile === "444" || codeCurrentFile === "445") &&
       dataSplit[0] !== ""
@@ -5711,6 +5818,29 @@ async function igualA(params) {
       return {
         ok: false,
         message: `El valor ${value} no es igual a ${equalTo}`,
+      };
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      message: `Ocurrio un error inesperado. ERROR: ${err.message}`,
+    };
+  }
+}
+
+async function rango(params) {
+  const { value, valueTo, valueFrom } = params;
+
+  try {
+    if (value >= valueTo && value <= valueFrom) {
+      return {
+        ok: true,
+        message: `El valor ${value} esta entre ${valueTo} y ${valueFrom}`,
+      };
+    } else {
+      return {
+        ok: false,
+        message: `El valor ${value} no esta entre ${valueTo} y ${valueFrom}`,
       };
     }
   } catch (err) {
@@ -6885,4 +7015,5 @@ module.exports = {
   selectComun,
   compararFechas,
   monedaTipoCambio,
+  rango,
 };
