@@ -830,8 +830,8 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             where: [
               {
                 key: "id_moneda",
-                values: [1, 2, 3],
-                valuesWhereIn: true,
+                valuesWhereIn: [1, 2, 3],
+                whereIn: true,
               },
             ],
           },
