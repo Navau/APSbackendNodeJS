@@ -3432,11 +3432,6 @@ async function obtenerValidaciones(typeFile) {
         function: ["cantidadMultiplicadoPrecioEquivalente"],
       },
       {
-        columnName: "moneda",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: ["moneda"],
-      },
-      {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorACeroDecimal"],
@@ -3541,11 +3536,6 @@ async function obtenerValidaciones(typeFile) {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["cantidadMultiplicadoPrecioEquivalente"],
-      },
-      {
-        columnName: "moneda",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: ["moneda"],
       },
       {
         columnName: "total_bs",
