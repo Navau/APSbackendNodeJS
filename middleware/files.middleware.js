@@ -3596,12 +3596,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               let _rango = null;
               let functionAux = null;
               map(_totalVidaUtil?.resultFinal, (item4, index4) => {
-                if (value === item4.sigla) {
+                if (item2.tipo_bien_inmueble === item4.sigla) {
                   functionAux = 1;
                 }
               });
               map(_totalVidaUtilDiferente?.resultFinal, (item4, index4) => {
-                if (value === item4.sigla) {
+                if (item2.tipo_bien_inmueble === item4.sigla) {
                   functionAux = 2;
                 }
               });
