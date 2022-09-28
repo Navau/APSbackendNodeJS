@@ -1158,8 +1158,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _totalVidaUtilDiferente = params._totalVidaUtilDiferente;
       const _vidaUtilRestante = params._vidaUtilRestante;
       const _vidaUtilRestanteDiferente = params._vidaUtilRestanteDiferente;
-      console.log("_totalVidaUtil", _totalVidaUtil);
-      console.log("_totalVidaUtilDiferente", _totalVidaUtilDiferente);
+      // console.log("_totalVidaUtil", _totalVidaUtil);
+      // console.log("_totalVidaUtilDiferente", _totalVidaUtilDiferente);
 
       const _codigoOperacion = params._codigoOperacion;
       const _codigoMercado = params._codigoMercado;
@@ -3114,6 +3114,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             } else if (itemFunction === "saldoFinalMenosSaldoFinalDep") {
+              // console.log("ITEM2", item2);
               let _operacionEntreColumnas =
                 infoArchivo?.paramsSaldoFinalMenosSaldoFinalDep
                   ? await operacionEntreColumnas({

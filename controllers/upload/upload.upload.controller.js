@@ -120,7 +120,7 @@ async function CargarArchivo(req, res) {
             __dirname.substring(0, __dirname.indexOf("controllers")) +
             item.path;
           //#region SEPARAR LOS CAMPOS DEL ARCHIVO QUE ESTA DIVIDO EN FILAS
-          // console.log(filesReaded);
+          console.log(filesReaded);
           // SE ORDENAN PRIMERO LOS ARCHIVOS ANTES DE ITERAR CON FILES READED
           map(filesReaded[index], (item2, index2) => {
             let rowSplit = item2.split(",");
