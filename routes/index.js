@@ -102,6 +102,11 @@ const cTipoReporteRoute = require("./clasificador/cTipoReporte.clasificador.rout
 const obtenerCabecerasRoute = require("./obtenerCabeceras.route");
 const selectComunRoute = require("./selectComun.route");
 
+// SEGURO
+const seguroArchivo441Route = require("./seguro/seguroArchivo441.seguro.route");
+const seguroArchivo442Route = require("./seguro/seguroArchivo442.seguro.route");
+const seguroArchivo443Route = require("./seguro/seguroArchivo443.seguro.route");
+
 function routerApi(app) {
   const router = express.Router();
   app.use("/api", router);
@@ -118,6 +123,9 @@ function routerApi(app) {
   router.use("/ArchivoL", archivoLRoute);
   router.use("/ArchivoN", archivoNRoute);
   router.use("/ArchivoP", archivoPRoute);
+  router.use("/Archivo441", seguroArchivo441Route);
+  router.use("/Archivo442", seguroArchivo442Route);
+  router.use("/Archivo443", seguroArchivo443Route);
   router.use("/CargaArchivosBolsa", cargaArchivosBolsaRoute);
   router.use("/cargaArchivosCustodio", cargaArchivosCustodioRoute);
   router.use(
