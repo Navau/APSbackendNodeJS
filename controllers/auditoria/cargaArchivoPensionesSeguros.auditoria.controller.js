@@ -363,6 +363,12 @@ async function ReporteEnvio(req, res) {
         fecha,
         idRolFinal,
       },
+      where: [
+        {
+          key: "cargado",
+          value: true,
+        },
+      ],
     };
     const query = EjecutarFuncionSQL("aps_reporte_control_envio", params);
 
