@@ -581,6 +581,46 @@ function EscogerInternoUtil(table, params) {
 function EjecutarFuncionSQL(functionName, params) {
   let query = "";
   query += `SELECT * FROM public.${functionName}(`;
+  const whereFunction = (item, block) => {
+    const operatorSQL = item?.operatorSQL ? item.operatorSQL : "AND";
+    if (blockAux === false) {
+      query =
+        query + ` ${block === true ? `${operatorSQL} (` : `${operatorSQL}`}`;
+      blockAux = true;
+    } else {
+      query = query + ` ${operatorSQL}`;
+    }
+    if (item?.like === true) {
+      query = query + ` ${item.key} like '${item.value}%'`;
+    } else if (item?.whereIn === true) {
+      const searchCriteriaWhereIn = item?.searchCriteriaWhereIn
+        ? item.searchCriteriaWhereIn
+        : "IN";
+      let valuesAux = [];
+      map(item.valuesWhereIn, (itemV, indexV) => {
+        valuesAux.push(itemV);
+      });
+      query =
+        query +
+        ` ${item.key} ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
+    } else {
+      if (typeof item.value === "string") {
+        query =
+          query +
+          ` ${item.key} ${item?.operator ? item.operator : "="} '${
+            item.value
+          }'`;
+      } else if (typeof item.value === "number") {
+        query =
+          query +
+          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+      } else if (typeof item.value === "boolean") {
+        query =
+          query +
+          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+      }
+    }
+  };
 
   map(params.body, (item, index) => {
     if (item instanceof Date) {
@@ -594,9 +634,41 @@ function EjecutarFuncionSQL(functionName, params) {
     }
   });
   query = query.substring(0, query.length - 2);
+  query && (query = query + ")");
 
-  query && (query = query + ");");
+  if (params?.innerjoin) {
+    const innerjoin = params.innerjoin;
 
+    map(innerjoin, (item, index) => {
+      query += ` INNER JOIN "${item.table}"`;
+      query += ` ON"${item.on[0].table}".${item.on[0].key} = "${item.on[1].table}".${item.on[1].key}`;
+    });
+  }
+  if (params?.where) {
+    const where = params.where;
+    map(where, (item, index) => {
+      blockAux = false;
+      if (item?.block) {
+        map(item.block, (itemB, indexB) => {
+          whereFunction(itemB, true);
+        });
+        query = query + ")";
+      } else {
+        whereFunction(item, false);
+      }
+    });
+  }
+  if (params?.orderby) {
+    query += ` ORDER BY ${params.orderby.field}`;
+  }
+  if (params?.where && !query.includes("WHERE") && query.includes("AND")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+  query && (query = query + ";");
   console.log(query);
   return query;
 }

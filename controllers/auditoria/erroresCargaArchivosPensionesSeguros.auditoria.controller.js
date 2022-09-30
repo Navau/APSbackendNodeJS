@@ -155,6 +155,12 @@ async function Reporte(req, res) {
         cod_institucion: cod_institucion.result.codigo,
         periodo,
       },
+      where: [
+        {
+          key: "resultado",
+          value: `Con Éxito`,
+        },
+      ],
     };
     const query = EjecutarFuncionSQL(
       "aps_reporte_validacion_preliminar",
