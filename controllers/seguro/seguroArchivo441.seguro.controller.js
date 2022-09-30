@@ -17,6 +17,7 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respResultadoIncorrectoObjeto200,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seguro_archivo_441";
@@ -38,9 +39,9 @@ function Emisor(req, res) {
   });
 }
 
-async function SeleccionarArchivosValidar(req, res) {
-  const { fecha, id_rol } = req.body;
-  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+async function InsertarRentaFija(req, res) {
+  const { fecha, id_usuario } = req.body;
+  const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
 
   if (Object.entries(req.body).length === 0) {
     respDatosNoRecibidos400(res);
@@ -48,10 +49,10 @@ async function SeleccionarArchivosValidar(req, res) {
     const params = {
       body: {
         fecha,
-        idRolFinal,
+        idUsuarioFinal,
       },
     };
-    const query = EjecutarFuncionSQL("aps_archivos_a_validar", params);
+    const query = EjecutarFuncionSQL("aps_ins_renta_fija", params);
 
     pool
       .query(query)
@@ -246,4 +247,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   Emisor,
+  InsertarRentaFija,
 };
