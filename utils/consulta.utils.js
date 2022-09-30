@@ -546,7 +546,7 @@ function EscogerInternoUtil(table, params) {
 
     map(innerjoin, (item, index) => {
       query += ` INNER JOIN "${item.table}"`;
-      query += ` ON"${item.on[0].table}".${item.on[0].key} = "${item.on[1].table}".${item.on[1].key}`;
+      query += ` ON "${item.on[0].table}".${item.on[0].key} = "${item.on[1].table}".${item.on[1].key}`;
     });
   }
   if (params?.where) {
@@ -1242,9 +1242,58 @@ async function ObtenerUsuario(user) {
     .query(queryInstitucion)
     .then((result) => {
       if (result.rowCount >= 1) {
-        return { ok: true, result: result?.rows?.[0] };
+        return { ok: true, result: result?.rows };
       } else {
-        return { ok: false, result: result?.rows?.[0] };
+        return { ok: false, result: result?.rows };
+      }
+    })
+    .catch((err) => {
+      return { ok: false, err };
+    });
+  return resultFinal;
+}
+async function ObtenerUsuariosPorRol(user) {
+  const { id_rol } = user;
+  const query = EscogerInternoUtil("APS_seg_usuario", {
+    select: [`*`],
+    innerjoin: [
+      {
+        table: `APS_seg_usuario_rol`,
+        on: [
+          {
+            table: `APS_seg_usuario_rol`,
+            key: "id_usuario",
+          },
+          {
+            table: `APS_seg_usuario`,
+            key: "id_usuario",
+          },
+        ],
+      },
+      {
+        table: `APS_seg_rol`,
+        on: [
+          {
+            table: `APS_seg_rol`,
+            key: "id_rol",
+          },
+          {
+            table: `APS_seg_usuario_rol`,
+            key: "id_rol",
+          },
+        ],
+      },
+    ],
+    where: [{ key: `"APS_seg_usuario_rol".id_rol`, value: id_rol }],
+  });
+
+  const resultFinal = await pool
+    .query(query)
+    .then((result) => {
+      if (result.rowCount >= 1) {
+        return { ok: true, result: result?.rows };
+      } else {
+        return { ok: false, result: result?.rows };
       }
     })
     .catch((err) => {
@@ -1282,4 +1331,5 @@ module.exports = {
   ObtenerInstitucion,
   EjecutarFuncionSQL,
   ObtenerUsuario,
+  ObtenerUsuariosPorRol,
 };

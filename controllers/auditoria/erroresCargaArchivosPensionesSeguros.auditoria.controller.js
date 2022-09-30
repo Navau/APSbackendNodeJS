@@ -16,6 +16,7 @@ const {
   EscogerInternoUtil,
   EjecutarFuncionSQL,
   ObtenerUsuario,
+  ObtenerUsuariosPorRol,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -264,44 +265,77 @@ async function Reporte2(req, res) {
 }
 
 async function EnviarCorreo(req, res) {
-  const { email, subject, description } = req.body;
-  const user = await ObtenerUsuario(req.user);
+  const { email, subject, description, id_rol } = req.body;
+  const resultArray = [];
+  const errorsArray = [];
+  try {
+    const users = await ObtenerUsuariosPorRol({ id_rol });
+    if (users.err) {
+      errorsArray.push({
+        message: users?.err?.message && users?.err.message,
+        err: users?.err,
+      });
+    }
+    const usersFinal = users.result;
 
-  const emailFinal = email ? email : user.result.email;
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: "contactojosegutierrez10@gmail.com",
-      // user: "admin-jose-aps",
-      pass: "zwnytvxpkcbnztob",
-    },
-  });
-
-  const mailOptions = {
-    from: "APS validaciones",
-    to: emailFinal,
-    subject: subject ? subject : "Asunto APS",
-    html: `
-    <div>
-      <h3>${description}</h3>
-    </div>
-    `,
-  };
-
-  await transporter
-    .sendMail(mailOptions)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(
-        res,
-        result,
-        `Correo enviado correctamente a ${emailFinal}`
-      );
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "contactojosegutierrez10@gmail.com",
+        // user: "admin-jose-aps",
+        pass: "zwnytvxpkcbnztob",
+      },
     });
+    function validateEmail(email) {
+      const res =
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return res.test(String(email).toLowerCase());
+    }
+
+    for (let index = 0; index < usersFinal.length; index++) {
+      const item = usersFinal[index];
+
+      const emailFinal = email ? email : item.email;
+      // const emailFinal = "milibrolunadepluton344@gmail.com";
+
+      if (!validateEmail(emailFinal)) {
+        errorsArray.push({ message: "Email no válido", emailFinal });
+      } else {
+        const mailOptions = {
+          from: "APS validaciones",
+          to: emailFinal,
+          subject: subject ? subject : "Asunto APS",
+          html: `
+      <div>
+        <h3>${description}</h3>
+        </div>
+      `,
+        };
+
+        await transporter
+          .sendMail(mailOptions)
+          .then((result) => {
+            console.log(result);
+            resultArray.push(result);
+          })
+          .catch((err) => {
+            errorsArray.push({ message: err?.message && err.message, err });
+          });
+      }
+    }
+    if (errorsArray.length > 0) {
+      respErrorServidor500END(res, errorsArray);
+    }
+    respResultadoCorrectoObjeto200(
+      res,
+      resultArray,
+      `Correos enviados correctamente`
+    );
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
