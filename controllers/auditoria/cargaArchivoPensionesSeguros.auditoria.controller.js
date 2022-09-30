@@ -351,6 +351,7 @@ async function UltimaCarga2(req, res) {
     });
 }
 
+//VALORACION Y VALIDACION
 async function ReporteEnvio(req, res) {
   const { fecha, id_rol } = req.body;
   const idRolFinal = id_rol ? id_rol : req.user.id_rol;

@@ -5,11 +5,7 @@ const md_auth = require("../../middleware/token.middleware");
 const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
-api.post(
-  "/Seleccionar",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.Seleccionar
-);
+api.post("/Emisor", [md_auth.AsegurarAutenticacionConToken], controller.Emisor);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

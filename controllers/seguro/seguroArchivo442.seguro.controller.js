@@ -22,7 +22,7 @@ const {
 const nameTable = "APS_seguro_archivo_442";
 
 //FUNCION PARA OBTENER TODOS LOS CRITICO DE SEGURIDAD
-function Seleccionar(req, res) {
+function Emisor(req, res) {
   const { fecha_informacion } = req.body;
   let query = `SELECT emisor FROM public."${nameTable}" WHERE fecha_informacion='${fecha_informacion}' AND emisor NOT IN (SELECT codigo_rmv FROM public."APS_param_emisor");`;
   pool.query(query, (err, result) => {
@@ -213,5 +213,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
-  Seleccionar,
+  Emisor,
 };
