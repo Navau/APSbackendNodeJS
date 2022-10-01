@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EjecutarFuncionSQL,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -17,6 +18,8 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respResultadoIncorrectoObjeto200,
+  respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seguro_archivo_443";

@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EjecutarFuncionSQL,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -17,6 +18,8 @@ const {
   respResultadoVacio404,
   respIDNoRecibido400,
   respResultadoIncorrectoObjeto200,
+  respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seguro_archivo_443";
@@ -30,9 +33,9 @@ function Emisor(req, res) {
       respErrorServidor500(res, err);
     } else {
       if (!result.rowCount || result.rowCount < 1) {
-        respResultadoIncorrectoObjeto200(res, null, result, "Mensaje");
+        respResultadoIncorrectoObjeto200(res, null, result.rows, "Mensaje");
       } else {
-        respResultadoCorrecto200(res, result);
+        respResultadoCorrecto200(res, result.rows);
       }
     }
   });
