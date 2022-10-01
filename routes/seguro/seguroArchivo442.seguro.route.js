@@ -6,6 +6,11 @@ const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Emisor", [md_auth.AsegurarAutenticacionConToken], controller.Emisor);
+api.post(
+  "/InsertarOtrosActivos",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.InsertarOtrosActivos
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

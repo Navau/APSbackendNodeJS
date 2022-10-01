@@ -1,5 +1,8 @@
 const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const swaggerFile = require("../swagger-output.json");
 
+//#region
 // Rutas de Seguridad (Se llama Seguridad por la division en la base de datos)
 const accionRoute = require("./seguridad/accion.seguridad.route");
 const criticoRoute = require("./seguridad/critico.seguridad.route");
@@ -106,10 +109,15 @@ const selectComunRoute = require("./selectComun.route");
 const seguroArchivo441Route = require("./seguro/seguroArchivo441.seguro.route");
 const seguroArchivo442Route = require("./seguro/seguroArchivo442.seguro.route");
 const seguroArchivo443Route = require("./seguro/seguroArchivo443.seguro.route");
+const seguroArchivo444Route = require("./seguro/seguroArchivo444.seguro.route");
+const seguroArchivo445Route = require("./seguro/seguroArchivo445.seguro.route");
+
+//#endregion
 
 function routerApi(app) {
   const router = express.Router();
   app.use("/api", router);
+  app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
   router.use("/Acceso", accessRoutes);
   router.use("/obtenerCabeceras", obtenerCabecerasRoute);
@@ -126,6 +134,8 @@ function routerApi(app) {
   router.use("/Archivo441", seguroArchivo441Route);
   router.use("/Archivo442", seguroArchivo442Route);
   router.use("/Archivo443", seguroArchivo443Route);
+  router.use("/Archivo444", seguroArchivo444Route);
+  router.use("/Archivo445", seguroArchivo445Route);
   router.use("/CargaArchivosBolsa", cargaArchivosBolsaRoute);
   router.use("/cargaArchivosCustodio", cargaArchivosCustodioRoute);
   router.use(

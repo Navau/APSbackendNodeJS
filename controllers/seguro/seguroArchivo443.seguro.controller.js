@@ -37,6 +37,38 @@ function Emisor(req, res) {
     }
   });
 }
+
+async function InsertarRentaVariable(req, res) {
+  const { fecha, id_usuario } = req.body;
+  const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
+
+  if (Object.entries(req.body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body: {
+        fecha,
+        idUsuarioFinal,
+      },
+    };
+    const query = EjecutarFuncionSQL("aps_ins_renta_variable", params);
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(res, null, result.rows);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
 function Listar(req, res) {
   const params = {
     status: "status",
@@ -214,4 +246,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   Emisor,
+  InsertarRentaVariable,
 };

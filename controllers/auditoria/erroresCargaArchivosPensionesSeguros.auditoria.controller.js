@@ -308,10 +308,10 @@ async function EnviarCorreo(req, res) {
           to: emailFinal,
           subject: subject ? subject : "Asunto APS",
           html: `
-      <div>
-        <h3>${description}</h3>
-        </div>
-      `,
+          <div>
+            <h3>${description}</h3>
+          </div>
+          `,
         };
 
         await transporter

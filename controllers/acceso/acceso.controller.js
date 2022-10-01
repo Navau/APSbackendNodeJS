@@ -66,6 +66,7 @@ function refreshAccessToken(req, res) {
 }
 
 function Login(req, res) {
+  // #swagger.description = "Description here..."
   const body = req.body;
   const user = body.usuario.toLowerCase();
   const password = body.password;
