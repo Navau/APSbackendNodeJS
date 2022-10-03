@@ -2,8 +2,8 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerFile = require("../swagger-output.json");
 
-//#region
-// Rutas de Seguridad (Se llama Seguridad por la division en la base de datos)
+//#region RUTAS
+//#region Rutas de Seguridad (Se llama Seguridad por la division en la base de datos)
 const accionRoute = require("./seguridad/accion.seguridad.route");
 const criticoRoute = require("./seguridad/critico.seguridad.route");
 const institucionRoutes = require("./seguridad/institucion.seguridad.route");
@@ -16,17 +16,21 @@ const tablaRoutes = require("./seguridad/tabla.seguridad.route");
 const tablaAccionRoutes = require("./seguridad/tablaAccion.seguridad.route");
 const usuarioRoutes = require("./seguridad/usuario.seguridad.route");
 const usuarioRolRoutes = require("./seguridad/usuarioRol.seguridad.route");
+//#endregion
 
-// Rutas de Auditoria (Se llama auditoria por la division en la base de datos)
+//#region Rutas de Auditoria (Se llama auditoria por la division en la base de datos)
 const cargaArchivosBolsaRoute = require("./auditoria/cargaArchivoBolsa.auditoria.route");
 const cargaArchivosPensionesSegurosRoute = require("./auditoria/cargaArchivoPensionesSeguros.auditoria.route");
+const validaArchivosPensionesSegurosRoute = require("./auditoria/validaArchivosPensionesSeguros.auditoria.route");
 const cargaArchivosCustodioRoute = require("./auditoria/cargaArchivosCustodio.auditoria.route");
 const erroresCargaArchivosBolsaRoute = require("./auditoria/erroresCargaArchivosBolsa.auditoria.route");
 const erroresCargaArchivosCustodioRoute = require("./auditoria/erroresCargaArchivosCustodio.auditoria.route");
 const erroresCargaArchivosPensionesSegurosRoute = require("./auditoria/erroresCargaArchivosPensionesSeguros.auditoria.route");
+const erroresValidaArchivosPensionesSegurosRoute = require("./auditoria/erroresValidaArchivosPensionesSeguros.auditoria.route");
 const fechaOperacionRoute = require("./auditoria/fechaOperacion.route");
+//#endregion
 
-// Rutas Operativas (Se llama Operativas por la division en la base de datos)
+//#region Rutas Operativas (Se llama Operativas por la division en la base de datos)
 const archivoKRoute = require("./operativo/archivoK.operativo.route");
 const archivoLRoute = require("./operativo/archivoL.operativo.route");
 const archivoNRoute = require("./operativo/archivoN.operativo.route");
@@ -39,8 +43,9 @@ const rentaFijaCuponRoute = require("./operativo/rentaFijaCupon.operativo.route"
 const rentaVariableRoute = require("./operativo/rentaVariable.operativo.route");
 const tipoCambioRoute = require("./operativo/tipoCambio.operativo.route");
 const rirRoute = require("./operativo/rir.operativo.route");
+//#endregion
 
-// Rutas de Parametro (Se llama Parametro por la division en la base de datos)
+//#region Rutas de Parametro (Se llama Parametro por la division en la base de datos)
 const actividadEconomicaRoute = require("./parametro/actividadEconomica.parametro.route");
 const carteraSIPRoute = require("./parametro/carteraSIP.parametro.route");
 const carteraSIPAgrupacionRoute = require("./parametro/carteraSIPAgrupacion.parametro.route");
@@ -62,15 +67,18 @@ const tipoInstrumentoRoute = require("./parametro/tipoInstrumento.parametro.rout
 const tipoOperacionRoute = require("./parametro/tipoOperacion.parametro.route");
 const archivosPensionesSegurosRoute = require("./parametro/archivosPensionesSeguros.parametro.route");
 const limiteRoute = require("./parametro/limite.parametro.controller");
+//#endregion
 
-// Rutas de Acceso (Se llama Acceso por la autenticacion)
+//#region Rutas de Acceso (Se llama Acceso por la autenticacion)
 const accessRoutes = require("./acceso/acceso.route");
+//#endregion
 
-// Rutas de Subida y Descarga de Archivos
+//#region Rutas de Subida y Descarga de Archivos
 const uploadRoute = require("./upload/upload.upload.route");
 const downloadRoute = require("./download/descargaArchivos.download.route");
+//#endregion
 
-//Rutas de Clasificador (Se llama Clasificador por la Base de datos)
+//#region Rutas de Clasificador (Se llama Clasificador por la Base de datos)
 const cBolsaValoresRoute = require("./clasificador/cBolsaValores.clasificador.route");
 const cCalificacionSegurosRoute = require("./clasificador/cCalificacionSeguros.clasificador.route.js");
 const cCalificacionFondosRoute = require("./clasificador/cCalificacionFondos.clasificador.route.js");
@@ -100,17 +108,20 @@ const cTipoEntidadSegurosRoute = require("./clasificador/cTipoEntidadSeguros.cla
 const cGrupoSectorEconomicoRoute = require("./clasificador/cGrupoSectorEconomico.clasificador.route.js");
 const cTipoAccionRoute = require("./clasificador/cTipoAccion.clasificador.route.js");
 const cTipoReporteRoute = require("./clasificador/cTipoReporte.clasificador.route.js");
+//#endregion
 
-// OTROS
+//#region OTROS
 const obtenerCabecerasRoute = require("./obtenerCabeceras.route");
 const selectComunRoute = require("./selectComun.route");
+//#endregion
 
-// SEGURO
+//#region SEGURO
 const seguroArchivo441Route = require("./seguro/seguroArchivo441.seguro.route");
 const seguroArchivo442Route = require("./seguro/seguroArchivo442.seguro.route");
 const seguroArchivo443Route = require("./seguro/seguroArchivo443.seguro.route");
 const seguroArchivo444Route = require("./seguro/seguroArchivo444.seguro.route");
 const seguroArchivo445Route = require("./seguro/seguroArchivo445.seguro.route");
+//#endregion
 
 //#endregion
 
@@ -142,11 +153,19 @@ function routerApi(app) {
     "/CargaArchivosPensionesSeguros",
     cargaArchivosPensionesSegurosRoute
   );
+  router.use(
+    "/ValidaArchivosPensionesSeguros",
+    validaArchivosPensionesSegurosRoute
+  );
   router.use("/FechaOperacion", fechaOperacionRoute);
   router.use("/ErroresCargaArchivosBolsa", erroresCargaArchivosBolsaRoute);
   router.use(
     "/ErroresCargaArchivosPensionesSeguros",
     erroresCargaArchivosPensionesSegurosRoute
+  );
+  router.use(
+    "/ErroresValidaArchivosPensionesSeguros",
+    erroresValidaArchivosPensionesSegurosRoute
   );
   router.use(
     "/ErroresCargaArchivosCustodio",

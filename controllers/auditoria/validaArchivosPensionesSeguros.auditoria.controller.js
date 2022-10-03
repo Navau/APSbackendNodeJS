@@ -14,6 +14,7 @@ const {
   ObtenerUltimoRegistro,
   EscogerInternoUtil,
   EjecutarFuncionSQL,
+  InsertarVariosUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -29,65 +30,7 @@ const {
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
-// async function obtenerFechaOperacion(req, res) {
-//   const { tipo } = req.body;
-
-//   const addDays = (date, days) => {
-//     date.setDate(date.getDate() + days);
-//     return date;
-//   };
-
-//   const fechaOperacionMensual = () => {
-//     const uploadDate = new Date();
-//     const year = uploadDate.getFullYear();
-//     const month = uploadDate.getMonth();
-//     const day = uploadDate.getDay();
-//     const firstDayMonth = new Date(year, month, 1);
-//     const fechaOperacion = addDays(firstDayMonth, -1);
-
-//     return fechaOperacion;
-//   };
-//   const fechaOperacionDiaria = () => {
-//     const uploadDate = new Date();
-//     const fechaOperacion = addDays(uploadDate, -1);
-
-//     return fechaOperacion;
-//   };
-//   const fechaOperacionDiaHabil = () => {
-//     const uploadDate = new Date();
-//     const checkDate = addDays(uploadDate, -1);
-//     const day = checkDate.getUTCDay();
-//     let fechaOperacion = null;
-//     if (day === 1) {
-//       //SI ES LUNES
-//       fechaOperacion = addDays(uploadDate, -3); // ENTONCES SERA VIERNES
-//     } else if (day === 0) {
-//       // SI ES DOMINGO
-//       fechaOperacion = addDays(uploadDate, -2); // ENTONCES SERA VIERNES
-//     } else {
-//       // SI ES SABADO
-//       fechaOperacion = checkDate; // ENTONCES SERA VIERNES
-//     }
-//     return fechaOperacion;
-//   };
-
-//   const FECHA_OPERACION = {
-//     M: fechaOperacionMensual(),
-//     D: fechaOperacionDiaria(),
-//     DH: fechaOperacionDiaHabil(),
-//   };
-
-//   if (isNaN(Date.parse(FECHA_OPERACION[tipo]))) {
-//     respErrorServidor500END(res, {
-//       message: "Hubo un error al obtener la fecha de operación.",
-//       value: FECHA_OPERACION[tipo],
-//     });
-//   } else {
-//     respResultadoCorrectoObjeto200(res, FECHA_OPERACION[tipo]);
-//   }
-// }
+const nameTable = "APS_aud_valida_archivos_pensiones_seguros";
 
 async function ValorMaximo(req, res) {
   const { max, periodicidad } = req.body;
@@ -322,7 +265,7 @@ async function UltimaCarga2(req, res) {
   END AS nroCarga, 
   CASE 
   WHEN maxid > 0 
-      THEN null 
+      THEN cargado 
       ELSE false 
   END AS Cargado 
   FROM ( 
@@ -351,42 +294,219 @@ async function UltimaCarga2(req, res) {
     });
 }
 
-//VALORACION Y VALIDACION
-async function ReporteEnvio(req, res) {
-  const { fecha, id_rol, cargado } = req.body;
-  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
-  const cargadoFinal = cargado ? cargado : false;
+async function ObtenerErrores(fecha) {
+  const errorsFinalArray = [];
 
-  if (Object.entries(req.body).length === 0) {
-    respDatosNoRecibidos400(res);
+  //#region Consultas
+  const queryCalificadoraRF = EjecutarFuncionSQL(
+    "aps_valida_calificacion_calificadora_rf",
+    {
+      body: { fecha },
+    }
+  );
+  const calificadoraRF = await pool
+    .query(queryCalificadoraRF)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  const queryCalificadoraRV = EjecutarFuncionSQL(
+    "aps_valida_calificacion_calificadora_rv",
+    {
+      body: { fecha },
+    }
+  );
+
+  const calificadoraRV = await pool
+    .query(queryCalificadoraRV)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  const queryCalificadoraOA = EjecutarFuncionSQL(
+    "aps_valida_calificacion_calificadora_oa",
+    {
+      body: { fecha },
+    }
+  );
+
+  const calificadoraOA = await pool
+    .query(queryCalificadoraOA)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+
+  const queryCustodio = EjecutarFuncionSQL("aps_valida_custodio", {
+    body: { fecha },
+  });
+
+  const custodio = await pool
+    .query(queryCustodio)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+
+  //#endregion
+
+  if (calificadoraRF.ok === null) {
+    errorsFinalArray.push({
+      err: calificadoraRF.err,
+      message: `Error al obtener los errores de CalificadoraRF (Renta Fija) ERROR: ${calificadoraRF.err.message}`,
+    });
+  }
+  if (calificadoraRV.ok === null) {
+    errorsFinalArray.push({
+      err: calificadoraRV.err,
+      message: `Error al obtener los errores de CalificadoraRV (Renta Variable) ERROR: ${calificadoraRV.err.message}`,
+    });
+  }
+  if (calificadoraOA.ok === null) {
+    errorsFinalArray.push({
+      err: calificadoraOA.err,
+      message: `Error al obtener los errores de CalificadoraOA (Otros Activos) ERROR: ${calificadoraOA.err.message}`,
+    });
+  }
+  if (custodio.ok === null) {
+    errorsFinalArray.push({
+      err: custodio.err,
+      message: `Error al obtener los errores de Custodio ERROR: ${custodio.err.message}`,
+    });
+  }
+
+  if (errorsFinalArray.length > 0) {
+    return {
+      ok: false,
+      result: [...errorsFinalArray],
+    };
   } else {
-    const params = {
-      body: {
-        fecha,
-        idRolFinal,
-      },
-      where: [
-        {
-          key: "cargado",
-          value: cargadoFinal,
-        },
+    return {
+      ok: true,
+      result: [
+        ...calificadoraRF.result,
+        ...calificadoraRV.result,
+        ...calificadoraOA.result,
+        ...custodio.result,
       ],
     };
-    const query = EjecutarFuncionSQL("aps_reporte_control_envio", params);
+  }
+}
 
-    pool
-      .query(query)
+async function Validar(req, res) {
+  const { fecha } = req.body;
+  const errorsFinalArray = [];
+  const resultFinalArray = [];
+
+  const errores = await ObtenerErrores(fecha);
+
+  if (!errores.ok) {
+    respErrorServidor500END(res, errores.result);
+  } else {
+    //#region NUMERO CARGA
+    const queryUltimaCarga = `
+      SELECT CASE 
+        WHEN maxid > 0 
+            THEN nro_carga 
+            ELSE 0 
+        END AS nroCarga, 
+        CASE 
+        WHEN maxid > 0 
+            THEN null 
+            ELSE false 
+        END AS Cargado 
+        FROM ( 
+          SELECT coalesce(max(id_valida_archivos), 0) AS maxid 
+          FROM public."APS_aud_valida_archivos_pensiones_seguros" AS val 
+          INNER JOIN "APS_seg_institucion" AS int 
+          ON int.codigo = val.cod_institucion 
+          INNER JOIN "APS_seg_usuario" AS usuario 
+          ON usuario.id_institucion = int.id_institucion 
+          WHERE usuario.id_usuario=2
+          AND val.fecha_operacion = '2022-04-27') AS max_id 
+          LEFT JOIN "APS_aud_valida_archivos_pensiones_seguros" AS datos 
+          ON max_id.maxid = datos.id_valida_archivos;
+    `;
+    console.log("TEST ULTIMA CARGA", queryUltimaCarga);
+    const nroCarga = await pool
+      .query(queryUltimaCarga)
       .then((result) => {
         if (result.rowCount > 0) {
-          respResultadoCorrectoObjeto200(res, result.rows);
+          return { ok: true, result: result.rows[0] };
         } else {
-          respResultadoIncorrectoObjeto200(res, null, result.rows);
+          return { ok: false, result: result.rows[0] };
         }
       })
       .catch((err) => {
         console.log(err);
-        respErrorServidor500END(res, err);
+        return { ok: null, err };
       });
+    if (nroCarga.ok === null) {
+      respErrorServidor500END(res, nroCarga.err);
+    }
+    if (nroCarga.ok === false) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        nroCarga.result,
+        "No existe ningún numero de carga"
+      );
+    }
+    //#endregion
+
+    if (errores.result.length > 0) {
+      map();
+      console.log(nroCarga);
+      const queryInsertErrors = InsertarVariosUtil(nameTable, {
+        body: errores.result,
+        returnValue: ["id_carga_archivos"],
+      });
+    } else {
+      const queryInsertValida = InsertarUtil(nameTable, {
+        body: {
+          fecha_operacion: fecha,
+          cod_institucion: "108",
+          nro_carga: nroCarga.result.nrocarga + 1,
+          fecha_carga: new Date(),
+          validado: true,
+          id_rol: req.user.id_rol,
+          id_usuario: req.user.id_usuario,
+        },
+      });
+      await pool
+        .query(queryInsertValida)
+        .then((result) => {
+          resultFinalArray.push({
+            result: result.rows,
+            message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
+          });
+        })
+        .catch((err) => {
+          errorsFinalArray.push({
+            err,
+            message: `Error al Insertar en la tabla ${nameTable}`,
+          });
+        });
+    }
+
+    if (errorsFinalArray.length > 0) {
+      respErrorServidor500END(res, errorsFinalArray);
+      return null;
+    } else {
+      respResultadoCorrectoObjeto200(res, {
+        resultFinalArray,
+        errores: errores.result,
+      });
+      return null;
+    }
   }
 }
 
@@ -566,5 +686,5 @@ module.exports = {
   ValorMaximo,
   UltimaCarga,
   UltimaCarga2,
-  ReporteEnvio,
+  Validar,
 };
