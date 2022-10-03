@@ -355,7 +355,7 @@ async function UltimaCarga2(req, res) {
 async function ReporteEnvio(req, res) {
   const { fecha, id_rol, cargado } = req.body;
   const idRolFinal = id_rol ? id_rol : req.user.id_rol;
-  const cargadoFinal = cargado ? cargado : false;
+  const cargadoFinal = cargado === true || cargado === false ? cargado : null;
 
   if (Object.entries(req.body).length === 0) {
     respDatosNoRecibidos400(res);
@@ -365,7 +365,7 @@ async function ReporteEnvio(req, res) {
         fecha,
         idRolFinal,
       },
-      where: [
+      where: cargadoFinal !== null && [
         {
           key: "cargado",
           value: cargadoFinal,

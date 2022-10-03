@@ -144,7 +144,9 @@ function Escoger(req, res) {
 }
 
 async function Reporte(req, res) {
-  const { fecha, periodo } = req.body;
+  const { fecha, periodo, resultado } = req.body;
+  const resultadoFinal =
+    resultado === "Con Éxito" || resultado === "Con Error" ? resultado : null;
 
   if (Object.entries(req.body).length === 0) {
     respDatosNoRecibidos400(res);
@@ -156,10 +158,10 @@ async function Reporte(req, res) {
         cod_institucion: cod_institucion.result.codigo,
         periodo,
       },
-      where: [
+      where: resultadoFinal !== null && [
         {
           key: "resultado",
-          value: `Con Éxito`,
+          value: resultadoFinal,
         },
       ],
     };
