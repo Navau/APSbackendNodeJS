@@ -22,7 +22,7 @@ const {
   respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_seguro_archivo_443";
+const nameTable = "APS_seguro_archivo_444";
 
 //FUNCION PARA OBTENER TODOS LOS CRITICO DE SEGURIDAD
 async function InsertarRentaFijaCupon(req, res) {

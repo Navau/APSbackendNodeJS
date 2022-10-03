@@ -22,7 +22,7 @@ const {
   respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_seguro_archivo_443";
+const nameTable = "APS_seguro_archivo_445";
 
 //FUNCION PARA OBTENER TODOS LOS CRITICO DE SEGURIDAD
 async function InsertarOtrosActivosCupon(req, res) {
@@ -38,7 +38,7 @@ async function InsertarOtrosActivosCupon(req, res) {
         idUsuarioFinal,
       },
     };
-    const query = EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params);
+    const query = EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params);
 
     pool
       .query(query)
