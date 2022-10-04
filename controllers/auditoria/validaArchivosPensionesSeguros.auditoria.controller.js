@@ -403,6 +403,71 @@ async function ObtenerErrores(fecha) {
       return { ok: null, err };
     });
   //#endregion
+  //#region VALIDA 443
+  const queryValida443 = EjecutarFuncionSQL("aps_valida_443", {
+    body: { fecha },
+  });
+  const valida443 = await pool
+    .query(queryValida443)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  //#endregion
+  //#region VALIDA 451
+  const queryValida451 = EjecutarFuncionSQL("aps_valida_451", {
+    body: { fecha },
+  });
+  const valida451 = await pool
+    .query(queryValida451)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  //#endregion
+  //#region VALIDA 483
+  const queryValida483 = EjecutarFuncionSQL("aps_valida_483", {
+    body: { fecha },
+  });
+  const valida483 = await pool
+    .query(queryValida483)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  //#endregion
+  //#region VALIDA 484
+  const queryValida484 = EjecutarFuncionSQL("aps_valida_484", {
+    body: { fecha },
+  });
+  const valida484 = await pool
+    .query(queryValida484)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  //#endregion
+  //#region VALIDA 485
+  const queryValida485 = EjecutarFuncionSQL("aps_valida_485", {
+    body: { fecha },
+  });
+  const valida485 = await pool
+    .query(queryValida485)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  //#endregion
   //#endregion
 
   if (calificadoraRF.ok === null) {
@@ -447,6 +512,36 @@ async function ObtenerErrores(fecha) {
       message: `Error al obtener los errores de Custodio ERROR: ${valida413.err.message}`,
     });
   }
+  if (valida443.ok === null) {
+    errorsFinalArray.push({
+      err: valida443.err,
+      message: `Error al obtener los errores de Custodio ERROR: ${valida443.err.message}`,
+    });
+  }
+  if (valida451.ok === null) {
+    errorsFinalArray.push({
+      err: valida451.err,
+      message: `Error al obtener los errores de Custodio ERROR: ${valida451.err.message}`,
+    });
+  }
+  if (valida483.ok === null) {
+    errorsFinalArray.push({
+      err: valida483.err,
+      message: `Error al obtener los errores de Custodio ERROR: ${valida483.err.message}`,
+    });
+  }
+  if (valida484.ok === null) {
+    errorsFinalArray.push({
+      err: valida484.err,
+      message: `Error al obtener los errores de Custodio ERROR: ${valida484.err.message}`,
+    });
+  }
+  if (valida485.ok === null) {
+    errorsFinalArray.push({
+      err: valida485.err,
+      message: `Error al obtener los errores de Custodio ERROR: ${valida485.err.message}`,
+    });
+  }
 
   if (errorsFinalArray.length > 0) {
     return {
@@ -463,7 +558,11 @@ async function ObtenerErrores(fecha) {
         ...custodio.result,
         ...valida411.result,
         ...valida412.result,
-        ...valida413.result,
+        ...valida443.result,
+        ...valida451.result,
+        ...valida483.result,
+        ...valida484.result,
+        ...valida485.result,
       ],
     };
   }

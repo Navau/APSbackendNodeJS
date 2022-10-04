@@ -3616,7 +3616,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: _rango?.message,
+                    descripcion:
+                      "Cuando tipo_bien_inmueble es EDI el Valor debe estar entre 0 y 480",
                     valor: value,
                     columna: columnName,
                     fila: index2,
@@ -3631,7 +3632,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: _igualA?.message,
+                    descripcion:
+                      "Cuando tipo_bien_inmueble no es EDI el valor debe ser 0",
                     valor: value,
                     columna: columnName,
                     fila: index2,
@@ -3652,12 +3654,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               let _rango = null;
               let functionAux = null;
               map(_vidaUtilRestante?.resultFinal, (item4, index4) => {
-                if (value === item4.sigla) {
+                if (item2.tipo_bien_inmueble === item4.sigla) {
                   functionAux = 1;
                 }
               });
               map(_vidaUtilRestanteDiferente?.resultFinal, (item4, index4) => {
-                if (value === item4.sigla) {
+                if (item2.tipo_bien_inmueble === item4.sigla) {
                   functionAux = 2;
                 }
               });
@@ -3672,7 +3674,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: _rango?.message,
+                    descripcion:
+                      "Cuando tipo_bien_inmueble es EDI el Valor debe estar entre 0 y 480",
                     valor: value,
                     columna: columnName,
                     fila: index2,
@@ -3687,7 +3690,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: _igualA?.message,
+                    descripcion:
+                      "Cuando tipo_bien_inmueble no es EDI el valor debe ser 0",
                     valor: value,
                     columna: columnName,
                     fila: index2,
