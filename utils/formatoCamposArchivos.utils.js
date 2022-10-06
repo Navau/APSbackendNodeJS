@@ -46,6 +46,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsInstrumento1: null,
         paramsInstrumento18: null,
         paramsInstrumento136: null,
+        paramsTipoAccion: null,
         paramsCodigoOperacion: null,
         paramsCodigoMercado: null,
         paramsCodigoCustodia: null,
@@ -696,6 +697,18 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
               {
                 key: "activo",
                 value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoAccion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 28,
               },
             ],
           },
@@ -3167,6 +3180,16 @@ async function obtenerValidaciones(typeFile) {
         function: ["tipoInstrumento"],
       },
       {
+        columnName: "tipo_accion",
+        pattern: /^[A-Za-z0-2]{1,1}$/,
+        function: ["tipoAccion"],
+      },
+      {
+        columnName: "serie_emision",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: [],
+      },
+      {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{0,23}$/,
         mayBeEmpty: true,
@@ -5061,7 +5084,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    console.log("CABECERAS", codeCurrentFile, headers);
+    // console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
@@ -5092,6 +5115,7 @@ async function formatearDatosEInsertarCabeceras(
             console.log("ROW", index);
           }
         }
+        //#region CODIGO AUX
         // let position1 = 0;
         // let position2 = 1;
         // let position3 = 2;
@@ -5150,6 +5174,7 @@ async function formatearDatosEInsertarCabeceras(
         // } catch (err) {
         //   console.log(err);
         // }
+        //#endregion
 
         if (item.length === 0) {
           return;
@@ -5194,7 +5219,7 @@ async function formatearDatosEInsertarCabeceras(
             // console.log("numberCommas", numberCommas);
             // console.log("rowWithoutQuotationMarks", rowWithoutQuotationMarks);
             // console.log("rowSplit.length", rowSplit.length);
-            // console.log("rowSplit", rowSplit);
+            // console.log("rowSplit", rowSplit, "length", rowSplit.length);
 
             if (
               rowSplit.length > headers.length ||
@@ -5240,7 +5265,7 @@ async function formatearDatosEInsertarCabeceras(
       });
     };
 
-    console.log("INFORMACION", codeCurrentFile, dataSplit);
+    // console.log("INFORMACION", codeCurrentFile, dataSplit);
     if (
       (codeCurrentFile === "444" || codeCurrentFile === "445") &&
       dataSplit[0] !== ""

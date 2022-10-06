@@ -1,4 +1,4 @@
-const { map } = require("lodash");
+const { map, partial } = require("lodash");
 const pool = require("../../database");
 const fs = require("fs");
 
@@ -36,6 +36,7 @@ const {
   respResultadoCorrectoObjeto200,
   respArchivoErroneo200,
 } = require("../../utils/respuesta.utils");
+const { log } = require("console");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
 
@@ -120,18 +121,19 @@ async function CargarArchivo(req, res) {
             __dirname.substring(0, __dirname.indexOf("controllers")) +
             item.path;
           //#region SEPARAR LOS CAMPOS DEL ARCHIVO QUE ESTA DIVIDO EN FILAS
-          console.log(filesReaded);
+          // console.log(filesReaded);
           // SE ORDENAN PRIMERO LOS ARCHIVOS ANTES DE ITERAR CON FILES READED
           map(filesReaded[index], (item2, index2) => {
-            let rowSplit = item2.split(",");
+            for (let i = 0; i < item2.length; i++) {
+              if (item2.charCodeAt(i) === 65279) {
+                item2 = item2.replace(item2.slice(i, 1), "");
+              }
+            }
+            const rowWithoutQuotationMarks = item2.slice(1, item2.length - 1);
+            const rowSplit = rowWithoutQuotationMarks.split('","');
             let resultObject = [];
             map(rowSplit, (item3, index3) => {
-              if (item3 !== "") {
-                resultObject = [
-                  ...resultObject,
-                  item3.trim(), //QUITAR ESPACIOS
-                ];
-              }
+              resultObject = [...resultObject, `"${item3}"`];
             });
             if (item2 !== "") {
               arrayDataObject.push(resultObject);
@@ -148,6 +150,7 @@ async function CargarArchivo(req, res) {
           let dateField = null;
           let institutionField = null;
 
+          //#region SELECCION DE CODIGO DE ARCHIVO Y TABLA DE ARCHIVO
           if (item.originalname.includes("K.")) {
             codeFile = "K";
             tableFile = "APS_oper_archivo_k";
@@ -274,6 +277,8 @@ async function CargarArchivo(req, res) {
             table: tableFile,
             id: idTable,
           };
+          //#endregion
+
           headers?.splice(0, 1); // ELIMINAR ID DE TABLA
 
           tablesFilesArray.push(tableFile);
@@ -364,7 +369,7 @@ async function CargarArchivo(req, res) {
           // console.log("arrayDataObject", arrayDataObject);
           const newArrayDataObject = [];
           // ["id_carga_archivos", "cod_institucion", "fecha_informacion"]
-          // console.log(headers);
+          // console.log("ANTIGUO", headers);
           // console.log(headers.includes("id_carga_archivos"));
 
           let stringFinalFile = "";
@@ -392,13 +397,16 @@ async function CargarArchivo(req, res) {
           map(arrayHeadersAux, (item2, index2) => {
             headers.push(item2);
           });
+          // console.log("NUEVO", headers);
           //#endregion
 
           // console.log("stringFinalFile", stringFinalFile);
           map(arrayDataObject, (item2, index2) => {
             newArrayDataObject.push([...item2, ...stringFinalFile.split(",")]);
           });
-          // console.log("newArrayDataObject", newArrayDataObject);
+          if (codeFile === "491") {
+            // console.log("newArrayDataObject", newArrayDataObject);
+          }
           //#endregion
 
           //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
@@ -416,12 +424,13 @@ async function CargarArchivo(req, res) {
           let partialData = [];
           // console.log(newArrayDataObject);
           map(newArrayDataObject, (itemV1, indexV1) => {
-            // console.log("ITEMV1", itemV1);
             let dataObject = Object.assign({}, itemV1);
             partialData.push(dataObject);
           });
-          // console.log(partialData);
-          // console.log(headers);
+          // if (codeFile === "491") {
+          //   console.log(partialData, partialData.length);
+          //   console.log(headers, headers.length);
+          // }
           let partialHeaders = headers;
           map(partialData, (itemV1, indexV1) => {
             let x = {};
@@ -444,6 +453,7 @@ async function CargarArchivo(req, res) {
           map([finalData], (itemBPQ, indexBPQ) => {
             bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
           });
+          // console.log(bodyFinalQuery);
 
           let queryFiles = "";
 
@@ -454,7 +464,7 @@ async function CargarArchivo(req, res) {
             });
           }
 
-          console.log(queryFiles);
+          // console.log(queryFiles);
 
           bodyFinalQuery = [];
 

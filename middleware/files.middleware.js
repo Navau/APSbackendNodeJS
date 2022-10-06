@@ -489,6 +489,12 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsInstrumento.params
                         )
                       : null;
+                    const _tipoAccion = infoArchivo?.paramsTipoAccion
+                      ? await selectComun(
+                          infoArchivo.paramsTipoAccion.table,
+                          infoArchivo.paramsTipoAccion.params
+                        )
+                      : null;
                     const _tipoOperacion = infoArchivo?.paramsTipoOperacion
                       ? await selectComun(
                           infoArchivo.paramsTipoOperacion.table,
@@ -1000,6 +1006,7 @@ async function validarArchivosIteraciones(params) {
                             item,
                             infoArchivo,
                             instrumento,
+                            _tipoAccion,
                             _lugarNegociacion,
                             _lugarNegociacionVacio,
                             _tipoOperacion,
@@ -1098,6 +1105,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const item = params.item;
       const infoArchivo = params.infoArchivo;
       const instrumento = params.instrumento;
+      const _tipoAccion = params._tipoAccion;
       const _lugarNegociacion = params._lugarNegociacion;
       const _lugarNegociacionVacio = params._lugarNegociacionVacio;
       const _tipoOperacion = params._tipoOperacion;
@@ -1486,6 +1494,24 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Valoración`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoAccion") {
+              let errFunction = true;
+              map(_tipoAccion?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  // console.log(value);
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Acción`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
