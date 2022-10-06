@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -88,6 +89,37 @@ function Escoger(req, res) {
       }
     });
   }
+}
+
+function SiglaDescripcion(req, res) {
+  const query = EscogerInternoUtil(nameTable, {
+    select: ["*", "sigla ||'-'|| descripcion AS sigla_descripcion"],
+    where: [
+      {
+        key: "id_tipo_renta",
+        valuesWhereIn: [136],
+        whereIn: true,
+      },
+      {
+        key: "activo",
+        value: true,
+      },
+    ],
+    orderby: {
+      field: "sigla ASC",
+    },
+  });
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500(res, err);
+    } else {
+      if (!result.rowCount || result.rowCount < 1) {
+        respResultadoVacio404(res);
+      } else {
+        respResultadoCorrecto200(res, result);
+      }
+    }
+  });
 }
 
 //FUNCION PARA INSERTAR UN TIPO INSTRUMENTO
@@ -197,4 +229,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  SiglaDescripcion,
 };

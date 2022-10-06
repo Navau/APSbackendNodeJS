@@ -12,6 +12,11 @@ api.post(
   controller.Escoger
 );
 api.post(
+  "/SiglaDescripcion",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.SiglaDescripcion
+);
+api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Insertar
