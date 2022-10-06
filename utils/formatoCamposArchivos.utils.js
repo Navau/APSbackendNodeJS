@@ -5253,7 +5253,8 @@ async function formatearDatosEInsertarCabeceras(
                 // }
                 resultObject = {
                   ...resultObject,
-                  [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+                  // [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+                  [item2.toLowerCase()]: value,
                 };
                 counterAux++;
               });
