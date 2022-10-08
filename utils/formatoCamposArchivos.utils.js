@@ -54,6 +54,12 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsTraspasoCustodia: null,
         paramsCodigoTraspasoCustodia: null,
         paramsCodigoCuenta: null,
+        paramsCodigoFondo: null,
+        paramsTipoCuentaLiquidez: null,
+        paramsCodigoBanco: null,
+        paramsDescripcionCuenta: null,
+        paramsCodigoAFP: null,
+        paramsNombreAFP: null,
         paramsPrecioNominalBs: null,
         paramsValorNominalBs: null,
         paramsCantidadPagos: null,
@@ -2019,10 +2025,59 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         PARAMS.codeCurrentFile = "DM";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
-        PARAMS.paramsCodigoOperacion = {
+        PARAMS.paramsLugarNegociacion = {
+          table: "APS_param_lugar_negociacion",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "id_tipo_lugar_negociacion",
+                value: 145,
+                operator: "<>",
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsLugarNegociacionVacio = {
           table: "APS_param_tipo_operacion",
           params: {
-            select: ["codigo_aps"],
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "tipo",
+                value: "VAR",
+                operator: "<>",
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+              {
+                key: "es_operacion",
+                value: false,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoOperacion = {
+          table: "APS_param_tipo_operacion",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "tipo",
+                value: "VAR",
+                operator: "<>",
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
           },
         };
         PARAMS.paramsInstrumento = {
@@ -2034,35 +2089,314 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
                 key: "id_tipo_mercado",
                 value: 200,
               },
-            ],
-          },
-        };
-        PARAMS.paramsCodigoMercado = {
-          table: "APS_param_lugar_negociacion",
-          params: {
-            select: ["codigo_aps"],
-          },
-        };
-        PARAMS.paramsCodigoCustodia = {
-          table: "APS_param_clasificador_comun",
-          params: {
-            select: ["sigla"],
-            where: [
               {
-                key: "id_clasificador_comun_grupo",
-                value: 9,
+                key: "id_tipo_renta",
+                value: 135,
               },
             ],
           },
         };
-        PARAMS.paramsTraspasoCustodia = {
+        PARAMS.paramsCadenaCombinadalugarNegTipoOperTipoInstrum = {
+          table: "APS_param_operacion_valida",
+          params: {
+            select: [
+              "lugar_negociacion || tipo_operacion || tipo_instrumento as siglaCombinada",
+            ],
+            where: [
+              {
+                key: "activo",
+                value: true,
+              },
+              {
+                key: "es_rf",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsUnico = true;
+        PARAMS.tipoOperacionCOP = true;
+        PARAMS.paramsCantidadValoresMultiplicadoPrecioNegociacion = true;
+      } else if (nameFile.includes("DR")) {
+        console.log(
+          `ARCHIVO CORRECTO : DR.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "DR";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsLugarNegociacion = {
+          table: "APS_param_lugar_negociacion",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "id_tipo_lugar_negociacion",
+                valuesWhereIn: [145, 147, 148],
+                whereIn: true,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsLugarNegociacionVacio = {
+          table: "APS_param_tipo_operacion",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "tipo",
+                value: "VAR",
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+              {
+                key: "es_operacion",
+                value: false,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoOperacion = {
+          table: "APS_param_tipo_operacion",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "tipo",
+                value: "VAR",
+              },
+              {
+                block: [
+                  {
+                    key: "es_operacion",
+                    value: true,
+                    operatorSQL: "OR",
+                  },
+                  {
+                    key: "tipo",
+                    value: "DIS",
+                  },
+                ],
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_mercado",
+                value: 200,
+              },
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCadenaCombinadalugarNegTipoOperTipoInstrum = {
+          table: "APS_param_operacion_valida",
+          params: {
+            select: [
+              "lugar_negociacion || tipo_operacion || tipo_instrumento as siglacombinada",
+            ],
+            where: [
+              {
+                key: "activo",
+                value: true,
+              },
+              {
+                key: "es_rf",
+                value: false,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsUnico = true;
+        PARAMS.tipoOperacionCOP = true;
+        PARAMS.paramsCantidadValoresMultiplicadoPrecioNegociacion = true;
+      } else if (nameFile.includes("UA")) {
+        console.log(
+          `ARCHIVO CORRECTO : UA.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "UA";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_mercado",
+                value: 200,
+              },
+              {
+                key: "id_tipo_renta",
+                value: 135,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes("TD")) {
+        console.log(
+          `ARCHIVO CORRECTO : TD.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "TD";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_mercado",
+                value: 200,
+              },
+              {
+                key: "id_tipo_renta",
+                value: 135,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsEmisor = {
+          table: "APS_param_emisor",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "id_pais",
+                value: 8,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["sigla"],
+          },
+        };
+        PARAMS.paramsTipoAmortizacion = {
           table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
             where: [
               {
                 key: "id_clasificador_comun_grupo",
-                value: 9,
+                value: 25,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoInteres = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 23,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoTasa = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 16,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsNroPago = true;
+        PARAMS.paramsPlazoCupon = true;
+        PARAMS.paramsFechaVencimientoMenosFechaEmision = true;
+
+        PARAMS.paramsPrepago = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun",
+                valuesWhereIn: [162, 164],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsSubordinado = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 21,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadora = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [7],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCustodio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [9],
+                whereIn: true,
               },
             ],
           },
@@ -2099,167 +2433,6 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-      } else if (nameFile.includes("UA")) {
-        console.log(
-          `ARCHIVO CORRECTO : UA.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
-          nameFile
-        );
-        PARAMS.codeCurrentFile = "UA";
-        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
-        PARAMS.paramsInstrumento = {
-          table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_tipo_mercado",
-                value: 200,
-              },
-              {
-                key: "id_tipo_renta",
-                value: 135,
-              },
-            ],
-          },
-        };
-      } else if (nameFile.includes("TD")) {
-        console.log(
-          `ARCHIVO CORRECTO : TD.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
-          nameFile
-        );
-        PARAMS.codeCurrentFile = "TD";
-        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
-        PARAMS.paramsTipoDeCambio = {
-          table: "APS_oper_tipo_cambio",
-          params: {
-            select: ["compra"],
-            where: [
-              {
-                key: "fecha",
-                value: fechaInicialOperacion,
-              },
-            ],
-          },
-        };
-        PARAMS.paramsInstrumento = {
-          table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_tipo_mercado",
-                value: 200,
-              },
-              {
-                key: "id_tipo_renta",
-                value: 135,
-              },
-            ],
-          },
-        };
-        PARAMS.paramsMoneda = {
-          table: "APS_param_moneda",
-          params: {
-            select: ["codigo_valoracion"],
-            where: [
-              {
-                key: "id_moneda",
-                value: 5,
-                operator: "<>",
-              },
-            ],
-          },
-        };
-        PARAMS.paramsCodigoEmisor = {
-          table: "APS_param_emisor",
-          params: {
-            select: ["codigo_rmv"],
-            where: [
-              {
-                key: "id_pais",
-                value: 8,
-              },
-            ],
-          },
-        };
-        PARAMS.paramsPrecioNominalBs = {
-          table: "APS_oper_tipo_cambio",
-          params: {
-            select: ["compra", "codigo_valoracion"],
-            innerjoin: [
-              {
-                table: "APS_param_moneda",
-                on: [
-                  {
-                    table: "APS_oper_tipo_cambio",
-                    key: "id_moneda",
-                  },
-                  {
-                    table: "APS_param_moneda",
-                    key: "id_moneda",
-                  },
-                ],
-              },
-            ],
-          },
-        };
-        PARAMS.paramsCantidadPagos = {
-          table: "APS_oper_tipo_cambio",
-          params: {
-            select: [
-              `"APS_param_clasificador_comun".sigla as sigla_clasificador`,
-              `"APS_param_clasificador_comun".sigla as sigla_instrumento`,
-            ],
-            innerjoin: [
-              {
-                table: "APS_param_clasificador_comun",
-                on: [
-                  {
-                    table: "APS_param_clasificador_comun",
-                    key: "id_clasificador_comun",
-                  },
-                  {
-                    table: "APS_param_tipo_instrumento",
-                    key: "id_tipo_renta",
-                  },
-                ],
-              },
-            ],
-            where: [
-              {
-                key: "id_tipo_mercado",
-                value: 200,
-              },
-            ],
-          },
-        };
-        PARAMS.paramsPrepago = {
-          table: "APS_param_clasificador_comun",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_clasificador_comun_grupo",
-                value: 20,
-              },
-            ],
-          },
-        };
-        PARAMS.paramsSubordinacion = {
-          table: "APS_param_clasificador_comun",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_clasificador_comun_grupo",
-                value: 21,
-              },
-            ],
-          },
-        };
-        PARAMS.paramsMayorAFechaEmision = true;
       } else if (nameFile.includes("UD")) {
         console.log(
           `ARCHIVO CORRECTO : UD.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -2284,12 +2457,16 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-      } else if (nameFile.includes("DC")) {
+        PARAMS.paramsInteresMasAmortizacion = true;
+        PARAMS.paramsUnico = true;
+        PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
+        PARAMS.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000 = true;
+      } else if (nameFile.includes("TO")) {
         console.log(
-          `ARCHIVO CORRECTO : DC.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          `ARCHIVO CORRECTO : TO.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
           nameFile
         );
-        PARAMS.codeCurrentFile = "DC";
+        PARAMS.codeCurrentFile = "TO";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
         PARAMS.paramsInstrumento = {
@@ -2297,67 +2474,97 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           params: {
             select: ["sigla"],
             where: [
-              {
-                key: "id_tipo_mercado",
-                value: 200,
-              },
-            ],
-          },
-        };
-      } else if (nameFile.includes("DR")) {
-        console.log(
-          `ARCHIVO CORRECTO : DR.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
-          nameFile
-        );
-        PARAMS.codeCurrentFile = "DR";
-        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
-        PARAMS.paramsCodigoOperacion = {
-          table: "APS_param_tipo_operacion",
-          params: {
-            select: ["codigo_aps"],
-          },
-        };
-        PARAMS.paramsInstrumento = {
-          table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_tipo_mercado",
-                value: 200,
-              },
               {
                 key: "id_tipo_renta",
-                value: 136,
+                valuesWhereIn: [138],
+                whereIn: true,
               },
             ],
           },
         };
-        PARAMS.paramsCodigoCustodia = {
+        PARAMS.paramsPais = {
+          table: "APS_param_pais",
+          params: {
+            select: ["codigo"],
+          },
+        };
+        PARAMS.paramsEmisor = {
+          table: "APS_param_emisor",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "id_pais",
+                value: 8,
+                operator: "<>",
+              },
+              {
+                key: "codigo_rmv",
+                value: "TGN",
+                operatorSQL: "OR",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["codigo_otros_activos"],
+          },
+        };
+        PARAMS.paramsNroPago = true;
+        PARAMS.paramsPlazoCupon = true;
+        PARAMS.paramsFechaVencimientoMenosFechaEmision = true;
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 35,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadora = {
           table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
             where: [
               {
                 key: "id_clasificador_comun_grupo",
-                value: 9,
+                valuesWhereIn: [8],
+                whereIn: true,
               },
             ],
           },
         };
-        PARAMS.paramsCodigoTraspasoCustodia = {
-          table: "APS_param_clasificador_comun",
+      } else if (nameFile.includes("CO")) {
+        console.log(
+          `ARCHIVO CORRECTO : CO.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "CO";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun_grupo",
-                value: 9,
+                key: "id_tipo_renta",
+                valuesWhereIn: [138],
+                whereIn: true,
               },
             ],
           },
         };
+        PARAMS.paramsInteresMasAmortizacion = true;
+        PARAMS.paramsUnico = true;
+        PARAMS.paramsSaldoCapitalMenosAmortizacionCuponAnterior = true;
+        PARAMS.paramsSaldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000 = true;
       } else if (nameFile.includes("TV")) {
         console.log(
           `ARCHIVO CORRECTO : TV.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -2372,9 +2579,105 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             select: ["sigla"],
             where: [
               {
-                key: "id_tipo_mercado",
-                value: 200,
+                key: "id_tipo_renta",
+                valuesWhereIn: [136],
+                whereIn: true,
               },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoAccion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 28,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsEmisor = {
+          table: "APS_param_emisor",
+          params: {
+            select: ["codigo_rmv"],
+          },
+        };
+        PARAMS.paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["sigla"],
+          },
+        };
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadora = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [7],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCustodio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [9],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes("DC")) {
+        console.log(
+          `ARCHIVO CORRECTO : DC.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "DC";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [135, 136],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTasaRelevanteConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
               {
                 key: "id_tipo_renta",
                 value: 136,
@@ -2382,23 +2685,280 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-        PARAMS.paramsValorNominalBs = {
-          table: "APS_oper_tipo_cambio",
+        PARAMS.paramsTasaRelevanteConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
           params: {
-            select: ["compra", "codigo_valoracion"],
-            innerjoin: [
+            select: ["sigla"],
+            where: [
               {
-                table: "APS_param_moneda",
-                on: [
-                  {
-                    table: "APS_oper_tipo_cambio",
-                    key: "id_moneda",
-                  },
-                  {
-                    table: "APS_param_moneda",
-                    key: "id_moneda",
-                  },
-                ],
+                key: "id_tipo_renta",
+                value: 136,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPlazoValorConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPlazoValorConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPlazoEconomicoConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsPlazoEconomicoConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["codigo_valoracion"],
+            where: [
+              {
+                key: "id_moneda",
+                value: 5,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacionVacio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 5,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacionConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadora = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [7],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadoraConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCustodio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [9],
+                whereIn: true,
+              },
+              {
+                key: "activo",
+                value: true,
+              },
+            ],
+          },
+        };
+
+        PARAMS.paramsInstrumento135 = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [135],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsInstrumento1 = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_instrumento",
+                value: 1,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsInstrumento18 = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_instrumento",
+                value: 18,
+              },
+            ],
+          },
+        };
+
+        PARAMS.paramsTipoValoracion22 = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 22,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoValoracion31 = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 31,
+              },
+              {
+                key: "id_clasificador_comun",
+                valuesWhereIn: [210],
+                whereIn: true,
+                searchCriteriaWhereIn: "NOT IN",
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoValoracion210 = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun",
+                value: 210,
+              },
+            ],
+          },
+        };
+
+        PARAMS.paramsTipoValoracionConsultaMultiple = true;
+
+        PARAMS.paramsTasaUltimoHechoConInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTasaUltimoHechoConInstrumentoDiferente = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 136,
+                operator: "<>",
+              },
+            ],
+          },
+        };
+
+        PARAMS.paramsFechaOperacionMenor = true;
+        PARAMS.paramsCantidadMultiplicadoPrecioEquivalente = true;
+        PARAMS.paramsTipoOperacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 32,
               },
             ],
           },
@@ -2415,6 +2975,12 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_plan_cuentas",
           params: {
             select: ["cuenta"],
+          },
+        };
+        PARAMS.paramsDescripcionCuenta = {
+          table: "APS_param_plan_cuentas",
+          params: {
+            select: ["descripcion"],
           },
         };
       } else if (nameFile.includes("FE")) {
@@ -2443,6 +3009,124 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_plan_cuentas",
           params: {
             select: ["cuenta"],
+          },
+        };
+      } else if (nameFile.includes("CD")) {
+        console.log(
+          `ARCHIVO CORRECTO : CD.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "CD";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+      } else if (nameFile.includes("DE")) {
+        console.log(
+          `ARCHIVO CORRECTO : DE.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "DE";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+      } else if (nameFile.includes("FC")) {
+        console.log(
+          `ARCHIVO CORRECTO : FC.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "FC";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsCodigoCuenta = {
+          table: "APS_param_plan_cuentas",
+          params: {
+            select: ["cuenta"],
+          },
+        };
+      } else if (nameFile.includes("LQ")) {
+        console.log(
+          `ARCHIVO CORRECTO : LQ.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "LQ";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsCodigoFondo = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun",
+                valuesWhereIn: [201, 202],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTipoCuentaLiquidez = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 136,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCodigoBanco = {
+          table: "APS_param_emisor",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "id_sector_economico",
+                value: 6,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_moneda",
+                valuesWhereIn: [2, 5, 6],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes("TR")) {
+        console.log(
+          `ARCHIVO CORRECTO : TR.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "TR";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsCodigoAFP = {
+          table: "APS_seg_institucion",
+          params: {
+            select: ["codigo"],
+            where: [
+              {
+                key: "id_tipo_mercado",
+                value: 109,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsNombreAFP = {
+          table: "APS_seg_institucion",
+          params: {
+            select: ["institucion"],
+            where: [
+              {
+                key: "id_tipo_mercado",
+                value: 109,
+              },
+            ],
           },
         };
       } else if (nameFile.includes(".CC")) {
@@ -3896,13 +4580,13 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        function: ["mayorACeroEntero"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         // function: ["montoFinalConTipoDeCambio"], // VALIDACION PARA TIPO DE CAMBIO
-        function: [],
+        function: ["mayorACeroEntero"],
       },
     ],
     471: [
@@ -4527,12 +5211,25 @@ async function obtenerValidaciones(typeFile) {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        function: ["fechaOperacionMenor"],
+        function: [],
       },
       {
-        columnName: "codigo_operacion",
-        pattern: /^[A-Za-z]{1,1}$/,
+        columnName: "lugar_negociacion",
+        pattern: /^[A-Za-z0-9\-]{0,4}$/,
+        mayBeEmpty: true,
+        function: ["lugarNegociacion"],
+      },
+      {
+        columnName: "tipo_operacion",
+        pattern: /^[A-Za-z]{3,3}$/,
+        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
         function: ["codigoOperacion"],
+      },
+      {
+        columnName: "correlativo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        unique: true,
+        function: ["mayorACeroEntero"],
       },
       {
         columnName: "tipo_instrumento",
@@ -4552,51 +5249,53 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa_negociacion",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "tasa_relevante",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{8,8}){1,1}$/,
-        function: [],
+        function: ["mayorACeroDecimal"],
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        function: ["mayorACeroDecimal"],
       },
       {
-        columnName: "precio_total_mo",
+        columnName: "monto_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        function: [
+          "mayorACeroDecimal",
+          "cantidadValoresMultiplicadoPrecioNegociacion",
+        ],
       },
       {
-        columnName: "precio_total_bs",
+        columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "codigo_mercado",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["codigoMercado"],
-      },
-      {
-        columnName: "precio_unitario",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "codigo_custodia",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["codigoCustodia"],
-      },
-      {
-        columnName: "traspaso_custodia",
-        pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
-        function: ["traspasoCustodiaConCodigoOperacion"],
+        function: ["mayorACeroDecimal"],
       },
     ],
-    DU: [
+    DR: [
+      {
+        columnName: "fecha_operacion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        function: [],
+      },
+      {
+        columnName: "lugar_negociacion",
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
+        mayBeEmpty: true,
+        function: ["lugarNegociacion"],
+      },
+      {
+        columnName: "tipo_operacion",
+        pattern: /^[A-Za-z]{3,3}$/,
+        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
+        function: ["tipoOperacion"],
+      },
+      {
+        columnName: "correlativo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        unique: true,
+        function: ["mayorACeroEntero"],
+      },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -4605,17 +5304,28 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        operationNotValid: "tipoOperacionCOP",
         function: [],
-      },
-      {
-        columnName: "codigo_custodia",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["codigoCustodia"],
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "precio_negociacion",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "monto_total_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["cantidadValoresMultiplicadoPrecioNegociacion"],
+      },
+      {
+        columnName: "monto_total_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
       },
     ],
     UA: [
@@ -4623,7 +5333,6 @@ async function obtenerValidaciones(typeFile) {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        notValidate: true,
         function: [],
       },
       {
@@ -4649,36 +5358,24 @@ async function obtenerValidaciones(typeFile) {
     ],
     TD: [
       {
-        columnName: "fecha_reporte",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        function: [],
-      },
-      {
-        columnName: "tipo_cambio",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: ["tipoCambio"],
-      },
-      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: [],
       },
       {
-        columnName: "moneda",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: ["moneda"],
+        columnName: "emisor",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["emisor"],
       },
       {
-        columnName: "codigo_emisor",
+        columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
-        function: ["codigoEmisor"],
+        function: ["moneda"],
       },
       {
         columnName: "fecha_vencimiento",
@@ -4686,7 +5383,7 @@ async function obtenerValidaciones(typeFile) {
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
-        function: ["mayorAFechaEmision"],
+        function: [],
       },
       {
         columnName: "fecha_emision",
@@ -4697,232 +5394,82 @@ async function obtenerValidaciones(typeFile) {
         function: [],
       },
       {
-        columnName: "precio_nominal_mo",
+        columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorACeroDecimal"],
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: ["mayorACeroDecimal", "precioNominalBs"],
-      },
-      {
-        columnName: "tasa_emisión",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         function: ["mayorACeroDecimal"],
       },
       {
-        columnName: "tasa_variable",
-        pattern: /^[A-Za-z0-9\-]{1,50}$/,
-        function: [],
-      },
-      {
-        columnName: "plazo",
+        columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: ["mayorACeroEntero", "fechaVencimientoMenosFechaEmision"],
-      },
-      {
-        columnName: "periodo_pago_cupones",
-        pattern: /^[A-Za-z0-9\-]{1,10}$/,
         function: ["mayorACeroEntero"],
       },
       {
-        columnName: "cantidad_pagos",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: ["cantidadPagos"],
-      },
-      {
-        columnName: "ruc_garante",
-        pattern: /^[A-Za-z0-9\-]{1,50}$/,
-        function: ["cantidadPagos"],
-      },
-      {
-        columnName: "prepago",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: ["prepago"],
-      },
-      {
-        columnName: "subordinacion",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: ["subordinacion"],
-      },
-    ],
-    UD: [
-      {
-        columnName: "tipo_instrumento",
+        columnName: "tipo_amortizacion",
         pattern: /^[A-Za-z]{3,3}$/,
-        function: ["tipoInstrumento"],
+        function: ["tipoAmortizacion"],
       },
       {
-        columnName: "serie",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: [],
+        columnName: "tipo_interes",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: ["tipoInteres"],
+      },
+      {
+        columnName: "tipo_tasa",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: ["tipoTasa"],
+      },
+      {
+        columnName: "tasa_emision",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "plazo_emision",
+        pattern: /^(0|[1-9][0-9]{1,4})$/,
+        function: ["fechaVencimientoMenosFechaEmision"],
       },
       {
         columnName: "nro_pago",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: [],
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        function: ["nroPago"],
       },
       {
-        columnName: "fecha_pago",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
-        function: [],
+        columnName: "plazo_cupon",
+        pattern: /^(0|[1-9][0-9]*)$/,
+        function: ["plazoCupon"],
       },
       {
-        columnName: "pago_intereses",
-        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: [],
+        columnName: "prepago",
+        pattern: /^[A-Za-z0-9\-]{1,1}$/,
+        function: ["prepago"],
       },
       {
-        columnName: "amortizacion",
-        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: [],
+        columnName: "subordinado",
+        pattern: /^[A-Za-z0-9\-]{1,1}$/,
+        function: ["subordinado"],
       },
       {
-        columnName: "flujo_total",
-        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: [],
+        columnName: "calificacion",
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        function: ["calificacion"],
       },
       {
-        columnName: "saldo_capital",
-        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        function: [],
+        columnName: "calificadora",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["calificadora"],
+      },
+      {
+        columnName: "custodio",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["custodio"],
       },
     ],
-    DC: [
-      {
-        columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["tipoInstrumento"],
-      },
-      {
-        columnName: "serie",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: [],
-      },
-      {
-        columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z]{7,20}$/,
-        function: [],
-      },
-      {
-        columnName: "tasa_relevante",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{8,8}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "cantidad_valores",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: [],
-      },
-      {
-        columnName: "plazo_economico",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: [],
-      },
-      {
-        columnName: "precio_unitario_mo",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: [],
-      },
-      {
-        columnName: "precio_total_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "precio_total_bs",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "fecha_adquisicion",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        notValidate: true,
-        function: [],
-      },
-    ],
-    DR: [
-      {
-        columnName: "fecha_operacion",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        function: [],
-      },
-      {
-        columnName: "codigo_operacion",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: ["codigoOperacion"],
-      },
-      {
-        columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["tipoInstrumento"],
-      },
-      {
-        columnName: "cantidad_valores",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        function: ["mayorACeroEntero"],
-      },
-      {
-        columnName: "tasa_rendimiento",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "tasa_relevante",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{8,8}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "precio_negociacion",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "plazo_total_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "plazo_total_bs",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "codigo_mercado",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["codigoMercado"],
-      },
-      {
-        columnName: "precio_unitario",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
-      },
-      {
-        columnName: "codigo_custodia",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["codigoCustodia"],
-      },
-      {
-        columnName: "codigo_traspaso_custodia",
-        pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
-        function: ["codigoTraspasoCustodiaConCodigoOperacion"],
-      },
-    ],
-    TV: [
-      {
-        columnName: "fecha_emision",
-        pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        function: ["fechaOperacionMenor"],
-      },
+    DU: [
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -4934,76 +5481,651 @@ async function obtenerValidaciones(typeFile) {
         function: [],
       },
       {
+        columnName: "codigo_custodia",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["codigoCustodia"],
+      },
+      {
+        columnName: "cantidad_valores",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: ["mayorACeroEntero"],
+      },
+    ],
+    UD: [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoInstrumento"],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        function: [],
+      },
+      {
+        columnName: "nro_cupon",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        unique: true,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "fecha_pago",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "plazo_cupon",
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "tasa_interes",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "interes",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: [
+          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
+        ],
+      },
+      {
+        columnName: "amortizacion",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "flujo_total",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["interesMasAmortizacion"],
+      },
+      {
+        columnName: "saldo_capital",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["saldoCapitalMenosAmortizacionCuponAnterior"],
+      },
+    ],
+    TO: [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoInstrumento"],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        function: [],
+      },
+      {
+        columnName: "pais",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["pais"],
+      },
+      {
+        columnName: "emisor",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["emisor"],
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{2,2}$/,
+        function: ["moneda"],
+      },
+      {
+        columnName: "fecha_vencimiento",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "fecha_emision",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "precio_nominal",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "precio_nominal_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: ["mayorACeroEntero"],
       },
       {
-        columnName: "numero_acciones",
+        columnName: "tasa_emision",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "plazo_emision",
+        pattern: /^(0|[1-9][0-9]{1,4})$/,
+        function: ["fechaVencimientoMenosFechaEmision"],
+      },
+      {
+        columnName: "nro_pago",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        function: ["nroPago"],
+      },
+      {
+        columnName: "plazo_cupon",
+        pattern: /^(0|[1-9][0-9]*)$/,
+        function: ["plazoCupon"],
+      },
+      {
+        columnName: "calificacion",
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        function: ["calificacion"],
+      },
+      {
+        columnName: "calificadora",
+        pattern: /^[A-Za-z\&]{3,3}$/,
+        function: ["calificadora"],
+      },
+    ],
+    CO: [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoInstrumento"],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        function: [],
+      },
+      {
+        columnName: "nro_cupon",
+        pattern: /^(0|[1-9][0-9]{0,2})$/,
+        unique: true,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "fecha_pago",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "plazo_cupon",
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "plazo_fecha_vencimiento",
+        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        notValidate: true,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "tasa_interes",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "amortizacion",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "interes",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: [
+          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
+        ],
+      },
+      {
+        columnName: "flujo_total",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["interesMasAmortizacion"],
+      },
+      {
+        columnName: "saldo_capital",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["saldoCapitalMenosAmortizacionCuponAnterior"],
+      },
+    ],
+    TV: [
+      {
+        columnName: "fecha_emision",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoInstrumento"],
+      },
+      {
+        columnName: "tipo_accion",
+        pattern: /^[A-Za-z0-2]{1,1}$/,
+        function: ["tipoAccion"],
+      },
+      {
+        columnName: "serie_emision",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: [],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{0,23}$/,
+        mayBeEmpty: true,
+        function: [],
+      },
+      {
+        columnName: "emisor",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["emisor"],
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["moneda"],
+      },
+      {
+        columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         function: ["mayorACeroEntero"],
       },
       {
-        columnName: "valor_nominal_mo",
+        columnName: "precio_unitario",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "precio_unitario_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "total_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "total_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "calificacion",
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
+        mayBeEmpty: true,
+        function: ["calificacion"],
+      },
+      {
+        columnName: "calificadora",
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
+        function: ["calificadora"],
+      },
+      {
+        columnName: "custodio",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["custodio"],
+      },
+    ],
+    DC: [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoInstrumento"],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: [],
       },
       {
-        columnName: "valor_nominal_bs",
+        columnName: "codigo_valoracion",
+        pattern: /^[A-Za-z0-9\-]{7,10}$/,
+        function: [],
+      },
+      {
+        columnName: "tasa_relevante",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
+        function: ["tasaRelevanteConInstrumento"],
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "plazo_valor",
+        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        function: ["plazoValorConInstrumento"],
+      },
+      {
+        columnName: "plazo_economico",
+        pattern: /^(0|[1-9][0-9]{0,6})$/,
+        function: ["plazoEconomicoConInstrumento"],
+      },
+      {
+        columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        // function: ["mayorACeroDecimal", "valorNominalBs"],
         function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "total_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["cantidadMultiplicadoPrecioEquivalente"],
+      },
+      {
+        columnName: "total_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "calificacion",
+        mayBeEmpty: true,
+        pattern: /^[A-Za-z0-9\-]{0,3}$/,
+        function: ["calificacionConInstrumento"],
+      },
+      {
+        columnName: "calificadora",
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
+        function: ["calificadoraConInstrumento"],
+      },
+      {
+        columnName: "custodio",
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
+        function: ["custodio"],
+      },
+      {
+        columnName: "fecha_adquisicion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: ["fechaOperacionMenorAlArchivo"],
+      },
+      {
+        columnName: "tipo_valoracion",
+        pattern: /^[A-Za-z0-9\-]{2,3}$/,
+        function: ["tipoValoracionConsultaMultiple"],
+      },
+      {
+        columnName: "fecha_ultimo_hecho",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "tasa_ultimo_hecho",
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
+        function: ["tasaUltimoHechoConInstrumento"],
+      },
+      {
+        columnName: "precio_ultimo_hecho",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "tipo_operacion",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoOperacion"],
       },
     ],
     BG: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{20,20}$/,
+        pattern: /^[A-Za-z0-9\-]{1,13}$/,
         function: ["codigoCuenta"],
       },
       {
         columnName: "descripcion_cuenta",
-        pattern: /^[A-Za-z0-9\-]{10,80}$/,
-        function: [],
+        pattern: /^[\s\S]{6,80}$/,
+        function: ["descripcionCuenta"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        function: ["mayorIgualACeroDecimal"],
       },
       {
         columnName: "saldo_cuotas",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
       },
     ],
     FE: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{20,20}$/,
+        pattern: /^[A-Za-z0-9\-]{1,9}$/,
         function: ["codigoCuenta"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        function: ["mayorIgualACeroDecimal"],
       },
     ],
     VC: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{20,20}$/,
+        pattern: /^[A-Za-z0-9\-]{1,7}$/,
+        function: ["codigoCuenta"],
+      },
+      {
+        columnName: "saldo_bs",
+        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "cuotas",
+        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+    ],
+    CD: [
+      {
+        columnName: "fecha",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        notValidate: true,
+        function: [],
+      },
+      {
+        columnName: "saldo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "valor_cuota",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "nro_cuotas",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+    ],
+    DE: [
+      {
+        columnName: "codigo",
+        pattern: /^[A-Za-z0-9]{4,5}$/,
+        function: [],
+      },
+      {
+        columnName: "concepto",
+        pattern: /^[\s\S]{5,80}$/,
+        function: [],
+      },
+      {
+        columnName: "cuenta_a_p",
+        pattern: /^[A-Za-z]{5,5}$/,
+        function: [],
+      },
+      {
+        columnName: "cuenta_p_a",
+        pattern: /^[A-Za-z]{5,5}$/,
+        function: [],
+      },
+      {
+        columnName: "nro_cuotas",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "monto",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+    ],
+    FC: [
+      {
+        columnName: "codigo_cuenta",
+        pattern: /^[A-Za-z0-9\-]{1,5}$/,
         function: ["codigoCuenta"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+    ],
+    LQ: [
+      {
+        columnName: "codigo_fondo",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["codigoFondo"],
+      },
+      {
+        columnName: "tipo_cuenta_liquidez",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoCuentaLiquidez"],
+      },
+      {
+        columnName: "codigo_banco",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["codigoBanco"],
+      },
+      {
+        columnName: "nro_cuenta",
+        pattern: /^[A-Za-z0-9]{10,20}$/,
         function: [],
       },
       {
-        columnName: "cuotas",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        columnName: "cuenta_contable",
+        pattern: /^[A-Za-z]{8,8}$/,
         function: [],
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["moneda"],
+      },
+      {
+        columnName: "saldo_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "saldo_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+    ],
+    TR: [
+      {
+        columnName: "codigo",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["codigoAFP"],
+      },
+      {
+        columnName: "nombre",
+        pattern: /^[\s\S]{3,3}$/,
+        function: ["nombreAFP"],
+      },
+      {
+        columnName: "r_nro_cuentas",
+        pattern: /^(^-?(0|[1-9][0-9]{0,3}))$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "r_monto_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "r_nro_cuotas",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "r_rezagos_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "r_rezagos_nro_cuotas",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "e_nro_cuentas",
+        pattern: /^(^-?(0|[1-9][0-9]{0,3}))$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "e_monto_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "e_nro_cuotas",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "e_rezagos_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "e_rezagos_nro_cuotas",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "total_recibidos_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "total_enviados_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "diferencia_neta_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["totalRecibidosBs-totalEnviadosBs"],
       },
     ],
     CC: [

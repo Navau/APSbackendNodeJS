@@ -804,6 +804,38 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsCodigoCuenta.params
                         )
                       : null;
+                    const _descripcionCuenta =
+                      infoArchivo?.paramsDescripcionCuenta
+                        ? await selectComun(
+                            infoArchivo.paramsDescripcionCuenta.table,
+                            infoArchivo.paramsDescripcionCuenta.params
+                          )
+                        : null;
+                    const _codigoFondo = infoArchivo?.paramsCodigoFondo
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoFondo.table,
+                          infoArchivo.paramsCodigoFondo.params
+                        )
+                      : null;
+                    const _tipoCuentaLiquidez =
+                      infoArchivo?.paramsTipoCuentaLiquidez
+                        ? await selectComun(
+                            infoArchivo.paramsTipoCuentaLiquidez.table,
+                            infoArchivo.paramsTipoCuentaLiquidez.params
+                          )
+                        : null;
+                    const _codigoAFP = infoArchivo?.paramsCodigoAFP
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoAFP.table,
+                          infoArchivo.paramsCodigoAFP.params
+                        )
+                      : null;
+                    const _nombreAFP = infoArchivo?.paramsNombreAFP
+                      ? await selectComun(
+                          infoArchivo.paramsNombreAFP.table,
+                          infoArchivo.paramsNombreAFP.params
+                        )
+                      : null;
 
                     const instrumento135 = infoArchivo?.paramsInstrumento135
                       ? await selectComun(
@@ -1063,6 +1095,12 @@ async function validarArchivosIteraciones(params) {
                             _codigoCustodia,
                             _traspasoCustodia,
                             _codigoCuenta,
+                            _descripcionCuenta,
+                            _codigoFondo,
+                            _tipoCuentaLiquidez,
+                            _codigoAFP,
+                            _nombreAFP,
+                            _codigoBanco,
                             _codigoEmisor,
                             _precioNominalBs,
                             _cantidadPagos,
@@ -1174,6 +1212,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _codigoCustodia = params._codigoCustodia;
       const _traspasoCustodia = params._traspasoCustodia;
       const _codigoCuenta = params._codigoCuenta;
+      const _descripcionCuenta = params._descripcionCuenta;
+      const _codigoFondo = params._codigoFondo;
+      const _tipoCuentaLiquidez = params._tipoCuentaLiquidez;
+      const _codigoBanco = params._codigoBanco;
+      const _codigoAFP = params._codigoAFP;
+      const _nombreAFP = params._nombreAFP;
       const _codigoEmisor = params._codigoEmisor;
       const _precioNominalBs = params._precioNominalBs;
       const _cantidadPagos = params._cantidadPagos;
@@ -1392,6 +1436,112 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             });
           }
+          if (
+            (codeCurrentFile === "444" || codeCurrentFile === "CO") &&
+            index2 === arrayDataObject.length - 1 &&
+            index3 === arrayValidateObject.length - 1
+          ) {
+            // console.log(dependenciesArray);
+            map(dependenciesArray, (itemDP, indexDP) => {
+              if (
+                (itemDP.code === "TD" && codeCurrentFile === "UD") ||
+                (itemDP.code === "TO" && codeCurrentFile === "CO")
+              ) {
+                if (itemDP.column === "nro_pago") {
+                  const cantidadNroPago = itemDP.value.nro_pago;
+                  const tasa = itemDP.value.tasa;
+                  const tipoTasa = itemDP.value.tasa?.tipo_tasa;
+                  const tasaEmision = itemDP.value.tasa?.tasa_emision;
+                  const dependencyInstrumentoSerie =
+                    itemDP.value.instrumentoSerie;
+                  let currentInstrumentoSerie = "";
+                  let currentInstrumentoSerieAux = "";
+                  let countCurrentInstrumentoSerie = 0;
+                  const errTasaArray = [];
+
+                  map(arrayDataObject, (itemArray, indexArray) => {
+                    currentInstrumentoSerie = `${itemArray.tipo_instrumento}${itemArray.serie}`;
+                    if (
+                      dependencyInstrumentoSerie === currentInstrumentoSerie
+                    ) {
+                      if (tasa !== null) {
+                        if (tasaEmision !== itemArray.tasa_interes) {
+                          errTasaArray.push({
+                            value: itemArray.tasa_interes,
+                            valuePrevious: tasaEmision,
+                            column: "tasa_interes",
+                            serie: currentInstrumentoSerie,
+                            row: indexArray,
+                            message: `No es la misma Tasa que indica el archivo ${itemDP.code}`,
+                          });
+                        }
+                      }
+                      currentInstrumentoSerieAux = currentInstrumentoSerie;
+                      countCurrentInstrumentoSerie++;
+                    }
+                  });
+                  // console.log("cantidadNroPago441", cantidadNroPago441);
+                  // console.log(
+                  //   "countCurrentInstrumentoSerie",
+                  //   countCurrentInstrumentoSerie
+                  // );
+                  // console.log(tasa, tipoTasa, tasaEmision);
+                  // console.log("errTasaArray", errTasaArray);
+
+                  if (
+                    parseInt(countCurrentInstrumentoSerie) !==
+                    parseInt(cantidadNroPago)
+                  ) {
+                    errors.push({
+                      archivo: `${itemDP.file}, ${item.archivo}`,
+                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
+                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
+                      valor: `${
+                        itemDP.code
+                      }: serie: ${dependencyInstrumentoSerie}, ${
+                        itemDP.column
+                      }: ${cantidadNroPago}, ${codeCurrentFile}: ${
+                        currentInstrumentoSerieAux &&
+                        `serie: ${currentInstrumentoSerieAux}, `
+                      }registros: ${countCurrentInstrumentoSerie}`,
+                      columna: `${itemDP.code}: ${itemDP.column}`,
+                      fila: itemDP.row,
+                    });
+                  }
+                  if (errTasaArray.length >= 1) {
+                    map(errTasaArray, (itemErr, indexErr) => {
+                      errors.push({
+                        archivo: item.archivo,
+                        tipo_error: `VALOR INCORRECTO`,
+                        descripcion: itemErr.message,
+                        valor: `serie: ${currentInstrumentoSerie} ${codeCurrentFile}: tasa_interes: ${itemErr.value}, ${itemDP.code}: tasa_emision: ${itemErr.valuePrevious}`,
+                        columna: itemErr.column,
+                        fila: itemErr.row,
+                      });
+                    });
+                  }
+                }
+              }
+            });
+          }
+          if (codeCurrentFile === "CR" || codeCurrentFile === "CV") {
+            const serieCombinada = `${item2.tipo_instrumento}${item2.serie}`;
+            map(dependenciesArray, (itemDP, indexDP) => {
+              if (
+                serieCombinada !== itemDP.value &&
+                (itemDP.code === "DM" || itemDP.code === "DR")
+              ) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO OPERACION NO VALIDA",
+                  descripcion: `El tipo_instrumento combinado con la serie del archivo ${itemDP.file} no debe ser igual a el tipo_instrumento combinado con la serie del archivo ${item.archivo} debido a que el tipo_operacion en el archivo ${itemDP.file} es igual a "COP". SERIE DEL ARCHIVO ${itemDP.file}: ${itemDP.value}, SERIE DEL ARCHIVO ${item.archivo}: ${serieCombinada}`,
+                  valor: itemDP.value,
+                  columna: itemDP.column,
+                  fila: itemDP.row,
+                });
+              }
+            });
+          }
           //#endregion
 
           //#region CREACION DE VALIDACIONES DE DEPENDENCIAS DE ARCHIVOS
@@ -1437,7 +1587,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             }
           }
-          if (codeCurrentFile === "411" || codeCurrentFile === "413") {
+          if (codeCurrentFile === "411" || codeCurrentFile === "412") {
             if (
               columnName === "serie" &&
               operationNotValid === "tipoOperacionCOP"
@@ -1451,6 +1601,65 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   row: index2,
                   column: columnName,
                 });
+              }
+            }
+          }
+          if (codeCurrentFile === "DM" || codeCurrentFile === "DR") {
+            if (
+              columnName === "serie" &&
+              operationNotValid === "tipoOperacionCOP"
+            ) {
+              if (item2.tipo_operacion === "COP") {
+                const serieCombinada = `${item2.tipo_instrumento}${item2.serie}`;
+                dependenciesArray.push({
+                  file: item.archivo,
+                  code: codeCurrentFile,
+                  value: serieCombinada,
+                  row: index2,
+                  column: columnName,
+                });
+              }
+            }
+          }
+          if (codeCurrentFile === "TD" || codeCurrentFile === "TO") {
+            if (columnName === "nro_pago") {
+              if (isNaN(parseInt(value))) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor no es un numero válido`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              } else {
+                if (parseInt(value) > 1) {
+                  let tasaAux = null;
+                  if (codeCurrentFile === "TD") {
+                    item2.tipo_tasa === "F"
+                      ? (tasaAux = {
+                          tipo_tasa: item2.tipo_tasa,
+                          tasa_emision: item2.tasa_emision,
+                        })
+                      : null;
+                  } else if (codeCurrentFile === "TO") {
+                    tasaAux = {
+                      tasa_emision: item2.tasa_emision,
+                    };
+                  }
+                  const instrumentoSerie = `${item2.tipo_instrumento}${item2.serie}`;
+                  dependenciesArray.push({
+                    file: item.archivo,
+                    code: codeCurrentFile,
+                    value: {
+                      instrumentoSerie,
+                      [columnName]: value,
+                      tasa: tasaAux,
+                    },
+                    row: index2,
+                    column: columnName,
+                  });
+                }
               }
             }
           }
@@ -2422,6 +2631,108 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: `El contenido del archivo no coincide con algún codigo de cuenta`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "descripcionCuenta") {
+              let errFunction = true;
+              map(_descripcionCuenta?.resultFinal, (item4, index4) => {
+                if (value === item4.descripcion) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguna descripción de cuenta`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoFondo") {
+              let errFunction = true;
+              map(_codigoFondo?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tipoCuentaLiquidez") {
+              let errFunction = true;
+              map(_tipoCuentaLiquidez?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoBanco") {
+              let errFunction = true;
+              map(_codigoBanco?.resultFinal, (item4, index4) => {
+                if (value === item4.sigla) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoAFP") {
+              let errFunction = true;
+              map(_codigoAFP?.resultFinal, (item4, index4) => {
+                if (value === item4.codigo) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "nombreAFP") {
+              let errFunction = true;
+              map(_nombreAFP?.resultFinal, (item4, index4) => {
+                if (value === item4.institucion) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El contenido del archivo no coincide con alguno de los autorizados`,
                   valor: value,
                   columna: columnName,
                   fila: index2,

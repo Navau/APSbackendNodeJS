@@ -120,7 +120,8 @@ async function SeleccionarArchivosBolsa(req, res) {
             "Correcto. Existe tipo de cambio para la fecha.";
         } else {
           resultFinal.ok = false;
-          resultFinal.message = "No existe tipo de cambio para esa fecha.";
+          resultFinal.message =
+            "No existe tipo de cambio para la Fecha seleccionada.";
         }
       })
       .catch((err) => {
