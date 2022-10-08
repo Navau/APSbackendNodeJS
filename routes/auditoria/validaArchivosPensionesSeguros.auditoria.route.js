@@ -20,6 +20,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Validar
 );
+api.post(
+  "/ValidarMensual",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ValidarMensual
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",
