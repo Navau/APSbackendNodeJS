@@ -11,17 +11,19 @@ const { ObtenerInstitucion } = require("../../utils/consulta.utils");
 
 async function ListarArchivos(req, res) {
   try {
-    const { fecha, id_rol = null } = req.body;
+    const { fecha, id_rol = null, id_usuario = null } = req.body;
     const fechaFinal = fecha.replace(/\s/g, "");
-    console.log(fechaFinal);
+    // console.log(fechaFinal);
     // if (fecha.replace(/\s/g, "")) {
     //   respErrorServidor500END(res, null, "Error de formato en la fecha");
     //   return;
     // }
     const idRolFinal = id_rol === null ? req.user.id_rol : id_rol;
+    const idUsuarioFinal =
+      id_usuario === null ? req.user.id_usuario : id_usuario;
     const date = fechaFinal.split("-").join("");
     const cod_institucion = await ObtenerInstitucion({
-      id_usuario: req.user.id_usuario,
+      id_usuario: idUsuarioFinal,
       id_rol: idRolFinal,
     });
     const filter = `${cod_institucion.result.codigo}${date}`;
