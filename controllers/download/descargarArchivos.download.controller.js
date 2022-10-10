@@ -103,11 +103,12 @@ async function DescargarArchivosPorFecha(req, res) {
 }
 
 async function DescargarArchivos(req, res) {
-  const { archivos, fecha, id_rol = null } = req.body;
+  const { archivos, fecha, id_rol = null, id_usuario = null } = req.body;
   const idRolFinal = id_rol === null ? req.user.id_rol : id_rol;
+  const idUsuarioFinal = id_usuario === null ? req.user.id_usuario : id_usuario;
   const date = fecha.split("-").join("");
   const cod_institucion = await ObtenerInstitucion({
-    id_usuario: req.user.id_usuario,
+    id_usuario: idUsuarioFinal,
     id_rol: idRolFinal,
   });
   const filter = `${cod_institucion.result.codigo}${date}`;
