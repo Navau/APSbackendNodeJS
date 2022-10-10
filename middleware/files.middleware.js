@@ -824,6 +824,12 @@ async function validarArchivosIteraciones(params) {
                             infoArchivo.paramsTipoCuentaLiquidez.params
                           )
                         : null;
+                    const _codigoBanco = infoArchivo?.paramsCodigoBanco
+                      ? await selectComun(
+                          infoArchivo.paramsCodigoBanco.table,
+                          infoArchivo.paramsCodigoBanco.params
+                        )
+                      : null;
                     const _codigoAFP = infoArchivo?.paramsCodigoAFP
                       ? await selectComun(
                           infoArchivo.paramsCodigoAFP.table,
