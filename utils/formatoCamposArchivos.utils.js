@@ -5248,7 +5248,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa_negociacion",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         function: ["mayorACeroDecimal"],
       },
       {

@@ -1297,7 +1297,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `La fecha debe coincidir con el nombre del archivo`,
+                  descripcion:
+                    columnName === "fecha_vencimiento"
+                      ? "Fecha de Vencimiento incorrecta, debe corresponder a la Fecha del Archivo"
+                      : `La fecha debe coincidir con el nombre del archivo`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
