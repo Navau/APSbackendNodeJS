@@ -144,6 +144,21 @@ function Escoger(req, res) {
 }
 
 async function Reporte(req, res) {
+  function padTo2Digits(num) {
+    return num.toString().padStart(2, "0");
+  }
+
+  function formatDate(date) {
+    return (
+      [
+        date.getFullYear(),
+        padTo2Digits(date.getMonth() + 1),
+        padTo2Digits(date.getDate()),
+      ].join("-") +
+      " " +
+      [padTo2Digits(date.getHours()), padTo2Digits(date.getMinutes())].join(":")
+    );
+  }
   const { fecha, periodo, resultado } = req.body;
   const resultadoFinal =
     resultado === "Con Éxito" || resultado === "Con Error" ? resultado : null;
@@ -174,7 +189,14 @@ async function Reporte(req, res) {
       .query(query)
       .then((result) => {
         if (result.rowCount > 0) {
-          respResultadoCorrectoObjeto200(res, result.rows);
+          const resultFinal = [];
+          map(result.rows, (item, index) => {
+            resultFinal.push({
+              ...item,
+              fecha_carga: formatDate(item.fecha_carga),
+            });
+          });
+          respResultadoCorrectoObjeto200(res, resultFinal);
         } else {
           respResultadoIncorrectoObjeto200(
             res,

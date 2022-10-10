@@ -107,21 +107,21 @@ async function SeleccionarArchivosBolsa(req, res) {
     const queryTipoCambio = EscogerInternoUtil("APS_oper_tipo_cambio", {
       select: ["count(*)"],
       where: [
-        { key: `id_moneda`, valuesWhereIn: [3, 4], whereIn: true },
+        { key: `id_moneda`, valuesWhereIn: [3], whereIn: true },
         { key: `fecha`, value: fecha_operacion },
       ],
     });
     await pool
       .query(queryTipoCambio)
       .then((result) => {
-        if (parseInt(result.rows[0].count) === 2) {
+        if (parseInt(result.rows[0].count) >= 1) {
           resultFinal.ok = true;
           resultFinal.message =
             "Correcto. Existe tipo de cambio para la fecha.";
         } else {
           resultFinal.ok = false;
           resultFinal.message =
-            "No existe tipo de cambio para la Fecha seleccionada.";
+            "No existe Tipo de Cambio para la Fecha seleccionada.";
         }
       })
       .catch((err) => {
