@@ -9,32 +9,90 @@ const {
 } = require("../../utils/respuesta.utils");
 const { ObtenerInstitucion } = require("../../utils/consulta.utils");
 
+const pensionesArray = (date) => {
+  return [
+    `DM${date}`,
+    `DR${date}`,
+    `UA${date}`,
+    `TD${date}`,
+    `UD${date}`,
+    `TO${date}`,
+    `CO${date}`,
+    `TV${date}`,
+    `DC${date}`,
+    `BG${date}`,
+    `FE${date}`,
+    `VC${date}`,
+    `CD${date}`,
+    `DE${date}`,
+    `FC${date}`,
+    `LQ${date}`,
+    `TR${date}`,
+  ];
+};
+
+const segurosArray = (date) => {
+  return [
+    `108${date}.411`,
+    `108${date}.412`,
+    `108${date}.413`,
+    `108${date}.441`,
+    `108${date}.442`,
+    `108${date}.443`,
+    `108${date}.444`,
+    `108${date}.445`,
+    `108${date}.451`,
+    `108${date}.481`,
+    `108${date}.482`,
+    `108${date}.483`,
+    `108${date}.484`,
+    `108${date}.485`,
+    `108${date}.461`,
+    `108${date}.471`,
+    `108${date}.491`,
+    `108${date}.492`,
+    `108${date}.494`,
+    `108${date}.496`,
+    `108${date}.497`,
+    `108${date}.498`,
+  ];
+};
+
 async function ListarArchivos(req, res) {
   try {
-    const { fecha, id_rol = null, id_usuario = null } = req.body;
+    const { fecha, id_rol } = req.body;
     const fechaFinal = fecha.replace(/\s/g, "");
-    // console.log(fechaFinal);
-    // if (fecha.replace(/\s/g, "")) {
-    //   respErrorServidor500END(res, null, "Error de formato en la fecha");
-    //   return;
-    // }
-    const idRolFinal = id_rol === null ? req.user.id_rol : id_rol;
-    const idUsuarioFinal =
-      id_usuario === null ? req.user.id_usuario : id_usuario;
     const date = fechaFinal.split("-").join("");
-    const cod_institucion = await ObtenerInstitucion({
-      id_usuario: idUsuarioFinal,
-      id_rol: idRolFinal,
-    });
-    const filter = `${cod_institucion.result.codigo}${date}`;
     const filesFinalArray = [];
+    const filesFilterArray = [];
     const files = fs.readdirSync("./uploads/tmp");
 
-    map(files, (item, index) => {
-      if (item.includes(filter)) {
-        filesFinalArray.push(item);
+    if (parseInt(id_rol) === 10) {
+      map(segurosArray(date), (item, index) => {
+        filesFilterArray.push(item);
+      });
+    } else if (parseInt(id_rol) === 7) {
+      map(pensionesArray(date), (item, index) => {
+        filesFilterArray.push(item);
+      });
+    }
+    for (let i = 0; i < files.length; i++) {
+      const itemFiles = files[i];
+      for (let j = 0; j < filesFilterArray.length; j++) {
+        const itemFilesFilter = filesFilterArray[j];
+        // if (itemFiles.includes("108")) {
+        //   console.log("ITEM_FILES", itemFiles);
+        //   console.log("ITEM_FILES_FILTER", itemFilesFilter);
+        // }
+        if (itemFiles.includes(itemFilesFilter)) {
+          filesFinalArray.push(itemFiles);
+          break;
+        }
       }
-    });
+    }
+    // console.log("filesFinalArray", filesFinalArray);
+    // console.log("filesFilterArray", filesFilterArray);
+    // console.log("files", files);
 
     respResultadoCorrectoObjeto200(res, filesFinalArray);
   } catch (err) {
