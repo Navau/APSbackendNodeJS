@@ -6192,7 +6192,7 @@ async function formatearDatosEInsertarCabeceras(
   codeCurrentFile
 ) {
   const formatearPromise = new Promise((resolve, reject) => {
-    let arrayDataObject = [];
+    const arrayDataObject = [];
     let errors = [];
     let errorsValues = [];
     headers?.splice(0, 1); // ELIMINAR ID DE TABLA
@@ -6220,14 +6220,9 @@ async function formatearDatosEInsertarCabeceras(
 
       map(dataSplit, (itemDS, index) => {
         let item = itemDS;
-        // if (item.indexOf(" ") !== -1) {
-        //   errors.push({
-        //     msg: `El formato del archivo no debe contener espacios entre los campos, comillas o comas, existe un espacio en la posicion ${item.indexOf(
-        //       " "
-        //     )}`,
-        //     row: index,
-        //   });
-        // } else {}
+        // if (codeCurrentFile === "451") {
+        //   console.log("item", item, "length", item.length);
+        // }
         //QUITANDO VALOERS UNICODES, EN ESTE CASO 65279 ES UN ESPACIO INVISIBLE QUE LO LEE COMO VACIO PERO EN EL ARCHIVO NO SE VE
         for (let i = 0; i < item.length; i++) {
           if (item.charCodeAt(i) === 65279) {
@@ -6297,95 +6292,106 @@ async function formatearDatosEInsertarCabeceras(
         //   console.log(err);
         // }
         //#endregion
-
-        if (item.length === 0) {
-          return;
+        if (
+          (item.length === 0 || !item.replace(/\s/g, "").length) &&
+          index !== dataSplit.length - 1
+        ) {
+          errors.push({
+            msg: `No debe existir lineas vacias en el archivo`,
+            row: index,
+          });
         } else {
-          if (item[0] !== '"' || item[item.length - 1] !== '"') {
-            errors.push({
-              msg: `El formato del archivo no contiene los campos entre comillas correctamente`,
-              row: index,
-            }); //TODO: validar tambien el '."' y '".'
-          } else if (!item.includes('","')) {
-            errors.push({
-              msg: `El formato del archivo debe estar separado correctamente por comas (,) y comillas dobles ("")`,
-              row: index,
-            });
-          } else {
-            let rowNumberCommas = 0;
-            const rowWithoutQuotationMarks = item.slice(1, item.length - 1);
-            const rowSplit = rowWithoutQuotationMarks.split('","');
-            let position1 = 0;
-            let position2 = 1;
-            let position3 = 2;
-            for (
-              let index2 = 0;
-              index2 < rowWithoutQuotationMarks.length;
-              index2++
-            ) {
-              const item2 = rowWithoutQuotationMarks;
-              const stringValue =
-                item2[position1] + item2[position2] + item2[position3];
-              if (stringValue.toLowerCase() === '","') {
-                rowNumberCommas++;
-              }
-              position1++;
-              position2++;
-              position3++;
-              if (position2 > rowWithoutQuotationMarks.length) {
-                break;
-              }
-            }
-
-            // console.log("rowNumberCommas", rowNumberCommas);
-            // console.log("numberCommas", numberCommas);
-            // console.log("rowWithoutQuotationMarks", rowWithoutQuotationMarks);
-            // console.log("rowSplit.length", rowSplit.length);
-            // console.log("rowSplit", rowSplit, "length", rowSplit.length);
-
-            if (
-              rowSplit.length > headers.length ||
-              rowSplit.length < headers.length
-            ) {
+          if (item.length >= 1) {
+            if (item[0] !== '"' || item[item.length - 1] !== '"') {
               errors.push({
-                msg: `La fila tiene ${rowSplit.length} campos y la cantidad esperada es de ${headers.length} campos`,
+                msg: `El formato del archivo no contiene los campos entre comillas correctamente`,
                 row: index,
-              });
-            } else if (
-              rowNumberCommas > numberCommas ||
-              rowNumberCommas < numberCommas
-            ) {
+              }); //TODO: validar tambien el '."' y '".'
+            } else if (!item.includes('","')) {
               errors.push({
                 msg: `El formato del archivo debe estar separado correctamente por comas (,) y comillas dobles ("")`,
                 row: index,
               });
             } else {
-              let resultObject = {};
-              let counterAux = 0;
-              map(headers, (item2, index2) => {
-                let value = rowSplit[counterAux];
+              let rowNumberCommas = 0;
+              const rowWithoutQuotationMarks = item.slice(1, item.length - 1);
+              const rowSplit = rowWithoutQuotationMarks.split('","');
+              let position1 = 0;
+              let position2 = 1;
+              let position3 = 2;
+              for (
+                let index2 = 0;
+                index2 < rowWithoutQuotationMarks.length;
+                index2++
+              ) {
+                const item2 = rowWithoutQuotationMarks;
+                const stringValue =
+                  item2[position1] + item2[position2] + item2[position3];
+                if (stringValue.toLowerCase() === '","') {
+                  rowNumberCommas++;
+                }
+                position1++;
+                position2++;
+                position3++;
+                if (position2 > rowWithoutQuotationMarks.length) {
+                  break;
+                }
+              }
 
-                // if (value[0] !== '"' || value[value.length - 1] !== '"') {
-                //   errorsValues.push({
-                //     msg: `El campo debe estar entre comillas`,
-                //     value: value?.trim().replace(/['"]+/g, ""),
-                //     column: item2,
-                //     row: index,
-                //   });
-                // }
-                resultObject = {
-                  ...resultObject,
-                  // [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
-                  [item2.toLowerCase()]: value,
-                };
-                counterAux++;
-              });
-              // console.log(resultObject.sort());
-              arrayDataObject.push(resultObject);
+              // console.log("rowNumberCommas", rowNumberCommas);
+              // console.log("numberCommas", numberCommas);
+              // console.log("rowWithoutQuotationMarks", rowWithoutQuotationMarks);
+              // console.log("rowSplit.length", rowSplit.length);
+              // if (codeCurrentFile === "451") {
+              // console.log("rowSplit", rowSplit, "length", rowSplit.length);
+              // }
+
+              if (
+                rowSplit.length > headers.length ||
+                rowSplit.length < headers.length
+              ) {
+                errors.push({
+                  msg: `La fila tiene ${rowSplit.length} campos y la cantidad esperada es de ${headers.length} campos`,
+                  row: index,
+                });
+              } else if (
+                rowNumberCommas > numberCommas ||
+                rowNumberCommas < numberCommas
+              ) {
+                errors.push({
+                  msg: `El formato del archivo debe estar separado correctamente por comas (,) y comillas dobles ("")`,
+                  row: index,
+                });
+              } else {
+                let resultObject = {};
+                let counterAux = 0;
+                map(headers, (item2, index2) => {
+                  let value = rowSplit[counterAux];
+
+                  // if (value[0] !== '"' || value[value.length - 1] !== '"') {
+                  //   errorsValues.push({
+                  //     msg: `El campo debe estar entre comillas`,
+                  //     value: value?.trim().replace(/['"]+/g, ""),
+                  //     column: item2,
+                  //     row: index,
+                  //   });
+                  // }
+                  resultObject = {
+                    ...resultObject,
+                    // [item2.toLowerCase()]: value?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+                    [item2.toLowerCase()]: value,
+                  };
+                  counterAux++;
+                });
+                // console.log(resultObject);
+                arrayDataObject.push(resultObject);
+                // console.log("arrayDataObject", arrayDataObject);
+              }
             }
           }
         }
       });
+      // console.log("arrayDataObject", arrayDataObject);
     };
 
     // console.log("INFORMACION", codeCurrentFile, dataSplit);

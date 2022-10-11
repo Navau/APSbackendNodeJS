@@ -996,6 +996,7 @@ async function validarArchivosIteraciones(params) {
                       codeCurrentFile
                     )
                       .then(async (response) => {
+                        // console.log(response);
                         arrayDataObject = response.arrayDataObject;
 
                         if (response?.errorsValues) {
@@ -1029,7 +1030,7 @@ async function validarArchivosIteraciones(params) {
                         });
                       })
                       .finally(async () => {
-                        // console.log(arrayDataObject);
+                        // console.log("arrayDataObject", arrayDataObject);
                         if (!arrayDataObject?.err) {
                           // console.log("DENTRO DE IF");
                           let arrayValidateObject = await obtenerValidaciones(
@@ -4082,7 +4083,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               });
             }
           }
-          if (unique === true && index2 === arrayDataObject.length - 1) {
+          if (unique === true && index2 === arrayDataObject?.length - 1) {
             const _unico = infoArchivo.paramsUnico
               ? await unico({
                   fileArrayObject: arrayDataObject,
@@ -4110,7 +4111,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           }
           if (
             endSingleGroup === true &&
-            index2 === arrayDataObject.length - 1
+            index2 === arrayDataObject?.length - 1
           ) {
             const _singleGroup = infoArchivo.paramsSingleGroup
               ? await grupoUnico({
@@ -4146,7 +4147,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         }
       };
 
-      if (codeCurrentFile === "444" && arrayDataObject.length === 0) {
+      if (codeCurrentFile === "444" && arrayDataObject?.length === 0) {
         map(dependenciesArray, (itemDP, indexDP) => {
           if (itemDP.column === "nro_pago" && itemDP.code === "441") {
             errors.push({
@@ -4164,7 +4165,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         "ARCHIVO:",
         codeCurrentFile,
         "FILAS:",
-        arrayDataObject.length
+        arrayDataObject?.length
       );
 
       for (let index2 = 0; index2 < arrayDataObject.length; index2++) {

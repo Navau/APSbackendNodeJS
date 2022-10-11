@@ -317,12 +317,14 @@ async function CargarArchivo(req, res) {
             .query(queryInfoSchema)
             .then((result) => {
               if (result.rowCount > 0) {
-                if (result.rows?.[0]?.column_name) {
-                  institutionField = result.rows[0].column_name;
-                }
-                if (result.rows?.[1]?.column_name) {
-                  dateField = result.rows[1].column_name;
-                }
+                map(result.rows, (itemResult, indexResult) => {
+                  if (itemResult.column_name === "cod_institucion") {
+                    institutionField = itemResult.column_name;
+                  }
+                  if (itemResult.column_name.includes("fecha")) {
+                    dateField = itemResult.column_name;
+                  }
+                });
               } else {
                 errorsDateArray.push({
                   message: `No existe ningun campo que contenga 'fecha' en la tabla ${tableFile}.`,
@@ -336,27 +338,53 @@ async function CargarArchivo(req, res) {
               });
             });
 
-          if (!dateField || !institutionField) {
-            errorsDateArray.push({
-              message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
-            });
+          if (
+            codeFile === "K" ||
+            codeFile === "L" ||
+            codeFile === "N" ||
+            codeFile === "P"
+          ) {
+            if (!dateField) {
+              errorsDateArray.push({
+                message: `No existe el campo fecha para poder validar unicidad en la tabla ${tableFile}.`,
+              });
+            } else {
+              const whereDelete = [
+                {
+                  key: dateField,
+                  value: fechaInicialOperacion,
+                },
+              ];
+              await eliminarInformacionDuplicada(
+                tableFile,
+                whereDelete,
+                sequenceTableFile,
+                idTable
+              );
+            }
           } else {
-            const whereDelete = [
-              {
-                key: dateField,
-                value: fechaInicialOperacion,
-              },
-              {
-                key: institutionField,
-                value: infoTables.cod_institution,
-              },
-            ];
-            await eliminarInformacionDuplicada(
-              tableFile,
-              whereDelete,
-              sequenceTableFile,
-              idTable
-            );
+            if (!dateField || !institutionField) {
+              errorsDateArray.push({
+                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
+              });
+            } else {
+              const whereDelete = [
+                {
+                  key: dateField,
+                  value: fechaInicialOperacion,
+                },
+                {
+                  key: institutionField,
+                  value: infoTables.cod_institution,
+                },
+              ];
+              await eliminarInformacionDuplicada(
+                tableFile,
+                whereDelete,
+                sequenceTableFile,
+                idTable
+              );
+            }
           }
 
           if (errorsDateArray.length >= 1) {
@@ -374,6 +402,7 @@ async function CargarArchivo(req, res) {
 
           let stringFinalFile = "";
           let arrayHeadersAux = [];
+          // console.log(headers);
           if (headers.includes("id_carga_archivos")) {
             stringFinalFile += `"${idCargaArchivos}"`;
             arrayHeadersAux.push("id_carga_archivos");

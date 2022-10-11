@@ -7,7 +7,6 @@ const {
   respResultadoVacioObject200,
   respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
-const { ObtenerInstitucion } = require("../../utils/consulta.utils");
 
 const pensionesArray = (date) => {
   return [
@@ -161,15 +160,15 @@ async function DescargarArchivosPorFecha(req, res) {
 }
 
 async function DescargarArchivos(req, res) {
-  const { archivos, fecha, id_rol = null, id_usuario = null } = req.body;
-  const idRolFinal = id_rol === null ? req.user.id_rol : id_rol;
-  const idUsuarioFinal = id_usuario === null ? req.user.id_usuario : id_usuario;
+  const { archivos, fecha, id_rol } = req.body;
   const date = fecha.split("-").join("");
-  const cod_institucion = await ObtenerInstitucion({
-    id_usuario: idUsuarioFinal,
-    id_rol: idRolFinal,
-  });
-  const filter = `${cod_institucion.result.codigo}${date}`;
+  let code = "108";
+  if (parseInt(id_rol) === 10) {
+    code = "seguros";
+  } else if (parseInt(id_rol) === 7) {
+    code = "pensiones";
+  }
+  const filter = `${code}_${date}`;
   const nameExportZip = `./downloads/archivos_${filter}.zip`;
   const fileZipPromise = new Promise(async (resolve, reject) => {
     try {
