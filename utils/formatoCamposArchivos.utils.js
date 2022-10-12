@@ -1503,6 +1503,12 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_clasificador_comun",
           params: {
             select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 38,
+              },
+            ],
           },
         };
         PARAMS.paramsInstrumento = {
