@@ -3501,7 +3501,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "clave_instrumento",
-        pattern: /^[A-Za-z0-9]{10,30}$/,
+        pattern: /^[A-Za-z0-9]{9,30}$/,
         function: [],
       },
       {
@@ -3518,7 +3518,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_bid",
-        pattern: /^(0|[1-9][0-9]{0,10})(\.\d{5,5}){1,1}$/,
+        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
     ],
