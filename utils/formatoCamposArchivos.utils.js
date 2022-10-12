@@ -689,12 +689,6 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         console.log("ARCHIVO CORRECTO : 443", nameFile);
         PARAMS.codeCurrentFile = "443";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.paramsTipoActivo = {
-          table: "APS_param_clasificador_comun",
-          params: {
-            select: ["sigla"],
-          },
-        };
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1505,7 +1499,12 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         console.log("ARCHIVO CORRECTO : 483", nameFile);
         PARAMS.codeCurrentFile = "483";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
+        PARAMS.paramsTipoActivo = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+          },
+        };
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -3855,11 +3854,6 @@ async function obtenerValidaciones(typeFile) {
     ],
     443: [
       {
-        columnName: "tipo_activo",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["tipoActivo"],
-      },
-      {
         columnName: "fecha_emision",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
@@ -4317,7 +4311,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
-        function: [],
+        function: ["tipoActivo"],
       },
       {
         columnName: "serie",
