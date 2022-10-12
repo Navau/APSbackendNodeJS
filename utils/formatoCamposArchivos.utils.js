@@ -1499,18 +1499,18 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         console.log("ARCHIVO CORRECTO : 483", nameFile);
         PARAMS.codeCurrentFile = "483";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-        PARAMS.paramsTipoActivo = {
-          table: "APS_param_clasificador_comun",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_clasificador_comun_grupo",
-                value: 38,
-              },
-            ],
-          },
-        };
+        // PARAMS.paramsTipoActivo = {
+        //   table: "APS_param_clasificador_comun",
+        //   params: {
+        //     select: ["sigla"],
+        //     where: [
+        //       {
+        //         key: "id_clasificador_comun_grupo",
+        //         value: 38,
+        //       },
+        //     ],
+        //   },
+        // };
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -4346,8 +4346,8 @@ async function obtenerValidaciones(typeFile) {
     483: [
       {
         columnName: "tipo_activo",
-        pattern: /^[A-Za-z]{3,3}$/,
-        function: ["tipoActivo"],
+        pattern: /^[A-Za-z0-9\-]{3,20}$/,
+        function: [],
       },
       {
         columnName: "serie",
