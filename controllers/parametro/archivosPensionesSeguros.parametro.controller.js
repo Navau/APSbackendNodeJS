@@ -117,7 +117,7 @@ async function SeleccionarArchivosBolsa(req, res) {
         if (parseInt(result.rows[0].count) >= 1) {
           resultFinal.ok = true;
           resultFinal.message =
-            "Correcto. Existe tipo de cambio para la fecha.";
+            "Correcto. Existe Tipo de Cambio para la Fecha seleccionada.";
         } else {
           resultFinal.ok = false;
           resultFinal.message =

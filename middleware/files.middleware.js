@@ -1925,7 +1925,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no coincide con algun tipo de activo`,
+                  descripcion: `El campo no corresponde a ninguno de los autorizados`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
