@@ -44,7 +44,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsInstrumento: null,
         paramsInstrumento135: null,
         paramsInstrumento1: null,
-        paramsInstrumento18: null,
+        paramsInstrumento25: null,
         paramsInstrumento136: null,
         paramsTipoAccion: null,
         paramsCodigoOperacion: null,
@@ -689,7 +689,12 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         console.log("ARCHIVO CORRECTO : 443", nameFile);
         PARAMS.codeCurrentFile = "443";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
+        PARAMS.paramsTipoActivo = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+          },
+        };
         PARAMS.paramsInstrumento = {
           table: "APS_param_tipo_instrumento",
           params: {
@@ -1090,14 +1095,14 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-        PARAMS.paramsInstrumento18 = {
+        PARAMS.paramsInstrumento25 = {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
             where: [
               {
                 key: "id_tipo_instrumento",
-                value: 18,
+                value: 25,
               },
             ],
           },
@@ -1398,14 +1403,14 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-        PARAMS.paramsInstrumento18 = {
+        PARAMS.paramsInstrumento25 = {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
             where: [
               {
                 key: "id_tipo_instrumento",
-                value: 18,
+                value: 25,
               },
             ],
           },
@@ -2865,19 +2870,18 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-        PARAMS.paramsInstrumento18 = {
+        PARAMS.paramsInstrumento25 = {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
             where: [
               {
                 key: "id_tipo_instrumento",
-                value: 18,
+                value: 25,
               },
             ],
           },
         };
-
         PARAMS.paramsTipoValoracion22 = {
           table: "APS_param_clasificador_comun",
           params: {
@@ -3850,6 +3854,11 @@ async function obtenerValidaciones(typeFile) {
       },
     ],
     443: [
+      {
+        columnName: "tipo_activo",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoActivo"],
+      },
       {
         columnName: "fecha_emision",
         pattern:
