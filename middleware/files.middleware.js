@@ -925,10 +925,10 @@ async function validarArchivosIteraciones(params) {
                           infoArchivo.paramsInstrumento1.params
                         )
                       : null;
-                    const _instrumento18 = infoArchivo?.paramsInstrumento18
+                    const _instrumento25 = infoArchivo?.paramsInstrumento25
                       ? await selectComun(
-                          infoArchivo.paramsInstrumento18.table,
-                          infoArchivo.paramsInstrumento18.params
+                          infoArchivo.paramsInstrumento25.table,
+                          infoArchivo.paramsInstrumento25.params
                         )
                       : null;
 
@@ -1093,7 +1093,7 @@ async function validarArchivosIteraciones(params) {
                             _tipoValoracion210,
                             _instrumento135,
                             _instrumento1,
-                            _instrumento18,
+                            _instrumento25,
                             _ciudad,
                             _tipoBienInmueble,
                             _cadenaCombinadalugarNegTipoOperTipoInstrum,
@@ -1204,7 +1204,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _tipoValoracion210 = params._tipoValoracion210;
       const _instrumento135 = params._instrumento135;
       const _instrumento1 = params._instrumento1;
-      const _instrumento18 = params._instrumento18;
+      const _instrumento25 = params._instrumento25;
       const _ciudad = params._ciudad;
       const _tipoBienInmueble = params._tipoBienInmueble;
       const _totalVidaUtil = params._totalVidaUtil;
@@ -1812,7 +1812,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     tipo_valoracion: item2.tipo_valoracion,
                     _instrumento135,
                     _instrumento1,
-                    _instrumento18,
+                    _instrumento25,
                     _tipoValoracion22,
                     _tipoValoracion31,
                     _tipoValoracion210,

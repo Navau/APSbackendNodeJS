@@ -7532,7 +7532,7 @@ async function tipoValoracionConsultaMultiple(params) {
     tipo_valoracion,
     _instrumento135,
     _instrumento1,
-    _instrumento18,
+    _instrumento25,
     _tipoValoracion22,
     _tipoValoracion31,
     _tipoValoracion210,
@@ -7540,7 +7540,7 @@ async function tipoValoracionConsultaMultiple(params) {
 
   const resultInstrumento135 = await _instrumento135.resultFinal;
   const resultInstrumento1 = await _instrumento1.resultFinal;
-  const resultInstrumento18 = await _instrumento18.resultFinal;
+  const resultInstrumento25 = await _instrumento25.resultFinal;
   const resultTipoValoracion22 = await _tipoValoracion22.resultFinal;
   const resultTipoValoracion31 = await _tipoValoracion31.resultFinal;
   const resultTipoValoracion210 = await _tipoValoracion210.resultFinal;
@@ -7602,7 +7602,7 @@ async function tipoValoracionConsultaMultiple(params) {
     }
   }
 
-  map(resultInstrumento18, (item, index) => {
+  map(resultInstrumento25, (item, index) => {
     if (tipo_instrumento === item.sigla) {
       isOkTipoInstrumento = true;
     }
