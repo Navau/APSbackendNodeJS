@@ -3282,29 +3282,59 @@ async function formatoArchivo(type) {
     498: {
       table: "APS_seguro_archivo_498",
     },
-    DC: {
-      table: "APS_pensiones_archivo_DC",
-    },
     DM: {
       table: "APS_pensiones_archivo_DM",
     },
     DR: {
       table: "APS_pensiones_archivo_DR",
     },
-    DU: {
-      table: "APS_pensiones_archivo_DU",
+    UA: {
+      table: "APS_pensiones_archivo_UA",
     },
     TD: {
       table: "APS_pensiones_archivo_TD",
     },
-    TV: {
-      table: "APS_pensiones_archivo_TV",
-    },
-    UA: {
-      table: "APS_pensiones_archivo_UA",
+    DU: {
+      table: "APS_pensiones_archivo_DU",
     },
     UD: {
       table: "APS_pensiones_archivo_UD",
+    },
+    TO: {
+      table: "APS_pensiones_archivo_TO",
+    },
+    CO: {
+      table: "APS_pensiones_archivo_CO",
+    },
+    TV: {
+      table: "APS_pensiones_archivo_TV",
+    },
+    DC: {
+      table: "APS_pensiones_archivo_DC",
+    },
+    BG: {
+      table: "APS_pensiones_archivo_BG",
+    },
+    FE: {
+      table: "APS_pensiones_archivo_FE",
+    },
+    VC: {
+      table: "APS_pensiones_archivo_VC",
+    },
+    CD: {
+      table: "APS_pensiones_archivo_CD",
+    },
+    DE: {
+      table: "APS_pensiones_archivo_DE",
+    },
+    FC: {
+      table: "APS_pensiones_archivo_FC",
+    },
+    LQ: {
+      table: "APS_pensiones_archivo_LQ",
+    },
+    TR: {
+      table: "APS_pensiones_archivo_TR",
     },
     CC: {
       table: "APS_oper_archivo_Custodio",
