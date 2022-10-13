@@ -240,7 +240,8 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             where: [
               {
                 key: "id_tipo_renta",
-                value: 138,
+                valuesWhereIn: [138, 214],
+                whereIn: true,
               },
             ],
           },
