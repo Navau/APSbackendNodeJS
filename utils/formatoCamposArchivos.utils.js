@@ -4347,7 +4347,7 @@ async function obtenerValidaciones(typeFile) {
     483: [
       {
         columnName: "tipo_activo",
-        pattern: /^[A-Za-z0-9\-]{3,20}$/,
+        pattern: /^[A-Za-z0-9\-\ ]{3,20}$/,
         function: [],
       },
       {
