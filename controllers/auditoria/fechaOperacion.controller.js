@@ -13,6 +13,53 @@ const moment = require("moment");
 
 async function obtenerFechaOperacion(req, res) {
   try {
+    let lastDateFinal;
+    let tipoArchivoFinal;
+    const fechaOperacionMensual = () => {
+      const year = lastDateFinal.getFullYear(); //2022
+      const month = lastDateFinal.getMonth(); //06
+      const day = lastDateFinal.getDay(); //30
+      const firstDayMonth = new Date(year, month, 1); // 2022-06-01
+      const lastDayMonth = addMonths(firstDayMonth, 2); // 2022-08-01
+      const fechaOperacion = addValues(lastDayMonth, -1); // 2022-07-31
+
+      return fechaOperacion;
+    };
+
+    const fechaOperacionDiaria = () => {
+      console.log("lastDateFinal", lastDateFinal);
+      console.log("tipoArchivoFinal", tipoArchivoFinal);
+      if (tipoArchivoFinal === "PENSIONES") {
+        const fechaOperacion = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
+        return fechaOperacion;
+      }
+      if (tipoArchivoFinal === "SEGUROS") {
+        const fechaOperacion = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
+        return fechaOperacion;
+      } else if (tipoArchivoFinal === "BOLSA") {
+        console.log(tipoArchivoFinal);
+        const checkDate = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
+        console.log(checkDate);
+        let fechaOperacion = null;
+        fechaOperacion = checkDate;
+        return fechaOperacion;
+      } else if (tipoArchivoFinal === "CUSTODIO") {
+        console.log(tipoArchivoFinal);
+        const checkDate = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
+        console.log(checkDate);
+        let fechaOperacion = null;
+        fechaOperacion = checkDate;
+        return fechaOperacion;
+      } else {
+        return null;
+      }
+    };
+
+    const FECHA_OPERACION = {
+      M: fechaOperacionMensual,
+      D: fechaOperacionDiaria,
+    };
+
     function padTo2Digits(num) {
       return num.toString().padStart(2, "0");
     }
@@ -36,13 +83,14 @@ async function obtenerFechaOperacion(req, res) {
     }
 
     const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
+    tipoArchivoFinal = tipo_archivo;
     const { id_rol, id_usuario } = req.user;
     console.log("TIPO PERIODO Y TIPO ARCHIVO", {
       tipo_periodo,
       tipo_archivo,
     });
     const tableQuery =
-      tipo_archivo === "PENSIONES"
+      tipo_archivo === "PENSIONES" || tipo_archivo === "SEGUROS"
         ? "APS_aud_carga_archivos_pensiones_seguros"
         : tipo_archivo === "BOLSA"
         ? "APS_aud_carga_archivos_bolsa"
@@ -162,6 +210,25 @@ async function obtenerFechaOperacion(req, res) {
           value: true,
         },
       ];
+    } else if (tipo_archivo === "SEGUROS") {
+      whereMax = [
+        {
+          key: "id_rol",
+          value: id_rol,
+        },
+        {
+          key: "cod_institucion",
+          value: cod_institucion.result.codigo,
+        },
+        {
+          key: "id_periodo",
+          value: tipo_periodo === "D" ? 154 : tipo_periodo === "M" ? 155 : null,
+        },
+        {
+          key: "cargado",
+          value: true,
+        },
+      ];
     } else if (tipo_archivo === "CUSTODIO") {
       whereMax = [
         {
@@ -204,49 +271,12 @@ async function obtenerFechaOperacion(req, res) {
       return date;
     };
 
-    const lastDate = new Date(maxFechaOperacion);
-    console.log("lastDate", lastDate);
-
-    const fechaOperacionMensual = () => {
-      const year = lastDate.getFullYear(); //2022
-      const month = lastDate.getMonth(); //06
-      const day = lastDate.getDay(); //30
-      const firstDayMonth = new Date(year, month, 1); // 2022-06-01
-      const lastDayMonth = addMonths(firstDayMonth, 2); // 2022-08-01
-      const fechaOperacion = addValues(lastDayMonth, -1); // 2022-07-31
-
-      return fechaOperacion;
-    };
-
-    const fechaOperacionDiaria = () => {
-      if (tipo_archivo === "PENSIONES") {
-        const fechaOperacion = addValues(lastDate, 1); //VIERNES + 1 = SABADO
-        return fechaOperacion;
-      } else if (tipo_archivo === "BOLSA") {
-        console.log(tipo_archivo);
-        const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
-        console.log(checkDate);
-        let fechaOperacion = null;
-        fechaOperacion = checkDate;
-        return fechaOperacion;
-      } else if (tipo_archivo === "CUSTODIO") {
-        console.log(tipo_archivo);
-        const checkDate = addValues(lastDate, 1); //VIERNES + 1 = SABADO
-        console.log(checkDate);
-        let fechaOperacion = null;
-        fechaOperacion = checkDate;
-        return fechaOperacion;
-      } else {
-        return null;
-      }
-    };
-
-    const FECHA_OPERACION = {
-      M: fechaOperacionMensual,
-      D: fechaOperacionDiaria,
-    };
+    lastDateFinal = new Date(maxFechaOperacion);
+    console.log("lastDate", lastDateFinal);
 
     const result = FECHA_OPERACION[tipo_periodo]();
+
+    console.log(result);
 
     if (isNaN(Date.parse(result))) {
       respErrorServidor500END(res, {
@@ -257,6 +287,7 @@ async function obtenerFechaOperacion(req, res) {
       respResultadoCorrectoObjeto200(res, result);
     }
   } catch (err) {
+    console.log(err);
     respErrorServidor500END(res, err);
   }
 }
