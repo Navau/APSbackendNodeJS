@@ -2892,14 +2892,14 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                         },
                         fields: [
                           {
-                            key: `saldo_capital (fila anterior: ${index2 - 1})`,
+                            key: `saldo_capital (fila anterior: ${index2})`,
                             value: parseFloat(
                               arrayDataObject[index2 - 1].saldo_capital
                             ),
                           },
                           "-",
                           {
-                            key: `amortizacion (fila anterior: ${index2 - 1})`,
+                            key: `amortizacion (fila anterior: ${index2})`,
                             value: parseFloat(
                               arrayDataObject[index2 - 1].amortizacion
                             ),
