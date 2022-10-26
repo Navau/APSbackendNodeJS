@@ -113,6 +113,7 @@ const cTipoReporteRoute = require("./clasificador/cTipoReporte.clasificador.rout
 //#region OTROS
 const obtenerCabecerasRoute = require("./obtenerCabeceras.route");
 const selectComunRoute = require("./selectComun.route");
+const reportePruebaRoute = require("./reportePrueba.route");
 //#endregion
 
 //#region SEGURO
@@ -123,6 +124,12 @@ const seguroArchivo444Route = require("./seguro/seguroArchivo444.seguro.route");
 const seguroArchivo445Route = require("./seguro/seguroArchivo445.seguro.route");
 //#endregion
 
+//#region REPORTES
+//#region SEGUROS
+const rirReporteSeguroRoute = require("./reportes/seguros/rir.seguros.reportes.route");
+//#endregion
+//#endregion
+
 //#endregion
 
 function routerApi(app) {
@@ -130,9 +137,16 @@ function routerApi(app) {
   app.use("/api", router);
   app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
+  //#region REPORTES
+  //#region SEGUROS
+  router.use("/Reporte", rirReporteSeguroRoute);
+  //#endregion
+  //#endregion
+
   router.use("/Acceso", accessRoutes);
   router.use("/obtenerCabeceras", obtenerCabecerasRoute);
   router.use("/EscogerInterno", selectComunRoute);
+  router.use("/ReportePrueba", reportePruebaRoute);
   // router.use('/AccesoExterno', )
   router.use("/Upload", uploadRoute);
   router.use("/Descargar", downloadRoute);

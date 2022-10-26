@@ -100,6 +100,7 @@ async function Insertar(req, res) {
     delete body[id.idKey];
     const queryExist = EscogerUtil(nameTable, {
       body: {
+        id_emisor: body.id_emisor,
         fecha_actualizacion: body.fecha_actualizacion,
       },
     });
