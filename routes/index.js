@@ -126,7 +126,7 @@ const seguroArchivo445Route = require("./seguro/seguroArchivo445.seguro.route");
 
 //#region REPORTES
 //#region SEGUROS
-const rirReporteSeguroRoute = require("./reportes/seguros/rir.seguros.reportes.route");
+const reporteAPSMallasRoute = require("./reportes/seguros/reporteAPSMallas.seguros.reportes.route");
 //#endregion
 //#endregion
 
@@ -139,7 +139,7 @@ function routerApi(app) {
 
   //#region REPORTES
   //#region SEGUROS
-  router.use("/Reporte", rirReporteSeguroRoute);
+  router.use("/Reporte", reporteAPSMallasRoute);
   //#endregion
   //#endregion
 

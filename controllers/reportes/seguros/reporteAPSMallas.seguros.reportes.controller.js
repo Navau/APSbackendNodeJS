@@ -17,9 +17,10 @@ const {
   headerStyleReportExcel,
   bodyCommonStyleReportExcel,
   formatDataReportExcel,
+  singleFormatDataReportExcel,
 } = require("../../../utils/opcionesReportes");
 
-async function ReporteRIR(req, res) {
+async function APSMallas(req, res) {
   try {
     const { fecha } = req.body;
     const nameExcelExport = "Reporte-APS-Mallas-test.xlsx";
@@ -263,10 +264,15 @@ async function ReporteRIR(req, res) {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CIE") : "";
     });
 
+    const segurosCIGFinal = singleFormatDataReportExcel(
+      "CIG",
+      segurosCIG.result
+    );
+
     const segurosDataFinal = [
       ...segurosRIR.result,
       ...segurosRIA.result,
-      ...segurosCIG.result,
+      ...segurosCIGFinal,
       ...segurosCIE.result,
     ];
     //#endregion
@@ -291,5 +297,5 @@ async function ReporteRIR(req, res) {
 }
 
 module.exports = {
-  ReporteRIR,
+  APSMallas,
 };

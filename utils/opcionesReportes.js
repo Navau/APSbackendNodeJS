@@ -2,11 +2,13 @@ const dayjs = require("dayjs");
 const {
   forEach,
   trimStart,
+  trim,
   map,
   uniqBy,
   uniq,
   findIndex,
   indexOf,
+  size,
 } = require("lodash");
 require("dayjs/locale/es");
 
@@ -189,6 +191,24 @@ function customBorderStyleReportExcel(x1, x2, y1, y2, ws, wb, styleBorder) {
 function customSingleStyleReportExcel(wb, style) {
   return wb.createStyle(style);
 }
+
+function singleFormatDataReportExcel(sigla, data) {
+  const REPORTS_DATA = {
+    CIG: () => {
+      return map(data, (item, index) => {
+        const valueGroup = {
+          grupo: item.grupo,
+          plazo: item.plazo,
+          descripcion_corta: item.descripcion_corta,
+        };
+        return { ...item, grupoFinal: valueGroup };
+      });
+    },
+  };
+
+  return REPORTS_DATA[sigla]();
+}
+
 function formatDataReportExcel(headers, body, wb) {
   //#region CLASIFICANDO LAS INSTITUCIONES DE body
   const segurosClassified = {};
@@ -225,9 +245,9 @@ function formatDataReportExcel(headers, body, wb) {
   forEach(headers, (item, index) => {
     let tipoIndicador = null;
     const indicadoresArray = {};
-    const ws = wb.addWorksheet(item.id_entidad); // HOJA DE INSTITUCION
+    const ws = wb.addWorksheet(item.sigla); // HOJA DE INSTITUCION
     const dataReportHeader = {
-      code: item.id_entidad.toString(),
+      code: item.sigla,
       data: {
         title: item.institucion,
         date: item.fecha,
@@ -308,7 +328,7 @@ function formatDataReportExcel(headers, body, wb) {
     // console.log("indicadoresArray", indicadoresArray);
 
     const dataReportBody = {
-      code: item.id_entidad.toString(),
+      code: item.sigla,
       data: Object.values(indicadoresArray),
     };
     // console.log(dataReportBody.data);
@@ -328,7 +348,7 @@ function SUMARExcelReport(x1, x2, y1) {
 }
 
 function headerStyleReportExcel(ws, wb, report) {
-  if (report.code === "108" || report.code === "301") {
+  if (report.code === "ALI-G" || report.code === "INN-R") {
     const date = report?.data.date;
     const styleDefault = defaultStyleReportExcel("header");
     cellsBorderStyleReportExcel(4, 1, 6, 3, ws, wb);
@@ -434,7 +454,7 @@ function headerStyleReportExcel(ws, wb, report) {
 
 function bodyCommonStyleReportExcel(ws, wb, report) {
   // console.log(report.data);
-  if (report.code === "108" || report.code === "301") {
+  if (report.code === "ALI-G" || report.code === "INN-R") {
     const styleDefault = defaultStyleReportExcel("body");
     let posXInitial = 8;
     let posXIteration = posXInitial;
@@ -444,7 +464,7 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
     const conditionsAux = {
       valores: false,
     };
-    console.log(report?.data);
+    // console.log(report?.data);
     forEach(report?.data, (itemRD, indexRD) => {
       if (itemRD.codeSegurosAux === "RIR") {
         ws.cell(posXIteration, posYIteration)
@@ -1004,326 +1024,160 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
         posXIteration++;
         forEach(itemRD, (itemData, indexData) => {
           if (itemData.codeSeguros === "CIG") {
+            const VALUE_TOTAL =
+              itemData.grupo.toLowerCase().includes("final") ||
+              itemData.grupo.toLowerCase().includes("total")
+                ? {
+                    border: {
+                      border: {
+                        bottom: { style: "medium" },
+                      },
+                    },
+                    fill: customSingleStyleReportExcel(wb, {
+                      fill: {
+                        type: "pattern",
+                        patternType: "solid",
+                        fgColor: "8EA9DB",
+                      },
+                    }),
+                    align: alignTextStyleReportExcel("center"),
+                    fontBold: (bold = true) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : {
+                    border: {},
+                    fill: {},
+                    align: alignTextStyleReportExcel("center"),
+                    fontBold: () => {
+                      return {};
+                    },
+                  };
+            const VALUE_GROUP =
+              size(trim(itemData?.descripcion_corta)) > 0
+                ? {
+                    value: itemData.descripcion_corta,
+                    key: "descripcion_corta",
+                    indent: { ...indentStyleReportExcel(3, 3) },
+                    style: {
+                      ...indentStyleReportExcel(5, 3),
+                      ...customSingleStyleReportExcel(wb, {
+                        border: {
+                          bottom: { style: "dashed" },
+                          right: { style: "thin" },
+                          left: { style: "medium" },
+                        },
+                      }),
+                    },
+                    fontBold: (bold = false) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : size(trim(itemData?.plazo)) > 0
+                ? {
+                    value: itemData.plazo,
+                    key: "plazo",
+                    style: {
+                      ...indentStyleReportExcel(2, 3),
+                      ...customSingleStyleReportExcel(wb, {
+                        border: {
+                          bottom: { style: "dashed" },
+                          right: { style: "thin" },
+                          left: { style: "medium" },
+                        },
+                      }),
+                    },
+                    fontBold: (bold = true) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : size(trim(itemData?.grupo)) > 0
+                ? {
+                    value: itemData.grupo,
+                    key: "grupo",
+                    style: {
+                      ...indentStyleReportExcel(1, 2),
+                      ...customSingleStyleReportExcel(wb, {
+                        border: {
+                          top: { style: "medium" },
+                          bottom: { style: "medium" },
+                          right: { style: "thin" },
+                          left: { style: "medium" },
+                        },
+                      }),
+                    },
+                    fontBold: (bold = true) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : {
+                    value: "Sin información",
+                    key: "",
+                    style: {},
+                    fontBold: (bold) => {
+                      return {};
+                    },
+                  };
             ws.cell(posXIteration, posYIteration)
-              .string(`${itemData?.descripcion_corta}`)
+              .string(`${VALUE_GROUP.value}`)
               .style(styleDefault)
-              .style({ ...indentStyleReportExcel(1, 2) })
-              .style(
-                itemData.descripcion_corta
-                  .toLowerCase()
-                  .includes("deuda bancaria") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("patrimonios autonomos") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("Acciones") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("otros valores") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("inversiones") ||
-                  itemData.descripcion_corta.toLowerCase().includes("corto") ||
-                  itemData.descripcion_corta.toLowerCase().includes("largo")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        top: { style: "medium" },
-                        bottom: { style: "medium" },
-                        right: { style: "thin" },
-                        left: { style: "medium" },
-                      },
-                      font: {
-                        bold: true,
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "dashed" },
-                        right: { style: "thin" },
-                        left: { style: "medium" },
-                      },
-                      font: {
-                        bold: false,
-                      },
-                    })
-              )
-              .style(
-                itemData.grupo.toLowerCase().includes("total")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "medium" },
-                      },
-                      font: {
-                        bold: true,
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {})
-              );
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold())
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fontBold());
+
             ws.cell(posXIteration, posYIteration + 1)
               .number(parseFloat(itemData?.total_usd))
-              .style({
-                ...styleDefault,
-                ...customSingleStyleReportExcel(wb, {
-                  font: {
-                    bold: false,
-                  },
-                }),
-                ...alignTextStyleReportExcel("center"),
-              })
-              .style(
-                itemData.descripcion_corta
-                  .toLowerCase()
-                  .includes("deuda bancaria") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("patrimonios autonomos") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("Acciones") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("otros valores") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("inversiones") ||
-                  itemData.descripcion_corta.toLowerCase().includes("corto") ||
-                  itemData.descripcion_corta.toLowerCase().includes("largo")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        top: { style: "medium" },
-                        bottom: { style: "medium" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: true,
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "dashed" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: false,
-                      },
-                    })
-              )
-              .style(
-                itemData.grupo.toLowerCase().includes("final") ||
-                  itemData.grupo.toLowerCase().includes("total")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "medium" },
-                      },
-                      fill: {
-                        type: "pattern",
-                        patternType: "solid",
-                        fgColor: "8EA9DB",
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {})
-              );
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold())
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
             ws.cell(posXIteration, posYIteration + 2)
-              .string(itemData?.rir + "%")
-              .style({
-                ...styleDefault,
-                ...customSingleStyleReportExcel(wb, {
-                  font: {
-                    bold: false,
-                  },
-                }),
-                ...alignTextStyleReportExcel("center"),
-              })
-              .style(
-                itemData.descripcion_corta
-                  .toLowerCase()
-                  .includes("deuda bancaria") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("patrimonios autonomos") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("Acciones") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("otros valores") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("inversiones") ||
-                  itemData.descripcion_corta.toLowerCase().includes("corto") ||
-                  itemData.descripcion_corta.toLowerCase().includes("largo")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        top: { style: "medium" },
-                        bottom: { style: "medium" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: true,
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "dashed" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: false,
-                      },
-                    })
-              )
-              .style(
-                itemData.grupo.toLowerCase().includes("final") ||
-                  itemData.grupo.toLowerCase().includes("total")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "medium" },
-                      },
-                      fill: {
-                        type: "pattern",
-                        patternType: "solid",
-                        fgColor: "8EA9DB",
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {})
-              );
+              .string(itemData?.rir ? itemData.rir + "%" : "")
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
             ws.cell(posXIteration, posYIteration + 3)
               .string(itemData?.porcentaje)
-              .style({
-                ...styleDefault,
-                ...customSingleStyleReportExcel(wb, {
-                  font: {
-                    bold: false,
-                  },
-                }),
-                ...alignTextStyleReportExcel("center"),
-              })
-              .style(
-                itemData.descripcion_corta
-                  .toLowerCase()
-                  .includes("deuda bancaria") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("patrimonios autonomos") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("Acciones") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("otros valores") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("inversiones") ||
-                  itemData.descripcion_corta.toLowerCase().includes("corto") ||
-                  itemData.descripcion_corta.toLowerCase().includes("largo")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        top: { style: "medium" },
-                        bottom: { style: "medium" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: true,
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "dashed" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: false,
-                      },
-                    })
-              )
-              .style(
-                itemData.grupo.toLowerCase().includes("final") ||
-                  itemData.grupo.toLowerCase().includes("total")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "medium" },
-                      },
-                      fill: {
-                        type: "pattern",
-                        patternType: "solid",
-                        fgColor: "8EA9DB",
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {})
-              );
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
             ws.cell(posXIteration, posYIteration + 4)
               .string(itemData?.resultado)
-              .style({
-                ...styleDefault,
-                ...customSingleStyleReportExcel(wb, {
-                  font: {
-                    bold: false,
-                  },
-                }),
-                ...alignTextStyleReportExcel("center"),
-              })
-              .style(
-                itemData.descripcion_corta
-                  .toLowerCase()
-                  .includes("deuda bancaria") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("patrimonios autonomos") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("Acciones") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("otros valores") ||
-                  itemData.descripcion_corta
-                    .toLowerCase()
-                    .includes("inversiones") ||
-                  itemData.descripcion_corta.toLowerCase().includes("corto") ||
-                  itemData.descripcion_corta.toLowerCase().includes("largo")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        top: { style: "medium" },
-                        bottom: { style: "medium" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: true,
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "dashed" },
-                        right: { style: "medium" },
-                        left: { style: "thin" },
-                      },
-                      font: {
-                        bold: false,
-                      },
-                    })
-              )
-              .style(
-                itemData.grupo.toLowerCase().includes("final") ||
-                  itemData.grupo.toLowerCase().includes("total")
-                  ? customSingleStyleReportExcel(wb, {
-                      border: {
-                        bottom: { style: "medium" },
-                      },
-                      fill: {
-                        type: "pattern",
-                        patternType: "solid",
-                        fgColor: "8EA9DB",
-                      },
-                    })
-                  : customSingleStyleReportExcel(wb, {})
-              );
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
             posXIteration++;
           }
         });
@@ -1674,4 +1528,5 @@ module.exports = {
   headerStyleReportExcel,
   bodyCommonStyleReportExcel,
   formatDataReportExcel,
+  singleFormatDataReportExcel,
 };
