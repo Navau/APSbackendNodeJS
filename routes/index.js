@@ -35,6 +35,7 @@ const archivoKRoute = require("./operativo/archivoK.operativo.route");
 const archivoLRoute = require("./operativo/archivoL.operativo.route");
 const archivoNRoute = require("./operativo/archivoN.operativo.route");
 const archivoPRoute = require("./operativo/archivoP.operativo.route");
+const emisionRoute = require("./operativo/emision.operativo.route");
 const emisorPatrimonioRoute = require("./operativo/emisorPatrimonio.operativo.route");
 const otrosActivosRoute = require("./operativo/otrosActivos.operativo.route");
 const otrosActivosCuponRoute = require("./operativo/otrosActivosCupon.operativo.route");
@@ -192,6 +193,7 @@ function routerApi(app) {
   router.use("/ComposicionSerie", composicionSerieRoute);
   router.use("/Critico", criticoRoute);
   router.use("/Emisor", emisorRoute);
+  router.use("/Emision", emisionRoute);
   router.use("/EmisorPatrimonio", emisorPatrimonioRoute);
   router.use("/EmisorVinculado", emisorVinculadoRoute);
   router.use("/Feriado", feriadoRoute);

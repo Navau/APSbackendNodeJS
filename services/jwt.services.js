@@ -14,8 +14,6 @@ exports.createAccessToken = function (user) {
     iat: moment().unix(),
   };
 
-  console.log(payload);
-
   return jwt.encode(payload, SECRET_KEY);
 };
 

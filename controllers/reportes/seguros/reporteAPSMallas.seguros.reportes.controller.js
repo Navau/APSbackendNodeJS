@@ -250,6 +250,52 @@ async function APSMallas(req, res) {
       return null;
     }
     //#endregion
+    //#region OBTENIENDO INFORMACION DE APS_seguros_view_CEM
+    const queryCEM = EscogerInternoUtil("APS_seguros_view_CEM", {
+      select: [
+        "cod_institucion",
+        "fecha_informacion",
+        "tipo_instrumento",
+        "serie",
+        "total_usd",
+        "emision",
+        "porcentaje",
+        "resultado",
+      ],
+      where: [
+        {
+          key: "fecha_informacion",
+          value: fecha,
+        },
+        {
+          key: "cod_institucion",
+          valuesWhereIn: segurosIdData,
+          whereIn: true,
+        },
+      ],
+      orderby: {
+        field: "cod_institucion",
+      },
+    });
+
+    const segurosCEM = await pool
+      .query(queryCEM)
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result: result.rows };
+        else return { ok: false, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+
+    if (segurosCEM.ok === null) {
+      respErrorServidor500END(res, segurosCEM.err);
+      return null;
+    } else if (segurosCEM.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, segurosCEM.result);
+      return null;
+    }
+    //#endregion
     //#region JUNTANDO TODA LA INFORMACION EN segurosDataFinal
     forEach(segurosRIR.result, (itemI, indexI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "RIR") : "";
@@ -263,18 +309,23 @@ async function APSMallas(req, res) {
     forEach(segurosCIE.result, (itemI, indexI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CIE") : "";
     });
+    forEach(segurosCEM.result, (itemI, indexI) => {
+      !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CEM") : "";
+    });
 
-    const segurosCIGFinal = singleFormatDataReportExcel(
-      "CIG",
-      segurosCIG.result
+    const segurosCEMFinal = singleFormatDataReportExcel(
+      "CEM",
+      segurosCEM.result
     );
 
     const segurosDataFinal = [
       ...segurosRIR.result,
       ...segurosRIA.result,
-      ...segurosCIGFinal,
+      ...segurosCIG.result,
       ...segurosCIE.result,
+      ...segurosCEMFinal,
     ];
+    console.log(segurosDataFinal);
     //#endregion
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO

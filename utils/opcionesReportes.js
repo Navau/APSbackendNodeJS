@@ -204,6 +204,25 @@ function singleFormatDataReportExcel(sigla, data) {
         return { ...item, grupoFinal: valueGroup };
       });
     },
+    CEM: () => {
+      let tipoInstrumentoAux = null;
+      const arrayResult = [];
+      forEach(data, (item, index) => {
+        if (tipoInstrumentoAux !== item.tipo_instrumento) {
+          tipoInstrumentoAux = item.tipo_instrumento;
+          arrayResult.push({
+            ...item,
+            tipo_instrumento: item.tipo_instrumento,
+            serie: "",
+          });
+        } else {
+          arrayResult.push({
+            ...item,
+          });
+        }
+      });
+      return arrayResult;
+    },
   };
 
   return REPORTS_DATA[sigla]();
@@ -230,8 +249,8 @@ function formatDataReportExcel(headers, body, wb) {
       : item?.id_entidad
       ? item.id_entidad
       : null;
-    if (valueIdEntidadAux !== idEntidadAux.toString()) {
-      valueIdEntidadAux = idEntidadAux.toString();
+    if (valueIdEntidadAux !== idEntidadAux?.toString()) {
+      valueIdEntidadAux = idEntidadAux?.toString();
       segurosClassified[valueIdEntidadAux] = [item];
     } else {
       segurosClassified[valueIdEntidadAux] = [
@@ -280,6 +299,8 @@ function formatDataReportExcel(headers, body, wb) {
         TIPO_INDICADOR.indicador =
           "CARTERA DE INVERSIONES POR CONCENTRACIÓN EN PROPIEDAD";
         TIPO_INDICADOR.total = "TOTAL CARTERA POR EMISOR";
+      } else if (dataEntidad.codeSeguros === "CEM") {
+        TIPO_INDICADOR.indicador = "CARTERA DE INVERSIONES POR EMISIÓN";
       }
 
       if (tipoIndicador !== TIPO_INDICADOR.indicador && !TIPO_INDICADOR.total) {
@@ -313,11 +334,18 @@ function formatDataReportExcel(headers, body, wb) {
           ))
         : "";
       !("details" in itemI) ? (itemI["details"] = "Detalle") : "";
+      !("serie" in itemI) ? (itemI["serie"] = "Serie") : "";
 
       !("typeCoin" in itemI) ? (itemI["typeCoin"] = "USD") : "";
+      !("valNominal" in itemI) ? (itemI["valNominal"] = "Val. Nominal") : "";
+
       !("percentageRIR" in itemI)
         ? (itemI["percentageRIR"] = "En % (RIR)")
         : "";
+      !("percentageEmision" in itemI)
+        ? (itemI["percentageEmision"] = "En % (Emisión)")
+        : "";
+
       !("maxLimit" in itemI) ? (itemI["maxLimit"] = "Límite Máx.") : "";
       !("result" in itemI) ? (itemI["result"] = "Resultado") : "";
     });
@@ -365,11 +393,11 @@ function headerStyleReportExcel(ws, wb, report) {
       right: { style: "medium" },
     });
     ws.column(1).setWidth(70);
-    ws.column(2).setWidth(20);
-    ws.column(3).setWidth(20);
-    ws.column(4).setWidth(20);
-    ws.column(5).setWidth(20);
-    ws.column(6).setWidth(20);
+    ws.column(2).setWidth(25);
+    ws.column(3).setWidth(25);
+    ws.column(4).setWidth(25);
+    ws.column(5).setWidth(25);
+    ws.column(6).setWidth(25);
 
     ws.cell(1, 1)
       .string(report?.data.title)
@@ -827,7 +855,7 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                   : customSingleStyleReportExcel(wb, {})
               );
             ws.cell(posXIteration, posYIteration + 3)
-              .string(itemData?.limite_max)
+              .string(itemData?.limite_max ? itemData.limite_max + "%" : "")
               .style({
                 ...styleDefault,
                 ...customSingleStyleReportExcel(wb, {
@@ -1064,7 +1092,6 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                     key: "descripcion_corta",
                     indent: { ...indentStyleReportExcel(3, 3) },
                     style: {
-                      ...indentStyleReportExcel(5, 3),
                       ...customSingleStyleReportExcel(wb, {
                         border: {
                           bottom: { style: "dashed" },
@@ -1085,8 +1112,8 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                 ? {
                     value: itemData.plazo,
                     key: "plazo",
+                    indent: indentStyleReportExcel(2, 3),
                     style: {
-                      ...indentStyleReportExcel(2, 3),
                       ...customSingleStyleReportExcel(wb, {
                         border: {
                           bottom: { style: "dashed" },
@@ -1107,8 +1134,8 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                 ? {
                     value: itemData.grupo,
                     key: "grupo",
+                    indent: indentStyleReportExcel(1, 2),
                     style: {
-                      ...indentStyleReportExcel(1, 2),
                       ...customSingleStyleReportExcel(wb, {
                         border: {
                           top: { style: "medium" },
@@ -1129,6 +1156,7 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                 : {
                     value: "Sin información",
                     key: "",
+                    indent: {},
                     style: {},
                     fontBold: (bold) => {
                       return {};
@@ -1138,6 +1166,7 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
               .string(`${VALUE_GROUP.value}`)
               .style(styleDefault)
               .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.indent)
               .style(VALUE_GROUP.fontBold())
               .style(VALUE_TOTAL.border)
               .style(VALUE_TOTAL.fontBold());
@@ -1161,7 +1190,7 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
               .style(VALUE_TOTAL.fontBold())
               .style(VALUE_TOTAL.align);
             ws.cell(posXIteration, posYIteration + 3)
-              .string(itemData?.porcentaje)
+              .string(itemData?.porcentaje ? itemData.porcentaje + "%" : "")
               .style(styleDefault)
               .style(VALUE_GROUP.style)
               .style(VALUE_GROUP.fontBold(false))
@@ -1413,7 +1442,7 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                   : customSingleStyleReportExcel(wb, {})
               );
             ws.cell(posXIteration, posYIteration + 3)
-              .string(itemData?.limite)
+              .string(itemData?.limite ? itemData.limite + "%" : "")
               .style({
                 ...styleDefault,
                 ...customSingleStyleReportExcel(wb, {
@@ -1510,6 +1539,190 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
                     })
                   : customSingleStyleReportExcel(wb, {})
               );
+            posXIteration++;
+          }
+        });
+      } else if (itemRD.codeSegurosAux === "CEM") {
+        ws.cell(
+          posXIteration,
+          posYIteration,
+          posXIteration,
+          posYIteration + 4,
+          true
+        )
+          .string(itemRD?.typeIndicatorFinal)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                left: { style: "medium" },
+                right: { style: "hair" },
+              },
+            }),
+          });
+        posXIteration++;
+        ws.cell(posXIteration, posYIteration)
+          .string(itemRD?.serie)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                left: { style: "medium" },
+                right: { style: "hair" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 1)
+          .string(itemRD?.valNominal)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(itemRD?.percentageEmision)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(itemRD?.maxLimit)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(itemRD?.result)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+
+        posXIteration++;
+        forEach(itemRD, (itemData, indexData) => {
+          if (itemData.codeSeguros === "CEM") {
+            const VALUE_GROUP =
+              size(trim(itemData?.serie)) > 0
+                ? {
+                    value: itemData.serie,
+                    key: "serie",
+                    indent: indentStyleReportExcel(3, 3),
+                    align: alignTextStyleReportExcel("center"),
+                    style: {
+                      ...customSingleStyleReportExcel(wb, {
+                        border: {
+                          bottom: { style: "dashed" },
+                          right: { style: "thin" },
+                          left: { style: "medium" },
+                        },
+                      }),
+                    },
+                    fontBold: (bold = false) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : size(trim(itemData?.tipo_instrumento)) > 0
+                ? {
+                    value: itemData.tipo_instrumento,
+                    key: "tipo_instrumento",
+                    indent: indentStyleReportExcel(1, 2),
+                    align: alignTextStyleReportExcel("center"),
+                    style: {
+                      ...customSingleStyleReportExcel(wb, {
+                        border: {
+                          top: { style: "medium" },
+                          bottom: { style: "medium" },
+                          right: { style: "thin" },
+                          left: { style: "medium" },
+                        },
+                      }),
+                    },
+                    fontBold: (bold = true) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : {
+                    value: "Sin información",
+                    key: "",
+                    indent: {},
+                    style: {},
+                    align: {},
+                    fontBold: (bold) => {
+                      return {};
+                    },
+                  };
+            ws.cell(posXIteration, posYIteration)
+              .string(`${VALUE_GROUP.value}`)
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.indent)
+              .style(VALUE_GROUP.fontBold());
+
+            ws.cell(posXIteration, posYIteration + 1)
+              .number(parseFloat(itemData?.total_usd))
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold())
+              .style(VALUE_GROUP.align);
+            ws.cell(posXIteration, posYIteration + 2)
+              .string(itemData?.emision ? itemData.emision + "%" : "")
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_GROUP.align);
+            ws.cell(posXIteration, posYIteration + 3)
+              .string(itemData?.porcentaje ? itemData.porcentaje + "%" : "")
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_GROUP.align);
+            ws.cell(posXIteration, posYIteration + 4)
+              .string(itemData?.resultado)
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_GROUP.align);
             posXIteration++;
           }
         });
