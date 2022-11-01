@@ -4186,7 +4186,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "calificacion",
         mayBeEmpty: true,
-        pattern: /^[A-Za-z0-9\-]{0,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,4}$/,
         function: ["calificacionConInstrumento"],
       },
       {
@@ -4292,7 +4292,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "calificacion",
         mayBeEmpty: true,
-        pattern: /^[A-Za-z0-9\-]{0,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,4}$/,
         function: ["calificacionConInstrumento"],
       },
       {
@@ -5882,7 +5882,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "calificacion",
         mayBeEmpty: true,
-        pattern: /^[A-Za-z0-9\-]{0,3}$/,
+        pattern: /^[A-Za-z0-9\-]{0,4}$/,
         function: ["calificacionConInstrumento"],
       },
       {

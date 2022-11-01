@@ -488,7 +488,6 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
     let posXIteration = posXInitial;
     let posYInitial = 1;
     let posYIteration = posYInitial;
-    let posSumaTotalCounter = posXInitial;
     const conditionsAux = {
       valores: false,
     };
@@ -529,7 +528,6 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
             if (itemData?.indicador[0] === " ") {
               conditionsAux.valores = true;
             } else {
-              posSumaTotalCounter++;
               conditionsAux.valores = false;
             }
             ws.cell(posXIteration, posYIteration)
@@ -1726,10 +1724,220 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
             posXIteration++;
           }
         });
+      } else if (itemRD.codeSegurosAux === "CIR") {
+        ws.cell(
+          posXIteration,
+          posYIteration,
+          posXIteration,
+          posYIteration + 4,
+          true
+        )
+          .string(itemRD?.typeIndicatorFinal)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                left: { style: "medium" },
+                right: { style: "hair" },
+              },
+            }),
+          });
+        posXIteration++;
+        ws.cell(posXIteration, posYIteration)
+          .string(itemRD?.details)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                left: { style: "medium" },
+                right: { style: "hair" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 1)
+          .string(itemRD?.typeCoin)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(itemRD?.percentageRIR)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(itemRD?.maxLimit)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(itemRD?.result)
+          .style(styleDefault)
+          .style({
+            ...alignTextStyleReportExcel("center"),
+            ...customSingleStyleReportExcel(wb, {
+              border: {
+                top: { style: "medium" },
+                bottom: { style: "medium" },
+                right: { style: "medium" },
+              },
+            }),
+          });
+
+        posXIteration++;
+        forEach(itemRD, (itemData, indexData) => {
+          if (itemData.codeSeguros === "CIR") {
+            const VALUE_TOTAL =
+              itemData.indicador.toLowerCase().includes("final") ||
+              itemData.indicador.toLowerCase().includes("total")
+                ? {
+                    border: {
+                      border: {
+                        bottom: { style: "medium" },
+                      },
+                    },
+                    fill: customSingleStyleReportExcel(wb, {
+                      fill: {
+                        type: "pattern",
+                        patternType: "solid",
+                        fgColor: "8EA9DB",
+                      },
+                    }),
+                    align: alignTextStyleReportExcel("center"),
+                    fontBold: (bold = true) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : {
+                    border: {},
+                    fill: {},
+                    align: alignTextStyleReportExcel("center"),
+                    fontBold: () => {
+                      return {};
+                    },
+                  };
+            const VALUE_GROUP =
+              size(trim(itemData?.indicador)) > 0
+                ? {
+                    value: itemData.indicador,
+                    key: "indicador",
+                    indent: indentStyleReportExcel(3, 3),
+                    align: alignTextStyleReportExcel("center"),
+                    style: {
+                      ...customSingleStyleReportExcel(wb, {
+                        border: {
+                          bottom: { style: "dashed" },
+                          right: { style: "thin" },
+                          left: { style: "medium" },
+                        },
+                      }),
+                    },
+                    fontBold: (bold = false) => {
+                      return customSingleStyleReportExcel(wb, {
+                        font: {
+                          bold,
+                        },
+                      });
+                    },
+                  }
+                : {
+                    value: "Sin información",
+                    key: "",
+                    indent: {},
+                    style: {},
+                    align: {},
+                    fontBold: (bold) => {
+                      return {};
+                    },
+                  };
+            ws.cell(posXIteration, posYIteration)
+              .string(`${VALUE_GROUP.value}`)
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.indent)
+              .style(VALUE_GROUP.fontBold())
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fontBold());
+            ws.cell(posXIteration, posYIteration + 1)
+              .number(parseFloat(itemData?.total_usd))
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold())
+              .style(VALUE_GROUP.align)
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
+            ws.cell(posXIteration, posYIteration + 2)
+              .string(itemData?.rir ? itemData.rir + "%" : "")
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_GROUP.align)
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
+            ws.cell(posXIteration, posYIteration + 3)
+              .string(itemData?.porcentaje ? itemData.porcentaje + "%" : "")
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_GROUP.align)
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
+            ws.cell(posXIteration, posYIteration + 4)
+              .string(itemData?.resultado)
+              .style(styleDefault)
+              .style(VALUE_GROUP.style)
+              .style(VALUE_GROUP.fontBold(false))
+              .style(VALUE_GROUP.align)
+              .style(VALUE_TOTAL.border)
+              .style(VALUE_TOTAL.fill)
+              .style(VALUE_TOTAL.fontBold())
+              .style(VALUE_TOTAL.align);
+
+            posXIteration++;
+          }
+        });
       }
       posXIteration += 1;
       posXInitial = posXIteration;
-      posSumaTotalCounter = posXIteration;
     });
   }
 }

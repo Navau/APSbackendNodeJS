@@ -296,21 +296,71 @@ async function APSMallas(req, res) {
       return null;
     }
     //#endregion
+    //#region OBTENIENDO INFORMACION DE APS_seguros_view_CIR
+    const queryCIR = EscogerInternoUtil("APS_seguros_view_CIR", {
+      select: [
+        "cod_institucion",
+        "fecha_informacion",
+        "tipo_indicador",
+        "indicador",
+        "total_usd",
+        "rir",
+        "porcentaje",
+        "resultado",
+      ],
+      where: [
+        {
+          key: "fecha_informacion",
+          value: fecha,
+        },
+        {
+          key: "cod_institucion",
+          valuesWhereIn: segurosIdData,
+          whereIn: true,
+        },
+      ],
+      orderby: {
+        field: "cod_institucion, indicador",
+      },
+    });
+
+    const segurosCIR = await pool
+      .query(queryCIR)
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result: result.rows };
+        else return { ok: false, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+
+    if (segurosCIR.ok === null) {
+      respErrorServidor500END(res, segurosCIR.err);
+      return null;
+    } else if (segurosCIR.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, segurosCIR.result);
+      return null;
+    }
+    //#endregion
+
     //#region JUNTANDO TODA LA INFORMACION EN segurosDataFinal
-    forEach(segurosRIR.result, (itemI, indexI) => {
+    forEach(segurosRIR.result, (itemI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "RIR") : "";
     });
-    forEach(segurosRIA.result, (itemI, indexI) => {
+    forEach(segurosRIA.result, (itemI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "RIA") : "";
     });
-    forEach(segurosCIG.result, (itemI, indexI) => {
+    forEach(segurosCIG.result, (itemI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CIG") : "";
     });
-    forEach(segurosCIE.result, (itemI, indexI) => {
+    forEach(segurosCIE.result, (itemI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CIE") : "";
     });
-    forEach(segurosCEM.result, (itemI, indexI) => {
+    forEach(segurosCEM.result, (itemI) => {
       !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CEM") : "";
+    });
+    forEach(segurosCIR.result, (itemI) => {
+      !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "CIR") : "";
     });
 
     const segurosCEMFinal = singleFormatDataReportExcel(
@@ -324,8 +374,8 @@ async function APSMallas(req, res) {
       ...segurosCIG.result,
       ...segurosCIE.result,
       ...segurosCEMFinal,
+      ...segurosCIR.result,
     ];
-    console.log(segurosDataFinal);
     //#endregion
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
