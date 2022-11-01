@@ -63,6 +63,7 @@ const nivelPUCRoute = require("./parametro/nivelPUC.parametro.route");
 const planCuentasRoute = require("./parametro/planCuentas.parametro.route");
 const paisRoute = require("./parametro/pais.parametro.route");
 const rangoPlazoRoute = require("./parametro/rangoPlazo.parametro.route");
+const reportesRoute = require("./parametro/reportes.parametro.route");
 const sectorEconomicoRoute = require("./parametro/sectorEconomico.parametro.route");
 const tipoInstrumentoRoute = require("./parametro/tipoInstrumento.parametro.route");
 const tipoOperacionRoute = require("./parametro/tipoOperacion.parametro.route");
@@ -140,6 +141,7 @@ function routerApi(app) {
 
   //#region REPORTES
   //#region SEGUROS
+  router.use("/Reportes", reportesRoute);
   router.use("/Reporte", reporteAPSMallasRoute);
   //#endregion
   //#endregion
