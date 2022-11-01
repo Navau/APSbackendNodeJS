@@ -23,7 +23,7 @@ const {
 async function APSMallas(req, res) {
   try {
     const { fecha } = req.body;
-    const nameExcelExport = "Reporte-APS-Mallas-test.xlsx";
+    const nameExcelExport = "Reporte-APS-Mallas.xlsx";
 
     //#region OBTENIENDO INFORMACION DE APS_seguros_view_malla_cabecera
     const queryHeaders = EscogerInternoUtil("APS_seguros_view_malla_cabecera", {
