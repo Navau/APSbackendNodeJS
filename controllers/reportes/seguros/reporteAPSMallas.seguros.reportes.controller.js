@@ -367,7 +367,6 @@ async function APSMallas(req, res) {
       "CEM",
       segurosCEM.result
     );
-    console.log("TEST");
 
     const segurosDataFinal = [
       ...segurosRIR.result,
