@@ -17,6 +17,11 @@ api.post(
   controller.SiglaDescripcion
 );
 api.post(
+  "/TipoInstrumentoDetalle",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.TipoInstrumentoDetalle
+);
+api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Insertar

@@ -17,6 +17,9 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_tipo_instrumento";
@@ -120,6 +123,58 @@ function SiglaDescripcion(req, res) {
       }
     }
   });
+}
+
+function TipoInstrumentoDetalle(req, res) {
+  const query = EscogerInternoUtil(nameTable, {
+    select: [
+      "id_tipo_instrumento",
+      "sigla",
+      "descripcion",
+      "id_grupo",
+      "es_seriado",
+      "id_tipo_renta",
+      "id_tipo_mercado",
+      "activo",
+    ],
+    where: [
+      {
+        key: "es_seriado",
+        value: true,
+      },
+      {
+        key: "id_tipo_renta",
+        valuesWhereIn: [135, 136],
+        whereIn: true,
+      },
+      {
+        key: "activo",
+        value: true,
+      },
+      {
+        key: "id_grupo",
+        valuesWhereIn: [210],
+        whereIn: true,
+        searchCriteriaWhereIn: "111,119,121,126,127",
+      },
+    ],
+    orderby: {
+      field: "sigla",
+    },
+  });
+
+  pool
+    .query(query)
+    .then((result) => {
+      if (result.rowCount > 0) {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      } else {
+        respResultadoIncorrectoObjeto200(res, result.rows);
+      }
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA INSERTAR UN TIPO INSTRUMENTO
@@ -230,4 +285,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   SiglaDescripcion,
+  TipoInstrumentoDetalle,
 };

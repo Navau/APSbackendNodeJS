@@ -1,4 +1,4 @@
-const { map } = require("lodash");
+const { map, forEach } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 const nodemailer = require("nodemailer");
@@ -29,6 +29,9 @@ const {
   respResultadoIncorrectoObjeto200,
   respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
+
+const dayjs = require("dayjs");
+require("dayjs/locale/es");
 
 const nameTable = "APS_aud_errores_carga_archivos_pensiones_seguros";
 
@@ -149,15 +152,20 @@ async function Reporte(req, res) {
   }
 
   function formatDate(date) {
-    return (
-      [
-        date.getFullYear(),
-        padTo2Digits(date.getMonth() + 1),
-        padTo2Digits(date.getDate()),
-      ].join("-") +
-      " " +
-      [padTo2Digits(date.getHours()), padTo2Digits(date.getMinutes())].join(":")
-    );
+    if (dayjs(date).isValid()) {
+      return (
+        [
+          date.getFullYear(),
+          padTo2Digits(date.getMonth() + 1),
+          padTo2Digits(date.getDate()),
+        ].join("-") +
+        " " +
+        [padTo2Digits(date.getHours()), padTo2Digits(date.getMinutes())].join(
+          ":"
+        )
+      );
+    }
+    return null;
   }
   const { fecha, periodo, resultado } = req.body;
   const resultadoFinal =
@@ -190,10 +198,10 @@ async function Reporte(req, res) {
       .then((result) => {
         if (result.rowCount > 0) {
           const resultFinal = [];
-          map(result.rows, (item, index) => {
+          forEach(result.rows, (item, index) => {
             resultFinal.push({
               ...item,
-              fecha_carga: formatDate(item.fecha_carga),
+              fecha_carga: formatDate(new Date(item.fecha_carga)),
             });
           });
           respResultadoCorrectoObjeto200(res, resultFinal);

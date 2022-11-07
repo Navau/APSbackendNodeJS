@@ -63,6 +63,8 @@ async function APSMallas(req, res) {
       const resultItem = `'${item.id_entidad}'`;
       return resultItem;
     });
+    // console.log("segurosHeadersUniques", segurosHeadersUniques);
+    // console.log("segurosIdData", segurosIdData);
     //#endregion
     //#region OBTENIENDO INFORMACION DE APS_seguros_view_RIR
     const queryRIR = EscogerInternoUtil("APS_seguros_view_RIR", {
@@ -376,6 +378,7 @@ async function APSMallas(req, res) {
       ...segurosCEMFinal,
       ...segurosCIR.result,
     ];
+    console.log("segurosCIG", segurosCIG.result);
     //#endregion
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
