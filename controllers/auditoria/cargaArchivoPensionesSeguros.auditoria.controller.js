@@ -1,4 +1,4 @@
-const { map } = require("lodash");
+const { map, forEach } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 
@@ -28,6 +28,7 @@ const {
   respResultadoVacio404END,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
+const dayjs = require("dayjs");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 

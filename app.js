@@ -4,6 +4,7 @@ const RouterApi = require("./routes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+process.env.TZ = "es-BO";
 
 //Configure Header HTTP
 app.use((req, res, next) => {

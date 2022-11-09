@@ -378,7 +378,7 @@ async function APSMallas(req, res) {
       ...segurosCEMFinal,
       ...segurosCIR.result,
     ];
-    console.log("segurosCIG", segurosCIG.result);
+    // console.log("segurosCIG", segurosCIG.result);
     //#endregion
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO

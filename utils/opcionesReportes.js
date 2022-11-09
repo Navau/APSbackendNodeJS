@@ -232,17 +232,6 @@ function formatDataReportExcel(headers, body, wb) {
   //#region CLASIFICANDO LAS INSTITUCIONES DE body
   const segurosClassified = {};
   let valueIdEntidadAux = null;
-  body.push({
-    cod_institucion: "301",
-    fecha_informacion: new Date(),
-    tipo_indicador: "Peticion de Inversión Reportados",
-    indicador: "Detalle de Cartera Inversiones en exceso",
-    valor: "3983900.78",
-    compra: "6.86000",
-    id_limite: 0,
-    id_indicador: 10,
-    codeSeguros: "RIR",
-  });
   forEach(body, (item, index) => {
     const idEntidadAux = item?.cod_institucion
       ? item?.cod_institucion
@@ -276,7 +265,10 @@ function formatDataReportExcel(headers, body, wb) {
       },
     };
     headerStyleReportExcel(ws, wb, dataReportHeader);
-    const entidadClassified = segurosClassified[`${item.id_entidad}`];
+    const entidadClassified =
+      size(segurosClassified[`${item.id_entidad}`]) > 0
+        ? segurosClassified[`${item.id_entidad}`]
+        : [];
     // console.log("id_entidad", item.id_entidad);
     // console.log("segurosDataFinal", segurosClassified);
     // console.log("entidadClassified", entidadClassified);
