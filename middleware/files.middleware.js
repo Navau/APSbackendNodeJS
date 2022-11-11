@@ -46,6 +46,7 @@ const {
   respErrorServidor500END,
   respArchivoErroneo200,
 } = require("../utils/respuesta.utils");
+const dayjs = require("dayjs");
 
 var nameTable = "";
 var codeCurrentFile = "";
@@ -4351,6 +4352,7 @@ exports.validarArchivo = async (req, res, next) => {
             map(req.files, (item, index) => {
               currentFiles.push(item.originalname);
             });
+            process.env.TZ = "America/La_Paz";
             bodyQuery.push({
               id_rol,
               fecha_operacion: fechaInicialOperacion,

@@ -28,67 +28,9 @@ const {
   respResultadoVacio404END,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
-const { formatearFechaDeInformacion } = require("../../utils/formatearDatos");
+const dayjs = require("dayjs");
 
-const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
-// async function obtenerFechaOperacion(req, res) {
-//   const { tipo } = req.body;
-
-//   const addDays = (date, days) => {
-//     date.setDate(date.getDate() + days);
-//     return date;
-//   };
-
-//   const fechaOperacionMensual = () => {
-//     const uploadDate = new Date();
-//     const year = uploadDate.getFullYear();
-//     const month = uploadDate.getMonth();
-//     const day = uploadDate.getDay();
-//     const firstDayMonth = new Date(year, month, 1);
-//     const fechaOperacion = addDays(firstDayMonth, -1);
-
-//     return fechaOperacion;
-//   };
-//   const fechaOperacionDiaria = () => {
-//     const uploadDate = new Date();
-//     const fechaOperacion = addDays(uploadDate, -1);
-
-//     return fechaOperacion;
-//   };
-//   const fechaOperacionDiaHabil = () => {
-//     const uploadDate = new Date();
-//     const checkDate = addDays(uploadDate, -1);
-//     const day = checkDate.getUTCDay();
-//     let fechaOperacion = null;
-//     if (day === 1) {
-//       //SI ES LUNES
-//       fechaOperacion = addDays(uploadDate, -3); // ENTONCES SERA VIERNES
-//     } else if (day === 0) {
-//       // SI ES DOMINGO
-//       fechaOperacion = addDays(uploadDate, -2); // ENTONCES SERA VIERNES
-//     } else {
-//       // SI ES SABADO
-//       fechaOperacion = checkDate; // ENTONCES SERA VIERNES
-//     }
-//     return fechaOperacion;
-//   };
-
-//   const FECHA_OPERACION = {
-//     M: fechaOperacionMensual(),
-//     D: fechaOperacionDiaria(),
-//     DH: fechaOperacionDiaHabil(),
-//   };
-
-//   if (isNaN(Date.parse(FECHA_OPERACION[tipo]))) {
-//     respErrorServidor500END(res, {
-//       message: "Hubo un error al obtener la fecha de operación.",
-//       value: FECHA_OPERACION[tipo],
-//     });
-//   } else {
-//     respResultadoCorrectoObjeto200(res, FECHA_OPERACION[tipo]);
-//   }
-// }
+const nameTable = "APS_aud_carga_archivos_pensiones";
 
 async function ValorMaximo(req, res) {
   const { max, periodicidad } = req.body;
@@ -328,7 +270,7 @@ async function UltimaCarga2(req, res) {
   END AS Cargado 
   FROM ( 
     SELECT coalesce(max(id_carga_archivos), 0) AS maxid 
-    FROM public."APS_aud_carga_archivos_pensiones_seguros" AS pen 
+    FROM public."APS_aud_carga_archivos_pensiones" AS pen 
     INNER JOIN "APS_seg_institucion" AS int 
     ON int.codigo = pen.cod_institucion 
     INNER JOIN "APS_seg_usuario" AS usuario 
@@ -336,7 +278,7 @@ async function UltimaCarga2(req, res) {
     WHERE usuario.id_usuario=${id_usuario} 
     AND pen.id_periodo=${periodicidad} 
     AND pen.fecha_operacion = '${fecha_operacion}') AS max_id 
-    LEFT JOIN "APS_aud_carga_archivos_pensiones_seguros" AS datos 
+    LEFT JOIN "APS_aud_carga_archivos_pensiones" AS datos 
     ON max_id.maxid = datos.id_carga_archivos
   `;
 
@@ -450,10 +392,6 @@ function Escoger(req, res) {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);
         } else {
-          // respResultadoCorrectoObjeto200(
-          //   res,
-          //   formatearFechaDeInformacion(result.rows)
-          // );
           respResultadoCorrecto200(res, result);
         }
       }

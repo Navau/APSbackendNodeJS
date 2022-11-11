@@ -1,10 +1,11 @@
 const express = require("express");
 const app = express();
 const RouterApi = require("./routes");
+const jsonData = require("tzdata");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-process.env.TZ = "es-BO";
+process.env.TZ = "America/La_Paz";
 
 //Configure Header HTTP
 app.use((req, res, next) => {

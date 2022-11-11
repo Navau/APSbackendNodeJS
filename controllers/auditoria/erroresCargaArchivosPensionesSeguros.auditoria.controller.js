@@ -298,6 +298,9 @@ async function Reporte2(req, res) {
 
 async function EnviarCorreo(req, res) {
   const { email, subject, description, id_rol } = req.body;
+  if (!id_rol) {
+    respDatosNoRecibidos400(res, "No se envio el id_rol para la petición");
+  }
   const resultArray = [];
   const errorsArray = [];
   try {
