@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 const RouterApi = require("./routes");
-const jsonData = require("tzdata");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

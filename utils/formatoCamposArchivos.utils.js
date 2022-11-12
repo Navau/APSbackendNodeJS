@@ -7265,14 +7265,14 @@ async function plazoCupon(params) {
     };
   }
 
-  if (nro_pago > 1) {
+  if (nro_pago > 0) {
     if (plazo_cupon <= 0) {
       return {
         ok: false,
-        message: `El campo nro_pago es mayor a 1 por lo tanto plazo_cupon debe ser mayor a 0`,
+        message: `El campo nro_pago es mayor a 0 por lo tanto plazo_cupon debe ser mayor a 0`,
       };
     }
-  } else if (nro_pago === 1) {
+  } else if (nro_pago === 0) {
     if (plazo_cupon !== 0) {
       return {
         ok: false,
