@@ -16,7 +16,7 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.SiglaDescripcion
 );
-api.post(
+api.get(
   "/TipoInstrumentoDetalle",
   [md_auth.AsegurarAutenticacionConToken],
   controller.TipoInstrumentoDetalle

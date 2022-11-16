@@ -153,9 +153,9 @@ function TipoInstrumentoDetalle(req, res) {
       },
       {
         key: "id_grupo",
-        valuesWhereIn: [210],
+        valuesWhereIn: [111, 119, 121, 126, 127],
         whereIn: true,
-        searchCriteriaWhereIn: "111,119,121,126,127",
+        searchCriteriaWhereIn: "NOT IN",
       },
     ],
     orderby: {
