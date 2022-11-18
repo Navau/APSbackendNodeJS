@@ -9,9 +9,12 @@ const {
   findIndex,
   indexOf,
   size,
+  filter,
 } = require("lodash");
-require("dayjs/locale/es");
+const fs = require("fs");
+const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 
+require("dayjs/locale/es");
 dayjs.locale("es");
 
 function alignTextStyleReportExcel(horizontal, vertical) {
@@ -356,15 +359,93 @@ function formatDataReportExcel(headers, body, wb) {
   });
 }
 
-function SUMARExcelReport(x1, x2, y1) {
-  let sumaFinal = "+";
+function formatDataChartsReportExcel(fecha, body, wb) {
+  // //#region CLASIFICANDO POR TIPO_INDICADOR LA INFORMACION Y TAMBIEN AÑADIENDO TIPO_INDICADOR_FINAL A CADA CLASIFICACION
+  // for (const dataEntidad of body) {
+  //   let TIPO_INDICADOR = {
+  //     indicador: null,
+  //   };
+  //   if (
+  //     dataEntidad?.tipo_instrumento &&
+  //     dataEntidad.codeSeguros === "BC1_4"
+  //   ) {
+  //     TIPO_INDICADOR.indicador = dataEntidad.tipo_instrumento;
+  //   }
 
-  for (let i = x1; i <= x2; i++) {
-    sumaFinal += `${toAlpha(y1)}${i}+`;
-    console.log("sumaFinal", sumaFinal);
-  }
-  sumaFinal = sumaFinal.substring(0, sumaFinal.length - 2);
-  return sumaFinal;
+  //   if (tipoIndicador !== TIPO_INDICADOR.indicador) {
+  //     tipoIndicador = TIPO_INDICADOR.indicador;
+  //     indicadoresArray[
+  //       TIPO_INDICADOR.indicador + "-" + dataEntidad.codeSeguros
+  //     ] = [dataEntidad];
+  //   } else {
+  //     indicadoresArray[
+  //       TIPO_INDICADOR.indicador + "-" + dataEntidad.codeSeguros
+  //     ] = [
+  //       ...indicadoresArray[
+  //         TIPO_INDICADOR.indicador + "-" + dataEntidad.codeSeguros
+  //       ],
+  //       dataEntidad,
+  //     ];
+  //   }
+  // }
+
+  // #region AÑADIENDO CAMPOS NECESARIOS AL OBJETO FINAL
+  !("codeSegurosAux" in body)
+    ? (body["codeSegurosAux"] = body[0].codeSeguros)
+    : "";
+
+  !("header" in body)
+    ? (body["header"] = {
+        acronym: "BC1_4",
+        title: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+          .locale("es")
+          .format("DD [DE] MMMM [DE] YYYY")
+          .toUpperCase()}`,
+        portfolio: "CARTERA VALORADA A PRECIOS DE  MERCADO",
+        date: fecha,
+        expressedIn: "Bolivianos",
+      })
+    : "";
+
+  !("typeInstrument" in body)
+    ? (body["typeInstrument"] = "TIPO INSTRUMENTO")
+    : "";
+
+  !("dateInfoM1" in body)
+    ? (body["dateInfoM1"] = dayjs(body?.[0]?.fecha_informacion_m1)
+        .locale("es")
+        .format("MMMM YYYY")
+        .toUpperCase())
+    : "";
+  !("dateInfoM2" in body)
+    ? (body["dateInfoM2"] = dayjs(body?.[0]?.fecha_informacion_m2)
+        .locale("es")
+        .format("MMMM YYYY")
+        .toUpperCase())
+    : "";
+
+  !("portfolioValueM1" in body)
+    ? (body["portfolioValueM1"] = "Valor de cartera")
+    : "";
+  !("participationM1" in body)
+    ? (body["participationM1"] = "Participación %")
+    : "";
+  !("portfolioValueM2" in body)
+    ? (body["portfolioValueM2"] = "Valor de cartera")
+    : "";
+  !("participationM2" in body)
+    ? (body["participationM2"] = "Participación %")
+    : "";
+  //#endregion
+  //#endregion
+  const ws = wb.addWorksheet(body.codeSegurosAux); // HOJA DE INSTITUCION
+
+  const dataReportBody = {
+    code: body.codeSegurosAux,
+    data: body,
+  };
+  // console.log(dataReportBody.data);
+  bodyCommonStyleReportExcel(ws, wb, dataReportBody);
 }
 
 function headerStyleReportExcel(ws, wb, report) {
@@ -472,7 +553,95 @@ function headerStyleReportExcel(ws, wb, report) {
   }
 }
 
-function bodyCommonStyleReportExcel(ws, wb, report) {
+async function createChart(data, labels, header) {
+  const width = 800; //px
+  const height = 400; //px
+  const backgroundColour = "white"; // Uses https://www.w3schools.com/tags/canvas_fillstyle.asp
+  const chartJSNodeCanvas = new ChartJSNodeCanvas({
+    width,
+    height,
+    backgroundColour,
+  });
+
+  const configuration = {
+    type: "pie", // for line chart
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Sample 1",
+          data: data,
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.2)",
+            "rgba(54, 162, 235, 0.2)",
+            "rgba(255, 206, 86, 0.2)",
+            "rgba(75, 192, 192, 0.2)",
+            "rgba(153, 102, 255, 0.2)",
+            "rgba(255, 159, 64, 0.2)",
+          ],
+          borderColor: [
+            "rgba(255, 99, 132, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255, 206, 86, 1)",
+            "rgba(75, 192, 192, 1)",
+            "rgba(153, 102, 255, 1)",
+            "rgba(255, 159, 64, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      title: header.title,
+      layout: {
+        padding: 30,
+      },
+      interaction: {
+        mode: "nearest",
+      },
+      plugins: {
+        legend: {
+          position: "right",
+          labels: {
+            font: {
+              size: 12,
+            },
+          },
+        },
+        tooltip: {
+          enabled: true,
+        },
+      },
+    },
+  };
+
+  async function run() {
+    const dataUrl = await chartJSNodeCanvas.renderToDataURL(configuration);
+    const base64Image = dataUrl;
+
+    var base64Data = base64Image.replace(/^data:image\/png;base64,/, "");
+
+    const dateChart = dayjs()
+      .tz("America/La_Paz")
+      .format("DD-MM-YYYY_HH-mm-ss");
+
+    fs.writeFile(
+      `reports/charts/${dateChart}.png`,
+      base64Data,
+      "base64",
+      function (err) {
+        if (err) {
+          console.log(err);
+        }
+      }
+    );
+    return dateChart;
+  }
+  return await run();
+}
+
+async function bodyCommonStyleReportExcel(ws, wb, report) {
   // console.log(report.data);
   if (report.code === "ALI-G" || report.code === "INN-R") {
     const styleDefault = defaultStyleReportExcel("body");
@@ -1931,6 +2100,299 @@ function bodyCommonStyleReportExcel(ws, wb, report) {
       posXIteration += 1;
       posXInitial = posXIteration;
     });
+  } else if (report.code === "BC1_4") {
+    const styleDefault = defaultStyleReportExcel("body");
+    let posXInitial = 4;
+    let posXIteration = posXInitial;
+    let posYInitial = 1;
+    let posYIteration = posYInitial;
+    const data = report?.data;
+    // console.log("data", data);
+    ws.column(1).setWidth(70);
+    ws.column(2).setWidth(25);
+    ws.column(3).setWidth(25);
+    ws.column(4).setWidth(25);
+    ws.column(5).setWidth(25);
+    ws.column(6).setWidth(25);
+    //#region CABECERAS
+    const cellHeaderStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        font: {
+          color: "#FFFFFF",
+          size: 14,
+        },
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "366092",
+        },
+        border: {
+          top: { style: "hair" },
+          bottom: { style: "hair" },
+          left: { style: "hair" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    const cellTitleStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "95B3D7",
+        },
+        border: {
+          top: { style: "medium" },
+          bottom: { style: "medium" },
+          left: { style: "medium" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(data?.header.title)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(data?.header.portfolio)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(`Expresado en ${data?.header.expressedIn}`)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration + 1,
+      posYIteration,
+      true
+    )
+      .string(data?.typeInstrument)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 1,
+      posXIteration,
+      posYIteration + 2,
+      true
+    )
+      .string(data?.dateInfoM1)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 1)
+      .string(data?.portfolioValueM1)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 2)
+      .string(data?.participationM1)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 3,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(data?.dateInfoM2)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 3)
+      .string(data?.portfolioValueM2)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 4)
+      .string(data?.participationM2)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    //#endregion
+    posXIteration += 2;
+    forEach(data, (itemData, indexData) => {
+      if (itemData.codeSeguros === "BC1_4") {
+        //#region ESTIDLOS BODY
+        const VALUE_TOTAL =
+          itemData.tipo_instrumento.toLowerCase().includes("final") ||
+          itemData.tipo_instrumento.toLowerCase().includes("total")
+            ? {
+                border: {
+                  border: {
+                    bottom: { style: "medium" },
+                  },
+                },
+                fill: customSingleStyleReportExcel(wb, {
+                  fill: {
+                    type: "pattern",
+                    patternType: "solid",
+                    fgColor: "8EA9DB",
+                  },
+                }),
+                align: alignTextStyleReportExcel("center"),
+                fontBold: (bold = true) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                border: {},
+                fill: {},
+                align: alignTextStyleReportExcel("center"),
+                fontBold: () => {
+                  return {};
+                },
+              };
+        const VALUE_GROUP =
+          size(trim(itemData?.tipo_instrumento)) > 0
+            ? {
+                value: itemData.tipo_instrumento,
+                key: "tipo_instrumento",
+                indent: indentStyleReportExcel(3, 3),
+                align: alignTextStyleReportExcel("center"),
+                style: {
+                  ...customSingleStyleReportExcel(wb, {
+                    border: {
+                      bottom: { style: "dashed" },
+                      right: { style: "thin" },
+                      left: { style: "medium" },
+                    },
+                  }),
+                },
+                fontBold: (bold = false) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                value: "Sin información",
+                key: "",
+                indent: {},
+                style: {},
+                align: {},
+                fontBold: (bold) => {
+                  return {};
+                },
+              };
+        //#endregion
+        ws.cell(posXIteration, posYIteration)
+          .string(`${VALUE_GROUP.value}`)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.indent)
+          .style(VALUE_GROUP.fontBold())
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 1)
+          .string(itemData?.valor_cartera_m1)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(
+            itemData?.participacion_m1 ? itemData.participacion_m1 + "%" : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(itemData?.valor_cartera_m2)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(
+            itemData?.participacion_m2 ? itemData.participacion_m2 + "%" : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        posXIteration++;
+      }
+    });
+
+    posXIteration += 1;
+    posXInitial = posXIteration;
+
+    const labelsChart = [];
+    forEach(data, (item) => {
+      if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+        labelsChart.push(
+          item.tipo_instrumento + " " + item.participacion_m2 + "%"
+        );
+      }
+    });
+    const dataChart = [];
+    forEach(data, (item) => {
+      if (item?.participacion_m2) {
+        if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+          dataChart.push(item.participacion_m2);
+        }
+      }
+    });
+
+    const image = await createChart(dataChart, labelsChart, data.header);
+    const pathImage = path.join("reports/charts", `${image}.png`);
   }
 }
 
@@ -1942,4 +2404,6 @@ module.exports = {
   bodyCommonStyleReportExcel,
   formatDataReportExcel,
   singleFormatDataReportExcel,
+  formatDataChartsReportExcel,
+  createChart,
 };
