@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map, filter, isEmpty } = require("lodash");
+const { map, filter, isEmpty, forEach, find, chunk } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -129,6 +129,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
         paramsUnico: null,
         paramsSingleGroup: null,
+        paramsGrouping: null,
         paramsCiudad: null,
         paramsTipoBienInmueble: null,
         paramsTotalVidaUtil: null,
@@ -1188,6 +1189,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".482")) {
         console.log("ARCHIVO CORRECTO : 482", nameFile);
         PARAMS.codeCurrentFile = "482";
@@ -1496,6 +1498,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".483")) {
         console.log("ARCHIVO CORRECTO : 483", nameFile);
         PARAMS.codeCurrentFile = "483";
@@ -2973,6 +2976,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes("BG")) {
         console.log(
           `ARCHIVO CORRECTO : BG.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -4137,11 +4141,13 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoInstrumento"],
+        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: [],
+        singleGroup: true,
       },
       {
         columnName: "codigo_valoracion",
@@ -4200,6 +4206,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -4208,11 +4215,14 @@ async function obtenerValidaciones(typeFile) {
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
+        singleGroup: true,
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z0-9\-]{2,3}$/,
         function: ["tipoValoracionConsultaMultiple"],
+        singleGroup: true,
+        endSingleGroup: true,
       },
       {
         columnName: "fecha_ultimo_hecho",
@@ -4243,11 +4253,13 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoInstrumento"],
+        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: [],
+        singleGroup: true,
       },
       {
         columnName: "codigo_valoracion",
@@ -4306,6 +4318,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -4314,11 +4327,14 @@ async function obtenerValidaciones(typeFile) {
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
+        singleGroup: true,
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z0-9\-]{2,3}$/,
         function: ["tipoValoracionConsultaMultiple"],
+        singleGroup: true,
+        endSingleGroup: true,
       },
       {
         columnName: "fecha_ultimo_hecho",
@@ -5833,11 +5849,13 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoInstrumento"],
+        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: [],
+        singleGroup: true,
       },
       {
         columnName: "codigo_valoracion",
@@ -5896,6 +5914,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -5904,11 +5923,14 @@ async function obtenerValidaciones(typeFile) {
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
+        singleGroup: true,
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z0-9\-]{2,3}$/,
         function: ["tipoValoracionConsultaMultiple"],
+        singleGroup: true,
+        endSingleGroup: true,
       },
       {
         columnName: "fecha_ultimo_hecho",
@@ -8091,7 +8113,7 @@ async function unico(params) {
 }
 
 async function grupoUnico(params) {
-  const { fileArrayValidateObject, fileArrayObject } = params;
+  const { fileArrayValidateObject, fileArrayObject, codeCurrentFile } = params;
   const fields = [];
   const result = [];
   for (let i = 0; i < fileArrayObject.length; i++) {
@@ -8128,7 +8150,12 @@ async function grupoUnico(params) {
     map(duplicates, (item, index) => {
       result.push({
         ok: false,
-        message: `La combinación de los campos debe ser único`,
+        message:
+          codeCurrentFile === "481" ||
+          codeCurrentFile === "482" ||
+          codeCurrentFile === "DC"
+            ? "Los campos no estan correcamente agrupados"
+            : `La combinación de los campos debe ser único`,
         value: item.values,
         column: item.keys,
         row: item.row,
@@ -8137,6 +8164,61 @@ async function grupoUnico(params) {
   }
 
   return result;
+}
+
+//FUNCION SIN USAR E INCOMPLETA
+async function agrupacion(params) {
+  const { fileArrayValidateObject, fileArrayObject } = params;
+  const fields = [];
+  const result = [];
+  const CONDITIONALS = {
+    groupingCode: null,
+    indexCounter: 0,
+  };
+  // console.log("fileArrayObject", fileArrayObject);
+  // console.log("fileArrayValidateObject", fileArrayValidateObject);
+  forEach(fileArrayObject, (itemA, indexA) => {
+    let keyFinal = [];
+    let valueFinal = [];
+    forEach(fileArrayValidateObject, (itemB, indexB) => {
+      const value = itemA[itemB.columnName];
+      const columnName = itemB.columnName;
+      if (itemB?.grouping === true) {
+        keyFinal.push(columnName);
+        valueFinal.push(value);
+      }
+    });
+    fields.push({
+      keys: keyFinal,
+      values: valueFinal,
+      row: indexA,
+    });
+  });
+  // CONDITIONALS.groupingCode = fields?.[0]?.values?.join("+");
+
+  forEach(fields, (itemA, indexA) => {
+    const valuesFields = itemA.values.join("+");
+    console.log("VALUEFIELDS", valuesFields);
+    if (CONDITIONALS.groupingCode !== valuesFields) {
+      CONDITIONALS.groupingCode = valuesFields;
+      CONDITIONALS.indexCounter = indexA;
+      // console.log("CONDITIONALS.groupingCode", CONDITIONALS.groupingCode);
+      // console.log("CONDITIONALS.indexCounter", CONDITIONALS.indexCounter);
+    } else {
+      // console.log(
+      //   "FILTER",
+      //   filter(fields, (itemF, indexF) => indexF > CONDITIONALS.indexCounter)
+      // );
+      // const findRepeatValue = find(
+      //   filter(fields, (itemF, indexF) => indexF > CONDITIONALS.indexCounter)
+      // );
+      // console.log(findRepeatValue);
+      // if (findRepeatValue) {
+      //   console.log("ERROR");
+      // }
+    }
+  });
+  // forEach()
 }
 
 module.exports = {
@@ -8204,4 +8286,5 @@ module.exports = {
   compararFechas,
   monedaTipoCambio,
   rango,
+  agrupacion,
 };

@@ -32,6 +32,7 @@ const {
   compararFechas,
   monedaTipoCambio,
   rango,
+  agrupacion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1235,6 +1236,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _valorNominalBs = params._valorNominalBs;
 
       let lugarNegociacionTipoOperacionAux = false;
+      let groupingAux = false;
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
@@ -1255,6 +1257,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         unique,
         singleGroup,
         endSingleGroup,
+        grouping,
         typeError,
         item2,
         index2,
@@ -4119,6 +4122,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               ? await grupoUnico({
                   fileArrayValidateObject: arrayValidateObject,
                   fileArrayObject: arrayDataObject,
+                  codeCurrentFile,
                 })
               : null;
 
@@ -4136,6 +4140,22 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               });
             }
+          }
+
+          //grouping sin USAR E INCOMPLETO
+          if (
+            grouping === true &&
+            groupingAux === false &&
+            index2 === arrayDataObject?.length - 1
+          ) {
+            console.log("TEST");
+            const _grouping = infoArchivo?.paramsGrouping
+              ? agrupacion({
+                  fileArrayValidateObject: arrayValidateObject,
+                  fileArrayObject: arrayDataObject,
+                })
+              : null;
+            groupingAux = true;
           }
         } catch (err) {
           errors.push({
@@ -4174,7 +4194,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         const item2 = arrayDataObject[index2];
         // console.log("codeCurrentFile", codeCurrentFile);
         map(arrayValidateObject, async (item3, index3) => {
-          // console.log("INDEX3", index3);
           let value = item2[item3.columnName];
           let columnName = item3.columnName;
           let pattern = item3.pattern;
@@ -4203,8 +4222,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             item3?.singleGroup === true ? item3.singleGroup : null;
           let endSingleGroup =
             item3?.endSingleGroup === true ? item3.endSingleGroup : null;
-          // console.log("ANTES DE VALIDACIONES", value);
-          // console.log("ANTES DE VALIDACIONES", errors);
+
+          let grouping = item3?.grouping === true ? item3.grouping : null;
           if (!value && (mayBeEmpty === false || mayBeEmpty === null)) {
             errors.push({
               archivo: item.archivo,
@@ -4232,6 +4251,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               unique,
               singleGroup,
               endSingleGroup,
+              grouping,
               typeError,
               item2,
               index2,
@@ -4242,7 +4262,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               index3
             );
           }
-          // console.log("DESPUES DE VALIDACIONES", errors);
         });
       }
 
