@@ -29,6 +29,9 @@ const erroresCargaArchivosCustodioRoute = require("./auditoria/erroresCargaArchi
 const erroresCargaArchivosPensionesSegurosRoute = require("./auditoria/erroresCargaArchivosPensionesSeguros.auditoria.route");
 const erroresValidaArchivosPensionesSegurosRoute = require("./auditoria/erroresValidaArchivosPensionesSeguros.auditoria.route");
 const fechaOperacionRoute = require("./auditoria/fechaOperacion.route");
+//#region VALIDACION CARTERA
+const validacionCarteraRoute = require("./auditoria/validacionCartera.auditoria.route");
+//#endregion
 //#endregion
 
 //#region Rutas Operativas (Se llama Operativas por la division en la base de datos)
@@ -149,7 +152,6 @@ function routerApi(app) {
 
   //#endregion
   //#endregion
-
   router.use("/Acceso", accessRoutes);
   router.use("/obtenerCabeceras", obtenerCabecerasRoute);
   router.use("/EscogerInterno", selectComunRoute);
@@ -168,6 +170,7 @@ function routerApi(app) {
   router.use("/Archivo443", seguroArchivo443Route);
   router.use("/Archivo444", seguroArchivo444Route);
   router.use("/Archivo445", seguroArchivo445Route);
+  router.use("/ValidacionCartera", validacionCarteraRoute);
   router.use("/CargaArchivosBolsa", cargaArchivosBolsaRoute);
   router.use("/cargaArchivosCustodio", cargaArchivosCustodioRoute);
   router.use(

@@ -437,32 +437,32 @@ function Escoger(req, res) {
   const body = req.body;
   const { id_rol } = req.user;
 
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body: {
-        ...body,
-        id_rol,
-      },
-    };
-    let query = EscogerUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
+  // if (Object.entries(body).length === 0) {
+  //   respDatosNoRecibidos400(res);
+  // } else {
+  // }
+  const params = {
+    body: {
+      ...body,
+      id_rol,
+    },
+  };
+  let query = EscogerUtil(nameTable, params);
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500(res, err);
+    } else {
+      if (!result.rowCount || result.rowCount < 1) {
+        respResultadoVacio404(res);
       } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          // respResultadoCorrectoObjeto200(
-          //   res,
-          //   formatearFechaDeInformacion(result.rows)
-          // );
-          respResultadoCorrecto200(res, result);
-        }
+        // respResultadoCorrectoObjeto200(
+        //   res,
+        //   formatearFechaDeInformacion(result.rows)
+        // );
+        respResultadoCorrecto200(res, result);
       }
-    });
-  }
+    }
+  });
 }
 
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
