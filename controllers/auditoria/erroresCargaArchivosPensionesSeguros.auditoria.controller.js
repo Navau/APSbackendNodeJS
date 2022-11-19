@@ -124,12 +124,16 @@ function Buscar(req, res) {
 //FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON ID DEL CARGA ARCHIVO PENSIONES SEGURO
 function Escoger(req, res) {
   const body = req.body;
+  const { id_rol } = req.user;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      body: body,
+      body: {
+        ...body,
+        id_rol,
+      },
     };
     let query = EscogerUtil(nameTable, params);
     pool.query(query, (err, result) => {
