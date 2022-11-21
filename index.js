@@ -16,7 +16,7 @@ connection.connect((err) => {
     console.log("ERROR", err);
     throw err;
   } else {
-    console.log("La conexión a la base de datos es correcta.");
+    console.log("La conexión a la base de datos es correcta prueba 1.");
     app.listen(PORT_SERVER, () => {
       console.log("#####################");
       console.log("###### API_REST #####");
