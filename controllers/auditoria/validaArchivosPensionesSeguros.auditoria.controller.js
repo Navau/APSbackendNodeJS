@@ -1,4 +1,13 @@
-const { map, filter, isEmpty, size } = require("lodash");
+const {
+  map,
+  filter,
+  isEmpty,
+  size,
+  uniqBy,
+  forEach,
+  includes,
+  uniq,
+} = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 
@@ -296,7 +305,7 @@ async function UltimaCarga2(req, res) {
     });
 }
 
-async function ObtenerErrores(fecha) {
+async function ObtenerErrores(fecha, codes) {
   const errorsFinalArray = [];
 
   //#region Consultas
@@ -497,166 +506,225 @@ async function ObtenerErrores(fecha) {
   if (valida411.ok === null) {
     errorsFinalArray.push({
       err: valida411.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida411.err.message}`,
+      message: `Error al obtener los errores de 411 ERROR: ${valida411.err.message}`,
     });
   }
   if (valida412.ok === null) {
     errorsFinalArray.push({
       err: valida412.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida412.err.message}`,
+      message: `Error al obtener los errores de 412 ERROR: ${valida412.err.message}`,
     });
   }
   if (valida413.ok === null) {
     errorsFinalArray.push({
       err: valida413.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida413.err.message}`,
+      message: `Error al obtener los errores de 413 ERROR: ${valida413.err.message}`,
     });
   }
   if (valida443.ok === null) {
     errorsFinalArray.push({
       err: valida443.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida443.err.message}`,
+      message: `Error al obtener los errores de 443 ERROR: ${valida443.err.message}`,
     });
   }
   if (valida451.ok === null) {
     errorsFinalArray.push({
       err: valida451.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida451.err.message}`,
+      message: `Error al obtener los errores de 451 ERROR: ${valida451.err.message}`,
     });
   }
   if (valida483.ok === null) {
     errorsFinalArray.push({
       err: valida483.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida483.err.message}`,
+      message: `Error al obtener los errores de 483 ERROR: ${valida483.err.message}`,
     });
   }
   if (valida484.ok === null) {
     errorsFinalArray.push({
       err: valida484.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida484.err.message}`,
+      message: `Error al obtener los errores de 484 ERROR: ${valida484.err.message}`,
     });
   }
   if (valida485.ok === null) {
     errorsFinalArray.push({
       err: valida485.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida485.err.message}`,
+      message: `Error al obtener los errores de 485 ERROR: ${valida485.err.message}`,
     });
   }
 
-  if (errorsFinalArray.length > 0) {
-    return {
-      ok: false,
-      result: [...errorsFinalArray],
-    };
+  if (
+    includes(codes, "461") ||
+    includes(codes, "471") ||
+    includes(codes, "491") ||
+    includes(codes, "492")
+  ) {
+    //#region Consultas
+    //#region VALIDA 461
+    const queryValida461 = EjecutarFuncionSQL("aps_valida_461", {
+      body: { fecha },
+    });
+    const valida461 = await pool
+      .query(queryValida461)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region VALIDA 491
+    const queryValida491 = EjecutarFuncionSQL("aps_valida_491", {
+      body: { fecha },
+    });
+    const valida491 = await pool
+      .query(queryValida491)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region VALIDA 461
+    const queryValida492 = EjecutarFuncionSQL("aps_valida_492", {
+      body: { fecha },
+    });
+    const valida492 = await pool
+      .query(queryValida492)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#endregion
+
+    if (valida461.ok === null) {
+      errorsFinalArray.push({
+        err: valida461.err,
+        message: `Error al obtener los errores de 461 ERROR: ${valida461.err.message}`,
+      });
+    }
+    if (valida491.ok === null) {
+      errorsFinalArray.push({
+        err: valida491.err,
+        message: `Error al obtener los errores de 491 ERROR: ${valida491.err.message}`,
+      });
+    }
+    if (valida492.ok === null) {
+      errorsFinalArray.push({
+        err: valida492.err,
+        message: `Error al obtener los errores de 492 ERROR: ${valida492.err.message}`,
+      });
+    }
+
+    if (errorsFinalArray.length > 0) {
+      return {
+        ok: false,
+        result: [...errorsFinalArray],
+      };
+    } else {
+      return {
+        ok: true,
+        result: [
+          ...calificadoraRF.result,
+          ...calificadoraRV.result,
+          ...calificadoraOA.result,
+          ...custodio.result,
+          ...valida411.result,
+          ...valida412.result,
+          ...valida443.result,
+          ...valida451.result,
+          ...valida483.result,
+          ...valida484.result,
+          ...valida485.result,
+          ...valida461.result,
+          ...valida491.result,
+          ...valida492.result,
+        ],
+      };
+    }
   } else {
-    return {
-      ok: true,
-      result: [
-        ...calificadoraRF.result,
-        ...calificadoraRV.result,
-        ...calificadoraOA.result,
-        ...custodio.result,
-        ...valida411.result,
-        ...valida412.result,
-        ...valida443.result,
-        ...valida451.result,
-        ...valida483.result,
-        ...valida484.result,
-        ...valida485.result,
-      ],
-    };
-  }
-}
-
-async function ObtenerErroresMensual(fecha) {
-  const errorsFinalArray = [];
-
-  //#region Consultas
-  //#region VALIDA 461
-  const queryValida461 = EjecutarFuncionSQL("aps_valida_461", {
-    body: { fecha },
-  });
-  const valida461 = await pool
-    .query(queryValida461)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  //#endregion
-  //#region VALIDA 491
-  const queryValida491 = EjecutarFuncionSQL("aps_valida_491", {
-    body: { fecha },
-  });
-  const valida491 = await pool
-    .query(queryValida491)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  //#endregion
-  //#region VALIDA 461
-  const queryValida492 = EjecutarFuncionSQL("aps_valida_492", {
-    body: { fecha },
-  });
-  const valida492 = await pool
-    .query(queryValida492)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  //#endregion
-  //#endregion
-
-  if (valida461.ok === null) {
-    errorsFinalArray.push({
-      err: valida461.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida461.err.message}`,
-    });
-  }
-  if (valida491.ok === null) {
-    errorsFinalArray.push({
-      err: valida491.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida491.err.message}`,
-    });
-  }
-  if (valida492.ok === null) {
-    errorsFinalArray.push({
-      err: valida492.err,
-      message: `Error al obtener los errores de Custodio ERROR: ${valida492.err.message}`,
-    });
-  }
-
-  if (errorsFinalArray.length > 0) {
-    return {
-      ok: false,
-      result: [...errorsFinalArray],
-    };
-  } else {
-    return {
-      ok: true,
-      result: [...valida461.result, ...valida491.result, ...valida492.result],
-    };
+    if (errorsFinalArray.length > 0) {
+      return {
+        ok: false,
+        result: [...errorsFinalArray],
+      };
+    } else {
+      return {
+        ok: true,
+        result: [
+          ...calificadoraRF.result,
+          ...calificadoraRV.result,
+          ...calificadoraOA.result,
+          ...custodio.result,
+          ...valida411.result,
+          ...valida412.result,
+          ...valida443.result,
+          ...valida451.result,
+          ...valida483.result,
+          ...valida484.result,
+          ...valida485.result,
+        ],
+      };
+    }
   }
 }
 
 async function Validar(req, res) {
   try {
-    const { fecha } = req.body;
+    const { fecha, id_rol_archivos } = req.body;
     const { id_rol, id_usuario } = req.user;
+    //#region SELECCIONANDO ARCHIVOS REQUERIDOS
+    const idRolFinal = id_rol_archivos ? id_rol_archivos : req.user.id_rol;
+    const params = {
+      body: {
+        fecha,
+        idRolFinal,
+      },
+    };
+    const queryFilesRequired = EjecutarFuncionSQL(
+      "aps_archivos_a_validar",
+      params
+    );
+    const filesRequired = await pool
+      .query(queryFilesRequired)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          return {
+            ok: true,
+            result: result.rows,
+          };
+        } else {
+          return {
+            ok: false,
+            result: result.rows,
+          };
+        }
+      })
+      .catch((err) => {
+        return {
+          ok: null,
+          err,
+        };
+      });
+
+    if (filesRequired.err) {
+      respErrorServidor500END(res, filesRequired.err);
+      return null;
+    }
+    if (!filesRequired.ok) {
+      respResultadoVacio404END(res, "No existen archivos a validar");
+      return null;
+    }
+    //#endregion
+
     const errorsFinalArray = [];
-    const withErrorsArray = [];
-    const withoutErrorsArray = [];
     const resultFinalArray = [];
     const idValidaArchivos = [];
     const instituciones = [];
     const institucionesError = [];
-    let isError = false;
     const unique = (array) => {
       let result = [];
 
@@ -669,620 +737,296 @@ async function Validar(req, res) {
       return result;
     };
 
-    const errores = await ObtenerErrores(fecha);
+    const codeFilesRequired = map(filesRequired.result, (item, index) => {
+      return item.codigo;
+    });
+
+    const errores = await ObtenerErrores(fecha, codeFilesRequired);
 
     if (!errores.ok) {
       respErrorServidor500END(res, errores.result);
-    } else {
-      if (errores.result.length > 0) {
-        map(errores.result, (item, index) => {
-          if (!isEmpty(item.mensaje)) {
-            withoutErrorsArray.push(item);
-            instituciones.push(item.cod_institucion);
-          } else {
-            withErrorsArray.push(item);
-            institucionesError.push(item.cod_institucion);
+      return null;
+    }
+    forEach(errores.result, (item, index) => {
+      institucionesError.push(item.cod_institucion);
+    });
+
+    if (size(errores.result) > 0) {
+      console.log("CON ERRORES");
+      isError = true;
+      const institucionesUnicas = unique(institucionesError);
+      for (let index = 0; index < institucionesUnicas.length; index++) {
+        const item = institucionesUnicas[index];
+        //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
+        const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
+          fieldMax: "nro_carga",
+          where: [
+            {
+              key: "id_rol",
+              value: id_rol,
+            },
+            {
+              key: "fecha_operacion",
+              value: fecha,
+            },
+            {
+              key: "id_usuario",
+              value: id_usuario,
+            },
+            {
+              key: "cod_institucion",
+              value: item,
+            },
+          ],
+        });
+
+        const carga = await pool
+          .query(queryNroCarga)
+          .then((resultNroCarga) => {
+            let nroCarga = 0;
+            if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
+              nroCarga = 0;
+            } else {
+              nroCarga = resultNroCarga.rows[0]?.max
+                ? resultNroCarga.rows[0]?.max
+                : 0;
+            }
+            resultFinalArray.push({
+              result: resultNroCarga.rows,
+              message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
+            });
+            return { nroCarga, cod_institucion: item };
+          })
+          .catch((err) => {
+            console.log("ERR CARGA", err);
+            errorsFinalArray.push({
+              err,
+              message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
+            });
+            return null;
+          });
+
+        if (carga === null) {
+          break;
+        }
+        //#endregion
+        //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
+        const queryInsertValida = InsertarVariosUtil(nameTable, {
+          body: [
+            {
+              fecha_operacion: fecha,
+              cod_institucion: item,
+              nro_carga: parseInt(carga?.nroCarga) + 1,
+              fecha_carga: new Date(),
+              validado: false,
+              id_rol: id_rol,
+              id_usuario: id_usuario,
+            },
+          ],
+          returnValue: ["id_valida_archivos"],
+        });
+        // console.log(queryInsertValida);
+
+        const audInsertValida = await pool
+          .query(queryInsertValida)
+          .then((result) => {
+            idValidaArchivos.push({
+              cod_institucion: item,
+              id_valida_archivos: result.rows[0]?.id_valida_archivos,
+            });
+            resultFinalArray.push({
+              result: result.rows,
+              message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
+            });
+            return result.rows?.[0];
+          })
+          .catch((err) => {
+            errorsFinalArray.push({
+              err,
+              message: `Error al Insertar en la tabla ${nameTable}`,
+            });
+            return null;
+          });
+        if (audInsertValida === null) {
+          break;
+        }
+        //#endregion
+        //#region INSERTANDO LOS ERRORES DE LOS METODOS DE CALIFICADORA RF, RV, OA, Custodio, 411, 412, 413 en la tabla APS_aud_errores_valida_archivos_pensiones_seguros
+        const erroresInsertArray = [];
+        map(errores.result, (itemError, indexError) => {
+          if (itemError.cod_institucion === item) {
+            erroresInsertArray.push({
+              id_valida_archivos: audInsertValida.id_valida_archivos,
+              archivo: itemError.archivo,
+              tipo_error: itemError.tipo_error,
+              descripcion: itemError.mensaje,
+              valor: itemError.valor,
+              enviada: itemError.enviada,
+              aps: itemError.aps,
+              fecha_informacion: itemError.fecha_informacion,
+            });
           }
         });
-        if (size(withErrorsArray) > 0) {
-          console.log("CON ERRORES");
-          isError = true;
-          const institucionesUnicas = unique(institucionesError);
-          for (let index = 0; index < institucionesUnicas.length; index++) {
-            const item = institucionesUnicas[index];
-            //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
-            const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-              fieldMax: "nro_carga",
-              where: [
-                {
-                  key: "id_rol",
-                  value: id_rol,
-                },
-                {
-                  key: "fecha_operacion",
-                  value: fecha,
-                },
-                {
-                  key: "id_usuario",
-                  value: id_usuario,
-                },
-                {
-                  key: "cod_institucion",
-                  value: item,
-                },
-              ],
+        const queryInsertErrors = InsertarVariosUtil(nameTableErrors, {
+          body: erroresInsertArray,
+          returnValue: ["id_valida_archivos"],
+        });
+
+        const audInsertErrorsValida = await pool
+          .query(queryInsertErrors)
+          .then((result) => {
+            resultFinalArray.push({
+              result: result.rows,
+              message: `Se inserto correctamente en la tabla ${nameTableErrors}`,
             });
-
-            const carga = await pool
-              .query(queryNroCarga)
-              .then((resultNroCarga) => {
-                let nroCarga = 0;
-                if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-                  nroCarga = 0;
-                } else {
-                  nroCarga = resultNroCarga.rows[0]?.max
-                    ? resultNroCarga.rows[0]?.max
-                    : 0;
-                }
-                resultFinalArray.push({
-                  result: resultNroCarga.rows,
-                  message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
-                });
-                return { nroCarga, cod_institucion: item };
-              })
-              .catch((err) => {
-                console.log("ERR CARGA", err);
-                errorsFinalArray.push({
-                  err,
-                  message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
-                });
-                return null;
-              });
-
-            if (carga === null) {
-              break;
-            }
-            //#endregion
-            //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
-            const queryInsertValida = InsertarVariosUtil(nameTable, {
-              body: [
-                {
-                  fecha_operacion: fecha,
-                  cod_institucion: item,
-                  nro_carga: parseInt(carga?.nroCarga) + 1,
-                  fecha_carga: new Date(),
-                  validado: false,
-                  id_rol: id_rol,
-                  id_usuario: id_usuario,
-                },
-              ],
-              returnValue: ["id_valida_archivos"],
+            return result.rows;
+          })
+          .catch((err) => {
+            console.log("ERR AUD INSERT VALIDA", err);
+            errorsFinalArray.push({
+              err,
+              message: `Error al insertar en la tabla ${nameTableErrors}`,
             });
-            // console.log(queryInsertValida);
-
-            const audInsertValida = await pool
-              .query(queryInsertValida)
-              .then((result) => {
-                idValidaArchivos.push({
-                  cod_institucion: item,
-                  id_valida_archivos: result.rows[0]?.id_valida_archivos,
-                });
-                resultFinalArray.push({
-                  result: result.rows,
-                  message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
-                });
-                return result.rows?.[0];
-              })
-              .catch((err) => {
-                errorsFinalArray.push({
-                  err,
-                  message: `Error al Insertar en la tabla ${nameTable}`,
-                });
-                return null;
-              });
-            if (audInsertValida === null) {
-              break;
-            }
-            //#endregion
-            //#region INSERTANDO LOS ERRORES DE LOS METODOS DE CALIFICADORA RF, RV, OA, Custodio, 411, 412, 413 en la tabla APS_aud_errores_valida_archivos_pensiones_seguros
-            const erroresInsertArray = [];
-            map(errores.result, (itemError, indexError) => {
-              if (itemError.cod_institucion === item) {
-                erroresInsertArray.push({
-                  id_valida_archivos: audInsertValida.id_valida_archivos,
-                  archivo: itemError.archivo,
-                  tipo_error: itemError.tipo_error,
-                  descripcion: itemError.mensaje,
-                  valor: itemError.valor,
-                  enviada: itemError.enviada,
-                  aps: itemError.aps,
-                  fecha_informacion: itemError.fecha_informacion,
-                });
-              }
-            });
-            const queryInsertErrors = InsertarVariosUtil(nameTableErrors, {
-              body: erroresInsertArray,
-              returnValue: ["id_valida_archivos"],
-            });
-
-            const audInsertErrorsValida = await pool
-              .query(queryInsertErrors)
-              .then((result) => {
-                resultFinalArray.push({
-                  result: result.rows,
-                  message: `Se inserto correctamente en la tabla ${nameTableErrors}`,
-                });
-                return result.rows;
-              })
-              .catch((err) => {
-                console.log("ERR AUD INSERT VALIDA", err);
-                errorsFinalArray.push({
-                  err,
-                  message: `Error al insertar en la tabla ${nameTableErrors}`,
-                });
-                return null;
-              });
-            if (audInsertErrorsValida === null) {
-              break;
-            }
-            //#endregion
-          }
-        } else {
-          if (size(withoutErrorsArray) > 0) {
-            console.log("SIN ERRORES");
-            isError = false;
-            const institucionesUnicas = unique(instituciones);
-            for (let index = 0; index < institucionesUnicas.length; index++) {
-              const item = institucionesUnicas[index];
-              //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
-              const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-                fieldMax: "nro_carga",
-                where: [
-                  {
-                    key: "id_rol",
-                    value: id_rol,
-                  },
-                  {
-                    key: "fecha_operacion",
-                    value: fecha,
-                  },
-                  {
-                    key: "id_usuario",
-                    value: id_usuario,
-                  },
-                  {
-                    key: "cod_institucion",
-                    value: item,
-                  },
-                ],
-              });
-
-              const carga = await pool
-                .query(queryNroCarga)
-                .then((resultNroCarga) => {
-                  let nroCarga = 0;
-                  if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-                    nroCarga = 0;
-                  } else {
-                    nroCarga = resultNroCarga.rows[0]?.max
-                      ? resultNroCarga.rows[0]?.max
-                      : 0;
-                  }
-                  resultFinalArray.push({
-                    result: resultNroCarga.rows,
-                    message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
-                  });
-                  return { nroCarga, cod_institucion: item };
-                })
-                .catch((err) => {
-                  console.log("ERR CARGA", err);
-                  errorsFinalArray.push({
-                    err,
-                    message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
-                  });
-                  return null;
-                });
-
-              if (carga === null) {
-                break;
-              }
-              //#endregion
-              //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
-              const queryInsertValida = InsertarVariosUtil(nameTable, {
-                body: [
-                  {
-                    fecha_operacion: fecha,
-                    cod_institucion: item,
-                    nro_carga: parseInt(carga?.nroCarga) + 1,
-                    fecha_carga: new Date(),
-                    validado: true,
-                    id_rol: id_rol,
-                    id_usuario: id_usuario,
-                  },
-                ],
-                returnValue: ["id_valida_archivos"],
-              });
-
-              const audInsertValida = await pool
-                .query(queryInsertValida)
-                .then((result) => {
-                  idValidaArchivos.push({
-                    cod_institucion: item,
-                    id_valida_archivos: result.rows[0]?.id_valida_archivos,
-                  });
-                  resultFinalArray.push({
-                    result: result.rows,
-                    message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
-                  });
-                  return result.rows?.[0];
-                })
-                .catch((err) => {
-                  errorsFinalArray.push({
-                    err,
-                    message: `Error al Insertar en la tabla ${nameTable}`,
-                  });
-                  return null;
-                });
-              if (audInsertValida === null) {
-                break;
-              }
-              //#endregion
-            }
-          } else {
-            respResultadoVacio404END(res, "No existen registros para validar.");
             return null;
-          }
+          });
+        if (audInsertErrorsValida === null) {
+          break;
         }
-      } else {
-        respResultadoVacio404END(res, "No existen registros para validar.");
-        return null;
+        //#endregion
       }
+    } else {
+      console.log("SIN ERRORES");
+      isError = false;
+      const institucionesUnicas = uniq(
+        map(filesRequired.result, (item) => {
+          return item.cod_institucion;
+        })
+      );
+      for (let index = 0; index < institucionesUnicas.length; index++) {
+        const item = institucionesUnicas[index];
+        //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
+        const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
+          fieldMax: "nro_carga",
+          where: [
+            {
+              key: "id_rol",
+              value: id_rol,
+            },
+            {
+              key: "fecha_operacion",
+              value: fecha,
+            },
+            {
+              key: "id_usuario",
+              value: id_usuario,
+            },
+            {
+              key: "cod_institucion",
+              value: item,
+            },
+          ],
+        });
 
-      if (errorsFinalArray.length > 0) {
-        respErrorServidor500END(res, errorsFinalArray);
-      } else {
-        if (isError) {
-          respResultadoCorrectoObjeto200(
-            res,
-            {
-              idValidaArchivos,
-              errores: withErrorsArray,
-            },
-            "Existen errores al validar"
-          );
-        } else {
-          respResultadoCorrectoObjeto200(
-            res,
-            {
-              idValidaArchivos,
-              errores: [],
-            },
-            "No existen errores al validar"
-          );
+        const carga = await pool
+          .query(queryNroCarga)
+          .then((resultNroCarga) => {
+            let nroCarga = 0;
+            if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
+              nroCarga = 0;
+            } else {
+              nroCarga = resultNroCarga.rows[0]?.max
+                ? resultNroCarga.rows[0]?.max
+                : 0;
+            }
+            resultFinalArray.push({
+              result: resultNroCarga.rows,
+              message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
+            });
+            return { nroCarga, cod_institucion: item };
+          })
+          .catch((err) => {
+            console.log("ERR CARGA", err);
+            errorsFinalArray.push({
+              err,
+              message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
+            });
+            return null;
+          });
+
+        if (carga === null) {
+          break;
         }
+        //#endregion
+        //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
+        const queryInsertValida = InsertarVariosUtil(nameTable, {
+          body: [
+            {
+              fecha_operacion: fecha,
+              cod_institucion: item,
+              nro_carga: parseInt(carga?.nroCarga) + 1,
+              fecha_carga: new Date(),
+              validado: true,
+              id_rol: id_rol,
+              id_usuario: id_usuario,
+            },
+          ],
+          returnValue: ["id_valida_archivos"],
+        });
+
+        const audInsertValida = await pool
+          .query(queryInsertValida)
+          .then((result) => {
+            idValidaArchivos.push({
+              cod_institucion: item,
+              id_valida_archivos: result.rows[0]?.id_valida_archivos,
+            });
+            resultFinalArray.push({
+              result: result.rows,
+              message: `Se insertó correctamente la validación en la tabla ${nameTable}`,
+            });
+            return result.rows?.[0];
+          })
+          .catch((err) => {
+            errorsFinalArray.push({
+              err,
+              message: `Error al Insertar en la tabla ${nameTable}`,
+            });
+            return null;
+          });
+        if (audInsertValida === null) {
+          break;
+        }
+        //#endregion
       }
     }
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
-}
 
-async function ValidarMensual(req, res) {
-  try {
-    const { fecha } = req.body;
-    const { id_rol, id_usuario } = req.user;
-    const errorsFinalArray = [];
-    const withErrorsArray = [];
-    const withoutErrorsArray = [];
-    const resultFinalArray = [];
-    const idValidaArchivos = [];
-    const instituciones = [];
-    const institucionesError = [];
-    let isError = false;
-    const unique = (array) => {
-      let result = [];
-
-      for (let val of array) {
-        if (!result.includes(val)) {
-          result.push(val);
-        }
-      }
-
-      return result;
-    };
-
-    const errores = await ObtenerErroresMensual(fecha);
-
-    if (!errores.ok) {
-      respErrorServidor500END(res, errores.result);
+    if (size(errorsFinalArray) > 0) {
+      respErrorServidor500END(res, errorsFinalArray);
+    } else if (size(errores.result) > 0) {
+      respResultadoCorrectoObjeto200(
+        res,
+        {
+          idValidaArchivos,
+          errores: errores.result,
+        },
+        "Existen errores al válidar"
+      );
     } else {
-      if (errores.result.length > 0) {
-        map(errores.result, (item, index) => {
-          if (!isEmpty(item.mensaje)) {
-            withoutErrorsArray.push(item);
-            instituciones.push(item.cod_institucion);
-          } else {
-            withErrorsArray.push(item);
-            institucionesError.push(item.cod_institucion);
-          }
-        });
-        if (size(withErrorsArray) > 0) {
-          console.log("CON ERRORES");
-          isError = true;
-          const institucionesUnicas = unique(institucionesError);
-          for (let index = 0; index < institucionesUnicas.length; index++) {
-            const item = institucionesUnicas[index];
-            //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
-            const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-              fieldMax: "nro_carga",
-              where: [
-                {
-                  key: "id_rol",
-                  value: id_rol,
-                },
-                {
-                  key: "fecha_operacion",
-                  value: fecha,
-                },
-                {
-                  key: "id_usuario",
-                  value: id_usuario,
-                },
-                {
-                  key: "cod_institucion",
-                  value: item,
-                },
-              ],
-            });
-
-            const carga = await pool
-              .query(queryNroCarga)
-              .then((resultNroCarga) => {
-                let nroCarga = 0;
-                if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-                  nroCarga = 0;
-                } else {
-                  nroCarga = resultNroCarga.rows[0]?.max
-                    ? resultNroCarga.rows[0]?.max
-                    : 0;
-                }
-                resultFinalArray.push({
-                  result: resultNroCarga.rows,
-                  message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
-                });
-                return { nroCarga, cod_institucion: item };
-              })
-              .catch((err) => {
-                console.log("ERR CARGA", err);
-                errorsFinalArray.push({
-                  err,
-                  message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
-                });
-                return null;
-              });
-
-            if (carga === null) {
-              break;
-            }
-            //#endregion
-            //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
-            const queryInsertValida = InsertarVariosUtil(nameTable, {
-              body: [
-                {
-                  fecha_operacion: fecha,
-                  cod_institucion: item,
-                  nro_carga: parseInt(carga?.nroCarga) + 1,
-                  fecha_carga: new Date(),
-                  validado: false,
-                  id_rol: id_rol,
-                  id_usuario: id_usuario,
-                },
-              ],
-              returnValue: ["id_valida_archivos"],
-            });
-            // console.log(queryInsertValida);
-
-            const audInsertValida = await pool
-              .query(queryInsertValida)
-              .then((result) => {
-                idValidaArchivos.push({
-                  cod_institucion: item,
-                  id_valida_archivos: result.rows[0]?.id_valida_archivos,
-                });
-                resultFinalArray.push({
-                  result: result.rows,
-                  message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
-                });
-                return result.rows?.[0];
-              })
-              .catch((err) => {
-                errorsFinalArray.push({
-                  err,
-                  message: `Error al Insertar en la tabla ${nameTable}`,
-                });
-                return null;
-              });
-            if (audInsertValida === null) {
-              break;
-            }
-            //#endregion
-            //#region INSERTANDO LOS ERRORES DE LOS METODOS DE CALIFICADORA RF, RV, OA, Custodio, 411, 412, 413 en la tabla APS_aud_errores_valida_archivos_pensiones_seguros
-            const erroresInsertArray = [];
-            map(errores.result, (itemError, indexError) => {
-              if (itemError.cod_institucion === item) {
-                erroresInsertArray.push({
-                  id_valida_archivos: audInsertValida.id_valida_archivos,
-                  archivo: itemError.archivo,
-                  tipo_error: itemError.tipo_error,
-                  descripcion: itemError.mensaje,
-                  valor: itemError.valor,
-                  enviada: itemError.enviada,
-                  aps: itemError.aps,
-                  fecha_informacion: itemError.fecha_informacion,
-                });
-              }
-            });
-            const queryInsertErrors = InsertarVariosUtil(nameTableErrors, {
-              body: erroresInsertArray,
-              returnValue: ["id_valida_archivos"],
-            });
-
-            const audInsertErrorsValida = await pool
-              .query(queryInsertErrors)
-              .then((result) => {
-                resultFinalArray.push({
-                  result: result.rows,
-                  message: `Se inserto correctamente en la tabla ${nameTableErrors}`,
-                });
-                return result.rows;
-              })
-              .catch((err) => {
-                console.log("ERR AUD INSERT VALIDA", err);
-                errorsFinalArray.push({
-                  err,
-                  message: `Error al insertar en la tabla ${nameTableErrors}`,
-                });
-                return null;
-              });
-            if (audInsertErrorsValida === null) {
-              break;
-            }
-            //#endregion
-          }
-        } else {
-          if (size(withoutErrorsArray) > 0) {
-            console.log("SIN ERRORES");
-            isError = false;
-            const institucionesUnicas = unique(instituciones);
-            for (let index = 0; index < institucionesUnicas.length; index++) {
-              const item = institucionesUnicas[index];
-              //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
-              const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-                fieldMax: "nro_carga",
-                where: [
-                  {
-                    key: "id_rol",
-                    value: id_rol,
-                  },
-                  {
-                    key: "fecha_operacion",
-                    value: fecha,
-                  },
-                  {
-                    key: "id_usuario",
-                    value: id_usuario,
-                  },
-                  {
-                    key: "cod_institucion",
-                    value: item,
-                  },
-                ],
-              });
-
-              const carga = await pool
-                .query(queryNroCarga)
-                .then((resultNroCarga) => {
-                  let nroCarga = 0;
-                  if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-                    nroCarga = 0;
-                  } else {
-                    nroCarga = resultNroCarga.rows[0]?.max
-                      ? resultNroCarga.rows[0]?.max
-                      : 0;
-                  }
-                  resultFinalArray.push({
-                    result: resultNroCarga.rows,
-                    message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
-                  });
-                  return { nroCarga, cod_institucion: item };
-                })
-                .catch((err) => {
-                  console.log("ERR CARGA", err);
-                  errorsFinalArray.push({
-                    err,
-                    message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
-                  });
-                  return null;
-                });
-
-              if (carga === null) {
-                break;
-              }
-              //#endregion
-              //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
-              const queryInsertValida = InsertarVariosUtil(nameTable, {
-                body: [
-                  {
-                    fecha_operacion: fecha,
-                    cod_institucion: item,
-                    nro_carga: parseInt(carga?.nroCarga) + 1,
-                    fecha_carga: new Date(),
-                    validado: true,
-                    id_rol: id_rol,
-                    id_usuario: id_usuario,
-                  },
-                ],
-                returnValue: ["id_valida_archivos"],
-              });
-
-              const audInsertValida = await pool
-                .query(queryInsertValida)
-                .then((result) => {
-                  idValidaArchivos.push({
-                    cod_institucion: item,
-                    id_valida_archivos: result.rows[0]?.id_valida_archivos,
-                  });
-                  resultFinalArray.push({
-                    result: result.rows,
-                    message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
-                  });
-                  return result.rows?.[0];
-                })
-                .catch((err) => {
-                  errorsFinalArray.push({
-                    err,
-                    message: `Error al Insertar en la tabla ${nameTable}`,
-                  });
-                  return null;
-                });
-              if (audInsertValida === null) {
-                break;
-              }
-              //#endregion
-            }
-          } else {
-            respResultadoVacio404END(res, "No existen registros para validar.");
-            return null;
-          }
-        }
-      } else {
-        respResultadoVacio404END(res, "No existen registros para validar.");
-        return null;
-      }
-
-      if (errorsFinalArray.length > 0) {
-        respErrorServidor500END(res, errorsFinalArray);
-      } else {
-        if (isError) {
-          respResultadoCorrectoObjeto200(
-            res,
-            {
-              idValidaArchivos,
-              errores: withErrorsArray,
-            },
-            "Existen errores al validar"
-          );
-        } else {
-          respResultadoCorrectoObjeto200(
-            res,
-            {
-              idValidaArchivos,
-              errores: [],
-            },
-            "No existen errores al validar"
-          );
-        }
-      }
+      respResultadoCorrectoObjeto200(
+        res,
+        {
+          idValidaArchivos,
+          errores: errores.result,
+          validacion: map(filesRequired.result, (item) => {
+            return {
+              archivo: item.nombre,
+              mensaje: `La información está correcta`,
+              fecha,
+            };
+          }),
+        },
+        "No existen errores al válidar"
+      );
     }
   } catch (err) {
     respErrorServidor500END(res, err);
@@ -1466,5 +1210,4 @@ module.exports = {
   UltimaCarga,
   UltimaCarga2,
   Validar,
-  ValidarMensual,
 };

@@ -344,7 +344,7 @@ async function SeleccionarArchivosValidar(req, res) {
     };
     const query = EjecutarFuncionSQL("aps_archivos_a_validar", params);
 
-    pool
+    await pool
       .query(query)
       .then((result) => {
         if (result.rowCount > 0) {
