@@ -672,6 +672,40 @@ async function ObtenerErrores(fecha, codes) {
   }
 }
 
+async function ObtenerErroresDiariosMensual(fecha) {
+  const errorsFinalArray = [];
+  //#region APS_VALIDA
+  const queryValida = EjecutarFuncionSQL("aps_valida", {
+    body: { fecha },
+  });
+  const valida = await pool
+    .query(queryValida)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  //#endregion
+  if (valida.ok === null) {
+    errorsFinalArray.push({
+      err: valida.err,
+      message: `Error al obtener los errores de aps_valida ERROR: ${valida.err.message}`,
+    });
+  }
+  if (errorsFinalArray.length > 0) {
+    return {
+      ok: false,
+      result: [...errorsFinalArray],
+    };
+  } else {
+    return {
+      ok: true,
+      result: [...valida.result],
+    };
+  }
+}
+
 async function Validar(req, res) {
   try {
     const { fecha, id_rol_archivos } = req.body;
@@ -737,11 +771,7 @@ async function Validar(req, res) {
       return result;
     };
 
-    const codeFilesRequired = map(filesRequired.result, (item, index) => {
-      return item.codigo;
-    });
-
-    const errores = await ObtenerErrores(fecha, codeFilesRequired);
+    const errores = await ObtenerErroresDiariosMensual(fecha);
 
     if (!errores.ok) {
       respErrorServidor500END(res, errores.result);
