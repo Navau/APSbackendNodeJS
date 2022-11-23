@@ -1,4 +1,4 @@
-FROM node:14.20.0-alpine
+FROM node:14.20-slim
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
 COPY package*.json ./
+
+# Install python/pip
+#RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
 
 RUN yarn install
 # If you are building your code for production
