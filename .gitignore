@@ -25,9 +25,9 @@ npm-debug.log.*
 *.pydevproject
 .project
 .metadata
-tmp/
-tmp/**/*
-*.tmp
+# tmp/
+# tmp/**/*
+# *.tmp
 *.bak
 *.swp
 *~.nib
