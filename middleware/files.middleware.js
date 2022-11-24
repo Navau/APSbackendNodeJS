@@ -4528,10 +4528,11 @@ exports.validarArchivo = async (req, res, next) => {
                   })
                   .catch((err) => {
                     console.log("ERR", err);
-                    respErrorServidor500(
+                    respErrorServidor500END(
                       res,
                       err,
-                      "Ocurrió un error inesperado."
+                      "Ocurrió un error inesperado.",
+                      response
                     );
                   })
                   .finally(() => {

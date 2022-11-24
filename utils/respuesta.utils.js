@@ -9,7 +9,7 @@ function respErrorServidor500(res, err, msg) {
   });
 }
 
-function respErrorServidor500END(res, err, msg) {
+function respErrorServidor500END(res, err, msg, datos = null) {
   console.log(err);
   let errMessage = err?.message ? err?.message : "";
   res
