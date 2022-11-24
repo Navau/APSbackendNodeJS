@@ -5,7 +5,6 @@ const RouterApi = require("./routes");
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 process.env.TZ = "America/La_Paz";
-console.log(new Date());
 //Configure Header HTTP
 app.use((req, res, next) => {
   //CONFIGURACION DE HEADERS PARA YA NO USAR LA EXTENCION MOESIF CORS, Y NO DE EL ERROR DE CORS
