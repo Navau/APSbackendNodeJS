@@ -7,6 +7,11 @@ const api = express.Router();
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
+  "/TipoReporte",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.TipoReporte
+);
+api.post(
   "/Escoger",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Escoger
