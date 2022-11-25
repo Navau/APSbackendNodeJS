@@ -1,6 +1,15 @@
 const multer = require("multer");
 const path = require("path");
-const { map, reduce, findIndex, filter, isEmpty, range } = require("lodash");
+const {
+  map,
+  reduce,
+  findIndex,
+  filter,
+  isEmpty,
+  range,
+  includes,
+  replace,
+} = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -4440,26 +4449,6 @@ exports.validarArchivo = async (req, res, next) => {
                     let currentFiles = [];
                     let resultsPromise = [];
                     map(errors, (item, index) => {
-                      // let valorFinal = "";
-                      // let filaFinal = 0;
-                      // if (item.valor === "") {
-                      //   valorFinal = "VACIO";
-                      // } else if (isNaN(item.valor)) {
-                      //   valorFinal = "NoEsNumero";
-                      // } else if (item.hasOwnProperty("valor")) {
-                      //   valorFinal = item.valor;
-                      // } else {
-                      //   valorFinal = "";
-                      // }
-
-                      // if (isNaN(item.fila)) {
-                      //   filaFinal = -1;
-                      // } else if (item.hasOwnProperty("fila")) {
-                      //   filaFinal = parseInt(item.fila) + 1;
-                      // } else {
-                      //   filaFinal = 0;
-                      // }
-
                       bodyQuery.push({
                         id_carga_archivos:
                           response.resultsPromise[0]?.result?.rowsUpdate[0]
@@ -4471,7 +4460,9 @@ exports.validarArchivo = async (req, res, next) => {
                           item.valor === ""
                             ? "VACIO"
                             : item.hasOwnProperty("valor")
-                            ? item.valor
+                            ? includes(item?.valor, "'")
+                              ? replace(item.valor, /\'/g, "''")
+                              : item.valor
                             : "",
                         fila: item.hasOwnProperty("fila")
                           ? parseInt(item.fila) + 1
@@ -4489,7 +4480,7 @@ exports.validarArchivo = async (req, res, next) => {
                       body: bodyQuery,
                       returnValue: ["id_error_archivo"],
                     });
-                    // console.log(queryFiles);
+                    // console.log("queryFiles", queryFiles);
 
                     await pool
                       .query(queryFiles)
@@ -4531,8 +4522,7 @@ exports.validarArchivo = async (req, res, next) => {
                     respErrorServidor500END(
                       res,
                       err,
-                      "Ocurrió un error inesperado.",
-                      response
+                      "Ocurrió un error inesperado."
                     );
                   })
                   .finally(() => {

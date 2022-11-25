@@ -181,12 +181,24 @@ async function Reporte(req, res) {
         cod_institucion: cod_institucion.result.codigo,
         periodo,
       },
-      where: resultadoFinal !== null && [
-        {
-          key: "resultado",
-          value: resultadoFinal,
-        },
-      ],
+      where:
+        resultadoFinal !== null
+          ? [
+              {
+                key: "resultado",
+                value: resultadoFinal,
+              },
+              {
+                key: "id_rol",
+                value: req.user.id_rol,
+              },
+            ]
+          : [
+              {
+                key: "id_rol",
+                value: req.user.id_rol,
+              },
+            ],
     };
     const query = EjecutarFuncionSQL(
       "aps_reporte_validacion_preliminar",

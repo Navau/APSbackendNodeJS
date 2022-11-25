@@ -16,7 +16,7 @@ function respErrorServidor500END(res, err, msg, datos = null) {
     .status(500)
     .send({
       resultado: 0,
-      datos: null,
+      datos,
       mensaje: msg
         ? msg + errMessage
         : "Error del servidor. ERROR:" + errMessage,

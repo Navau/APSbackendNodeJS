@@ -3039,20 +3039,6 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         );
         PARAMS.codeCurrentFile = "DE";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-      } else if (nameFile.includes("FC")) {
-        console.log(
-          `ARCHIVO CORRECTO : FC.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
-          nameFile
-        );
-        PARAMS.codeCurrentFile = "FC";
-        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-
-        PARAMS.paramsCodigoCuenta = {
-          table: "APS_param_plan_cuentas",
-          params: {
-            select: ["cuenta"],
-          },
-        };
       } else if (nameFile.includes("LQ")) {
         console.log(
           `ARCHIVO CORRECTO : LQ.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -3178,6 +3164,20 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           },
         };
         PARAMS.paramsPrecioMercadoMOMultiplicadoCantidadValores = true;
+      } else if (nameFile.includes("FC")) {
+        console.log(
+          `ARCHIVO CORRECTO : FC.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "FC";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsCodigoCuenta = {
+          table: "APS_param_plan_cuentas",
+          params: {
+            select: ["cuenta"],
+          },
+        };
       } else {
         reject();
       }
@@ -3360,6 +3360,7 @@ async function formatoArchivo(type) {
         detailsHeaders.push(item);
         headers.push(item.column_name);
       });
+      // console.log("HEADERS", type, headers);
       return { detailsHeaders, headers };
     })
     .catch((err) => {
@@ -5390,6 +5391,8 @@ async function obtenerValidaciones(typeFile) {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
         function: [],
       },
       {
@@ -5959,16 +5962,16 @@ async function obtenerValidaciones(typeFile) {
     BG: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{1,13}$/,
+        pattern: /^[A-Za-z0-9\-\.]{1,13}$/,
         function: ["codigoCuenta"],
       },
       {
-        columnName: "descripcion_cuenta",
+        columnName: "descripcion",
         pattern: /^[\s\S]{6,80}$/,
         function: ["descripcionCuenta"],
       },
       {
-        columnName: "saldo_bs",
+        columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
@@ -5981,11 +5984,11 @@ async function obtenerValidaciones(typeFile) {
     FE: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{1,9}$/,
+        pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
         function: ["codigoCuenta"],
       },
       {
-        columnName: "saldo_bs",
+        columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
@@ -5993,11 +5996,11 @@ async function obtenerValidaciones(typeFile) {
     VC: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{1,7}$/,
+        pattern: /^[A-Za-z0-9\-\.]{1,7}$/,
         function: ["codigoCuenta"],
       },
       {
-        columnName: "saldo_bs",
+        columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
@@ -6034,7 +6037,7 @@ async function obtenerValidaciones(typeFile) {
     DE: [
       {
         columnName: "codigo",
-        pattern: /^[A-Za-z0-9]{4,5}$/,
+        pattern: /^[A-Za-z0-9\.]{4,5}$/,
         function: [],
       },
       {
@@ -6044,12 +6047,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cuenta_a_p",
-        pattern: /^[A-Za-z]{5,5}$/,
+        pattern: /^[A-Za-z0-9]{5,5}$/,
         function: [],
       },
       {
         columnName: "cuenta_p_a",
-        pattern: /^[A-Za-z]{5,5}$/,
+        pattern: /^[A-Za-z0-9]{5,5}$/,
         function: [],
       },
       {
@@ -6059,18 +6062,18 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "monto",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: ["mayorACeroDecimal"],
       },
     ],
     FC: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-]{1,5}$/,
+        pattern: /^[A-Za-z0-9\-\.]{1,5}$/,
         function: ["codigoCuenta"],
       },
       {
-        columnName: "saldo_bs",
+        columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
@@ -6272,7 +6275,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    // console.log("CABECERAS", codeCurrentFile, headers);
+    console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
