@@ -19,6 +19,8 @@ const {
   respIDNoRecibido400,
   respErrorServidor500END,
   respResultadoIncorrectoObjeto200,
+  respResultadoCorrectoObjeto200,
+  respResultadoVacioObject200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_emision";
@@ -106,9 +108,9 @@ function Escoger(req, res) {
         respErrorServidor500(res, err);
       } else {
         if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
+          respResultadoVacioObject200(res, result.rows);
         } else {
-          respResultadoCorrecto200(res, result);
+          respResultadoCorrectoObjeto200(res, result.rows);
         }
       }
     });
