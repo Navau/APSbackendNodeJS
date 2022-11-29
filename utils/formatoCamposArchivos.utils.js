@@ -8304,7 +8304,7 @@ async function grupoUnico(params) {
       const columnName = item2.columnName;
       if (item2?.singleGroup === true) {
         keyFinal +=
-          item2.endSingleGroup === true ? `${columnName}` : `${columnName}+`;
+          item2.endSingleGroup === true ? `${columnName}` : `${columnName}, `;
         valueFinal += `${value}`;
       }
     }
@@ -8332,7 +8332,7 @@ async function grupoUnico(params) {
           codeCurrentFile === "481" ||
           codeCurrentFile === "482" ||
           codeCurrentFile === "DC"
-            ? "Los campos no estan correcamente agrupados"
+            ? "Un valor seriado con idénticas características, no puede estar desagrupado en varios registros"
             : `La combinación de los campos debe ser único`,
         value: item.values,
         column: item.keys,
