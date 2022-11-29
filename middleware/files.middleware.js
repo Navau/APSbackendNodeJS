@@ -1416,13 +1416,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       countCurrentInstrumentoSerie++;
                     }
                   });
-                  // console.log("cantidadNroPago441", cantidadNroPago441);
-                  // console.log(
-                  //   "countCurrentInstrumentoSerie",
-                  //   countCurrentInstrumentoSerie
-                  // );
-                  // console.log(tasa, tipoTasa, tasaEmision);
-                  // console.log("errTasaArray", errTasaArray);
 
                   if (
                     parseInt(countCurrentInstrumentoSerie) !==
@@ -2081,6 +2074,66 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 });
               }
             } else if (itemFunction === "tasaRelevanteConInstrumento") {
+              let _igualA = null;
+              let _mayorACeroDecimal = null;
+              let functionAux = null;
+              map(
+                _tasaRelevanteConInstrumento?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 1;
+                  }
+                }
+              );
+              map(
+                _tasaRelevanteConInstrumentoDiferente?.resultFinal,
+                (item4, index4) => {
+                  if (item2.tipo_instrumento === item4.sigla) {
+                    functionAux = 2;
+                  }
+                }
+              );
+
+              if (functionAux === 1) {
+                _igualA = igualA({
+                  value: parseInt(value),
+                  equalTo: 0,
+                });
+                if (_igualA?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _igualA?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else if (functionAux === 2) {
+                _mayorACeroDecimal = mayorACeroDecimal({
+                  value: value,
+                });
+                if (_mayorACeroDecimal?.ok === false) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: _mayorACeroDecimal?.message,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  });
+                }
+              } else {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `El valor de ${columnName} no es correcto debido a que el tipo_instrumento es ${item2.tipo_instrumento}`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tasaRendimientoConInstrumento") {
               let _igualA = null;
               let _mayorACeroDecimal = null;
               let functionAux = null;

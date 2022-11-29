@@ -109,6 +109,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsCustodio: null,
         paramsFechaOperacionMenor: null,
         paramsCantidadMultiplicadoPrecioEquivalente: null,
+        paramsCantidadMultiplicadoPrecioMO: null,
         paramsTipoDeCambio: null,
         paramsBolsa: null,
         paramsTipoMarcacion: null,
@@ -126,6 +127,8 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsEntidadEmisora: null,
         paramsTasaRendimientoConInstrumento139: null,
         paramsTasaRendimientoConInstrumento138: null,
+        paramsTasaRendimientoConInstrumento: null,
+        paramsTasaRendimientoConInstrumentoDiferente: null,
         paramsPrecioMercadoMOMultiplicadoCantidadValores: null,
         paramsUnico: null,
         paramsSingleGroup: null,
@@ -2977,6 +2980,104 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           },
         };
         PARAMS.paramsSingleGroup = true;
+      } else if (nameFile.includes("DO")) {
+        console.log(
+          `ARCHIVO CORRECTO : DO.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "DO";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsTipoActivo = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                valuesWhereIn: [138, 139],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTasaRendimientoConInstrumento138 = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 138,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsTasaRendimientoConInstrumento139 = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_renta",
+                value: 139,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["codigo_valoracion"],
+            where: [
+              {
+                key: "id_moneda",
+                valuesWhereIn: [1, 3],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 35,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificadora = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                valuesWhereIn: [7, 8],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCustodio = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 9,
+              },
+            ],
+          },
+        };
+
+        PARAMS.paramsFechaOperacionMenor = true;
+        PARAMS.paramsCantidadMultiplicadoPrecioMO = true;
       } else if (nameFile.includes("BG")) {
         console.log(
           `ARCHIVO CORRECTO : BG.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -3322,6 +3423,9 @@ async function formatoArchivo(type) {
     },
     DC: {
       table: "APS_pensiones_archivo_DC",
+    },
+    DO: {
+      table: "APS_pensiones_archivo_DO",
     },
     BG: {
       table: "APS_pensiones_archivo_BG",
@@ -5959,6 +6063,77 @@ async function obtenerValidaciones(typeFile) {
         function: ["tipoOperacion"],
       },
     ],
+    DO: [
+      {
+        columnName: "tipo_activo",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoActivo"],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        function: [],
+      },
+      {
+        columnName: "tasa_rendimiento",
+        pattern: /^(^-?(0|[1-9][0-9]{0,2}))(\.\d{4,4}){1,1}$/,
+        function: ["tasaRendimientoConInstrumento"],
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "plazo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        function: ["mayorACeroEntero"],
+      },
+      {
+        columnName: "precio_mo",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "total_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["cantidadMultiplicadoPrecioMO"],
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{1,1}$/,
+        function: ["moneda"],
+      },
+      {
+        columnName: "total_bs",
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
+      },
+      {
+        columnName: "calificacion",
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        function: ["calificacion"],
+      },
+      {
+        columnName: "calificadora",
+        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        function: ["calificadora"],
+      },
+      {
+        columnName: "custodio",
+        pattern: /^[A-Za-z]{0,3}$/,
+        mayBeEmpty: true,
+        function: ["custodio"],
+      },
+      {
+        columnName: "fecha_adquisicion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        notValidate: true,
+        function: ["fechaOperacionMenorAlArchivo"],
+      },
+    ],
     BG: [
       {
         columnName: "codigo_cuenta",
@@ -5972,12 +6147,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "saldo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
       {
         columnName: "saldo_cuotas",
-        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,11}))(\.\d{4,4}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
     ],
@@ -6001,12 +6176,12 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "saldo",
-        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
       {
         columnName: "cuotas",
-        pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,11}))(\.\d{4,4}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
     ],
