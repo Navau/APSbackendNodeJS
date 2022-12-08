@@ -279,21 +279,11 @@ async function seleccionarTablas(params) {
         tableErrors: "APS_aud_errores_carga_archivos_bolsa",
       };
     } else if (
-      (item.originalname.toUpperCase().includes("DM") ||
-        item.originalname.toUpperCase().includes("DU") ||
-        item.originalname.toUpperCase().includes("UA") ||
-        item.originalname.toUpperCase().includes("TD") ||
-        item.originalname.toUpperCase().includes("UD") ||
-        item.originalname.toUpperCase().includes("DC") ||
-        item.originalname.toUpperCase().includes("DR") ||
-        item.originalname.toUpperCase().includes("TV") ||
-        item.originalname.toUpperCase().includes("BG") ||
-        item.originalname.toUpperCase().includes("FE") ||
-        item.originalname.toUpperCase().includes("VC")) &&
+      item.originalname.toUpperCase().substring(0, 2) === "02" &&
       !item.originalname.toUpperCase().includes(".CC")
     ) {
       result = {
-        code: item.originalname.toUpperCase().substring(0, 2),
+        code: "02",
         table: "APS_aud_carga_archivos_pensiones_seguros",
         tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
@@ -823,6 +813,13 @@ async function validarArchivosIteraciones(params) {
                             infoArchivo.paramsDescripcionCuenta.params
                           )
                         : null;
+                    const _codigoCuentaDescripcion =
+                      infoArchivo?.paramsCodigoCuentaDescripcion
+                        ? await selectComun(
+                            infoArchivo.paramsCodigoCuentaDescripcion.table,
+                            infoArchivo.paramsCodigoCuentaDescripcion.params
+                          )
+                        : null;
                     const _codigoFondo = infoArchivo?.paramsCodigoFondo
                       ? await selectComun(
                           infoArchivo.paramsCodigoFondo.table,
@@ -1232,6 +1229,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _traspasoCustodia = params._traspasoCustodia;
       const _codigoCuenta = params._codigoCuenta;
       const _descripcionCuenta = params._descripcionCuenta;
+      const _codigoCuentaDescripcion = params._codigoCuentaDescripcion;
       const _codigoFondo = params._codigoFondo;
       const _tipoCuentaLiquidez = params._tipoCuentaLiquidez;
       const _codigoBanco = params._codigoBanco;
@@ -1246,6 +1244,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
 
       let lugarNegociacionTipoOperacionAux = false;
       let groupingAux = false;
+      let serieAux = "";
+      let contadorSerieAux = 0;
 
       const _cadenaCombinadalugarNegTipoOperTipoInstrum =
         params._cadenaCombinadalugarNegTipoOperTipoInstrum;
@@ -2548,7 +2548,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
                     valor: value,
                     columna: columnName,
                     fila: index2,
@@ -2636,7 +2636,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
                     valor: value,
                     columna: columnName,
                     fila: index2,
@@ -2652,7 +2652,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificacion no se encuentra en ninguna calificación válida`,
+                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
                     valor: value,
                     columna: columnName,
                     fila: index2,
@@ -2725,6 +2725,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: `El contenido del archivo no coincide con alguna descripción de cuenta`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "codigoCuentaDescripcion") {
+              let errFunction = true;
+              map(_codigoCuentaDescripcion?.resultFinal, (item4, index4) => {
+                if (value === item4.valor) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `cuenta+descripción no existe en el Plan de Cuentas`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -2949,26 +2966,31 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             } else if (
               itemFunction === "saldoCapitalMenosAmortizacionCuponAnterior"
             ) {
-              if (index2 >= 1) {
+              if (item2.serie !== serieAux) {
+                serieAux = item2.serie;
+                contadorSerieAux += index2 + 1;
+              }
+              // console.log("contadorSerieAux", contadorSerieAux);
+              if (index2 >= contadorSerieAux) {
                 let _operacionEntreColumnas =
                   infoArchivo?.paramsSaldoCapitalMenosAmortizacionCuponAnterior
                     ? await operacionEntreColumnas({
                         total: {
-                          key: columnName,
+                          key: `${columnName} (fila actual: ${index2})`,
                           value: parseFloat(value),
                         },
                         fields: [
                           {
-                            key: `saldo_capital (fila anterior: ${index2})`,
+                            key: `saldo_capital (fila anterior: ${index2 - 1})`,
                             value: parseFloat(
                               arrayDataObject[index2 - 1].saldo_capital
                             ),
                           },
                           "-",
                           {
-                            key: `amortizacion (fila anterior: ${index2})`,
+                            key: `amortizacion (fila actual: ${index2})`,
                             value: parseFloat(
-                              arrayDataObject[index2 - 1].amortizacion
+                              arrayDataObject[index2].amortizacion
                             ),
                           },
                         ],

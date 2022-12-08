@@ -57,6 +57,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsCodigoFondo: null,
         paramsTipoCuentaLiquidez: null,
         paramsCodigoBanco: null,
+        paramsCodigoCuentaDescripcion: null,
         paramsDescripcionCuenta: null,
         paramsCodigoAFP: null,
         paramsNombreAFP: null,
@@ -3086,18 +3087,48 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         PARAMS.codeCurrentFile = "BG";
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
-        PARAMS.paramsCodigoCuenta = {
-          table: "APS_param_plan_cuentas",
-          params: {
-            select: ["cuenta"],
+        const whereExtentionFile = [
+          {
+            key: "id_tipo_rpt",
+            value: nameFile.includes("FCI")
+              ? 201
+              : nameFile.includes("CBP")
+              ? 259
+              : nameFile.includes("CRC")
+              ? 206
+              : nameFile.includes("CRL")
+              ? 205
+              : nameFile.includes("CRP")
+              ? 204
+              : nameFile.includes("MVV")
+              ? 203
+              : nameFile.includes("FCC")
+              ? 202
+              : null,
           },
-        };
-        PARAMS.paramsDescripcionCuenta = {
-          table: "APS_param_plan_cuentas",
-          params: {
-            select: ["descripcion"],
-          },
-        };
+        ];
+
+        PARAMS.paramsCodigoCuentaDescripcion =
+          nameFile.includes("FCI") ||
+          nameFile.includes("CBP") ||
+          nameFile.includes("CRC") ||
+          nameFile.includes("CRL") ||
+          nameFile.includes("CRP") ||
+          nameFile.includes("MVV") ||
+          nameFile.includes("FCC")
+            ? {
+                table: "APS_param_plan_cuentas",
+                params: {
+                  select: ["cuenta||descripcion as valor"],
+                },
+                where: whereExtentionFile,
+              }
+            : {
+                table: "APS_param_plan_cuentas",
+                params: {
+                  select: ["cuenta||descripcion as valor"],
+                },
+              };
       } else if (nameFile.includes("FE")) {
         console.log(
           `ARCHIVO CORRECTO : FE.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -6138,12 +6169,12 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,13}$/,
-        function: ["codigoCuenta"],
+        function: [],
       },
       {
         columnName: "descripcion",
         pattern: /^[\s\S]{6,80}$/,
-        function: ["descripcionCuenta"],
+        function: ["codigoCuentaDescripcion"],
       },
       {
         columnName: "saldo",
@@ -8145,6 +8176,7 @@ async function operacionEntreColumnas(params) {
       let indexPattern = new RegExp(total.pattern).toString().indexOf(".");
       let textPattern = new RegExp(total.pattern).toString();
       if (textPattern.slice(indexPattern, indexPattern + 4) === ".\\d{") {
+        // console.log(textPattern.slice(indexPattern + 6, indexPattern + 7));
         let fixed = parseInt(
           textPattern.slice(indexPattern + 6, indexPattern + 7)
         );
@@ -8167,7 +8199,7 @@ async function operacionEntreColumnas(params) {
       } else {
         return {
           ok: false,
-          message: `El resultado (${result}) de ${fieldsResultText} no es igual a ${total.key}`,
+          message: `El resultado calculado (${result}) de ${fieldsResultText} no es igual a ${total.key}`,
         };
       }
     }

@@ -89,6 +89,16 @@ async function CargarArchivo(req, res) {
           tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
         };
       } else if (
+        item.originalname.toUpperCase().substring(0, 2) === "02" &&
+        !item.originalname.toUpperCase().includes(".CC")
+      ) {
+        infoTables = {
+          code: "02",
+          cod_institution: "02",
+          table: "APS_aud_carga_archivos_pensiones_seguros",
+          tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
+        };
+      } else if (
         item.originalname.substring(0, 1) === "M" &&
         (item.originalname.includes("K.") ||
           item.originalname.includes("L.") ||
@@ -234,40 +244,64 @@ async function CargarArchivo(req, res) {
             tableFile = "APS_seguro_archivo_498";
           } else if (item.originalname.includes("DM")) {
             codeFile = "DM";
-            tableFile = "APS_seguro_archivo_DM";
-          } else if (item.originalname.includes("DU")) {
-            codeFile = "DU";
-            tableFile = "APS_seguro_archivo_DU";
-          } else if (item.originalname.includes("UA")) {
-            codeFile = "UA";
-            tableFile = "APS_seguro_archivo_UA";
-          } else if (item.originalname.includes("TD")) {
-            codeFile = "TD";
-            tableFile = "APS_seguro_archivo_TD";
-          } else if (item.originalname.includes("UD")) {
-            codeFile = "UD";
-            tableFile = "APS_seguro_archivo_UD";
-          } else if (item.originalname.includes("DC")) {
-            codeFile = "DC";
-            tableFile = "APS_seguro_archivo_DC";
+            tableFile = "APS_pensiones_archivo_DM";
           } else if (item.originalname.includes("DR")) {
             codeFile = "DR";
-            tableFile = "APS_seguro_archivo_DR";
+            tableFile = "APS_pensiones_archivo_DR";
+          } else if (item.originalname.includes("UA")) {
+            codeFile = "UA";
+            tableFile = "APS_pensiones_archivo_UA";
+          } else if (item.originalname.includes("TD")) {
+            codeFile = "TD";
+            tableFile = "APS_pensiones_archivo_TD";
+          } else if (item.originalname.includes("DU")) {
+            codeFile = "DU";
+            tableFile = "APS_pensiones_archivo_DU";
+          } else if (item.originalname.includes("UD")) {
+            codeFile = "UD";
+            tableFile = "APS_pensiones_archivo_UD";
+          } else if (item.originalname.includes("TO")) {
+            codeFile = "TO";
+            tableFile = "APS_pensiones_archivo_TO";
+          } else if (item.originalname.includes("CO")) {
+            codeFile = "CO";
+            tableFile = "APS_pensiones_archivo_CO";
           } else if (item.originalname.includes("TV")) {
             codeFile = "TV";
-            tableFile = "APS_seguro_archivo_TV";
+            tableFile = "APS_pensiones_archivo_TV";
+          } else if (item.originalname.includes("DC")) {
+            codeFile = "DC";
+            tableFile = "APS_pensiones_archivo_DC";
+          } else if (item.originalname.includes("DO")) {
+            codeFile = "DO";
+            tableFile = "APS_pensiones_archivo_DO";
           } else if (item.originalname.includes("BG")) {
             codeFile = "BG";
-            tableFile = "APS_seguro_archivo_BG";
+            tableFile = "APS_pensiones_archivo_BG";
           } else if (item.originalname.includes("FE")) {
             codeFile = "FE";
-            tableFile = "APS_seguro_archivo_FE";
+            tableFile = "APS_pensiones_archivo_FE";
           } else if (item.originalname.includes("VC")) {
             codeFile = "VC";
-            tableFile = "APS_seguro_archivo_VC";
+            tableFile = "APS_pensiones_archivo_VC";
+          } else if (item.originalname.includes("CD")) {
+            codeFile = "CD";
+            tableFile = "APS_pensiones_archivo_CD";
+          } else if (item.originalname.includes("DE")) {
+            codeFile = "DE";
+            tableFile = "APS_pensiones_archivo_DE";
+          } else if (item.originalname.includes("LQ")) {
+            codeFile = "LQ";
+            tableFile = "APS_pensiones_archivo_LQ";
+          } else if (item.originalname.includes("TR")) {
+            codeFile = "TR";
+            tableFile = "APS_pensiones_archivo_TR";
           } else if (item.originalname.includes(".CC")) {
             codeFile = "CC";
             tableFile = "APS_oper_archivo_Custodio";
+          } else if (item.originalname.includes("FC")) {
+            codeFile = "FC";
+            tableFile = "APS_pensiones_archivo_FC";
           }
           const columnsHeaders = await formatoArchivo(codeFile);
           detailsHeaders = await columnsHeaders.detailsHeaders;
