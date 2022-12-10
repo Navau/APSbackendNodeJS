@@ -3305,13 +3305,13 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
         PARAMS.paramsCodigoCuenta = {
-          table: "APS_param_cuentas_flujo_activo",
+          table: "APS_param_cuentas_flujo_efectivo",
           params: {
             select: ["cuenta"],
             where: [
               {
                 key: "id_fondo",
-                value: "202",
+                value: 202,
               },
             ],
           },
