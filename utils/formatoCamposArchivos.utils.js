@@ -3138,9 +3138,15 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
         PARAMS.paramsCodigoCuenta = {
-          table: "APS_param_plan_cuentas",
+          table: "APS_param_cuentas_flujo_efectivo",
           params: {
             select: ["cuenta"],
+            where: [
+              {
+                key: "id_fondo",
+                value: 201,
+              },
+            ],
           },
         };
       } else if (nameFile.includes("VC")) {
@@ -6281,7 +6287,7 @@ async function obtenerValidaciones(typeFile) {
     FC: [
       {
         columnName: "codigo_cuenta",
-        pattern: /^[A-Za-z0-9\-\.]{1,5}$/,
+        pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
         function: ["codigoCuenta"],
       },
       {
