@@ -1127,6 +1127,7 @@ async function validarArchivosIteraciones(params) {
                             _totalVidaUtilDiferente,
                             _vidaUtilRestante,
                             _vidaUtilRestanteDiferente,
+                            _codigoCuentaDescripcion,
                           });
                         }
                       });
@@ -2733,7 +2734,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             } else if (itemFunction === "codigoCuentaDescripcion") {
               let errFunction = true;
               map(_codigoCuentaDescripcion?.resultFinal, (item4, index4) => {
-                if (value === item4.valor) {
+                if (
+                  `${item2.codigo_cuenta}${item2.descripcion}` === item4.valor
+                ) {
                   errFunction = false;
                 }
               });
@@ -2741,9 +2744,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `cuenta+descripción no existe en el Plan de Cuentas`,
-                  valor: value,
-                  columna: columnName,
+                  descripcion: `Cuenta+descripción no existe en el Plan de Cuentas`,
+                  valor: `${item2.codigo_cuenta}${item2.descripcion}`,
+                  columna: `codigo_cuenta, ${columnName}`,
                   fila: index2,
                 });
               }
