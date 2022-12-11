@@ -2970,7 +2970,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 serieAux = item2.serie;
                 contadorSerieAux += index2 + 1;
               }
-              // console.log("contadorSerieAux", contadorSerieAux);
               if (index2 >= contadorSerieAux) {
                 let _operacionEntreColumnas =
                   infoArchivo?.paramsSaldoCapitalMenosAmortizacionCuponAnterior
