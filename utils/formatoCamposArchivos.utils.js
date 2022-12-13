@@ -3119,14 +3119,14 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ? {
                 table: "APS_param_plan_cuentas",
                 params: {
-                  select: ["cuenta||descripcion as valor"],
+                  select: ["cuenta|| ' ' ||descripcion as valor", "valida"],
                   where: whereExtentionFile,
                 },
               }
             : {
                 table: "APS_param_plan_cuentas",
                 params: {
-                  select: ["cuenta||descripcion as valor"],
+                  select: ["cuenta|| ' ' ||descripcion as valor", "valida"],
                 },
               };
       } else if (nameFile.includes("FE")) {

@@ -9,6 +9,7 @@ const {
   range,
   includes,
   replace,
+  forEach,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -2733,22 +2734,29 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               }
             } else if (itemFunction === "codigoCuentaDescripcion") {
               let errFunction = true;
-              map(_codigoCuentaDescripcion?.resultFinal, (item4, index4) => {
-                if (
-                  `${item2.codigo_cuenta}${item2.descripcion}` === item4.valor
-                ) {
-                  errFunction = false;
-                }
-              });
-              if (errFunction === true) {
-                errors.push({
-                  archivo: item.archivo,
-                  tipo_error: "VALOR INCORRECTO",
-                  descripcion: `Cuenta+descripción no existe en el Plan de Cuentas`,
-                  valor: `${item2.codigo_cuenta}${item2.descripcion}`,
-                  columna: `codigo_cuenta, ${columnName}`,
-                  fila: index2,
+              const points = filter(
+                item2.codigo_cuenta,
+                (itemFilter) => itemFilter === "."
+              );
+              if (points.length < 5) {
+                map(_codigoCuentaDescripcion?.resultFinal, (item4, index4) => {
+                  if (
+                    `${item2.codigo_cuenta} ${item2.descripcion}` ===
+                    item4.valor
+                  ) {
+                    errFunction = false;
+                  }
                 });
+                if (errFunction === true) {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: `Cuenta+descripción no existe en el Plan de Cuentas`,
+                    valor: `${item2.codigo_cuenta} ${item2.descripcion}`,
+                    columna: `codigo_cuenta, ${columnName}`,
+                    fila: index2,
+                  });
+                }
               }
             } else if (itemFunction === "codigoFondo") {
               let errFunction = true;
