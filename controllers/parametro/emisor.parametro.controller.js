@@ -26,7 +26,7 @@ const {
 const nameTable = "APS_param_emisor";
 
 //FUNCION PARA OBTENER TODOS LOS EMISOR DE SEGURIDAD
-async function ListarIDsCompletos(req, res) {
+async function ListarCompleto(req, res) {
   const errors = [];
 
   const queryEmisor = ListarUtil(nameTable);
@@ -348,5 +348,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   BuscarDiferente,
-  ListarIDsCompletos,
+  ListarCompleto,
 };

@@ -6,9 +6,9 @@ const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.get(
-  "/ListarIDsCompletos",
+  "/ListarCompleto",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.ListarIDsCompletos
+  controller.ListarCompleto
 );
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(

@@ -6119,7 +6119,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa_rendimiento",
-        pattern: /^(^-?(0|[1-9][0-9]{0,2}))(\.\d{4,4}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,2}))(\.\d{8,8}){1,1}$/,
         function: ["tasaRendimientoConInstrumento"],
       },
       {
