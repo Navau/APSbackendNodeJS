@@ -9,5 +9,10 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Validar
 );
+api.post(
+  "/ObtenerInformacion",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ObtenerInformacion
+);
 
 module.exports = api;
