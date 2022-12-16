@@ -4306,6 +4306,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
         function: ["tasaRelevanteConInstrumento"],
+        singleGroup: true,
       },
       {
         columnName: "cantidad",
@@ -4354,7 +4355,6 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -4418,6 +4418,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
         function: ["tasaRelevanteConInstrumento"],
+        singleGroup: true,
       },
       {
         columnName: "cantidad",
@@ -4466,7 +4467,6 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -6016,6 +6016,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
         function: ["tasaRelevanteConInstrumento"],
+        singleGroup: true,
       },
       {
         columnName: "cantidad",
@@ -6064,7 +6065,6 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -6213,9 +6213,9 @@ async function obtenerValidaciones(typeFile) {
     ],
     VC: [
       {
-        columnName: "codigo_cuenta",
+        columnName: "codigo_item",
         pattern: /^[A-Za-z0-9\-\.]{1,7}$/,
-        function: ["codigoCuenta"],
+        function: [],
       },
       {
         columnName: "saldo",
