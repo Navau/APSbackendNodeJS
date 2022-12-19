@@ -2709,7 +2709,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El contenido del archivo no coincide con algún codigo de cuenta`,
+                  descripcion: `El Código de Cuenta no existe en el Plan de Cuentas`,
                   valor: value,
                   columna: columnName,
                   fila: index2,

@@ -25,6 +25,7 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respErrorServidor500END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_usuario";
@@ -86,6 +87,7 @@ async function Listar(req, res) {
     table: nameTable,
     action: "Listar",
   });
+
   if (permiso?.err) {
     respErrorServidor500END(res, permiso.err);
     return;

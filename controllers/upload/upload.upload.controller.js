@@ -44,6 +44,7 @@ async function CargarArchivo(req, res) {
   try {
     const fechaInicialOperacion = req?.body?.fecha_operacion;
     const filesReaded = req.filesReaded;
+    // console.log(filesReaded);
     // const filesUploadedBD = req.filesUploadedBD;
     const previousResults = req.results;
     const previousErrors = req.errors;
@@ -146,10 +147,11 @@ async function CargarArchivo(req, res) {
               resultObject = [...resultObject, `"${item3}"`];
             });
             if (item2 !== "") {
-              arrayDataObject.push(resultObject);
+              // arrayDataObject.push(resultObject);
             }
           });
           //#endregion
+          // console.log(arrayDataObject);
 
           let headers = null;
           let detailsHeaders = null;
@@ -351,6 +353,7 @@ async function CargarArchivo(req, res) {
             .query(queryInfoSchema)
             .then((result) => {
               if (result.rowCount > 0) {
+                // console.log(result.rows);
                 map(result.rows, (itemResult, indexResult) => {
                   if (itemResult.column_name === "cod_institucion") {
                     institutionField = itemResult.column_name;

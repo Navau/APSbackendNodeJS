@@ -6214,7 +6214,7 @@ async function obtenerValidaciones(typeFile) {
     VC: [
       {
         columnName: "codigo_item",
-        pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
+        pattern: /^[A-Za-z0-9\-\.]{1,11}$/,
         function: [],
       },
       {

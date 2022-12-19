@@ -20,6 +20,124 @@ const {
 
 const nameTable = "APS_param_emisor_vinculado";
 
+async function ListarCompleto(req, res) {
+  const errors = [];
+
+  const queryEmisor = ListarUtil(nameTable);
+  const queryPais = ListarUtil("APS_param_pais");
+  const queryClasificador = EscogerInternoUtil("APS_param_clasificador_comun", {
+    select: ["*"],
+    where: [
+      {
+        key: "id_clasificador_comun_grupo",
+        valuesWhereIn: [4, 7],
+        whereIn: true,
+      },
+    ],
+  });
+  const querySectorEconomico = ListarUtil("APS_param_sector_economico");
+
+  const emisor = await pool
+    .query(queryEmisor)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  const pais = await pool
+    .query(queryPais)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  const calificadora = await pool
+    .query(queryClasificador)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  const sectorEconomico = await pool
+    .query(querySectorEconomico)
+    .then((result) => {
+      return { ok: true, result: result.rows };
+    })
+    .catch((err) => {
+      return { ok: null, err };
+    });
+  forEach([emisor, pais, calificadora, sectorEconomico], (item) => {
+    if (item?.err) {
+      errors.push({ err: item.err, message: item.err.message });
+    }
+  });
+  if (size(errors) > 0) {
+    respErrorServidor500END(res, errors);
+    return;
+  }
+  const resultFinalDataID = map(emisor.result, (item) => {
+    const valueEmisor = item;
+    const findPais = find(pais.result, (itemFind) => {
+      if (itemFind.id_pais === valueEmisor.id_pais) return true;
+    });
+    const findCalificadora = find(calificadora.result, (itemFind) => {
+      if (itemFind.id_clasificador_comun === valueEmisor.id_calificadora)
+        return true;
+    });
+    const findCalificacion = find(calificadora.result, (itemFind) => {
+      if (itemFind.id_clasificador_comun === valueEmisor.id_calificacion)
+        return true;
+    });
+    const findSectorEconomico = find(sectorEconomico.result, (itemFind) => {
+      if (itemFind.id_sector_economico === valueEmisor.id_sector_economico)
+        return true;
+    });
+    valueEmisor.data_pais = findPais || null;
+    valueEmisor.data_calificacion = findCalificacion || null;
+    valueEmisor.data_calificadora = findCalificadora || null;
+    valueEmisor.data_sector_economico = findSectorEconomico || null;
+    return valueEmisor;
+  });
+  // const resultFinalList = map(emisor.result, (item) => {
+  //   const valueEmisor = item;
+  //   const findPais = find(pais.result, (itemFind) => {
+  //     if (itemFind.id_pais === valueEmisor.id_pais) return true;
+  //   });
+  //   const findCalificadora = find(calificadora.result, (itemFind) => {
+  //     if (itemFind.id_clasificador_comun === valueEmisor.id_calificadora)
+  //       return true;
+  //   });
+  //   const findCalificacion = find(calificadora.result, (itemFind) => {
+  //     if (itemFind.id_clasificador_comun === valueEmisor.id_calificacion)
+  //       return true;
+  //   });
+  //   const findSectorEconomico = find(sectorEconomico.result, (itemFind) => {
+  //     if (itemFind.id_sector_economico === valueEmisor.id_sector_economico)
+  //       return true;
+  //   });
+  //   valueEmisor.data_pais = findPais || null;
+  //   valueEmisor.data_calificacion = findCalificacion || null;
+  //   valueEmisor.data_calificadora = findCalificadora || null;
+  //   valueEmisor.data_sector_economico = findSectorEconomico || null;
+  //   return {
+  //     id_emisor: item?.id_emisor,
+  //     codigo_rmv: item?.codigo_rmv,
+  //     razon_social: item?.razon_social,
+  //     id_pais: findPais?.descripcion,
+  //     id_calificacion: findCalificacion?.descripcion,
+  //     id_calificadora: findCalificadora?.sigla,
+  //     id_sector_economico: findSectorEconomico?.descripcion,
+  //     activo: item?.activo,
+  //     id_usuario: item?.id_usuario,
+  //   };
+  // });
+  respResultadoCorrectoObjeto200(res, resultFinalDataID);
+  // respResultadoCorrectoObjeto200(res, resultFinalList);
+}
+
 //FUNCION PARA OBTENER TODOS LOS EMISOR VINCULADO DE SEGURIDAD
 function Listar(req, res) {
   const params = {
@@ -192,6 +310,7 @@ function Deshabilitar(req, res) {
 
 module.exports = {
   Listar,
+  ListarCompleto,
   Buscar,
   Escoger,
   Insertar,
