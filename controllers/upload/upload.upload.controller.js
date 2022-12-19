@@ -147,7 +147,7 @@ async function CargarArchivo(req, res) {
               resultObject = [...resultObject, `"${item3}"`];
             });
             if (item2 !== "") {
-              // arrayDataObject.push(resultObject);
+              arrayDataObject.push(resultObject);
             }
           });
           //#endregion
@@ -473,6 +473,7 @@ async function CargarArchivo(req, res) {
           if (codeFile === "491") {
             // console.log("newArrayDataObject", newArrayDataObject);
           }
+          // console.log("arrayDataObject", arrayDataObject);
           //#endregion
 
           //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
@@ -482,6 +483,7 @@ async function CargarArchivo(req, res) {
           //#endregion
           // console.log(headers);
           // console.log(codeFile);
+          // console.log(dataFile);
           // console.log(headers);
           // console.log(item.originalname);
 
