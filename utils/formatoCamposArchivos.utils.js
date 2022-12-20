@@ -6249,7 +6249,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_cuotas",
-        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        pattern: /^(0|[1-9][0-9]{0,4})(\.\d{4,4}){1,1}$/,
         function: ["mayorACeroDecimal"],
       },
     ],
