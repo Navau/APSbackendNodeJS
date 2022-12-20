@@ -6338,6 +6338,21 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorIgualACeroDecimal"],
       },
+      {
+        columnName: "rango_inferior",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "rango_superior",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
+      {
+        columnName: "tasa_interes",
+        pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
+      },
     ],
     TR: [
       {
