@@ -834,6 +834,12 @@ async function validarArchivosIteraciones(params) {
                             infoArchivo.paramsTipoCuentaLiquidez.params
                           )
                         : null;
+                    const _cuentaContable = infoArchivo?.paramsCuentaContable
+                      ? await selectComun(
+                          infoArchivo.paramsCuentaContable.table,
+                          infoArchivo.paramsCuentaContable.params
+                        )
+                      : null;
                     const _codigoBanco = infoArchivo?.paramsCodigoBanco
                       ? await selectComun(
                           infoArchivo.paramsCodigoBanco.table,
@@ -1115,6 +1121,7 @@ async function validarArchivosIteraciones(params) {
                             _descripcionCuenta,
                             _codigoFondo,
                             _tipoCuentaLiquidez,
+                            _cuentaContable,
                             _codigoAFP,
                             _nombreAFP,
                             _codigoBanco,
@@ -1234,6 +1241,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const _codigoCuentaDescripcion = params._codigoCuentaDescripcion;
       const _codigoFondo = params._codigoFondo;
       const _tipoCuentaLiquidez = params._tipoCuentaLiquidez;
+      const _cuentaContable = params._cuentaContable;
       const _codigoBanco = params._codigoBanco;
       const _codigoAFP = params._codigoAFP;
       const _nombreAFP = params._nombreAFP;
@@ -2787,6 +2795,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: `El contenido del archivo no coincide con alguno de los autorizados`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "cuentaContable") {
+              let errFunction = true;
+              map(_cuentaContable?.resultFinal, (item4, index4) => {
+                if (value === item4.cuenta) {
+                  errFunction = false;
+                }
+              });
+              if (errFunction === true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: `La cuenta contable no coincide con ningún plan de cuentas disponible`,
                   valor: value,
                   columna: columnName,
                   fila: index2,

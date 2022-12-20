@@ -56,6 +56,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         paramsCodigoCuenta: null,
         paramsCodigoFondo: null,
         paramsTipoCuentaLiquidez: null,
+        paramsCuentaContable: null,
         paramsCodigoBanco: null,
         paramsCodigoCuentaDescripcion: null,
         paramsDescripcionCuenta: null,
@@ -3205,7 +3206,24 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             where: [
               {
                 key: "id_clasificador_comun_grupo",
-                value: 136,
+                value: 36,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCuentaContable = {
+          table: "APS_param_plan_cuentas",
+          params: {
+            select: ["cuenta"],
+            where: [
+              {
+                key: "valida",
+                value: true,
+              },
+              {
+                key: "id_fondo",
+                valuesWhereIn: [201, 202],
+                whereIn: true,
               },
             ],
           },
@@ -6315,13 +6333,13 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_cuenta",
-        pattern: /^[A-Za-z0-9]{10,20}$/,
+        pattern: /^[A-Za-z0-9\-]{10,20}$/,
         function: [],
       },
       {
         columnName: "cuenta_contable",
         pattern: /^[A-Za-z]{8,8}$/,
-        function: [],
+        function: ["cuentaContable"],
       },
       {
         columnName: "moneda",
