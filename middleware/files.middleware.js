@@ -2820,7 +2820,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             } else if (itemFunction === "codigoBanco") {
               let errFunction = true;
               map(_codigoBanco?.resultFinal, (item4, index4) => {
-                if (value === item4.sigla) {
+                if (value === item4.sigla || value === item4.codigo_rmv) {
                   errFunction = false;
                 }
               });

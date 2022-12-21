@@ -3249,6 +3249,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
                 key: "id_moneda",
                 valuesWhereIn: [2, 5, 6],
                 whereIn: true,
+                searchCriteriaWhereIn: "NOT IN",
               },
             ],
           },
