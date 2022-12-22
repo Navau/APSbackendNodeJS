@@ -32,7 +32,7 @@ function refreshAccessToken(req, res) {
     pool.query(
       `SELECT * 
     FROM public."APS_seg_usuario" 
-    WHERE status = true AND id_usuario = ${id_usuario}`,
+    WHERE activo = true AND id_usuario = ${id_usuario}`,
       (err, result) => {
         if (err) {
           console.log(err);
