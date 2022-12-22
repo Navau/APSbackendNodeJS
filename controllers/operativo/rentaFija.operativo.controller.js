@@ -20,13 +20,14 @@ const {
   respErrorServidor500END,
   respResultadoIncorrecto200,
   respResultadoIncorrectoObjeto200,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_renta_fija";
 
 //FUNCION PARA OBTENER TODOS LOS RENTA FIJA DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
+  const query = ListarUtil(nameTable, { activo: null });
   await pool
     .query(query)
     .then((result) => {

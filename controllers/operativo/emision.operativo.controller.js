@@ -27,18 +27,15 @@ const nameTable = "APS_oper_emision";
 
 //FUNCION PARA OBTENER TODOS LOS EMISION PATRIMONIO DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = ListarUtil(nameTable, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN EMISION PATRIMONIO, CON BUSQUEDA

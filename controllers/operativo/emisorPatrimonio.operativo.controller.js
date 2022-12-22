@@ -19,24 +19,22 @@ const {
   respIDNoRecibido400,
   respErrorServidor500END,
   respResultadoIncorrectoObjeto200,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_emisor_patrimonio";
 
 //FUNCION PARA OBTENER TODOS LOS EMISOR PATRIMONIO DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = ListarUtil(nameTable, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN EMISOR PATRIMONIO, CON BUSQUEDA
