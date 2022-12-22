@@ -98,7 +98,7 @@ function Login(req, res) {
       } else {
         let queryRol = `SELECT id_rol 
         FROM public."APS_seg_usuario_rol" 
-        WHERE id_usuario = ${result.rows[0].id_usuario} and status = true;`;
+        WHERE id_usuario = ${result.rows[0].id_usuario} and activo = true;`;
 
         console.log(queryRol);
 
