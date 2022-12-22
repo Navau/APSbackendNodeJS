@@ -405,7 +405,7 @@ async function Escoger(req, res) {
     const params = {
       body,
     };
-    const query = BuscarUtil(nameTable, params);
+    const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
       .then((result) => {

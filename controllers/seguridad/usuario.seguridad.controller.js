@@ -125,9 +125,9 @@ async function Escoger(req, res) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      body,
+      body: body,
     };
-    const query = BuscarUtil(nameTable, params);
+    const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
       .then((result) => {
