@@ -1,17 +1,43 @@
-exports.permisoListar = async (req, res) => {
-  const permiso = await VerificarPermisoTablaUsuario({
-    req,
-    res,
-    table: nameTable,
-    action: "Listar",
-  });
+const { split } = require("lodash");
+const { VerificarPermisoTablaUsuario } = require("../utils/permiso.utils");
+const {
+  respUsuarioNoAutorizado,
+  respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
+} = require("../utils/respuesta.utils");
+const { obtenerTablaPorRutaPrincipal } = require("../utils/tablas.utils");
 
-  if (permiso?.err) {
-    respErrorServidor500END(res, permiso.err);
-    return;
-  }
-  if (permiso?.ok === false) {
-    respResultadoVacio404(res, "Usuario no Autorizado");
-    return;
+exports.permisoUsuario = async (req, res, next, section) => {
+  try {
+    const mainRoute = split(req.originalUrl, "/")[2];
+    const actionRoute = split(req.originalUrl, "/")[3];
+    const responseTable = await obtenerTablaPorRutaPrincipal(
+      res,
+      mainRoute,
+      section
+    );
+    if (responseTable === null) {
+      respUsuarioNoAutorizado(res);
+      return;
+    }
+    const permiso = await VerificarPermisoTablaUsuario({
+      req,
+      res,
+      table: responseTable.table_name,
+      action: actionRoute,
+    });
+
+    if (permiso?.err) {
+      respErrorServidor500END(res, permiso.err);
+      return;
+    }
+    if (permiso?.ok === false) {
+      respUsuarioNoAutorizado(res);
+      return;
+    }
+
+    next();
+  } catch (err) {
+    respErrorServidor500END(res, err);
   }
 };

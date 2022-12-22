@@ -1,6 +1,8 @@
 const express = require("express");
 const controller = require("../../controllers/seguridad/usuario.seguridad.controller");
 const md_auth = require("../../middleware/token.middleware");
+const md_permissions = require("../../middleware/seguridad.middleware");
+const { basename } = require("path");
 
 const api = express.Router();
 
@@ -9,7 +11,15 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.InstitucionConIDUsuario
 );
-api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
+api.get(
+  "/Listar",
+  [
+    md_auth.AsegurarAutenticacionConToken,
+    (req, res, next) =>
+      md_permissions.permisoUsuario(req, res, next, basename(__dirname)),
+  ],
+  controller.Listar
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

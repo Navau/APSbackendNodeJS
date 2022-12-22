@@ -26,7 +26,7 @@ const {
 const nameTable = "APS_oper_emision";
 
 //FUNCION PARA OBTENER TODOS LOS EMISION PATRIMONIO DE SEGURIDAD
-function Listar(req, res) {
+async function Listar(req, res) {
   let query = ListarUtil(nameTable);
   pool.query(query, (err, result) => {
     if (err) {
@@ -42,40 +42,36 @@ function Listar(req, res) {
 }
 
 //FUNCION PARA OBTENER UN EMISION PATRIMONIO, CON BUSQUEDA
-function Buscar(req, res) {
+async function Buscar(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      body: body,
+      body,
     };
-    let query = BuscarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rows || result.rows < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
+    const query = BuscarUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
   }
 }
 
 //FUNCION PARA OBTENER UN EMISION, CON BUSQUEDA DIFERENTE
-function BuscarDiferente(req, res) {
+async function BuscarDiferente(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      status: "activo",
-      body: body,
+      body,
     };
     let query = BuscarDiferenteUtil(nameTable, params);
     pool.query(query, (err, result) => {
@@ -93,14 +89,14 @@ function BuscarDiferente(req, res) {
 }
 
 //FUNCION PARA OBTENER UN EMISION PATRIMONIO, CON ID DEL EMISION PATRIMONIO
-function Escoger(req, res) {
+async function Escoger(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      body: body,
+      body,
     };
     let query = EscogerUtil(nameTable, params);
     pool.query(query, (err, result) => {
@@ -145,7 +141,7 @@ async function Insertar(req, res) {
         respErrorServidor500END(res, err);
       });
     const params = {
-      body: body,
+      body,
     };
     if (exist.ok) {
       respResultadoIncorrectoObjeto200(
@@ -177,7 +173,7 @@ async function Insertar(req, res) {
 }
 
 //FUNCION PARA ACTUALIZAR UN EMISION PATRIMONIO
-function Actualizar(req, res) {
+async function Actualizar(req, res) {
   const body = req.body;
 
   let query = "";
@@ -216,7 +212,7 @@ function Actualizar(req, res) {
 }
 
 //FUNCION PARA DESHABILITAR UN EMISION PATRIMONIO
-function Deshabilitar(req, res) {
+async function Deshabilitar(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {

@@ -253,26 +253,15 @@ function ListarUtil(table, params) {
       valueId: params.valueId,
     });
     query = `SELECT * FROM public."APS_param_clasificador_comun"`;
-    if (params?.status) {
-      params.status === "activo" &&
-        (query =
-          query +
-          " WHERE id_clasificador_comun_grupo = " +
-          params.idClasificadorComunGrupo +
-          " AND activo = true");
-      params.status === "status" &&
-        (query =
-          query +
-          " WHERE id_clasificador_comun_grupo = " +
-          params.idClasificadorComunGrupo +
-          " AND status = true");
-    }
+    query =
+      query +
+      " WHERE id_clasificador_comun_grupo = " +
+      params.idClasificadorComunGrupo +
+      " AND activo = true";
   } else {
     query = `SELECT * FROM public."${table}"`;
-    if (params?.status) {
-      params.status === "activo" && (query = query + " WHERE activo = true");
-      params.status === "status" && (query = query + " WHERE status = true");
-    } else if (params?.idKey && params?.idValue) {
+    query = query + " WHERE activo = true";
+    if (params?.idKey && params?.idValue) {
       query = query + ` WHERE ${params.idKey} = ${params.idValue}`;
     } else if (params?.whereIn) {
       let valuesAux = [];
@@ -283,6 +272,8 @@ function ListarUtil(table, params) {
     }
     query && (query = query + ";");
   }
+
+  console.log(query);
 
   if (!query.includes("WHERE") && query.includes("AND")) {
     let queryAux = query.split("");
@@ -297,13 +288,10 @@ function ListarUtil(table, params) {
   return query;
 }
 
-function BuscarUtil(table, params) {
+async function BuscarUtil(table, params) {
   let query = "";
   params.body && (query = query + `SELECT * FROM public."${table}" `);
-  if (params?.status) {
-    params.status === "activo" && (query = query + " WHERE activo = true");
-    params.status === "status" && (query = query + " WHERE status = true");
-  }
+  query = query + " WHERE activo = true";
 
   query &&
     map(params.body, (item, index) => {
@@ -329,13 +317,10 @@ function BuscarUtil(table, params) {
   return query;
 }
 
-function BuscarDiferenteUtil(table, params) {
+async function BuscarDiferenteUtil(table, params) {
   let query = "";
   params.body && (query = query + `SELECT * FROM public."${table}" `);
-  if (params?.status) {
-    params.status === "activo" && (query = query + " WHERE activo = true");
-    params.status === "status" && (query = query + " WHERE status = true");
-  }
+  query = query + " WHERE activo = true";
 
   query &&
     map(params.body, (item, index) => {
@@ -422,17 +407,10 @@ function EscogerUtil(table, params) {
     FROM public."APS_param_clasificador_comun" 
     WHERE ${idTable}_grupo = ${params.idClasificadorComunGrupo}`;
 
-    if (params?.status) {
-      params.status === "activo" && (query = query + " AND activo = true;");
-      params.status === "status" && (query = query + " AND status = true;");
-    }
+    query = query + " AND activo = true;";
   } else {
     params.body && (query = query + `SELECT * FROM public."${table}" `);
-
-    if (params?.status) {
-      params.status === "activo" && (query = query + " WHERE activo = true");
-      params.status === "status" && (query = query + " WHERE status = true");
-    }
+    query = query + " WHERE activo = true";
 
     query &&
       map(params.body, (item, index) => {
@@ -539,7 +517,10 @@ function EscogerInternoUtil(table, params) {
     }
   };
   query = `SELECT ${params?.select ? params.select.join(", ") : "*"} FROM ${
-    table !== "INFORMATION_SCHEMA.COLUMNS" ? `public."${table}"` : `${table}`
+    table !== "INFORMATION_SCHEMA.COLUMNS" &&
+    table !== "INFORMATION_SCHEMA.TABLES"
+      ? `public."${table}"`
+      : `${table}`
   }`;
   if (params?.innerjoin) {
     const innerjoin = params.innerjoin;

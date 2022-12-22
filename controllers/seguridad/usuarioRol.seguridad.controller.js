@@ -16,28 +16,26 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
+  respUsuarioNoAutorizado,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_usuario_rol";
 const nameView = "APS_seg_view_roles_usuario";
 
 //FUNCION PARA OBTENER TODOS LOS USUARIO DE SEGURIDAD
-function Listar(req, res) {
-  const params = {
-    status: "status",
-  };
-  let query = ListarUtil(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+async function Listar(req, res) {
+  const query = ListarUtil(nameTable);
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 function ListarRol(req, res) {
@@ -56,87 +54,77 @@ function ListarRol(req, res) {
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON BUSQUEDA
-function Buscar(req, res) {
+async function Buscar(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      status: "status",
-      body: body,
+      body,
     };
-    let query = BuscarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rows || result.rows < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
+    const query = BuscarUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
   }
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON ID DEL USUARIO
-function Escoger(req, res) {
+async function Escoger(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      body: body,
+      body,
     };
-    let query = EscogerUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
+    const query = BuscarUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
   }
 }
 
 //FUNCION PARA INSERTAR UN USUARIO
-function Insertar(req, res) {
+async function Insertar(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
-      body: body,
+      body,
     };
-    let query = InsertarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(
-            res,
-            result,
-            "Información guardada correctamente"
-          );
-        }
-      }
-    });
+    const query = InsertarUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(
+          res,
+          result.rows,
+          "Información guardada correctamente"
+        );
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
   }
 }
 
 //FUNCION PARA ACTUALIZAR UN USUARIO
-function Actualizar(req, res) {
+async function Actualizar(req, res) {
   const body = req.body;
 
   let query = "";
@@ -176,7 +164,7 @@ function Actualizar(req, res) {
 0;
 
 //FUNCION PARA DESHABILITAR UN USUARIO
-function Deshabilitar(req, res) {
+async function Deshabilitar(req, res) {
   const body = req.body;
 
   if (Object.entries(body).length === 0) {

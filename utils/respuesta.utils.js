@@ -1,6 +1,6 @@
 function respErrorServidor500(res, err, msg) {
   console.log(err);
-  let errMessage = err?.message ? err?.message : "";
+  const errMessage = err?.message ? err?.message : "";
   res.status(500).send({
     resultado: 0,
     datos: null,
@@ -11,7 +11,7 @@ function respErrorServidor500(res, err, msg) {
 
 function respErrorServidor500END(res, err, msg, datos = null) {
   console.log(err);
-  let errMessage = err?.message ? err?.message : "";
+  const errMessage = err?.message ? err?.message : "";
   res
     .status(500)
     .send({
@@ -27,7 +27,7 @@ function respErrorServidor500END(res, err, msg, datos = null) {
 
 function respErrorMulter500(res, err, msg) {
   console.log(err);
-  let errMessage = err?.message ? err?.message : "";
+  const errMessage = err?.message ? err?.message : "";
   res
     .status(500)
     .send({
@@ -44,7 +44,7 @@ function respErrorMulter500(res, err, msg) {
 
 function respErrorExtensionError403(res, err, msg) {
   console.log(err);
-  let errMessage = err?.message ? err?.message : "";
+  const errMessage = err?.message ? err?.message : "";
   res
     .status(413)
     .send({
@@ -67,6 +67,7 @@ function respResultadoVacio404(res, msg) {
       : "No se logró realizar correctamente la petición, debido a que la información no existe.",
   });
 }
+
 function respResultadoVacio404END(res, msg) {
   res
     .status(404)
@@ -81,37 +82,60 @@ function respResultadoVacio404END(res, msg) {
 }
 
 function respResultadoVacioObject200(res, data, msg) {
-  res.status(200).send({
-    resultado: 1,
-    datos: data,
-    mensaje: msg ? msg : "La petición fue realizada correctamente.",
-  });
+  res
+    .status(200)
+    .send({
+      resultado: 1,
+      datos: data,
+      mensaje: msg ? msg : "La petición fue realizada correctamente.",
+    })
+    .end();
 }
 
 function respResultadoCorrecto200(res, result, msg) {
-  res.status(200).send({
-    resultado: 1,
-    datos: result.rows,
-    mensaje: msg ? msg : "La petición fue realizada correctamente.",
-  });
+  res
+    .status(200)
+    .send({
+      resultado: 1,
+      datos: result.rows,
+      mensaje: msg ? msg : "La petición fue realizada correctamente.",
+    })
+    .end();
 }
 
 function respResultadoIncorrectoObjeto200(res, err, data, msg) {
-  res.status(200).send({
-    resultado: 0,
-    datos: data,
-    mensaje: msg ? msg : "La petición no fue realizada correctamente.",
-    mensaje_error: err?.message,
-    err,
-  });
+  res
+    .status(200)
+    .send({
+      resultado: 0,
+      datos: data,
+      mensaje: msg ? msg : "La petición no fue realizada correctamente.",
+      mensaje_error: err?.message,
+      err,
+    })
+    .end();
 }
 
 function respResultadoCorrectoObjeto200(res, data, msg) {
-  res.status(200).send({
-    resultado: 1,
-    datos: data,
-    mensaje: msg ? msg : "La petición fue realizada correctamente.",
-  });
+  res
+    .status(200)
+    .send({
+      resultado: 1,
+      datos: data,
+      mensaje: msg ? msg : "La petición fue realizada correctamente.",
+    })
+    .end();
+}
+
+function respUsuarioNoAutorizado(res, msg) {
+  res
+    .status(200)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg ? msg : "Usuario no autorizado",
+    })
+    .end();
 }
 
 function respDatosNoRecibidos400(res, msg) {
@@ -188,4 +212,5 @@ module.exports = {
   respResultadoVacioObject200,
   respResultadoIncorrectoObjeto200,
   respDescargarArchivos200,
+  respUsuarioNoAutorizado,
 };

@@ -19,14 +19,13 @@ const nameTableGroup = "APS_param_clasificador_comun_grupo";
 const idClasificadorComunGrupo = 13;
 const valueId = "id_fondo_inv";
 
-function Listar(req, res) {
+async function Listar(req, res) {
   const params = {
-    status: "activo",
     clasificador: true,
     idClasificadorComunGrupo,
     valueId,
   };
-  let query = ListarUtil(nameTable, params);
+  const query = ListarUtil(nameTable, params);
   pool.query(query, (err, result) => {
     if (err) {
       respErrorServidor500(res, err);
@@ -52,9 +51,8 @@ function Listar(req, res) {
   });
 }
 
-function Escoger(req, res) {
-  let params = {
-    status: "activo",
+async function Escoger(req, res) {
+  const params = {
     clasificador: true,
     idClasificadorComunGrupo,
     valueId,
@@ -62,7 +60,7 @@ function Escoger(req, res) {
   let paramsLlave = {
     idClasificadorComunGrupo,
   };
-  let queryLlave = EscogerLlaveClasificadorUtil(nameTableGroup, paramsLlave);
+  const queryLlave = EscogerLlaveClasificadorUtil(nameTableGroup, paramsLlave);
   pool.query(queryLlave, (err, result) => {
     if (err) {
       respErrorServidor500(res, err);
