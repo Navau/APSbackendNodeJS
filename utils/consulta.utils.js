@@ -260,7 +260,9 @@ function ListarUtil(table, params) {
       " AND activo = true";
   } else {
     query = `SELECT * FROM public."${table}"`;
-    query = query + " WHERE activo = true";
+    if (params?.activo !== null) {
+      query = query + " WHERE activo = true";
+    }
     if (params?.idKey && params?.idValue) {
       query = query + ` WHERE ${params.idKey} = ${params.idValue}`;
     } else if (params?.whereIn) {

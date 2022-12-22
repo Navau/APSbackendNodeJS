@@ -38,19 +38,16 @@ async function Listar(req, res) {
     });
 }
 
-function ListarRol(req, res) {
-  let query = ListarUtil(nameView);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+async function ListarRol(req, res) {
+  const query = ListarUtil(nameView, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON BUSQUEDA
