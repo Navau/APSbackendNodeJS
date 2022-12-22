@@ -67,7 +67,7 @@ function SeleccionarArchivos(req, res) {
       WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
       AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
-      AND "APS_param_archivos_pensiones_seguros".status = true;`;
+      AND "APS_param_archivos_pensiones_seguros".activo = true;`;
 
     console.log(query);
 
@@ -234,7 +234,7 @@ async function SeleccionarArchivosBolsa(req, res) {
   WHERE "APS_param_clasificador_comun".id_clasificador_comun in (${periodicidad.join()}) 
   AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
   AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
-  AND "APS_param_archivos_pensiones_seguros".status = true;`;
+  AND "APS_param_archivos_pensiones_seguros".activo = true;`;
 
     console.log(query);
 

@@ -6,7 +6,7 @@ function ObtenerRolUtil(table, data, idPK) {
   let query = "";
 
   data &&
-    (query = query + `SELECT * FROM public."${table}" WHERE status = true`);
+    (query = query + `SELECT * FROM public."${table}" WHERE activo = true`);
 
   query &&
     map(data, (item, index) => {
@@ -59,7 +59,7 @@ function ObtenerMenuAngUtil(data) {
       inner join public."APS_seg_modulo" on public."APS_seg_tabla".id_modulo = public."APS_seg_modulo".id_modulo 
       inner join public."APS_seg_tabla_accion" on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
       inner join public."APS_seg_permiso" on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
-      where public."APS_seg_permiso".status = true AND 
+      where public."APS_seg_permiso".activo = true AND 
       id_rol = ${data.id_rol} order by public."APS_seg_modulo".id_modulo, public."APS_seg_tabla".orden) as children`;
 
   query = `SELECT text, icon, children FROM (select DISTINCT modulo as text, case 
@@ -74,7 +74,7 @@ function ObtenerMenuAngUtil(data) {
     on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
     inner join public."APS_seg_permiso" 
     on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
-    where public."APS_seg_modulo".status = true and id_rol = ${data.id_rol.toString()} 
+    where public."APS_seg_modulo".activo = true and id_rol = ${data.id_rol.toString()} 
     order by "APS_seg_modulo".orden) as menu`;
 
   // query = `SELECT text, icon, children FROM (select DISTINCT modulo as text, case
@@ -89,7 +89,7 @@ function ObtenerMenuAngUtil(data) {
   //   on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla
   //   inner join public."APS_seg_permiso"
   //   on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion
-  //   where public."APS_seg_modulo".status = true and id_rol = ${data.id_rol.toString()}
+  //   where public."APS_seg_modulo".activo = true and id_rol = ${data.id_rol.toString()}
   //   order by "APS_seg_modulo".orden) as menu`;
 
   // console.log(querydet);

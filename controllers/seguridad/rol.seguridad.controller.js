@@ -64,7 +64,7 @@ async function InfoUsuario(req, res) {
       `"APS_seg_usuario".usuario`,
       `"APS_seg_rol".rol`,
       `"APS_seg_rol".descripcion`,
-      `"APS_seg_usuario".status`,
+      `"APS_seg_usuario".activo`,
     ],
     innerjoin: [
       {
