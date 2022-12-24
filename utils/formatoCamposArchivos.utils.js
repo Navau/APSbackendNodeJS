@@ -6204,7 +6204,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "descripcion",
-        pattern: /^[\s\S]{6,80}$/,
+        pattern: /^[\s\S]{4,80}$/,
         function: ["codigoCuentaDescripcion"],
       },
       {
