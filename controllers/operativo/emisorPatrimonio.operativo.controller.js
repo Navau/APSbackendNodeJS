@@ -45,6 +45,7 @@ async function Buscar(req, res) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
+      activo: null,
       body,
     };
     const query = BuscarUtil(nameTable, params);
@@ -67,6 +68,7 @@ async function Escoger(req, res) {
     respDatosNoRecibidos400(res);
   } else {
     const params = {
+      activo: null,
       body,
     };
     const query = EscogerUtil(nameTable, params);

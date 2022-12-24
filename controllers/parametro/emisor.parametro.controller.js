@@ -107,39 +107,6 @@ async function ListarCompleto(req, res) {
     valueEmisor.data_sector_economico = findSectorEconomico || null;
     return valueEmisor;
   });
-  // const resultFinalList = map(emisor.result, (item) => {
-  //   const valueEmisor = item;
-  //   const findPais = find(pais.result, (itemFind) => {
-  //     if (itemFind.id_pais === valueEmisor.id_pais) return true;
-  //   });
-  //   const findCalificadora = find(calificadora.result, (itemFind) => {
-  //     if (itemFind.id_clasificador_comun === valueEmisor.id_calificadora)
-  //       return true;
-  //   });
-  //   const findCalificacion = find(calificadora.result, (itemFind) => {
-  //     if (itemFind.id_clasificador_comun === valueEmisor.id_calificacion)
-  //       return true;
-  //   });
-  //   const findSectorEconomico = find(sectorEconomico.result, (itemFind) => {
-  //     if (itemFind.id_sector_economico === valueEmisor.id_sector_economico)
-  //       return true;
-  //   });
-  //   valueEmisor.data_pais = findPais || null;
-  //   valueEmisor.data_calificacion = findCalificacion || null;
-  //   valueEmisor.data_calificadora = findCalificadora || null;
-  //   valueEmisor.data_sector_economico = findSectorEconomico || null;
-  //   return {
-  //     id_emisor: item?.id_emisor,
-  //     codigo_rmv: item?.codigo_rmv,
-  //     razon_social: item?.razon_social,
-  //     id_pais: findPais?.descripcion,
-  //     id_calificacion: findCalificacion?.descripcion,
-  //     id_calificadora: findCalificadora?.sigla,
-  //     id_sector_economico: findSectorEconomico?.descripcion,
-  //     activo: item?.activo,
-  //     id_usuario: item?.id_usuario,
-  //   };
-  // });
   respResultadoCorrectoObjeto200(res, resultFinalDataID);
   // respResultadoCorrectoObjeto200(res, resultFinalList);
 }

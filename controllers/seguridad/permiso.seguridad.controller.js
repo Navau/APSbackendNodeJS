@@ -1,3 +1,4 @@
+const { forEach, size, find, map, filter } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -8,6 +9,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +25,81 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_permiso";
+
+async function CambiarPermisos(req, res) {}
+
+async function ListarPermisos(req, res) {
+  try {
+    const errors = [];
+    //#region MODULOS
+    const queryModulo = EscogerInternoUtil("APS_seg_modulo", {
+      select: ["*"],
+      orderby: {
+        field: "orden",
+      },
+    });
+    const modulos = await pool
+      .query(queryModulo)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region TABLAS
+    const queryTablas = EscogerInternoUtil("APS_seg_tabla", {
+      select: ["*"],
+      orderby: {
+        field: "orden",
+      },
+    });
+    const tablas = await pool
+      .query(queryTablas)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+
+    forEach([modulos, tablas], (item) => {
+      if (item?.err) {
+        errors.push({ err: item.err, message: item.err.message });
+      }
+    });
+    if (size(errors) > 0) {
+      respErrorServidor500END(res, errors);
+      return;
+    }
+    const resultFinalDataID = map(modulos.result, (item) => {
+      const findTablas = filter(tablas.result, (itemF) => {
+        if (itemF.id_modulo === item.id_modulo) return true;
+      });
+      // value.data_tablas = findTablas || null;
+      const value = {
+        id: item.id_modulo,
+        name: item.modulo,
+        description: item.descripcion,
+        completed: false,
+        allCompleted: false,
+        subtasks: map(findTablas, (itemFind) => {
+          return {
+            id: itemFind.id_tabla,
+            table: itemFind.tabla,
+            name: itemFind.descripcion,
+            completed: false,
+          };
+        }),
+      };
+      return value;
+    });
+    respResultadoCorrectoObjeto200(res, resultFinalDataID);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS PREMISO DE SEGURIDAD
 async function Listar(req, res) {
@@ -180,6 +257,8 @@ async function Deshabilitar(req, res) {
 
 module.exports = {
   Listar,
+  ListarPermisos,
+  CambiarPermisos,
   Buscar,
   Escoger,
   Insertar,
