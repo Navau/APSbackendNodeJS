@@ -34,6 +34,7 @@ async function ListarPermisos(req, res) {
     //#region MODULOS
     const queryModulo = EscogerInternoUtil("APS_seg_modulo", {
       select: ["*"],
+      where: [{ key: "activo", value: true }],
       orderby: {
         field: "orden",
       },
@@ -50,6 +51,7 @@ async function ListarPermisos(req, res) {
     //#region TABLAS
     const queryTablas = EscogerInternoUtil("APS_seg_tabla", {
       select: ["*"],
+      where: [{ key: "activo", value: true }],
       orderby: {
         field: "orden",
       },
