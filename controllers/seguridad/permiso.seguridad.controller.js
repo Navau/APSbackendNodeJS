@@ -30,6 +30,7 @@ async function CambiarPermisos(req, res) {}
 
 async function ListarPermisos(req, res) {
   try {
+    const { id_rol } = req.body;
     const errors = [];
     //#region MODULOS
     const queryModulo = EscogerInternoUtil("APS_seg_modulo", {

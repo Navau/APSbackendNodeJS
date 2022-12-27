@@ -9,8 +9,8 @@ const { obtenerTablaPorRutaPrincipal } = require("../utils/tablas.utils");
 
 exports.permisoUsuario = async (req, res, next, section) => {
   try {
-    const mainRoute = split(req.originalUrl, "/")[2];
-    const actionRoute = split(req.originalUrl, "/")[3];
+    const mainRoute = split(req.originalUrl, "/")[2]; // USUARIO
+    const actionRoute = split(req.originalUrl, "/")[3]; // LISTAR
     const responseTable = await obtenerTablaPorRutaPrincipal(
       res,
       mainRoute,
