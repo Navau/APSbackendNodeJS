@@ -271,7 +271,7 @@ async function ListarPermisos(req, res) {
             id_tabla: itemDT.id_tabla,
             tabla: itemDT.tabla,
             descripcion: itemDT.descripcion,
-            completado,
+            esCompleto: completado,
             data_tabla_accion: map(itemDT.data_tabla_accion, (itemDT2) => {
               return {
                 id_tabla_accion: itemDT2.id_tabla_accion,
