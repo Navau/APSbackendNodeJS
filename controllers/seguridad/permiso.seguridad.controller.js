@@ -256,7 +256,7 @@ async function ListarPermisos(req, res) {
         });
       });
       return {
-        id_modulo: index,
+        id_modulo: index + 1,
         modulo: item.modulo,
         descripcion: item.descripcion,
         esCompleto,
@@ -268,7 +268,7 @@ async function ListarPermisos(req, res) {
             else completado = false;
           });
           return {
-            id_tabla: indexDT,
+            id_tabla: itemDT.id_tabla,
             tabla: itemDT.tabla,
             descripcion: itemDT.descripcion,
             esCompleto: completado,
