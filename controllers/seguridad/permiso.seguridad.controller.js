@@ -26,7 +26,10 @@ const {
 
 const nameTable = "APS_seg_permiso";
 
-async function CambiarPermisos(req, res) {}
+async function CambiarPermisos(req, res) {
+  const { permisos } = req.body;
+  respResultadoCorrectoObjeto200(res, permisos);
+}
 
 async function ListarPermisos(req, res) {
   try {
@@ -66,8 +69,50 @@ async function ListarPermisos(req, res) {
         return { ok: null, err };
       });
     //#endregion
+    //#region TABLA_ACCION
+    const queryTablaAccion = EscogerInternoUtil("APS_seg_tabla_accion", {
+      select: ["*"],
+      where: [{ key: "activo", value: true }],
+    });
+    const tablaAccion = await pool
+      .query(queryTablaAccion)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region PERMISOS
+    const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
+      select: ["*"],
+      where: [{ key: "activo", value: true }],
+    });
+    const permisos = await pool
+      .query(queryPermisos)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region ACCIONES
+    const queryAcciones = EscogerInternoUtil("APS_seg_accion", {
+      select: ["*"],
+      where: [{ key: "activo", value: true }],
+    });
+    const acciones = await pool
+      .query(queryAcciones)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
 
-    forEach([modulos, tablas], (item) => {
+    forEach([modulos, tablas, permisos, tablaAccion, acciones], (item) => {
       if (item?.err) {
         errors.push({ err: item.err, message: item.err.message });
       }
@@ -76,29 +121,93 @@ async function ListarPermisos(req, res) {
       respErrorServidor500END(res, errors);
       return;
     }
-    const resultFinalDataID = map(modulos.result, (item) => {
-      const findTablas = filter(tablas.result, (itemF) => {
-        if (itemF.id_modulo === item.id_modulo) return true;
+    //#region FORMATEO DE LOS DATOS PARA QUE LA JERARQUIA QUEDE CORRECTA:
+    //[MODULOS -> [TABLAS -> [TABLA_ACCION -> [PERMISOS, ACCIONES]]]]
+    const modulosTablasArray = [];
+    forEach(modulos.result, (itemMO) => {
+      const resultTablas = filter(
+        tablas.result,
+        (itemF) => itemF.id_modulo === itemMO.id_modulo
+      );
+      if (size(resultTablas) > 0) {
+        modulosTablasArray.push({
+          id_modulo: itemMO.id_modulo,
+          modulo: itemMO.modulo,
+          descripcion: itemMO.descripcion,
+          data_tabla: map(resultTablas, (itemT) => {
+            return {
+              id_tabla: itemT.id_tabla,
+              tabla: itemT.tabla,
+              descripcion: itemT.descripcion,
+              data_tabla_accion: map(
+                filter(
+                  tablaAccion.result,
+                  (itemTA) => itemT.id_tabla === itemTA.id_tabla
+                ),
+                (itemTAMap) => {
+                  return {
+                    id_tabla_accion: itemTAMap.id_tabla_accion,
+                    id_tabla: itemTAMap.id_tabla,
+                    id_accion: itemTAMap.id_accion,
+                    data_permisos: filter(
+                      permisos.result,
+                      (itemP) =>
+                        itemTAMap.id_tabla_accion === itemP.id_tabla_accion &&
+                        itemP.id_rol === id_rol
+                    ),
+                    // data_acciones: filter(
+                    //   acciones.result,
+                    //   (itemA) => itemTAMap.id_accion === itemA.id_accion
+                    // ),
+                  };
+                }
+              ),
+            };
+          }),
+        });
+      }
+    });
+    //#endregion
+
+    //#region PREPARACIÓN FINAL DE LOS DATOS, PARA MANDAR AL FRONTEND
+    const resultFinal = map(modulosTablasArray, (item) => {
+      let esCompleto = true;
+      forEach(item.data_tabla, (itemEC) => {
+        forEach(itemEC.data_tabla_accion, (itemEC2) => {
+          if (size(itemEC2.data_permisos) <= 0) esCompleto = false;
+        });
       });
-      // value.data_tablas = findTablas || null;
-      const value = {
-        id: item.id_modulo,
-        name: item.modulo,
-        description: item.descripcion,
-        completed: false,
-        allCompleted: false,
-        subtasks: map(findTablas, (itemFind) => {
+      return {
+        id_modulo: item.id_modulo,
+        modulo: item.modulo,
+        descripcion: item.descripcion,
+        esCompleto,
+        esTodoCompleto: esCompleto,
+        tablas: map(item.data_tabla, (itemDT) => {
+          let completado = false;
+          forEach(itemDT.data_tabla_accion, (itemDT2) => {
+            if (size(itemDT2.data_permisos) >= 1) completado = true;
+            else completado = false;
+          });
           return {
-            id: itemFind.id_tabla,
-            table: itemFind.tabla,
-            name: itemFind.descripcion,
-            completed: false,
+            id_tabla: itemDT.id_tabla,
+            tabla: itemDT.tabla,
+            descripcion: itemDT.descripcion,
+            completado,
+            data_tabla_accion: map(itemDT.data_tabla_accion, (itemDT2) => {
+              return {
+                id_tabla_accion: itemDT2.id_tabla_accion,
+                id_tabla: itemDT2.id_tabla,
+                id_accion: itemDT2.id_accion,
+              };
+            }),
           };
         }),
       };
-      return value;
     });
-    respResultadoCorrectoObjeto200(res, resultFinalDataID);
+    //#endregion
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
   } catch (err) {
     respErrorServidor500END(res, err);
   }
