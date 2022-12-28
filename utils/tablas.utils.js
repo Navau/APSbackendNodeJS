@@ -9,9 +9,12 @@ const {
 } = require("./respuesta.utils");
 
 async function obtenerTablaPorRutaPrincipal(res, mainRoute, section) {
-  const query = EscogerInternoUtil("INFORMATION_SCHEMA.TABLES", {
-    select: ["table_name"],
-    where: [{ key: "table_schema", value: "public" }],
+  const query = EscogerInternoUtil("APS_seg_tabla", {
+    select: ["*"],
+    where: [{ key: "activo", value: true }],
+    orderby: {
+      field: "orden",
+    },
   });
   const tables = await pool
     .query(query)
@@ -51,7 +54,7 @@ async function obtenerTablaPorRutaPrincipal(res, mainRoute, section) {
   }
 
   const tableFinal = find(tables.result, (item) => {
-    const tableName = split(item.table_name, "APS_")?.[1]?.toLowerCase();
+    const tableName = split(item.tabla, "APS_")?.[1]?.toLowerCase();
     const routeName = `${sectionBasicTables.toLowerCase()}_${mainRoute.toLowerCase()}`;
     if (isEqual(tableName, routeName)) {
       return true;

@@ -1,4 +1,4 @@
-const { forEach, size, find, map, filter } = require("lodash");
+const { forEach, size, find, map, filter, groupBy } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -47,9 +47,12 @@ async function CambiarPermisos(req, res) {
     //#region PERMISOS
     const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
       select: ["*"],
-      where: [{ key: "activo", value: true }],
+      where: [{ key: "id_rol", value: id_rol }],
+      orderby: {
+        field: "id_permiso",
+      },
     });
-    const permisosBD = await pool
+    const permisosDB = await pool
       .query(queryPermisos)
       .then((result) => {
         return { ok: true, result: result.rows };
@@ -73,7 +76,7 @@ async function CambiarPermisos(req, res) {
       });
     //#endregion
 
-    forEach([permisosBD, tablaAccion, acciones], (item) => {
+    forEach([permisosDB, tablaAccion, acciones], (item) => {
       if (item?.err) {
         errors.push({ err: item.err, message: item.err.message });
       }
@@ -83,27 +86,117 @@ async function CambiarPermisos(req, res) {
       return;
     }
 
+    const tablaAccionPermisosAuxArray = [];
     forEach(permisos, (itemP) => {
       forEach(itemP.tablas, (itemP2) => {
         if (size(itemP2.data_tabla_accion) > 0) {
-          const tablaAccionPermisosAux = [];
           forEach(itemP2.data_tabla_accion, (itemP3) => {
             forEach(tablaAccion.result, (itemTA) => {
               if (itemP3.id_tabla_accion === itemTA.id_tabla_accion) {
-                tablaAccionPermisosAux.push({
+                tablaAccionPermisosAuxArray.push({
                   ...itemP3,
                   tabla: itemP2.tabla,
-                  completado: itemP2.completado,
+                  esCompleto: itemP2.esCompleto,
+                  data_accion: find(
+                    acciones.result,
+                    (itemA) => itemA.id_accion === itemP3.id_accion
+                  ),
                 });
               }
             });
           });
-          // console.log(tablaAccionPermisosAux);
         }
       });
     });
 
-    respResultadoCorrectoObjeto200(res, permisos);
+    const permisosAgrupadosPorTabla = groupBy(
+      tablaAccionPermisosAuxArray,
+      (item) => `${item.id_tabla}_${item.tabla}`
+    );
+    const permisosAuxArray = [];
+    const errorsPermisosAuxArray = [];
+
+    forEach(permisosAgrupadosPorTabla, (itemPAPT) => {
+      forEach(itemPAPT, (itemPAPT2) => {
+        forEach(permisosDB.result, (itemPDB) => {
+          if (
+            itemPAPT2.id_tabla_accion === itemPDB.id_tabla_accion &&
+            itemPAPT2.esCompleto !== itemPDB.activo
+          ) {
+            permisosAuxArray.push({
+              id_permiso: itemPDB.id_permiso,
+              esCompleto: itemPAPT2.esCompleto,
+            });
+            errorsPermisosAuxArray.push({
+              id_permiso: itemPDB.id_permiso,
+              activo: itemPDB.activo,
+            });
+            // IFAux.push({
+            //   id_permiso: itemPAPT2.id_permiso,
+            //   tabla: itemPAPT2.tabla,
+            //   id_accion: itemPAPT2.data_accion?.id_accion,
+            //   accion: itemPAPT2.data_accion?.accion,
+            //   esCompleto: itemPAPT2.esCompleto,
+            //   activo: itemPDB.activo,
+            // });
+          }
+        });
+      });
+    });
+
+    const querys = map(permisosAuxArray, (item) => {
+      return {
+        id: item.id_permiso,
+        text: ActualizarUtil("APS_seg_permiso", {
+          body: { activo: item.esCompleto },
+          idKey: "id_permiso",
+          idValue: item.id_permiso,
+          returnValue: ["*"],
+        }),
+      };
+    });
+    const querysErrorsAux = map(errorsPermisosAuxArray, (item) => {
+      console.log("CONSULTA QUE SE EJECUTA SI EXISTE ALGÚN ERRORE");
+      return {
+        id: item.id_permiso,
+        text: ActualizarUtil("APS_seg_permiso", {
+          body: { activo: item.activo },
+          idKey: "id_permiso",
+          idValue: item.id_permiso,
+          returnValue: ["*"],
+        }),
+      };
+    });
+
+    const errorsQuerys = [];
+    const resultQuerys = [];
+
+    for await (const query of querys) {
+      await pool
+        .query(query.text)
+        .then((result) => {
+          resultQuerys.push({ id: query.id, result: result.rows });
+        })
+        .catch((err) => {
+          errorsQuerys.push({ err });
+        });
+    }
+
+    if (size(errorsQuerys) > 0) {
+      for await (const query of querysErrorsAux) {
+        await pool
+          .query(query.text)
+          .then((result) => {})
+          .catch((err) => {
+            errorsQuerys.push({ id: query.id, err });
+          })
+          .finally(() => {
+            throw errorsQuerys;
+          });
+      }
+    }
+
+    respResultadoCorrectoObjeto200(res, resultQuerys);
   } catch (err) {
     respErrorServidor500END(res, err);
   }

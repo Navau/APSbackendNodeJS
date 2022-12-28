@@ -965,8 +965,17 @@ function ActualizarUtil(table, params) {
   query = query.substring(0, query.length - 1);
 
   params.idKey &&
-    (query = query + ` WHERE ${params.idKey} = '${params.idValue}';`);
+    (query = query + ` WHERE ${params.idKey} = '${params.idValue}'`);
 
+  params?.returnValue && (query = query = query + ` RETURNING `);
+
+  map(params.returnValue, (item, index) => {
+    query = query + `${item},`;
+  });
+
+  params?.returnValue && (query = query.substring(0, query.length - 1));
+
+  params.body && (query = query = query + ";");
   console.log(query);
 
   return query;
