@@ -251,6 +251,7 @@ async function ListarPermisos(req, res) {
     const resultFinal = map(modulosTablasArray, (item, index) => {
       let esCompleto = true;
       forEach(item.data_tabla, (itemEC) => {
+        if (size(itemEC.data_tabla_accion) <= 0) esCompleto = false;
         forEach(itemEC.data_tabla_accion, (itemEC2) => {
           if (size(itemEC2.data_permisos) <= 0) esCompleto = false;
         });
