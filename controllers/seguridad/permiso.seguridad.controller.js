@@ -261,14 +261,14 @@ async function ListarPermisos(req, res) {
         descripcion: item.descripcion,
         esCompleto,
         esTodoCompleto: esCompleto,
-        tablas: map(item.data_tabla, (itemDT) => {
+        tablas: map(item.data_tabla, (itemDT, indexDT) => {
           let completado = false;
           forEach(itemDT.data_tabla_accion, (itemDT2) => {
             if (size(itemDT2.data_permisos) >= 1) completado = true;
             else completado = false;
           });
           return {
-            id_tabla: itemDT.id_tabla,
+            id_tabla: indexDT,
             tabla: itemDT.tabla,
             descripcion: itemDT.descripcion,
             esCompleto: completado,
