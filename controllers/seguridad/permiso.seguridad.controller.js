@@ -248,7 +248,7 @@ async function ListarPermisos(req, res) {
     //#endregion
 
     //#region PREPARACIÓN FINAL DE LOS DATOS, PARA MANDAR AL FRONTEND
-    const resultFinal = map(modulosTablasArray, (item) => {
+    const resultFinal = map(modulosTablasArray, (item, index) => {
       let esCompleto = true;
       forEach(item.data_tabla, (itemEC) => {
         forEach(itemEC.data_tabla_accion, (itemEC2) => {
@@ -256,7 +256,7 @@ async function ListarPermisos(req, res) {
         });
       });
       return {
-        id_modulo: item.id_modulo,
+        id_modulo: index,
         modulo: item.modulo,
         descripcion: item.descripcion,
         esCompleto,
