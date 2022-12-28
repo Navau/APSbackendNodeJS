@@ -98,7 +98,7 @@ async function CambiarPermisos(req, res) {
               }
             });
           });
-          console.log(tablaAccionPermisosAux);
+          // console.log(tablaAccionPermisosAux);
         }
       });
     });
