@@ -27,8 +27,86 @@ const {
 const nameTable = "APS_seg_permiso";
 
 async function CambiarPermisos(req, res) {
-  const { permisos } = req.body;
-  respResultadoCorrectoObjeto200(res, permisos);
+  try {
+    const { permisos, id_rol } = req.body;
+    const errors = [];
+    //#region TABLA_ACCION
+    const queryTablaAccion = EscogerInternoUtil("APS_seg_tabla_accion", {
+      select: ["*"],
+      where: [{ key: "activo", value: true }],
+    });
+    const tablaAccion = await pool
+      .query(queryTablaAccion)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region PERMISOS
+    const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
+      select: ["*"],
+      where: [{ key: "activo", value: true }],
+    });
+    const permisosBD = await pool
+      .query(queryPermisos)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    //#region ACCIONES
+    const queryAcciones = EscogerInternoUtil("APS_seg_accion", {
+      select: ["*"],
+      where: [{ key: "activo", value: true }],
+    });
+    const acciones = await pool
+      .query(queryAcciones)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+
+    forEach([permisosBD, tablaAccion, acciones], (item) => {
+      if (item?.err) {
+        errors.push({ err: item.err, message: item.err.message });
+      }
+    });
+    if (size(errors) > 0) {
+      respErrorServidor500END(res, errors);
+      return;
+    }
+
+    forEach(permisos, (itemP) => {
+      forEach(itemP.tablas, (itemP2) => {
+        if (size(itemP2.data_tabla_accion) > 0) {
+          const tablaAccionPermisosAux = [];
+          forEach(itemP2.data_tabla_accion, (itemP3) => {
+            forEach(tablaAccion.result, (itemTA) => {
+              if (itemP3.id_tabla_accion === itemTA.id_tabla_accion) {
+                tablaAccionPermisosAux.push({
+                  ...itemP3,
+                  tabla: itemP2.tabla,
+                  completado: itemP2.completado,
+                });
+              }
+            });
+          });
+          console.log(tablaAccionPermisosAux);
+        }
+      });
+    });
+
+    respResultadoCorrectoObjeto200(res, permisos);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 async function ListarPermisos(req, res) {
