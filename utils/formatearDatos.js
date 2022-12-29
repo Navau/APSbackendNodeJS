@@ -4,7 +4,7 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("America/La_Paz");
-const { map, forEach } = require("lodash");
+const { map, forEach, split } = require("lodash");
 
 function formatearFechaDeInformacion(data) {
   const resultFinal = data;
@@ -23,6 +23,20 @@ function formatearFechaDeInformacion(data) {
   return resultFinal;
 }
 
+function separarStringCamelCasePorCaracter(string, characterSplit) {
+  let stringFinal = "";
+  for (let i = 0; i < string.length; i++) {
+    const item = i !== 0 ? string[i] : string[i].toLowerCase();
+    if (item === item.toUpperCase()) {
+      stringFinal += characterSplit + item;
+    } else {
+      stringFinal += item;
+    }
+  }
+  return stringFinal;
+}
+
 module.exports = {
   formatearFechaDeInformacion,
+  separarStringCamelCasePorCaracter,
 };

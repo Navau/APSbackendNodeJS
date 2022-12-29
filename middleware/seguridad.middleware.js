@@ -23,7 +23,7 @@ exports.permisoUsuario = async (req, res, next, section) => {
     const permiso = await VerificarPermisoTablaUsuario({
       req,
       res,
-      table: responseTable.tabla,
+      table: responseTable?.tabla,
       action: actionRoute,
     });
 

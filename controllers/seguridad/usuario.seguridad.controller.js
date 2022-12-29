@@ -187,17 +187,16 @@ async function Actualizar(req, res) {
         body: body,
         idKey: idInfo.idKey,
         idValue: idInfo.idValue,
+        returnValue: ["*"],
       };
       query = ActualizarUtil(nameTable, params);
+      let resultAux = {};
 
       await pool
         .query(query)
         .then((result) => {
-          if (!result.rowCount || result.rowCount < 1) {
-            respResultadoVacio404(res);
-          } else {
-            respResultadoCorrecto200(res, result);
-          }
+          resultAux = result;
+          respResultadoCorrectoObjeto200(res, result.rows);
         })
         .catch((err) => {
           respErrorServidor500(res, err);
@@ -213,10 +212,13 @@ async function Actualizar(req, res) {
         // console.log("datosAnteriores", datosAnteriores);
         if (datosAnteriores?.ok === true) {
           let idTablaAccion = criticos?.result?.rows[0]?.id_tabla_accion;
+          const idAccion = criticos?.result?.rows[0]?.id_accion;
           const log = await Log({
             req,
             res,
+            resultAux,
             id_tabla_accion: idTablaAccion ? idTablaAccion : 12,
+            idAccion,
           });
           // console.log("log", log);
           if (log?.ok === true) {

@@ -1,3 +1,4 @@
+const { map, find, forEach } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -8,6 +9,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
 const {

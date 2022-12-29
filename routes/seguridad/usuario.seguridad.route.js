@@ -23,11 +23,7 @@ api.get(
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",
-  [
-    md_auth.AsegurarAutenticacionConToken,
-    (req, res, next) =>
-      md_permissions.permisoUsuario(req, res, next, basename(__dirname)),
-  ],
+  [md_auth.AsegurarAutenticacionConToken],
   controller.Escoger
 );
 api.post(

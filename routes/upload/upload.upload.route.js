@@ -1,6 +1,8 @@
 const express = require("express");
 const controller = require("../../controllers/upload/upload.upload.controller");
 const md_auth = require("../../middleware/token.middleware");
+const md_permissions = require("../../middleware/seguridad.middleware");
+const { basename } = require("path");
 const md_files = require("../../middleware/files.middleware");
 
 const api = express.Router();

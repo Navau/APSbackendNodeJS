@@ -25,6 +25,8 @@ const {
   respIDNoRecibido400,
   respResultadoVacioObject200,
   respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_aud_carga_archivos_bolsa";

@@ -12,6 +12,9 @@ const {
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,
+  respResultadoCorrectoObjeto200,
+  respErrorServidor500END,
+  respResultadoVacioObject200,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_clasificador_comun";
@@ -26,12 +29,11 @@ async function Listar(req, res) {
     valueId,
   };
   const query = ListarUtil(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
+  await pool
+    .query(query)
+    .then((result) => {
       if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
+        respResultadoCorrectoObjeto200(res, result.rows);
       } else {
         let resultFinalAux = result;
         let a = [];
@@ -45,10 +47,12 @@ async function Listar(req, res) {
             b.push();
           });
         });
-        respResultadoCorrecto200(res, result);
+        respResultadoCorrectoObjeto200(res, result.rows);
       }
-    }
-  });
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 async function Escoger(req, res) {
@@ -61,32 +65,33 @@ async function Escoger(req, res) {
     idClasificadorComunGrupo,
   };
   const queryLlave = EscogerLlaveClasificadorUtil(nameTableGroup, paramsLlave);
-  pool.query(queryLlave, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
+  await pool
+    .query(queryLlave)
+    .then(async (result) => {
       if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(
+        respResultadoVacioObject200(
           res,
+          result.rows,
           `No existe ningún registro que contenta la llave: ${idClasificadorComunGrupo} o ${valueId}`
         );
       } else {
-        let query = EscogerUtil(nameTable, params);
-        params = { ...params, key: result.rows[0].llave };
-        pool.query(query, (err2, result2) => {
-          if (err2) {
-            respErrorServidor500(res, err2);
-          } else {
-            if (!result.rowCount || result.rowCount < 1) {
-              respResultadoVacio404(res);
-            } else {
-              respResultadoCorrecto200(res, result2);
-            }
-          }
+        const query = EscogerUtil(nameTable, {
+          ...params,
+          key: result.rows[0].llave,
         });
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            respErrorServidor500END(res, err);
+          });
       }
-    }
-  });
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 module.exports = {

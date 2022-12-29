@@ -165,7 +165,7 @@ async function UltimoRegistro(req, res) {
 
 //FUNCION PARA OBTENER TODOS LOS TIPO CAMBIO DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable);
+  let query = ListarUtil(nameTable, { activo: null });
   pool.query(query, (err, result) => {
     if (err) {
       respErrorServidor500(res, err);
@@ -188,6 +188,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -210,6 +211,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = EscogerUtil(nameTable, params);
     await pool

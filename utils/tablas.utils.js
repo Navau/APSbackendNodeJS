@@ -1,6 +1,7 @@
 const { forEach, includes, isEmpty, split, isEqual, find } = require("lodash");
 const pool = require("../database");
 const { EscogerInternoUtil } = require("./consulta.utils");
+const { separarStringCamelCasePorCaracter } = require("./formatearDatos");
 const {
   respErrorServidor500END,
   respResultadoIncorrectoObjeto200,
@@ -45,7 +46,7 @@ async function obtenerTablaPorRutaPrincipal(res, mainRoute, section) {
       ? "aud"
       : section === "operativo"
       ? "oper"
-      : section === "paramatro"
+      : section === "parametro"
       ? "param"
       : "";
 
@@ -54,8 +55,9 @@ async function obtenerTablaPorRutaPrincipal(res, mainRoute, section) {
   }
 
   const tableFinal = find(tables.result, (item) => {
-    const tableName = split(item.tabla, "APS_")?.[1]?.toLowerCase();
-    const routeName = `${sectionBasicTables.toLowerCase()}_${mainRoute.toLowerCase()}`;
+    const tableName = split(item?.tabla, "APS_")?.[1]?.toLowerCase();
+    const mainRouteFormat = separarStringCamelCasePorCaracter(mainRoute, "_");
+    const routeName = `${sectionBasicTables.toLowerCase()}_${mainRouteFormat.toLowerCase()}`;
     if (isEqual(tableName, routeName)) {
       return true;
     }

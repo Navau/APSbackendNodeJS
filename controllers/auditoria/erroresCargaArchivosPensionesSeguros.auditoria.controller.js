@@ -324,7 +324,7 @@ async function EnviarCorreo(req, res) {
       auth: {
         user: "contactojosegutierrez10@gmail.com",
         // user: "admin-jose-aps",
-        pass: "zwnytvxpkcbnztob",
+        pass: "svslrhedrsdtwlar",
       },
     });
     function validateEmail(email) {

@@ -1,6 +1,7 @@
 const moment = require("moment");
 const { map } = require("lodash");
 const pool = require("../database");
+const e = require("express");
 
 function ObtenerRolUtil(table, data, idPK) {
   let query = "";
@@ -256,8 +257,10 @@ function ListarUtil(table, params) {
     query =
       query +
       " WHERE id_clasificador_comun_grupo = " +
-      params.idClasificadorComunGrupo +
-      " AND activo = true";
+      params.idClasificadorComunGrupo;
+    if (params?.activo !== null) {
+      query = query + " AND activo = true";
+    }
   } else {
     query = `SELECT * FROM public."${table}"`;
     if (params?.activo !== null) {
@@ -290,10 +293,12 @@ function ListarUtil(table, params) {
   return query;
 }
 
-async function BuscarUtil(table, params) {
+function BuscarUtil(table, params) {
   let query = "";
   params.body && (query = query + `SELECT * FROM public."${table}" `);
-  query = query + " WHERE activo = true";
+  if (params?.activo !== null) {
+    query = query + " WHERE activo = true";
+  }
 
   query &&
     map(params.body, (item, index) => {
@@ -304,7 +309,9 @@ async function BuscarUtil(table, params) {
       if (item !== null && typeof item !== "undefined") {
         if (typeof item === "string") {
           index &&
-            (query = query + ` AND lower(${index}) like lower('${item}%')`);
+            (query =
+              query +
+              ` AND lower(${index}::TEXT) like lower('${item}%'::TEXT)`);
         } else if (typeof item === "number") {
           index && (query = query + ` AND ${index} = ${item}`);
         } else if (typeof item === "boolean") {
@@ -314,6 +321,13 @@ async function BuscarUtil(table, params) {
     });
   params.body && (query = query = query + ";");
 
+  if (!query.includes("WHERE") && query.includes("AND")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, "WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
   console.log(query);
 
   return query;

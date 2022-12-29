@@ -126,14 +126,17 @@ async function DatosAnteriores(params) {
 }
 
 async function Log(params) {
-  const { id_tabla_accion, req, res } = params;
+  const { id_tabla_accion, id_accion, resultAux, req, res } = params;
   const { id_usuario } = req.user;
   let resultFinal = null;
 
-  let queryLogs = InsertarUtil("APS_seg_log", {
+  const queryLogs = InsertarUtil("APS_seg_log", {
     body: {
       id_usuario: id_usuario,
       id_tabla_accion: id_tabla_accion,
+      id_accion: id_accion,
+      id_registro: 1,
+      activo: true,
     },
     returnValue: ["id_log"],
   });
@@ -168,6 +171,7 @@ async function LogDet(params) {
       columna: index,
       valor_original: valorOriginal,
       valor_nuevo: item,
+      activo: true,
     });
   });
 

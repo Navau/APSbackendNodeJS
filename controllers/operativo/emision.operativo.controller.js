@@ -47,6 +47,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -69,6 +70,7 @@ async function BuscarDiferente(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     let query = BuscarDiferenteUtil(nameTable, params);
     pool.query(query, (err, result) => {
@@ -94,6 +96,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     let query = EscogerUtil(nameTable, params);
     pool.query(query, (err, result) => {
