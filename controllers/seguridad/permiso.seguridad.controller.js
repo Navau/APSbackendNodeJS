@@ -1,4 +1,14 @@
-const { forEach, size, find, map, filter, groupBy } = require("lodash");
+const {
+  forEach,
+  size,
+  find,
+  map,
+  filter,
+  groupBy,
+  differenceWith,
+  difference,
+  split,
+} = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -29,7 +39,7 @@ const nameTable = "APS_seg_permiso";
 async function CambiarPermisos(req, res) {
   try {
     const { permisos, id_rol } = req.body;
-    const errors = [];
+    const errors = []; //VARIABLE PARA CONTROLAR LOS QUERYS INICIALES
     //#region TABLA_ACCION
     const queryTablaAccion = EscogerInternoUtil("APS_seg_tabla_accion", {
       select: ["*"],
@@ -76,6 +86,7 @@ async function CambiarPermisos(req, res) {
       });
     //#endregion
 
+    //#region VERIFICACION DE ERRORES DE LOS QUERYS PARA OBTENER LOS DATOS NECESARISO
     forEach([permisosDB, tablaAccion, acciones], (item) => {
       if (item?.err) {
         errors.push({ err: item.err, message: item.err.message });
@@ -85,8 +96,11 @@ async function CambiarPermisos(req, res) {
       respErrorServidor500END(res, errors);
       return;
     }
+    //#endregion
 
-    const tablaAccionPermisosAuxArray = [];
+    //#region FORMATEO DE LOS DATOS OBTENIDOS DESDE EL FRONTEND, ESTO SE HACE PARA QUE EXISTA UN MEJOR ORDEN CUANDO SE ESTE VALIDANDO ESTOS REGISTROS PARA REGISTRARLOS EN LAS TABLAS DE PERMISOS Y TABLA ACCION
+    const errorsAdmin = []; //VARIABLE DE ERRORES DE TABLA ACCION
+    const tablaAccionPermisosAuxArray = []; // VARIABLE AUXILIAR PARA ALMACENAR LOS DATOS FORMATEADOS
     forEach(permisos, (itemP) => {
       forEach(itemP.tablas, (itemP2) => {
         if (size(itemP2.data_tabla_accion) > 0) {
@@ -96,6 +110,7 @@ async function CambiarPermisos(req, res) {
                 tablaAccionPermisosAuxArray.push({
                   ...itemP3,
                   tabla: itemP2.tabla,
+                  descripcion: itemP2.descripcion,
                   esCompleto: itemP2.esCompleto,
                   data_accion: find(
                     acciones.result,
@@ -105,46 +120,113 @@ async function CambiarPermisos(req, res) {
               }
             });
           });
+        } else {
+          if (itemP2.esCompleto === true) {
+            errorsAdmin.push({
+              mensaje: `No existe información suficiente para cambiar el permiso de ${itemP2.descripcion}, porfavor, comuniquese con el administrador`,
+              tabla: itemP2.tabla,
+              id_rol,
+              descripcion: itemP2.descripcion,
+              tipo_error: `No existe registros en la tabla de APS_seg_tabla_accion, para cambiar permisos a la tabla "${itemP2.tabla}" de "${itemP2.descripcion}"`,
+            });
+          }
         }
       });
     });
+    //#endregion
 
+    //#region ERRORES ALMACENADOS EN LA VARIABLE "errorsAdmin" SI NO EXISTEN REGISTROS SUFICIENTES EN LA TABLA ACCION
+    if (size(errorsAdmin) > 0) {
+      respResultadoIncorrectoObjeto200(res, null, errorsAdmin);
+      return;
+    }
+    //#endregion
+
+    //#region AGRUPACION DE LOS PERMISOS FORMATEADOS ANTERIORMENTE, ESTA AGRUPACION ES POR EL ID_TABLA Y LA TABLA
     const permisosAgrupadosPorTabla = groupBy(
       tablaAccionPermisosAuxArray,
       (item) => `${item.id_tabla}_${item.tabla}`
     );
-    const permisosAuxArray = [];
-    const errorsPermisosAuxArray = [];
+    //#endregion
+
+    const permisosAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA PREPARAR LOS QUERYS DE UPDATE PARA ACTUALIZAR LOS PERMISOS
+    const errorsPermisosAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA PREPARAR LOS QUERYS DE UPDATE POR SI EXISTE ALGUN ERROR AL ACTUALIZAR EL PERMISO CUANDO SE ESTE EJECUTANDO LOS QUERYS PARA LA BASE DE DATOS
+    const errorsPermisosTablaAccionAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA VALIDAR QUE LOS REGISTROS PARA EL ROL ACTUAL SEAN CORRECTOS Y EXISTAN EN LA TABLA DE APS_seg_permiso
+    const errorsAdminRolNoExistenteAuxArray = []; // VARIABLE PARA MOSTRAR LOS MENSAJES DE LA VARIABLE: errorsPermisosTablaAccionAuxArray
+
+    //#region SE HACEN ESTAS ITERACIONES CON LOS PERMISOS YA AGRUPADOS POR ID TABLA Y TABLA, DONDE ACA SE VERIFICA QUE SI ALGUN REGISTRO DE LA TABLA PERMISOS ESTA EN "FALSE" Y EL CAMBIO QUE SE QUIERE HACER ES "TRUE" CON EL FIN DE CAMBIAR EL PERMISO AL ROL SELECCIONADO SE ALMACENARA ESTA INFORMACION EN LAS VARIABLES AUXILIARES DECLARADAS ANTERIORMENTE
 
     forEach(permisosAgrupadosPorTabla, (itemPAPT) => {
       forEach(itemPAPT, (itemPAPT2) => {
         forEach(permisosDB.result, (itemPDB) => {
           if (
             itemPAPT2.id_tabla_accion === itemPDB.id_tabla_accion &&
+            itemPAPT2.esCompleto === true
+          ) {
+            errorsPermisosTablaAccionAuxArray.push(itemPAPT2);
+          }
+          if (
+            itemPAPT2.id_tabla_accion === itemPDB.id_tabla_accion &&
             itemPAPT2.esCompleto !== itemPDB.activo
           ) {
             permisosAuxArray.push({
               id_permiso: itemPDB.id_permiso,
+              tabla: itemPAPT2.tabla,
+              descripcion: itemPAPT2.descripcion,
               esCompleto: itemPAPT2.esCompleto,
             });
             errorsPermisosAuxArray.push({
               id_permiso: itemPDB.id_permiso,
               activo: itemPDB.activo,
             });
-            // IFAux.push({
-            //   id_permiso: itemPAPT2.id_permiso,
-            //   tabla: itemPAPT2.tabla,
-            //   id_accion: itemPAPT2.data_accion?.id_accion,
-            //   accion: itemPAPT2.data_accion?.accion,
-            //   esCompleto: itemPAPT2.esCompleto,
-            //   activo: itemPDB.activo,
-            // });
           }
         });
       });
     });
+    //#endregion
 
+    //#region SECCION PARA DIFERENCIAR LOS DATOS QUE LLEGAN DEL FRONTEND Y COMPARARLOS CON LOS PERMISOS QUE SE QUIEREN EDITAR, ESTO SIRVE PARA PODER CONTROLAR QUE LOS REGISTROS EXISTAN EN LA TABLA DE PERMISO JUNTO CON EL ROL SELECCIONADO. ESTOS PERMISOS DEBEN EXISTIR EN LA TABLA DE PERMISOS JUNTO AL ROL QUE SE QUIERE EDITAR, SI HAY ALGUNA DIFERENCIA ENTRE LO QUE LLEGA DEL FRONTEND Y LO QUE EXISTE EN LA BD, HABRA UN ERROR.
+    const diferenciasAux = groupBy(
+      filter(
+        difference(
+          tablaAccionPermisosAuxArray,
+          errorsPermisosTablaAccionAuxArray
+        ),
+        (itemF) => itemF.esCompleto === true
+      ),
+      (itemG) => `${itemG.id_tabla}-*-${itemG.tabla}-*-${itemG.descripcion}`
+    );
+    forEach(diferenciasAux, (itemDIF, indexDIF) => {
+      const separatorDeIndex = "-*-";
+      const idTablaAux = split(indexDIF, separatorDeIndex)[0];
+      const tablaAux = split(indexDIF, separatorDeIndex)[1];
+      const descripcionAux = split(indexDIF, separatorDeIndex)[2];
+
+      errorsAdminRolNoExistenteAuxArray.push({
+        mensaje: `No existe información suficiente para cambiar el permiso de ${descripcionAux}, porfavor, comuniquese con el administrador`,
+        id_rol,
+        tabla: tablaAux,
+        descripcion: descripcionAux,
+        tipo_error: `No existen registros en APS_seg_permiso con el rol "${id_rol}" para la tabla "${tablaAux}" de "${descripcionAux}"`,
+      });
+    });
+
+    if (size(errorsAdminRolNoExistenteAuxArray) > 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        errorsAdminRolNoExistenteAuxArray
+      );
+      return;
+    }
+
+    //#endregion
+
+    // if (size(permisosAuxArray) > 0) ESTA VALIDACION NO ES NECESARIA, DEBIDO A QUE SI NO EXISTEN DATOS ENTONCES NO HARA ITERACIONES EN "map" (linea 228) PARA ARMAR LOS QUERYS, PERO SE COMENTO ESTO PARA PODER TENER UNA IDEA DE COMO ENTRAN LOS PERMISOS A LOS QUERYS
+
+    //#region PREPARACION DE LOS QUERYS UPDATE, PARA ACTUALIZAR LOS PERMISOS, SE HACEN 5 QUERYS DEBIDO A LAS 5 ACCIONES
     const querys = map(permisosAuxArray, (item) => {
+      console.log(item);
       return {
         id: item.id_permiso,
         text: ActualizarUtil("APS_seg_permiso", {
@@ -153,8 +235,13 @@ async function CambiarPermisos(req, res) {
           idValue: item.id_permiso,
           returnValue: ["*"],
         }),
+        descripcion: item.descripcion,
+        tabla: item.tabla,
       };
     });
+    //#endregion
+
+    //#region PREPARACION DE LOS QUERYS UPDATE, PARA ACTUALIZAR LOS PERMISOS, ESTOS QUERYS SE EJECUTAN SOLAMENTE SI EXISTE UN ERROR EN LOS QUERYS ANTERIORES, LOS CUALES LOS ANTERIORES SON LOS CORRECTOS Y LO QUE SE ESPERA DE LA FUNCIONALIDAD, EN CAMBIO ESTOS QUERYS ERRORS SON QUERYS PARA VOLVER A PONER EL ESTADO ANTERIOR EN EL QUE SE ENCONTRABA EL PERMISO, ASI ASEGURANDO DE QUE NINGUN PERMISO ESTE INCOMPLETO Y SE CAMBIEN SI O SI LAS 5 ACCIONES, SI ESTO NO SUCEDE CON LAS 5 ACCIONES ENTONCES SE VUELVE A SU ESTADO INICIAL
     const querysErrorsAux = map(errorsPermisosAuxArray, (item) => {
       console.log("CONSULTA QUE SE EJECUTA SI EXISTE ALGÚN ERRORE");
       return {
@@ -167,21 +254,42 @@ async function CambiarPermisos(req, res) {
         }),
       };
     });
+    //#endregion
 
+    //#region EJECUCION DE LOS QUERYS
     const errorsQuerys = [];
     const resultQuerys = [];
+    const errorsQuerysPermisos = [];
 
     for await (const query of querys) {
       await pool
         .query(query.text)
         .then((result) => {
+          if (result.rowCount <= 0) {
+            errorsQuerysPermisos.push({
+              mensaje: `No existe información suficiente para cambiar el permiso de ${itemP2.descripcion}, porfavor, comuniquese con el administrador`,
+              id_rol,
+              tabla: query.tabla,
+              descripcion: query.descripcion,
+              tipo_error: `No se actualizó el permiso debido a que los registros para la tabla "${query.tabla}" de "${query.descripcion}" existen en APS_seg_tabla_accion, pero no existen en APS_seg_permiso`,
+            });
+          }
           resultQuerys.push({ id: query.id, result: result.rows });
         })
         .catch((err) => {
           errorsQuerys.push({ err });
         });
     }
+    //#endregion
 
+    //#region CONTROL DE ERROR POR SI NO SE ACTUALIZO CORRECTAMENTE LOS PERMISOS DEBIDO A QUE NO EXISTEN LOS REGISTROS SUFICIENTES EN LAS TABLAS DE TABLA_ACCION Y PERMISO
+    if (size(errorsQuerysPermisos) > 0) {
+      respResultadoIncorrectoObjeto200(res, null, errorsQuerysPermisos);
+      return;
+    }
+    //#endregion
+
+    //#region EJECUCION DE LOS QUERYS POR SI HUBO ALGUN ERROR
     if (size(errorsQuerys) > 0) {
       for await (const query of querysErrorsAux) {
         await pool
@@ -194,9 +302,12 @@ async function CambiarPermisos(req, res) {
             throw errorsQuerys;
           });
       }
+      respErrorServidor500END(res, errorsQuerys);
+      return;
     }
+    //#endregion
 
-    respResultadoCorrectoObjeto200(res, resultQuerys);
+    respResultadoCorrectoObjeto200(res, resultQuerys); //RESULTADOS, SI SE ACTUALIZO ALGO, ENTONCES MOSTRARA EL ID Y EL REGISTRO QUE SE ACTUALIZO, SI NO, DEVOLVERA UN ARRAY VACIO
   } catch (err) {
     respErrorServidor500END(res, err);
   }

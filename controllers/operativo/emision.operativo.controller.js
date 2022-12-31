@@ -9,6 +9,7 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
+  BuscarDiferenteUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -127,47 +128,44 @@ async function Insertar(req, res) {
         id_emisor: body.id_emisor,
         fecha_actualizacion: body.fecha_actualizacion,
       },
+      activo: null,
     });
-    const exist = { ok: false, data: null };
-    await pool
+    const exist = await pool
       .query(queryExist)
       .then((result) => {
         if (result.rowCount > 0) {
-          exist.ok = true;
-          exist.data = result.rows;
+          return { ok: true, result: result.rows };
+        } else {
+          return { ok: false, result: result.rows };
         }
       })
       .catch((err) => {
-        respErrorServidor500END(res, err);
+        return { ok: null, err };
       });
-    const params = {
-      body,
-    };
-    if (exist.ok) {
+    if (exist.ok === null) {
+      respErrorServidor500END(res, exist.err);
+      return;
+    }
+    if (exist.ok === true) {
       respResultadoIncorrectoObjeto200(
         res,
         null,
-        exist.data,
+        exist.result,
         "La información ya existe"
       );
       return;
     }
+    const params = {
+      body,
+    };
     const query = InsertarUtil(nameTable, params);
     await pool
       .query(query)
       .then((result) => {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(
-            res,
-            result,
-            "Información guardada correctamente"
-          );
-        }
+        respResultadoCorrectoObjeto200(res, result.rows);
       })
       .catch((err) => {
-        respErrorServidor500(res, err);
+        respErrorServidor500END(res, err);
       });
   }
 }

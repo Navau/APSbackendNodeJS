@@ -107,7 +107,7 @@ function Login(req, res) {
             res.status(500).send({
               resultado: 0,
               datos: null,
-              mensaje: "Error del servidor.",
+              mensaje: "Error del servidor",
               err,
             });
           } else {

@@ -602,7 +602,7 @@ async function CargarArchivo(req, res) {
         .query(queryDelete)
         .then((result) => {
           resultFinal.push({
-            query: "Eliminando registros duplicados.",
+            query: "Eliminando registros duplicados",
             table,
             ok: true,
           });
@@ -611,7 +611,7 @@ async function CargarArchivo(req, res) {
         .catch((err) => {
           console.log(err);
           resultFinal.push({
-            query: "Eliminando registros duplicados.",
+            query: "Eliminando registros duplicados",
             table,
             ok: false,
             err,
@@ -626,7 +626,7 @@ async function CargarArchivo(req, res) {
         .query(queryMax)
         .then((result) => {
           resultFinal.push({
-            query: "Seleccionando Maximo de tabla.",
+            query: "Seleccionando Maximo de tabla",
             table,
             idTable,
             ok: true,
@@ -640,7 +640,7 @@ async function CargarArchivo(req, res) {
         .catch((err) => {
           console.log("ERR UPLOAD", err);
           resultFinal.push({
-            query: "Seleccionando Maximo de tabla.",
+            query: "Seleccionando Maximo de tabla",
             table,
             idTable,
             ok: false,
@@ -660,7 +660,7 @@ async function CargarArchivo(req, res) {
         .query(querySequence)
         .then((result) => {
           resultFinal.push({
-            query: "Alterando secuencia.",
+            query: "Alterando secuencia",
             table,
             idRestartValue,
             ok: true,
@@ -670,7 +670,7 @@ async function CargarArchivo(req, res) {
         .catch((err) => {
           console.log(err);
           resultFinal.push({
-            query: "Alterando secuencia.",
+            query: "Alterando secuencia",
             table,
             idRestartValue,
             ok: false,
@@ -699,7 +699,7 @@ async function CargarArchivo(req, res) {
         .query(queryDelete)
         .then((result) => {
           resultFinal.push({
-            query: "Eliminando cargas con error.",
+            query: "Eliminando cargas con error",
             tables,
             ok: true,
           });
@@ -708,7 +708,7 @@ async function CargarArchivo(req, res) {
         .catch((err) => {
           console.log(err);
           resultFinal.push({
-            query: "Eliminando cargas con error.",
+            query: "Eliminando cargas con error",
             tables,
             ok: false,
             err,
@@ -726,7 +726,7 @@ async function CargarArchivo(req, res) {
           .query(queryMax)
           .then((result) => {
             resultFinal.push({
-              query: "Seleccionando Maximos de cada tabla.",
+              query: "Seleccionando Maximos de cada tabla",
               item,
               id,
               ok: true,
@@ -740,7 +740,7 @@ async function CargarArchivo(req, res) {
           .catch((err) => {
             console.log(err);
             resultFinal.push({
-              query: "Seleccionando Maximos de cada tabla.",
+              query: "Seleccionando Maximos de cada tabla",
               item,
               id,
               ok: false,
@@ -762,7 +762,7 @@ async function CargarArchivo(req, res) {
         .query(querySequence)
         .then((result) => {
           resultFinal.push({
-            query: "Alterando secuencias.",
+            query: "Alterando secuencias",
             tables,
             idsSequencesArray,
             ok: true,
@@ -772,7 +772,7 @@ async function CargarArchivo(req, res) {
         .catch((err) => {
           console.log(err);
           resultFinal.push({
-            query: "Alterando secuencias.",
+            query: "Alterando secuencias",
             tables,
             idsSequencesArray,
             ok: false,

@@ -9,6 +9,7 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +24,27 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_emisor_patrimonio";
+
+async function ListarCompleto(req, res) {
+  try {
+    const queryEmisorPatrimonio = ListarUtil(nameTable, { activo: null });
+    const queryEmisor = ListarUtil("APS_param_emisor");
+    const resultQuerys = await EjecutarVariosQuerys([
+      queryEmisorPatrimonio,
+      queryEmisor,
+    ]);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
+    }
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    console.log(resultQuerys);
+    respResultadoCorrectoObjeto200(res, resultQuerys.result);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS EMISOR PATRIMONIO DE SEGURIDAD
 async function Listar(req, res) {
@@ -215,6 +237,7 @@ async function Deshabilitar(req, res) {
 
 module.exports = {
   Listar,
+  ListarCompleto,
   Buscar,
   Escoger,
   Insertar,

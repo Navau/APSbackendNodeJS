@@ -11,7 +11,7 @@ exports.AsegurarAutenticacionConToken = (req, res, next) => {
       code: 403,
       resultado: 0,
       datos: null,
-      mensaje: "La petición no tiene cabecera de autenticación.",
+      mensaje: "La petición no tiene cabecera de autenticación",
     });
   }
   const token = req.headers.authorization.replace(/['"]+/g, ""); //LIMPIA EL TOKEN QUE LLEGA EN HEADERS
@@ -25,7 +25,7 @@ exports.AsegurarAutenticacionConToken = (req, res, next) => {
         code: 404,
         resultado: 0,
         datos: null,
-        mensaje: "El token ha expirado.",
+        mensaje: "El token ha expirado",
       });
     }
   } catch (err) {
@@ -34,7 +34,7 @@ exports.AsegurarAutenticacionConToken = (req, res, next) => {
       code: 404,
       resultado: 0,
       datos: null,
-      mensaje: "Token Inválido.",
+      mensaje: "Token Inválido",
     });
   }
 

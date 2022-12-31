@@ -1,5 +1,14 @@
 const moment = require("moment");
-const { map } = require("lodash");
+const {
+  map,
+  size,
+  groupBy,
+  forEach,
+  set,
+  find,
+  filter,
+  split,
+} = require("lodash");
 const pool = require("../database");
 const e = require("express");
 
@@ -1262,6 +1271,28 @@ function ValidarIDActualizarUtil(nameTable, body, newID) {
     idValue,
   };
 }
+function ObtenerIDDeTabla(nameTable, data, newID) {
+  let indexId = nameTable.indexOf("_", 5);
+  let idKey = newID
+    ? newID
+    : "id" + nameTable.substring(indexId, nameTable.length);
+  let idOk = false;
+  let idValue = null;
+
+  map(data, (item, index) => {
+    if (idKey === index && item) {
+      idOk = true;
+      idValue = item;
+      return;
+    }
+  });
+
+  return {
+    idOk,
+    idKey,
+    idValue,
+  };
+}
 
 function ponerComillasACamposConMayuscula(index) {
   let auxArreglarMayuscula = false;
@@ -1355,6 +1386,7 @@ async function ObtenerUsuario(user) {
     });
   return resultFinal;
 }
+
 async function ObtenerUsuariosPorRol(user) {
   const { id_rol } = user;
   const query = EscogerInternoUtil("APS_seg_usuario", {
@@ -1405,6 +1437,84 @@ async function ObtenerUsuariosPorRol(user) {
   return resultFinal;
 }
 
+async function EjecutarVariosQuerys(querys = []) {
+  if (size(querys) < 0) return null;
+  const resultFinal = [];
+  const errors = [];
+  let counterAux = 0;
+  for await (const query of querys) {
+    const table = query;
+    const y = table.indexOf("FROM");
+    const z = table.substring(y, table.indexOf(`"`));
+    const w = table.substring(
+      table.lastIndexOf(z[z.length - 1]) + 2,
+      table.length
+    );
+    const v = w.substring(0, w.indexOf(`"`));
+    await pool
+      .query(query)
+      .then((result) => {
+        resultFinal.push({
+          data: result.rows,
+          table: v,
+          order: counterAux,
+          id: ObtenerIDDeTabla(v, result.rows)?.idKey,
+        });
+      })
+      .catch((err) => {
+        errors.push({
+          err,
+          message: err?.message,
+          table: v,
+          order: counterAux,
+        });
+      })
+      .finally(() => {
+        counterAux += 1;
+      });
+  }
+  const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
+  if (size(errors) > 0) return { ok: false, errors };
+  if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
+  return { ok: null, result: [errors, resultFinal] };
+}
+
+function AsignarInformacionCompletaPorUnaClave(result, options) {
+  let newResult = result;
+  if (size(options) > 0) {
+    forEach(options, (option) => {
+      forEach(newResult, (item) => {
+        if (option.table === item.table) {
+          set(item, "id_new", option.key);
+          forEach(item.data, (itemAux) => {
+            !(option.key in itemAux)
+              ? (itemAux[option.key] = itemAux[item.id])
+              : "";
+            delete itemAux[item.id];
+          });
+        }
+      });
+    });
+  }
+
+  const main = newResult?.[0];
+  forEach(newResult, (itemResult) => {
+    if (itemResult.table !== main.table) {
+      forEach(main.data, (itemMain) => {
+        const idFind = itemResult?.id_new ? itemResult.id_new : itemResult.id;
+        const findValue = find(itemResult.data, (itemFind) => {
+          if (itemFind[idFind] === itemMain[idFind]) return true;
+        });
+        // set(itemMain, idFind, findValue);
+        !([`data_${split(idFind, "_")[1]}`] in itemMain)
+          ? (itemMain[`data_${split(idFind, "_")[1]}`] = findValue)
+          : "";
+      });
+    }
+  });
+  return main?.data || [];
+}
+
 module.exports = {
   ListarUtil,
   BuscarUtil,
@@ -1436,4 +1546,6 @@ module.exports = {
   ObtenerUsuario,
   ObtenerUsuariosPorRol,
   EjecutarProcedimientoSQL,
+  EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 };

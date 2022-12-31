@@ -9,7 +9,7 @@ pool.connect((err, client) => {
     throw err;
   }
   if (client) client.release();
-  console.log("Conexión al pool correcto.");
+  console.log("Conexión al pool correcto");
   return;
 });
 

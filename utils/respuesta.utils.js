@@ -64,7 +64,7 @@ function respResultadoVacio404(res, msg) {
     datos: null,
     mensaje: msg
       ? msg
-      : "No se logró realizar correctamente la petición, debido a que la información no existe.",
+      : "No se logró realizar correctamente la petición, debido a que la información no existe",
   });
 }
 
@@ -76,7 +76,7 @@ function respResultadoVacio404END(res, msg) {
       datos: null,
       mensaje: msg
         ? msg
-        : "No se logró realizar correctamente la petición, debido a que la información no existe.",
+        : "No se logró realizar correctamente la petición, debido a que la información no existe",
     })
     .end();
 }
@@ -87,7 +87,7 @@ function respResultadoVacioObject200(res, data, msg) {
     .send({
       resultado: 1,
       datos: data,
-      mensaje: msg ? msg : "La petición fue realizada correctamente.",
+      mensaje: msg ? msg : "La petición fue realizada correctamente",
     })
     .end();
 }
@@ -98,7 +98,7 @@ function respResultadoCorrecto200(res, result, msg) {
     .send({
       resultado: 1,
       datos: result.rows,
-      mensaje: msg ? msg : "La petición fue realizada correctamente.",
+      mensaje: msg ? msg : "La petición fue realizada correctamente",
     })
     .end();
 }
@@ -109,7 +109,7 @@ function respResultadoIncorrectoObjeto200(res, err, data, msg) {
     .send({
       resultado: 0,
       datos: data,
-      mensaje: msg ? msg : "La petición no fue realizada correctamente.",
+      mensaje: msg ? msg : "La petición no fue realizada correctamente",
       mensaje_error: err?.message,
       err,
     })
@@ -122,7 +122,7 @@ function respResultadoCorrectoObjeto200(res, data, msg) {
     .send({
       resultado: 1,
       datos: data,
-      mensaje: msg ? msg : "La petición fue realizada correctamente.",
+      mensaje: msg ? msg : "La petición fue realizada correctamente",
     })
     .end();
 }
@@ -142,7 +142,7 @@ function respDatosNoRecibidos400(res, msg) {
   res.status(400).send({
     resultado: 0,
     datos: null,
-    mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición.",
+    mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición",
   });
 }
 
@@ -152,9 +152,7 @@ function respDatosNoRecibidos400END(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg
-        ? msg
-        : "No se envio ningún dato o entrada para la petición.",
+      mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición",
     })
     .end();
 }
@@ -165,7 +163,7 @@ function respArchivoErroneo415(res, err, msg) {
     datos: null,
     mensaje: msg
       ? msg
-      : "El tipo de archivo que se ha recibido no cumple con el formato esperado.",
+      : "El tipo de archivo que se ha recibido no cumple con el formato esperado",
     errores: err,
   });
 }
@@ -176,7 +174,7 @@ function respArchivoErroneo200(res, err, data, msg) {
     datos: data,
     mensaje: msg
       ? msg
-      : "El tipo de archivo que se ha recibido no cumple con el formato esperado.",
+      : "El tipo de archivo que se ha recibido no cumple con el formato esperado",
     errores: err,
   });
 }
@@ -185,7 +183,7 @@ function respIDNoRecibido400(res, msg) {
   res.status(400).send({
     resultado: 0,
     datos: null,
-    mensaje: msg ? msg : "No se especificó el ID.",
+    mensaje: msg ? msg : "No se especificó el ID",
   });
 }
 

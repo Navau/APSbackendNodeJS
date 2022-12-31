@@ -28,8 +28,10 @@ async function Validar(req, res) {
       : id_rol === 10
       ? EjecutarProcedimientoSQL(`aps_proc_valoracion_cartera_seguros`, params)
       : null;
+
   if (query === null) {
     respDatosNoRecibidos400(res, "El rol debe ser 10 o 7");
+    return;
   }
 
   await pool

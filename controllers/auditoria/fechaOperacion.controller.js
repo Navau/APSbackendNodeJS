@@ -168,7 +168,7 @@ async function obtenerFechaOperacion(req, res) {
 
     if (tableQuery === null) {
       respErrorServidor500END(res, {
-        message: "No se especificó el tipo_archivo.",
+        message: "No se especificó el tipo_archivo",
         value: FECHA_OPERACION[tipo_periodo],
       });
       return;
@@ -280,7 +280,7 @@ async function obtenerFechaOperacion(req, res) {
 
     if (isNaN(Date.parse(result))) {
       respErrorServidor500END(res, {
-        message: "Hubo un error al obtener la fecha de operación.",
+        message: "Hubo un error al obtener la fecha de operación",
         value: result,
       });
     } else {
