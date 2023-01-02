@@ -1628,6 +1628,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           },
         };
         PARAMS.paramsFechaOperacionMenor = true;
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".485")) {
         console.log("ARCHIVO CORRECTO : 485", nameFile);
         PARAMS.codeCurrentFile = "485";
@@ -1721,6 +1722,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           },
         };
         PARAMS.paramsFechaOperacionMenor = true;
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".486")) {
         console.log("ARCHIVO CORRECTO : 486", nameFile);
         PARAMS.codeCurrentFile = "486";
@@ -3080,6 +3082,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
 
         PARAMS.paramsFechaOperacionMenor = true;
         PARAMS.paramsCantidadMultiplicadoPrecioMO = true;
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes("BG")) {
         console.log(
           `ARCHIVO CORRECTO : BG.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
