@@ -4588,11 +4588,13 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoActivo"],
+        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         function: [],
+        singleGroup: true,
       },
       {
         columnName: "tasa_rendimiento",
@@ -4613,6 +4615,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "precio_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorACeroDecimal"],
+        singleGroup: true,
       },
       {
         columnName: "total_mo",
@@ -4652,6 +4655,8 @@ async function obtenerValidaciones(typeFile) {
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
+        singleGroup: true,
+        endSingleGroup: true,
       },
     ],
     485: [
@@ -4659,11 +4664,13 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoActivo"],
+        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         function: [],
+        singleGroup: true,
       },
       {
         columnName: "tasa_rendimiento",
@@ -4684,6 +4691,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "precio_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         function: ["mayorACeroDecimal"],
+        singleGroup: true,
       },
       {
         columnName: "total_mo",
@@ -4723,6 +4731,8 @@ async function obtenerValidaciones(typeFile) {
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
+        singleGroup: true,
+        endSingleGroup: true,
       },
     ],
     486: [
@@ -6130,11 +6140,13 @@ async function obtenerValidaciones(typeFile) {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["tipoActivo"],
+        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         function: [],
+        singleGroup: true,
       },
       {
         columnName: "tasa_rendimiento",
@@ -6155,6 +6167,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "precio_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: ["mayorACeroDecimal"],
+        singleGroup: true,
       },
       {
         columnName: "total_mo",
@@ -6194,6 +6207,8 @@ async function obtenerValidaciones(typeFile) {
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
+        singleGroup: true,
+        endSingleGroup: true,
       },
     ],
     BG: [

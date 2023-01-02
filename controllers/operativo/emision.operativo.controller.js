@@ -10,6 +10,8 @@ const {
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
   BuscarDiferenteUtil,
+  EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -25,6 +27,34 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_emision";
+const nameTableFK1 = "APS_param_emisor";
+const nameTableFK2 = "APS_param_moneda";
+const nameTableFK3 = "APS_param_tipo_instrumento";
+
+async function ListarCompleto(req, res) {
+  try {
+    const querys = [
+      ListarUtil(nameTable, { activo: null }),
+      ListarUtil(nameTableFK1),
+      ListarUtil(nameTableFK2),
+      ListarUtil(nameTableFK3),
+    ];
+    const resultQuerys = await EjecutarVariosQuerys(querys);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
+    }
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS EMISION PATRIMONIO DE SEGURIDAD
 async function Listar(req, res) {
@@ -249,4 +279,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   BuscarDiferente,
+  ListarCompleto,
 };

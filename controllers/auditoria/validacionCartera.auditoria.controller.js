@@ -78,6 +78,7 @@ async function ObtenerInformacion(req, res) {
         err,
       };
     });
+
   const queryArchivoN = EscogerInternoUtil("APS_oper_archivo_n", {
     select: ["*"],
     where: [{ key: `fecha`, value: fecha }],

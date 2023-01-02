@@ -8,6 +8,9 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EjecutarVariosQuerys,
+  EscogerInternoUtil,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +26,71 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_otros_activos";
+const nameTableFK1 = "APS_param_emisor";
+const nameTableFK2 = "APS_param_tipo_instrumento";
+const nameTableFK3 = "APS_param_moneda";
+const nameTableFK4 = "APS_param_clasificador_comun";
+const nameTableFK5 = "APS_seg_usuario";
+
+async function ListarCompleto(req, res) {
+  try {
+    const querys = [
+      ListarUtil(nameTable, { activo: null }),
+      ListarUtil(nameTableFK1),
+      ListarUtil(nameTableFK2),
+      ListarUtil(nameTableFK3),
+      EscogerInternoUtil(nameTableFK4, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 24 },
+          { key: "activo", value: true },
+        ],
+      }), //PERIODO VENCIMIENTO
+      EscogerInternoUtil(nameTableFK4, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 25 },
+          { key: "activo", value: true },
+        ],
+      }), //TIPO AMORTIZACION
+      EscogerInternoUtil(nameTableFK4, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 6 },
+          { key: "activo", value: true },
+        ],
+      }), //CALIFICACION
+      EscogerInternoUtil(nameTableFK4, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 8 },
+          { key: "activo", value: true },
+        ],
+      }), //CALIFICADORA
+      ListarUtil(nameTableFK5), //USUARIO
+    ];
+    const resultQuerys = await EjecutarVariosQuerys(querys);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
+    }
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result,
+      [
+        { table: nameTableFK4, key: "id_periodo_vencimiento" },
+        { table: nameTableFK4, key: "id_tipo_amortizacion" },
+        { table: nameTableFK4, key: "id_calificacion" },
+        { table: nameTableFK4, key: "id_calificadora" },
+      ]
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS OTROS ACTIVOS DE SEGURIDAD
 async function Listar(req, res) {
@@ -185,4 +253,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  ListarCompleto,
 };
