@@ -8,6 +8,7 @@ const {
   find,
   filter,
   split,
+  isUndefined,
 } = require("lodash");
 const pool = require("../database");
 const e = require("express");
@@ -286,8 +287,6 @@ function ListarUtil(table, params) {
     }
     query && (query = query + ";");
   }
-
-  console.log(query);
 
   if (!query.includes("WHERE") && query.includes("AND")) {
     let queryAux = query.split("");
@@ -1473,7 +1472,7 @@ async function EjecutarVariosQuerys(querys = []) {
         counterAux += 1;
       });
   }
-  const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
+  // const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
   if (size(errors) > 0) return { ok: false, errors };
   if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
   return { ok: null, result: [errors, resultFinal] };
@@ -1481,33 +1480,47 @@ async function EjecutarVariosQuerys(querys = []) {
 
 function AsignarInformacionCompletaPorUnaClave(result, options) {
   let newResult = result;
+  let indexAux = 0;
   if (size(options) > 0) {
     forEach(options, (option) => {
-      forEach(newResult, (item) => {
-        if (option.table === item.table) {
-          set(item, "id_new", option.key);
-          forEach(item.data, (itemAux) => {
-            !(option.key in itemAux)
-              ? (itemAux[option.key] = itemAux[item.id])
-              : "";
-            delete itemAux[item.id];
-          });
-        }
-      });
+      const itemChange = find(
+        newResult,
+        (item, index) => {
+          if (option.table === item.table) {
+            indexAux = index;
+            return true;
+          }
+        },
+        indexAux + 1
+      );
+      if (!isUndefined(itemChange)) {
+        const item = newResult[indexAux];
+        set(item, "id_new", option.key);
+        forEach(item.data, (itemAux) => {
+          !(option.key in itemAux)
+            ? (itemAux[option.key] = itemAux[item.id])
+            : "";
+          delete itemAux[item.id];
+        });
+      }
     });
   }
 
   const main = newResult?.[0];
   forEach(newResult, (itemResult) => {
+    const idFind = itemResult?.id_new ? itemResult.id_new : itemResult.id;
     if (itemResult.table !== main.table) {
       forEach(main.data, (itemMain) => {
-        const idFind = itemResult?.id_new ? itemResult.id_new : itemResult.id;
         const findValue = find(itemResult.data, (itemFind) => {
           if (itemFind[idFind] === itemMain[idFind]) return true;
         });
         // set(itemMain, idFind, findValue);
-        !([`data_${split(idFind, "_")[1]}`] in itemMain)
-          ? (itemMain[`data_${split(idFind, "_")[1]}`] = findValue)
+        let x = "";
+        forEach(split(idFind, "_"), (itemSplit, indexSplit) => {
+          indexSplit > 0 ? (x += `_${itemSplit}`) : (x += "");
+        });
+        !([`data${x}`] in itemMain)
+          ? (itemMain[`data${x}`] = isUndefined(findValue) ? null : findValue)
           : "";
       });
     }

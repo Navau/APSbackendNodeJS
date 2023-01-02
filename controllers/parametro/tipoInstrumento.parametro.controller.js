@@ -9,6 +9,8 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
+  EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +25,57 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_tipo_instrumento";
+const nameTableFK1 = "APS_param_clasificador_comun";
+const nameTableFK2 = "APS_param_clasificador_comun";
+const nameTableFK3 = "APS_param_clasificador_comun";
+
+async function ListarCompleto(req, res) {
+  try {
+    const querys = [
+      ListarUtil(nameTable),
+      EscogerInternoUtil(nameTableFK1, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 10 },
+          { key: "activo", value: true },
+        ],
+      }),
+      EscogerInternoUtil(nameTableFK2, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 11 },
+          { key: "activo", value: true },
+        ],
+      }),
+      EscogerInternoUtil(nameTableFK3, {
+        select: ["*"],
+        where: [
+          { key: "id_clasificador_comun_grupo", value: 12 },
+          { key: "activo", value: true },
+        ],
+      }),
+    ];
+    const resultQuerys = await EjecutarVariosQuerys(querys);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
+    }
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result,
+      [
+        { table: nameTableFK1, key: "id_tipo_mercado" },
+        { table: nameTableFK2, key: "id_grupo" },
+        { table: nameTableFK3, key: "id_tipo_renta" },
+      ]
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS TIPO INSTRUMENTO DE SEGURIDAD
 async function Listar(req, res) {
@@ -270,4 +323,5 @@ module.exports = {
   Deshabilitar,
   SiglaDescripcion,
   TipoInstrumentoDetalle,
+  ListarCompleto,
 };

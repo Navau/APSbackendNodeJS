@@ -32,15 +32,13 @@ const nameTableFK2 = "APS_seg_institucion";
 
 async function ListarCompleto(req, res) {
   try {
-    const queryEmisorVinculado = ListarUtil(nameTable);
-    const queryEmisor = ListarUtil(nameTableFK1);
-    const queryAseguradora = ListarUtil(nameTableFK2);
+    const querys = [
+      ListarUtil(nameTable),
+      ListarUtil(nameTableFK1),
+      ListarUtil(nameTableFK2),
+    ];
     //ASEGURADORA === INSTITUCION
-    const resultQuerys = await EjecutarVariosQuerys([
-      queryEmisorVinculado,
-      queryEmisor,
-      queryAseguradora,
-    ]);
+    const resultQuerys = await EjecutarVariosQuerys(querys);
     if (resultQuerys.ok === null) {
       throw resultQuerys.result;
     }

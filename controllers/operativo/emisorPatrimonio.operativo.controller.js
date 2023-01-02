@@ -10,6 +10,7 @@ const {
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
   EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -24,23 +25,26 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_emisor_patrimonio";
+const nameTableFK1 = "APS_param_emisor";
 
 async function ListarCompleto(req, res) {
   try {
-    const queryEmisorPatrimonio = ListarUtil(nameTable, { activo: null });
-    const queryEmisor = ListarUtil("APS_param_emisor");
-    const resultQuerys = await EjecutarVariosQuerys([
-      queryEmisorPatrimonio,
-      queryEmisor,
-    ]);
+    const querys = [
+      ListarUtil(nameTable, { activo: null }),
+      ListarUtil(nameTableFK1),
+    ];
+    const resultQuerys = await EjecutarVariosQuerys(querys);
     if (resultQuerys.ok === null) {
       throw resultQuerys.result;
     }
     if (resultQuerys.ok === false) {
       throw resultQuerys.errors;
     }
-    console.log(resultQuerys);
-    respResultadoCorrectoObjeto200(res, resultQuerys.result);
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
   } catch (err) {
     respErrorServidor500END(res, err);
   }

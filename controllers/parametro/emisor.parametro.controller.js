@@ -11,6 +11,8 @@ const {
   ValidarIDActualizarUtil,
   BuscarDiferenteUtil,
   EscogerInternoUtil,
+  EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -24,91 +26,60 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_emisor";
+const nameTableFK1 = "APS_param_pais";
+const nameTableFK2 = "APS_param_clasificador_comun";
+const nameTableFK3 = "APS_param_clasificador_comun";
+const nameTableFK4 = "APS_param_sector_economico";
 
 //FUNCION PARA OBTENER TODOS LOS EMISOR DE SEGURIDAD
 async function ListarCompleto(req, res) {
-  const errors = [];
+  // TO DO OPTIMIZAR LOS QUERYS DE LAS TABLAS APS_param_clasificador_comun, haciendo que la asignacion de IDs sea automatico y asi realizar solo 1 peticion
+  try {
+    const querys = [
+      ListarUtil(nameTable),
+      ListarUtil(nameTableFK1),
+      EscogerInternoUtil(nameTableFK2, {
+        select: ["*"],
+        where: [
+          {
+            key: "id_clasificador_comun_grupo",
+            value: 4,
+          },
+          { key: "activo", value: true },
+        ],
+      }),
+      EscogerInternoUtil(nameTableFK3, {
+        select: ["*"],
+        where: [
+          {
+            key: "id_clasificador_comun_grupo",
+            value: 7,
+          },
+          { key: "activo", value: true },
+        ],
+      }),
+      ListarUtil(nameTableFK4),
+    ];
 
-  const queryEmisor = ListarUtil(nameTable);
-  const queryPais = ListarUtil("APS_param_pais");
-  const queryClasificador = EscogerInternoUtil("APS_param_clasificador_comun", {
-    select: ["*"],
-    where: [
-      {
-        key: "id_clasificador_comun_grupo",
-        valuesWhereIn: [4, 7],
-        whereIn: true,
-      },
-    ],
-  });
-  const querySectorEconomico = ListarUtil("APS_param_sector_economico");
-
-  const emisor = await pool
-    .query(queryEmisor)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  const pais = await pool
-    .query(queryPais)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  const calificadora = await pool
-    .query(queryClasificador)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  const sectorEconomico = await pool
-    .query(querySectorEconomico)
-    .then((result) => {
-      return { ok: true, result: result.rows };
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-  forEach([emisor, pais, calificadora, sectorEconomico], (item) => {
-    if (item?.err) {
-      errors.push({ err: item.err, message: item.err.message });
+    const resultQuerys = await EjecutarVariosQuerys(querys);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
     }
-  });
-  if (size(errors) > 0) {
-    respErrorServidor500END(res, errors);
-    return;
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result,
+      [
+        { table: nameTableFK2, key: "id_calificacion" },
+        { table: nameTableFK3, key: "id_calificadora" },
+      ]
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
   }
-  const resultFinalDataID = map(emisor.result, (item) => {
-    const valueEmisor = item;
-    const findPais = find(pais.result, (itemFind) => {
-      if (itemFind.id_pais === valueEmisor.id_pais) return true;
-    });
-    const findCalificadora = find(calificadora.result, (itemFind) => {
-      if (itemFind.id_clasificador_comun === valueEmisor.id_calificadora)
-        return true;
-    });
-    const findCalificacion = find(calificadora.result, (itemFind) => {
-      if (itemFind.id_clasificador_comun === valueEmisor.id_calificacion)
-        return true;
-    });
-    const findSectorEconomico = find(sectorEconomico.result, (itemFind) => {
-      if (itemFind.id_sector_economico === valueEmisor.id_sector_economico)
-        return true;
-    });
-    valueEmisor.data_pais = findPais || null;
-    valueEmisor.data_calificacion = findCalificacion || null;
-    valueEmisor.data_calificadora = findCalificadora || null;
-    valueEmisor.data_sector_economico = findSectorEconomico || null;
-    return valueEmisor;
-  });
-  respResultadoCorrectoObjeto200(res, resultFinalDataID);
-  // respResultadoCorrectoObjeto200(res, resultFinalList);
 }
 
 //FUNCION PARA OBTENER TODOS LOS EMISOR DE SEGURIDAD

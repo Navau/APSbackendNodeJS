@@ -8,6 +8,8 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -23,6 +25,27 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_composicion_serie";
+const nameTableFK1 = "APS_param_tipo_instrumento";
+
+async function ListarCompleto(req, res) {
+  try {
+    const querys = [ListarUtil(nameTable), ListarUtil(nameTableFK1)];
+    const resultQuerys = await EjecutarVariosQuerys(querys);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
+    }
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS COMPOSICION SERIE DE SEGURIDAD
 async function Listar(req, res) {
@@ -185,4 +208,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  ListarCompleto,
 };
