@@ -1519,9 +1519,15 @@ function AsignarInformacionCompletaPorUnaClave(result, options) {
         forEach(split(idFind, "_"), (itemSplit, indexSplit) => {
           indexSplit > 0 ? (x += `_${itemSplit}`) : (x += "");
         });
-        !([`data${x}`] in itemMain)
-          ? (itemMain[`data${x}`] = isUndefined(findValue) ? null : findValue)
-          : "";
+        // !([`data${x}`] in itemMain)
+        // ? (itemMain[`data${x}`] = isUndefined(findValue) ? null : findValue)
+        // : "";
+        forEach(findValue, (itemAux, indexAux) => {
+          const nameIndex = `${x}_${indexAux}`;
+          !([nameIndex] in itemMain)
+            ? (itemMain[nameIndex] = isUndefined(itemAux) ? null : itemAux)
+            : "";
+        });
       });
     }
   });

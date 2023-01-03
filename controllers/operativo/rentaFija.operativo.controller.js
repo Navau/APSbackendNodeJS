@@ -147,6 +147,54 @@ async function Listar(req, res) {
     });
 }
 
+async function EmisorPorTipoInstrumento(req, res) {
+  // SELECT id_emision, EM.id_emisor, denominacion, id_moneda, monto_emision, EM.id_tipo_instrumento, cantidad_series
+  // FROM public."APS_oper_emision" EM
+  // INNER jOIN public."APS_param_emisor" E ON EM.id_emisor = E.id_emisor
+  // INNER jOIN public."APS_param_tipo_instrumento" TI ON TI.id_tipo_instrumento = EM.id_tipo_instrumento
+  const query = EscogerInternoUtil(nameTable, {
+    select: [
+      "id_emision, EM.id_emisor, denominacion, id_moneda, monto_emision, EM.id_tipo_instrumento, cantidad_series",
+    ],
+    innerjoin: [
+      {
+        table: "APS_param_emisor",
+        on: [
+          {
+            table: nameTable,
+            key: "id_emisor",
+          },
+          {
+            table: "APS_param_emisor",
+            key: "id_emisor",
+          },
+        ],
+      },
+      {
+        table: "APS_param_tipo_instrumento",
+        on: [
+          {
+            table: nameTable,
+            key: "id_tipo_instrumento",
+          },
+          {
+            table: "APS_param_tipo_instrumento",
+            key: "id_tipo_instrumento",
+          },
+        ],
+      },
+    ],
+  });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 //FUNCION PARA OBTENER UN RENTA FIJA, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
