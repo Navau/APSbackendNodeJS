@@ -436,6 +436,7 @@ async function Buscar(req, res) {
 async function Escoger(req, res) {
   const body = req.body;
   const { id_rol } = req.user;
+  const idRolFinal = !body?.id_rol && id_rol;
 
   // if (Object.entries(body).length === 0) {
   //   respDatosNoRecibidos400(res);
@@ -444,7 +445,7 @@ async function Escoger(req, res) {
   const params = {
     body: {
       ...body,
-      id_rol,
+      id_rol: !body?.id_rol ? id_rol : body.id_rol,
     },
     activo: null,
   };

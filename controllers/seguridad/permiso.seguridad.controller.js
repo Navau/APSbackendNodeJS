@@ -211,6 +211,8 @@ async function CambiarPermisos(req, res) {
       });
     });
 
+    console.log(diferenciasAux);
+
     if (size(errorsAdminRolNoExistenteAuxArray) > 0) {
       respResultadoIncorrectoObjeto200(
         res,
