@@ -894,6 +894,7 @@ async function Validar(req, res) {
               enviada: itemError.enviada,
               aps: itemError.aps,
               fecha_informacion: itemError.fecha_informacion,
+              cod_institucion: item,
             });
           }
         });
@@ -1060,6 +1061,49 @@ async function Validar(req, res) {
     }
   } catch (err) {
     respErrorServidor500END(res, err);
+  }
+}
+
+async function ReporteEnvioValidacion(req, res) {
+  const { fecha, id_rol, cargado, estado } = req.body;
+  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+  const cargadoFinal = cargado === true || cargado === false ? cargado : null;
+  const estadoFinal = isEmpty(estado) ? null : estado;
+
+  if (Object.entries(req.body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body: {
+        fecha,
+        idRolFinal,
+      },
+    };
+    if (cargadoFinal !== null || estadoFinal !== null) {
+      params.where = [];
+    }
+    if (cargadoFinal !== null) {
+      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
+    }
+    if (estadoFinal !== null) {
+      params.where = [...params.where, { key: "estado", value: estadoFinal }];
+    }
+
+    const query = EjecutarFuncionSQL("aps_reporte_control_envio", params);
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(res, null, result.rows);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        respErrorServidor500END(res, err);
+      });
   }
 }
 

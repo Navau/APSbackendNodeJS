@@ -67,11 +67,11 @@ async function ListarArchivos(req, res) {
     const files = fs.readdirSync("./uploads/tmp");
 
     if (parseInt(id_rol) === 10) {
-      map(segurosArray(date), (item, index) => {
+      map(segurosArray(date), (item) => {
         filesFilterArray.push(item);
       });
     } else if (parseInt(id_rol) === 7) {
-      map(pensionesArray(date), (item, index) => {
+      map(pensionesArray(date), (item) => {
         filesFilterArray.push(item);
       });
     }

@@ -470,9 +470,6 @@ async function CargarArchivo(req, res) {
           map(arrayDataObject, (item2, index2) => {
             newArrayDataObject.push([...item2, ...stringFinalFile.split(",")]);
           });
-          if (codeFile === "491") {
-            // console.log("newArrayDataObject", newArrayDataObject);
-          }
           // console.log("arrayDataObject", arrayDataObject);
           //#endregion
 
@@ -515,8 +512,6 @@ async function CargarArchivo(req, res) {
           });
           //#endregion
           // console.log(finalData);
-          if (codeFile === "P") {
-          }
 
           map([finalData], (itemBPQ, indexBPQ) => {
             bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
@@ -532,7 +527,10 @@ async function CargarArchivo(req, res) {
             });
           }
 
-          // console.log(queryFiles);
+          if (codeFile === "UA") {
+            console.log(queryFiles);
+            console.log("newArrayDataObject", bodyFinalQuery);
+          }
 
           bodyFinalQuery = [];
 

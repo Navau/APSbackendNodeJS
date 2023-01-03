@@ -1,4 +1,4 @@
-const { map, forEach } = require("lodash");
+const { map, forEach, isEmpty } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 
@@ -354,9 +354,10 @@ async function UltimaCarga2(req, res) {
 
 //VALORACION Y VALIDACION
 async function ReporteEnvio(req, res) {
-  const { fecha, id_rol, cargado } = req.body;
+  const { fecha, id_rol, cargado, estado } = req.body;
   const idRolFinal = id_rol ? id_rol : req.user.id_rol;
   const cargadoFinal = cargado === true || cargado === false ? cargado : null;
+  const estadoFinal = isEmpty(estado) ? null : estado;
 
   if (Object.entries(req.body).length === 0) {
     respDatosNoRecibidos400(res);
@@ -366,13 +367,17 @@ async function ReporteEnvio(req, res) {
         fecha,
         idRolFinal,
       },
-      where: cargadoFinal !== null && [
-        {
-          key: "cargado",
-          value: cargadoFinal,
-        },
-      ],
     };
+    if (cargadoFinal !== null || estadoFinal !== null) {
+      params.where = [];
+    }
+    if (cargadoFinal !== null) {
+      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
+    }
+    if (estadoFinal !== null) {
+      params.where = [...params.where, { key: "estado", value: estadoFinal }];
+    }
+
     const query = EjecutarFuncionSQL("aps_reporte_control_envio", params);
 
     pool
@@ -393,18 +398,15 @@ async function ReporteEnvio(req, res) {
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = ListarUtil(nameTable, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON BUSQUEDA
@@ -416,6 +418,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -442,24 +445,18 @@ async function Escoger(req, res) {
     body: {
       ...body,
       id_rol,
+      activo: null,
     },
   };
-  let query = EscogerUtil(nameTable, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        // respResultadoCorrectoObjeto200(
-        //   res,
-        //   formatearFechaDeInformacion(result.rows)
-        // );
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = EscogerUtil(nameTable, params);
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO

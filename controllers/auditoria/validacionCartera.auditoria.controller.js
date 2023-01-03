@@ -45,10 +45,31 @@ async function Validar(req, res) {
 }
 
 async function ObtenerInformacion(req, res) {
-  const { fecha } = req.body;
+  const { fecha, id_rol } = req.body;
   if (!fecha) {
     respDatosNoRecibidos400(res, "La fecha es obligatorio");
   }
+
+  const querys = [
+    EscogerInternoUtil("APS_oper_tipo_cambio", {
+      select: ["*"],
+      where: [{ key: `fecha`, value: fecha }],
+    }),
+    EscogerInternoUtil("APS_oper_archivo_n", {
+      select: ["*"],
+      where: [{ key: `fecha`, value: fecha }],
+    }),
+    `SELECT COUNT(*) 
+    FROM public."APS_aud_valora_archivos_pensiones_seguros" 
+    WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion
+    FROM public."APS_aud_carga_archivos_pensiones_seguros"
+    WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol = 8) AS INTEGER))
+  `,
+    id_rol === 10
+      ? `SELECT COUNT(*) FROM public."APS_view_existe_valores_seguros";`
+      : id_rol === 7,
+    null,
+  ];
   //#region CONSULTAS
   // { key: `id_moneda`, valuesWhereIn: [3], whereIn: true },
   const queryTipoCambio = EscogerInternoUtil("APS_oper_tipo_cambio", {
