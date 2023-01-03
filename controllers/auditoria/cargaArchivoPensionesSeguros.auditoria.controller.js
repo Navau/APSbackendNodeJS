@@ -445,8 +445,8 @@ async function Escoger(req, res) {
     body: {
       ...body,
       id_rol,
-      activo: null,
     },
+    activo: null,
   };
   const query = EscogerUtil(nameTable, params);
   await pool
