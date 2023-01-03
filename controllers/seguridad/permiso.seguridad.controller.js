@@ -20,6 +20,7 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   EscogerInternoUtil,
+  InsertarVariosUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -153,6 +154,12 @@ async function CambiarPermisos(req, res) {
     const errorsPermisosAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA PREPARAR LOS QUERYS DE UPDATE POR SI EXISTE ALGUN ERROR AL ACTUALIZAR EL PERMISO CUANDO SE ESTE EJECUTANDO LOS QUERYS PARA LA BASE DE DATOS
     const errorsPermisosTablaAccionAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA VALIDAR QUE LOS REGISTROS PARA EL ROL ACTUAL SEAN CORRECTOS Y EXISTAN EN LA TABLA DE APS_seg_permiso
     const errorsAdminRolNoExistenteAuxArray = []; // VARIABLE PARA MOSTRAR LOS MENSAJES DE LA VARIABLE: errorsPermisosTablaAccionAuxArray
+    const errorsQuerys = [];
+    const resultQuerys = [];
+    const resultQuerysInsert = [];
+    const errorsQuerysPermisos = [];
+
+    // const insertarRegistrosAuxArray = []; //Inserta los registros cuando no existen en APS_seg_permiso, esto pasa porque el rol no esta registrado
 
     //#region SE HACEN ESTAS ITERACIONES CON LOS PERMISOS YA AGRUPADOS POR ID TABLA Y TABLA, DONDE ACA SE VERIFICA QUE SI ALGUN REGISTRO DE LA TABLA PERMISOS ESTA EN "FALSE" Y EL CAMBIO QUE SE QUIERE HACER ES "TRUE" CON EL FIN DE CAMBIAR EL PERMISO AL ROL SELECCIONADO SE ALMACENARA ESTA INFORMACION EN LAS VARIABLES AUXILIARES DECLARADAS ANTERIORMENTE
 
@@ -185,7 +192,7 @@ async function CambiarPermisos(req, res) {
     });
     //#endregion
 
-    //#region SECCION PARA DIFERENCIAR LOS DATOS QUE LLEGAN DEL FRONTEND Y COMPARARLOS CON LOS PERMISOS QUE SE QUIEREN EDITAR, ESTO SIRVE PARA PODER CONTROLAR QUE LOS REGISTROS EXISTAN EN LA TABLA DE PERMISO JUNTO CON EL ROL SELECCIONADO. ESTOS PERMISOS DEBEN EXISTIR EN LA TABLA DE PERMISOS JUNTO AL ROL QUE SE QUIERE EDITAR, SI HAY ALGUNA DIFERENCIA ENTRE LO QUE LLEGA DEL FRONTEND Y LO QUE EXISTE EN LA BD, HABRA UN ERROR.
+    //#region SECCION PARA DIFERENCIAR LOS DATOS QUE LLEGAN DEL FRONTEND Y COMPARARLOS CON LOS PERMISOS QUE SE QUIEREN EDITAR, ESTO SIRVE PARA PODER CONTROLAR QUE LOS REGISTROS EXISTAN EN LA TABLA DE PERMISO JUNTO CON EL ROL SELECCIONADO. ESTOS PERMISOS DEBEN EXISTIR EN LA TABLA DE PERMISOS JUNTO AL ROL QUE SE QUIERE EDITAR, SI HAY ALGUNA DIFERENCIA ENTRE LO QUE LLEGA DEL FRONTEND Y LO QUE EXISTE EN LA BD, HABRA UN ERROR Y SE PROCEDERA A INSERTAR LOS NUEVOS REGISTROS.
     const diferenciasAux = groupBy(
       filter(
         difference(
@@ -196,32 +203,68 @@ async function CambiarPermisos(req, res) {
       ),
       (itemG) => `${itemG.id_tabla}-*-${itemG.tabla}-*-${itemG.descripcion}`
     );
-    forEach(diferenciasAux, (itemDIF, indexDIF) => {
-      const separatorDeIndex = "-*-";
-      const idTablaAux = split(indexDIF, separatorDeIndex)[0];
-      const tablaAux = split(indexDIF, separatorDeIndex)[1];
-      const descripcionAux = split(indexDIF, separatorDeIndex)[2];
+    const insertarRegistrosAuxArray = map(
+      diferenciasAux,
+      (itemDIF, indexDIF) => {
+        const separatorDeIndex = "-*-";
+        const idTablaAux = split(indexDIF, separatorDeIndex)[0];
+        const tablaAux = split(indexDIF, separatorDeIndex)[1];
+        const descripcionAux = split(indexDIF, separatorDeIndex)[2];
+        return map(itemDIF, (itemInsert) => {
+          return itemInsert;
+        });
+        // errorsAdminRolNoExistenteAuxArray.push({
+        //   mensaje: `No existe información suficiente para cambiar el permiso de ${descripcionAux}, porfavor, comuniquese con el administrador`,
+        //   id_rol,
+        //   tabla: tablaAux,
+        //   descripcion: descripcionAux,
+        //   tipo_error: `No existen registros en APS_seg_permiso con el rol "${id_rol}" para la tabla "${tablaAux}" de "${descripcionAux}"`,
+        // });
+      }
+    );
 
-      errorsAdminRolNoExistenteAuxArray.push({
-        mensaje: `No existe información suficiente para cambiar el permiso de ${descripcionAux}, porfavor, comuniquese con el administrador`,
-        id_rol,
-        tabla: tablaAux,
-        descripcion: descripcionAux,
-        tipo_error: `No existen registros en APS_seg_permiso con el rol "${id_rol}" para la tabla "${tablaAux}" de "${descripcionAux}"`,
+    for await (const insert of insertarRegistrosAuxArray) {
+      const queryInsertar = InsertarVariosUtil(nameTable, {
+        body: map(insert, (itemInsert) => {
+          return {
+            id_rol,
+            id_tabla_accion: itemInsert.id_tabla_accion,
+            permiso: `${itemInsert.data_accion.accion} ${itemInsert.descripcion}`,
+            activo: true,
+          };
+        }),
+        returnValue: ["*"],
       });
-    });
-
-    console.log(diferenciasAux);
-
-    if (size(errorsAdminRolNoExistenteAuxArray) > 0) {
-      respResultadoIncorrectoObjeto200(
-        res,
-        null,
-        errorsAdminRolNoExistenteAuxArray
-      );
-      return;
+      await pool
+        .query(queryInsertar)
+        .then((result) => {
+          if (result.rowCount <= 0) {
+            errorsQuerysPermisos.push({
+              mensaje: `No existe información suficiente para cambiar el permiso de ${insert.descripcion}, porfavor, comuniquese con el administrador`,
+              id_rol,
+              tabla: insert.tabla,
+              descripcion: insert.descripcion,
+              tipo_error: `No se inserto el permiso debido a que los registros para la tabla "${insert.tabla}" de "${insert.descripcion}" existen en APS_seg_tabla_accion, pero no existen en APS_seg_permiso`,
+            });
+          }
+          resultQuerys.push({ id: result.id_permiso, result: result.rows });
+        })
+        .catch((err) => {
+          errorsQuerys.push({ err });
+        });
     }
 
+    //#region CONTROL DE ERROR POR SI NO SE ACTUALIZO CORRECTAMENTE LOS PERMISOS DEBIDO A QUE NO EXISTEN LOS REGISTROS SUFICIENTES EN LAS TABLAS DE TABLA_ACCION Y PERMISO
+    if (size(errorsQuerysPermisos) > 0) {
+      respResultadoIncorrectoObjeto200(res, null, errorsQuerysPermisos);
+      return;
+    }
+    //#endregion
+
+    // if (size(resultQuerysInsert) > 0) {
+    //   respResultadoCorrectoObjeto200(res, resultQuerysInsert); //RESULTADOS, SI SE INSERTO ALGO, ENTONCES MOSTRARA EL ID Y EL REGISTRO QUE SE INSERTO
+    //   return;
+    // }
     //#endregion
 
     // if (size(permisosAuxArray) > 0) ESTA VALIDACION NO ES NECESARIA, DEBIDO A QUE SI NO EXISTEN DATOS ENTONCES NO HARA ITERACIONES EN "map" (linea 228) PARA ARMAR LOS QUERYS, PERO SE COMENTO ESTO PARA PODER TENER UNA IDEA DE COMO ENTRAN LOS PERMISOS A LOS QUERYS
@@ -259,9 +302,6 @@ async function CambiarPermisos(req, res) {
     //#endregion
 
     //#region EJECUCION DE LOS QUERYS
-    const errorsQuerys = [];
-    const resultQuerys = [];
-    const errorsQuerysPermisos = [];
 
     for await (const query of querys) {
       await pool
