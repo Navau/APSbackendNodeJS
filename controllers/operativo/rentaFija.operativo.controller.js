@@ -355,9 +355,9 @@ async function ActualizarPlazoDias(req, res) {
   }, id_calificadora = ${body.id_califadora} WHERE id_emisor = ${
     body.id_emisor
   } AND id_tipo_instrumento = 13 ${
-    id_plazo === "CP"
+    body.id_plazo === "CP"
       ? "AND plazo_dias <= 360"
-      : id_plazo === "LP"
+      : body.id_plazo === "LP"
       ? "AND plazo_dias > 360"
       : ""
   };`;

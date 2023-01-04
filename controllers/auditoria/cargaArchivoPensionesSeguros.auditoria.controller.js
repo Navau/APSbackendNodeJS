@@ -355,7 +355,7 @@ async function UltimaCarga2(req, res) {
 
 async function ReporteEnvio(req, res) {
   try {
-    const { fecha, id_rol, cargado, estado, tipo } = req.body;
+    const { fecha, id_rol, cargado, estado, tipo, iid_reporte } = req.body;
     const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const cargadoFinal = cargado === true || cargado === false ? cargado : null;
     const estadoFinal = isEmpty(estado) ? null : estado;
@@ -421,7 +421,7 @@ async function ReporteEnvio(req, res) {
         throw results.errors;
       }
 
-      if (results.result?.[0]?.data?.[0]?.count > 0) {
+      if (results.result?.[0]?.data?.[0]?.count > 0 && !isUndefined(tipo)) {
         respResultadoCorrectoObjeto200(res, []);
         return;
       }
