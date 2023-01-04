@@ -7,6 +7,7 @@ const {
   forEach,
   includes,
   uniq,
+  isUndefined,
 } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
@@ -25,6 +26,7 @@ const {
   EjecutarFuncionSQL,
   InsertarVariosUtil,
   ObtenerInstitucion,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -1064,46 +1066,83 @@ async function Validar(req, res) {
   }
 }
 
-async function ReporteEnvioValidacion(req, res) {
-  const { fecha, id_rol, cargado, estado } = req.body;
-  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
-  const cargadoFinal = cargado === true || cargado === false ? cargado : null;
-  const estadoFinal = isEmpty(estado) ? null : estado;
+async function Reporte(req, res) {
+  try {
+    const { fecha, id_rol, cargado, estado } = req.body;
+    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+    const cargadoFinal = cargado === true || cargado === false ? cargado : null;
+    const estadoFinal = isEmpty(estado) ? null : estado;
 
-  if (Object.entries(req.body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body: {
-        fecha,
-        idRolFinal,
-      },
-    };
-    if (cargadoFinal !== null || estadoFinal !== null) {
-      params.where = [];
-    }
-    if (cargadoFinal !== null) {
-      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
-    }
-    if (estadoFinal !== null) {
-      params.where = [...params.where, { key: "estado", value: estadoFinal }];
-    }
+    if (Object.entries(req.body).length === 0) {
+      respDatosNoRecibidos400(res);
+    } else {
+      const queryValida = `SELECT COUNT(*) 
+      FROM public."APS_aud_valida_archivos_pensiones_seguros" 
+      WHERE fecha_operacion='${fecha}' 
+      AND validado=true 
+      AND id_usuario IN (CAST((
+        SELECT DISTINCT cod_institucion 
+        FROM public."APS_aud_carga_archivos_pensiones_seguros" 
+        WHERE cargado = true 
+        AND fecha_operacion = '${fecha}' 
+        AND id_rol = ${id_rol}) AS INTEGER))`;
 
-    const query = EjecutarFuncionSQL("aps_reporte_control_envio", params);
+      const params = {
+        body: {
+          fecha,
+          idRolFinal,
+        },
+      };
+      if (cargadoFinal !== null || estadoFinal !== null) {
+        params.where = [];
+      }
+      if (cargadoFinal !== null) {
+        params.where = [
+          ...params.where,
+          { key: "cargado", value: cargadoFinal },
+        ];
+      }
+      if (estadoFinal !== null) {
+        params.where = [...params.where, { key: "estado", value: estadoFinal }];
+      }
 
-    pool
-      .query(query)
-      .then((result) => {
-        if (result.rowCount > 0) {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        } else {
-          respResultadoIncorrectoObjeto200(res, null, result.rows);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-      });
+      const querys = [];
+      querys.push(EjecutarFuncionSQL("aps_reporte_control_envio", params));
+      querys.push(queryValida);
+      querys.push(
+        EscogerInternoUtil("APS_aud_valida_archivos_pensiones_seguros", {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            { key: "validado", value: true },
+          ],
+        })
+      );
+
+      const results = await EjecutarVariosQuerys(querys);
+
+      if (results.ok === null) {
+        throw results.result;
+      }
+      if (results.ok === false) {
+        throw results.errors;
+      }
+
+      const counterRegistros = results.result?.[1]?.data?.[0]?.count;
+      if (counterRegistros > 0) {
+        if (counterRegistros)
+          respResultadoIncorrectoObjeto200(
+            res,
+            results.result[2].data,
+            "La información ya fue validada"
+          );
+        return;
+      }
+
+      respResultadoCorrectoObjeto200(res, results.result[0].data);
+    }
+  } catch (err) {
+    respErrorServidor500END(res, err);
   }
 }
 
@@ -1275,4 +1314,5 @@ module.exports = {
   UltimaCarga,
   UltimaCarga2,
   Validar,
+  Reporte,
 };
