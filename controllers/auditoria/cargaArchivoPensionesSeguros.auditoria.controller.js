@@ -452,7 +452,17 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const cargadoFinal = cargado === true || cargado === false ? cargado : null;
     const estadoFinal = isEmpty(estado) ? null : estado;
+    const cod_institucion = await ObtenerInstitucion({ id_rol: idRolFinal });
+    const params = {
+      body: {
+        fecha,
+        cod_institucion: cod_institucion.result.codigo,
+      },
+    };
 
+    if (iid_reporte === 6) {
+      params.body = { ...params.body, periodo: "154,155" };
+    }
     if (cargadoFinal !== null || estadoFinal !== null) {
       params.where = [];
     }
@@ -463,7 +473,11 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
       params.where = [...params.where, { key: "estado", value: estadoFinal }];
     }
 
-    const querys = [EjecutarFuncionSQL("aps_reporte_control_envio", params)];
+    const querys = [
+      iid_reporte === 7 || iid_reporte === 8
+        ? EjecutarFuncionSQL("aps_reporte_control_envio", params)
+        : EjecutarFuncionSQL("aps_reporte_validacion_preliminar", params),
+    ];
 
     const results = await EjecutarVariosQuerys(querys);
 

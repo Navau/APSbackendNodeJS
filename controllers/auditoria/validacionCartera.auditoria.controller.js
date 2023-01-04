@@ -118,7 +118,8 @@ async function ObtenerInformacion(req, res) {
     if (counterRegistros > 0) {
       messages.push("La información ya fue valorada");
     }
-    if (size(results.result[4]) === 0) {
+    const counterVistas = results.result?.[4]?.data?.[0]?.count;
+    if (counterVistas > 0) {
       messages.push(
         "No existen características para los siguientes valores, favor registrar"
       );
