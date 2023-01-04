@@ -402,23 +402,20 @@ async function ReporteEnvio(req, res) {
       if (estadoFinal !== null) {
         params.where = [...params.where, { key: "estado", value: estadoFinal }];
       }
-      const tipoAux =
-        tipo === "validacion"
-          ? queryValida
-          : tipo === "valoracion"
-          ? queryValora
-          : null;
-      const querys = [
-        tipoAux,
-        EjecutarFuncionSQL("aps_reporte_control_envio", params),
-        tipo === "valoracion"
-          ? id_rol === 10
-            ? EscogerInternoUtil("APS_view_existe_valores_seguros")
-            : id_rol === 7
-            ? EscogerInternoUtil("APS_view_existe_valores_pensiones")
-            : null
-          : null,
-      ];
+      const querys = [];
+      querys.push(EjecutarFuncionSQL("aps_reporte_control_envio", params));
+      tipo === "validacion"
+        ? querys.push(queryValida)
+        : tipo === "valoracion"
+        ? querys.push(queryValora)
+        : null;
+      tipo === "valoracion"
+        ? id_rol === 10
+          ? querys.push(EscogerInternoUtil("APS_view_existe_valores_seguros"))
+          : id_rol === 7
+          ? querys.push(EscogerInternoUtil("APS_view_existe_valores_pensiones"))
+          : null
+        : null;
 
       const results = await EjecutarVariosQuerys(querys);
 
@@ -428,16 +425,21 @@ async function ReporteEnvio(req, res) {
       if (results.ok === false) {
         throw results.errors;
       }
+      // const counterRegistros = results.result?.[1]?.data?.[0]?.count;
+      // if (!isUndefined(tipo)) {
+      //   if (counterRegistros > 0) {
+      //     if (counterRegistros)
+      //       respResultadoIncorrectoObjeto200(
+      //         res,
+      //         null,
+      //         [],
+      //         "No existen características para los siguientes valores, favor registrar"
+      //       );
+      //     return;
+      //   }
+      // }
 
-      if (results.result?.[0]?.data?.[0]?.count > 0 && !isUndefined(tipo)) {
-        respResultadoCorrectoObjeto200(res, []);
-        return;
-      }
-
-      respResultadoCorrectoObjeto200(
-        res,
-        results.result[tipoAux === null ? 0 : 1].data
-      );
+      respResultadoCorrectoObjeto200(res, results.result[0].data);
     }
   } catch (err) {
     respErrorServidor500END(res, err);
