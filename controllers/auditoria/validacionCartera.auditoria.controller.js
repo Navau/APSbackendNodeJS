@@ -1,8 +1,10 @@
-const { size } = require("lodash");
+const { size, isEmpty } = require("lodash");
 const pool = require("../../database");
 const {
   EjecutarProcedimientoSQL,
   EscogerInternoUtil,
+  EjecutarFuncionSQL,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 const {
   respErrorServidor500END,
@@ -45,111 +47,93 @@ async function Validar(req, res) {
 }
 
 async function ObtenerInformacion(req, res) {
-  const { fecha, id_rol } = req.body;
-  if (!fecha) {
-    respDatosNoRecibidos400(res, "La fecha es obligatorio");
-  }
+  try {
+    const { fecha, id_rol, cargado, estado } = req.body;
+    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+    const cargadoFinal = cargado === true || cargado === false ? cargado : null;
+    const estadoFinal = isEmpty(estado) ? null : estado;
+    if (!fecha) {
+      respDatosNoRecibidos400(res, "La fecha es obligatorio");
+    }
+    const params = {
+      body: {
+        fecha,
+        idRolFinal,
+      },
+    };
+    if (cargadoFinal !== null || estadoFinal !== null) {
+      params.where = [];
+    }
+    if (cargadoFinal !== null) {
+      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
+    }
+    if (estadoFinal !== null) {
+      params.where = [...params.where, { key: "estado", value: estadoFinal }];
+    }
+    params.where = [...params.where, { key: "descripcion", value: "Diaria" }];
 
-  const querys = [
-    EscogerInternoUtil("APS_oper_tipo_cambio", {
-      select: ["*"],
-      where: [{ key: `fecha`, value: fecha }],
-    }),
-    EscogerInternoUtil("APS_oper_archivo_n", {
-      select: ["*"],
-      where: [{ key: `fecha`, value: fecha }],
-    }),
-    `SELECT COUNT(*) 
+    const querys = [
+      EjecutarFuncionSQL("aps_reporte_control_envio", params),
+      EscogerInternoUtil("APS_oper_tipo_cambio", {
+        select: ["*"],
+        where: [{ key: `fecha`, value: fecha }],
+      }),
+      EscogerInternoUtil("APS_oper_archivo_n", {
+        select: ["*"],
+        where: [{ key: `fecha`, value: fecha }],
+      }),
+      `SELECT COUNT(*) 
     FROM public."APS_aud_valora_archivos_pensiones_seguros" 
     WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion
     FROM public."APS_aud_carga_archivos_pensiones_seguros"
     WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol = 8) AS INTEGER))
   `,
+    ];
     id_rol === 10
-      ? `SELECT COUNT(*) FROM public."APS_view_existe_valores_seguros";`
-      : id_rol === 7,
-    null,
-  ];
-  //#region CONSULTAS
-  // { key: `id_moneda`, valuesWhereIn: [3], whereIn: true },
-  const queryTipoCambio = EscogerInternoUtil("APS_oper_tipo_cambio", {
-    select: ["*"],
-    where: [{ key: `fecha`, value: fecha }],
-  });
+      ? querys.push(
+          `SELECT COUNT(*) FROM public."APS_view_existe_valores_seguros";`
+        )
+      : id_rol === 7
+      ? querys.push(
+          `SELECT COUNT(*) FROM public."APS_view_existe_valores_pensiones`
+        )
+      : null;
 
-  const tipoCambio = await pool
-    .query(queryTipoCambio)
-    .then((result) => {
-      console.log(result.rows);
-      if (result.rowCount > 0) {
-        return {
-          ok: true,
-          result: result.rows,
-        };
-      } else {
-        return {
-          ok: false,
-          result: result.rows,
-        };
-      }
-    })
-    .catch((err) => {
-      return {
-        ok: null,
-        err,
-      };
-    });
+    const results = await EjecutarVariosQuerys(querys);
 
-  const queryArchivoN = EscogerInternoUtil("APS_oper_archivo_n", {
-    select: ["*"],
-    where: [{ key: `fecha`, value: fecha }],
-  });
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
 
-  const archivoN = await pool
-    .query(queryArchivoN)
-    .then((result) => {
-      if (result.rowCount > 0) {
-        return {
-          ok: true,
-          result: result.rows,
-        };
-      } else {
-        return {
-          ok: false,
-          result: result.rows,
-        };
-      }
-    })
-    .catch((err) => {
-      return {
-        ok: null,
-        err,
-      };
-    });
-  //#endregion
-  if (tipoCambio?.err) {
-    respErrorServidor500END(res, tipoCambio.err);
-    return;
+    const messages = [];
+
+    if (size(results.result[1].data) === 0) {
+      messages.push("No existe Tipo de Cambio para la Fecha seleccionada");
+    }
+    if (size(results.result[2].data) === 0) {
+      messages.push("No existe información en la Bolsa");
+    }
+    const counterRegistros = results.result?.[3]?.data?.[0]?.count;
+    if (counterRegistros > 0) {
+      messages.push("La información ya fue valorada");
+    }
+    if (size(results.result[4]) === 0) {
+      messages.push(
+        "No existen características para los siguientes valores, favor registrar"
+      );
+    }
+
+    if (size(messages) > 0) {
+      respResultadoIncorrectoObjeto200(res, null, [], messages);
+      return;
+    }
+    respResultadoCorrectoObjeto200(res, results.result[0].data);
+  } catch (err) {
+    respErrorServidor500END(res, err);
   }
-  if (archivoN?.err) {
-    respErrorServidor500END(res, archivoN.err);
-    return;
-  }
-
-  const messages = [];
-
-  if (tipoCambio.ok === false) {
-    messages.push("No existe Tipo de Cambio para la Fecha seleccionada");
-  }
-  if (archivoN.ok === false) {
-    messages.push("No existe información en la Bolsa");
-  }
-
-  if (size(messages) > 0) {
-    respResultadoIncorrectoObjeto200(res, null, [], messages);
-    return;
-  }
-  respResultadoCorrectoObjeto200(res, archivoN.result);
 }
 
 module.exports = {
