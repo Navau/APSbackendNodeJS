@@ -333,7 +333,7 @@ async function EnviarCorreo(req, res) {
       return res.test(String(email).toLowerCase());
     }
 
-    for (let index = 0; index < usersFinal.length; index++) {
+    for (let index = 0; index < usersFinal?.length; index++) {
       const item = usersFinal[index];
 
       const emailFinal = email ? email : item.email;
