@@ -355,7 +355,7 @@ async function UltimaCarga2(req, res) {
 
 async function ReporteEnvio(req, res) {
   try {
-    const { fecha, id_rol, cargado, estado, tipo, iid_reporte } = req.body;
+    const { fecha, id_rol, cargado, estado, tipo } = req.body;
     const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const cargadoFinal = cargado === true || cargado === false ? cargado : null;
     const estadoFinal = isEmpty(estado) ? null : estado;
@@ -402,14 +402,22 @@ async function ReporteEnvio(req, res) {
       if (estadoFinal !== null) {
         params.where = [...params.where, { key: "estado", value: estadoFinal }];
       }
-
-      const querys = [
+      const tipoAux =
         tipo === "validacion"
           ? queryValida
           : tipo === "valoracion"
           ? queryValora
-          : null,
+          : null;
+      const querys = [
+        tipoAux,
         EjecutarFuncionSQL("aps_reporte_control_envio", params),
+        tipo === "valoracion"
+          ? id_rol === 10
+            ? EscogerInternoUtil("APS_view_existe_valores_seguros")
+            : id_rol === 7
+            ? EscogerInternoUtil("APS_view_existe_valores_pensiones")
+            : null
+          : null,
       ];
 
       const results = await EjecutarVariosQuerys(querys);
@@ -428,7 +436,7 @@ async function ReporteEnvio(req, res) {
 
       respResultadoCorrectoObjeto200(
         res,
-        results.result[isUndefined(tipo) ? 0 : 1].data
+        results.result[tipoAux === null ? 0 : 1].data
       );
     }
   } catch (err) {
