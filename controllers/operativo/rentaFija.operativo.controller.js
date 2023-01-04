@@ -360,7 +360,7 @@ async function ActualizarPlazoDias(req, res) {
       : body.id_plazo === "LP"
       ? "AND plazo_dias > 360"
       : ""
-  };`;
+  } RETURNING id_renta_fija;`;
 
   console.log(query);
 

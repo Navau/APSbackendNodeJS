@@ -442,6 +442,27 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const cargadoFinal = cargado === true || cargado === false ? cargado : null;
     const estadoFinal = isEmpty(estado) ? null : estado;
+
+    if (cargadoFinal !== null || estadoFinal !== null) {
+      params.where = [];
+    }
+    if (cargadoFinal !== null) {
+      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
+    }
+    if (estadoFinal !== null) {
+      params.where = [...params.where, { key: "estado", value: estadoFinal }];
+    }
+
+    const querys = [EjecutarFuncionSQL("aps_reporte_control_envio", params)];
+
+    const results = await EjecutarVariosQuerys(querys);
+
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
   } catch (err) {
     respErrorServidor500END(res, err);
   }
