@@ -1,4 +1,4 @@
-const { map, forEach } = require("lodash");
+const { map, forEach, size } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 const nodemailer = require("nodemailer");
@@ -306,7 +306,7 @@ async function EnviarCorreo(req, res) {
   const resultArray = [];
   const errorsArray = [];
   try {
-    const users = await ObtenerUsuariosPorRol({ idRolFinal });
+    const users = await ObtenerUsuariosPorRol({ id_rol: idRolFinal });
     if (users.err) {
       errorsArray.push({
         message: users?.err?.message && users?.err.message,
@@ -331,35 +331,38 @@ async function EnviarCorreo(req, res) {
       return res.test(String(email).toLowerCase());
     }
 
-    for await (const item of usersFinal) {
-      const emailFinal = email ? email : item.email;
-      // const emailFinal = "milibrolunadepluton344@gmail.com";
+    if (size(usersFinal) > 0) {
+      for await (const item of usersFinal) {
+        const emailFinal = email ? email : item.email;
+        // const emailFinal = "milibrolunadepluton344@gmail.com";
 
-      if (!validateEmail(emailFinal)) {
-        errorsArray.push({ message: "Email no válido", emailFinal });
-      } else {
-        const mailOptions = {
-          from: "APS validaciones",
-          to: emailFinal,
-          subject: subject ? subject : "Asunto APS",
-          html: `
+        if (!validateEmail(emailFinal)) {
+          errorsArray.push({ message: "Email no válido", emailFinal });
+        } else {
+          const mailOptions = {
+            from: "APS validaciones",
+            to: emailFinal,
+            subject: subject ? subject : "Asunto APS",
+            html: `
           <div>
             <h3>${description}</h3>
           </div>
           `,
-        };
+          };
 
-        await transporter
-          .sendMail(mailOptions)
-          .then((result) => {
-            console.log(result);
-            resultArray.push(result);
-          })
-          .catch((err) => {
-            errorsArray.push({ message: err?.message && err.message, err });
-          });
+          await transporter
+            .sendMail(mailOptions)
+            .then((result) => {
+              console.log(result);
+              resultArray.push(result);
+            })
+            .catch((err) => {
+              errorsArray.push({ message: err?.message && err.message, err });
+            });
+        }
       }
     }
+
     if (errorsArray.length > 0) {
       respErrorServidor500END(res, errorsArray);
     }
