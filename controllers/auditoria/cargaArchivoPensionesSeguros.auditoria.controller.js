@@ -436,6 +436,17 @@ async function ReporteEnvio(req, res) {
   }
 }
 
+async function ReporteControlEnvioPorTipoReporte(req, res) {
+  try {
+    const { fecha, id_rol, cargado, estado, iid_reporte } = req.body;
+    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+    const cargadoFinal = cargado === true || cargado === false ? cargado : null;
+    const estadoFinal = isEmpty(estado) ? null : estado;
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });

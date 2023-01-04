@@ -350,7 +350,7 @@ async function Actualizar(req, res) {
 async function ActualizarPlazoDias(req, res) {
   const body = req.body;
 
-  const query = `UPDATE public.${nameTable} SET id_calificacion = ${
+  const query = `UPDATE public."${nameTable}" SET id_calificacion = ${
     body.id_calificacion
   }, id_calificadora = ${body.id_calificadora} WHERE id_emisor = ${
     body.id_emisor
