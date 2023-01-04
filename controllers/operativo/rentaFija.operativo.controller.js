@@ -351,8 +351,8 @@ async function ActualizarPlazoDias(req, res) {
   const body = req.body;
 
   const query = `UPDATE public.${nameTable} SET id_calificacion = ${
-    body.id_califacion
-  }, id_calificadora = ${body.id_califadora} WHERE id_emisor = ${
+    body.id_calificacion
+  }, id_calificadora = ${body.id_calificadora} WHERE id_emisor = ${
     body.id_emisor
   } AND id_tipo_instrumento = 13 ${
     body.id_plazo === "CP"
