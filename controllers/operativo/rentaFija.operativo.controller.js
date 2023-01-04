@@ -347,6 +347,33 @@ async function Actualizar(req, res) {
   }
 }
 
+async function ActualizarPlazoDias(req, res) {
+  const body = req.body;
+
+  const query = `UPDATE public.${nameTable} SET id_calificacion = ${
+    body.id_califacion
+  }, id_calificadora = ${body.id_califadora} WHERE id_emisor = ${
+    body.id_emisor
+  } AND id_tipo_instrumento = 13 ${
+    id_plazo === "CP"
+      ? "AND plazo_dias <= 360"
+      : id_plazo === "LP"
+      ? "AND plazo_dias > 360"
+      : ""
+  };`;
+
+  console.log(query);
+
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 //FUNCION PARA DESHABILITAR UN RENTA FIJA
 async function Deshabilitar(req, res) {
   const body = req.body;
@@ -387,4 +414,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   ListarCompleto,
+  ActualizarPlazoDias,
 };
