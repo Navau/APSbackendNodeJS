@@ -61,16 +61,14 @@ async function ObtenerInformacion(req, res) {
         idRolFinal,
       },
     };
-    if (cargadoFinal !== null || estadoFinal !== null) {
-      params.where = [];
-    }
+    params.where = [];
+    params.where = [...params.where, { key: "descripcion", value: "Diaria" }];
     if (cargadoFinal !== null) {
       params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
     }
     if (estadoFinal !== null) {
       params.where = [...params.where, { key: "estado", value: estadoFinal }];
     }
-    params.where = [...params.where, { key: "descripcion", value: "Diaria" }];
 
     const querys = [
       EjecutarFuncionSQL("aps_reporte_control_envio", params),
