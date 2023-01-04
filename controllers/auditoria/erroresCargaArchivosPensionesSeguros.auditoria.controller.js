@@ -302,14 +302,11 @@ async function Reporte2(req, res) {
 
 async function EnviarCorreo(req, res) {
   const { email, subject, description, id_rol } = req.body;
-  if (!id_rol) {
-    respDatosNoRecibidos400(res, "No se envio el id_rol para la petición");
-    return;
-  }
+  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
   const resultArray = [];
   const errorsArray = [];
   try {
-    const users = await ObtenerUsuariosPorRol({ id_rol });
+    const users = await ObtenerUsuariosPorRol({ idRolFinal });
     if (users.err) {
       errorsArray.push({
         message: users?.err?.message && users?.err.message,
