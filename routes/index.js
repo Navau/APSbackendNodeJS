@@ -28,6 +28,7 @@ const erroresCargaArchivosBolsaRoute = require("./auditoria/erroresCargaArchivos
 const erroresCargaArchivosCustodioRoute = require("./auditoria/erroresCargaArchivosCustodio.auditoria.route");
 const erroresCargaArchivosPensionesSegurosRoute = require("./auditoria/erroresCargaArchivosPensionesSeguros.auditoria.route");
 const erroresValidaArchivosPensionesSegurosRoute = require("./auditoria/erroresValidaArchivosPensionesSeguros.auditoria.route");
+const erroresValoraArchivosPensionesSegurosRoute = require("./auditoria/erroresValoraArchivosPensionesSeguros.auditoria.route");
 const fechaOperacionRoute = require("./auditoria/fechaOperacion.route");
 //#region VALIDACION CARTERA
 const validacionCarteraRoute = require("./auditoria/validacionCartera.auditoria.route");
@@ -191,6 +192,10 @@ function routerApi(app) {
   router.use(
     "/ErroresValidaArchivosPensionesSeguros",
     erroresValidaArchivosPensionesSegurosRoute
+  );
+  router.use(
+    "/ErroresValoraArchivosPensionesSeguros",
+    erroresValoraArchivosPensionesSegurosRoute
   );
   router.use(
     "/ErroresCargaArchivosCustodio",

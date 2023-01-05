@@ -42,8 +42,7 @@ const {
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_aud_valida_archivos_pensiones_seguros";
-const nameTableErrors = "APS_aud_errores_valida_archivos_pensiones_seguros";
+const nameTable = "APS_aud_errores_valora_archivos_pensiones_seguros";
 
 async function ValorMaximo(req, res) {
   const { max, periodicidad } = req.body;
@@ -271,29 +270,29 @@ async function UltimaCarga2(req, res) {
   const { id_rol, id_usuario } = req.user;
 
   let query = `
-  SELECT CASE 
-  WHEN maxid > 0 
-      THEN nro_carga 
-      ELSE 0 
-  END AS nroCarga, 
-  CASE 
-  WHEN maxid > 0 
-      THEN cargado 
-      ELSE false 
-  END AS Cargado 
-  FROM ( 
-    SELECT coalesce(max(id_carga_archivos), 0) AS maxid 
-    FROM public."APS_aud_carga_archivos_pensiones_seguros" AS pen 
-    INNER JOIN "APS_seg_institucion" AS int 
-    ON int.codigo = pen.cod_institucion 
-    INNER JOIN "APS_seg_usuario" AS usuario 
-    ON usuario.id_institucion = int.id_institucion 
-    WHERE usuario.id_usuario=${id_usuario} 
-    AND pen.id_periodo=${periodicidad} 
-    AND pen.fecha_operacion = '${fecha_operacion}') AS max_id 
-    LEFT JOIN "APS_aud_carga_archivos_pensiones_seguros" AS datos 
-    ON max_id.maxid = datos.id_carga_archivos
-  `;
+    SELECT CASE 
+    WHEN maxid > 0 
+        THEN nro_carga 
+        ELSE 0 
+    END AS nroCarga, 
+    CASE 
+    WHEN maxid > 0 
+        THEN cargado 
+        ELSE false 
+    END AS Cargado 
+    FROM ( 
+      SELECT coalesce(max(id_carga_archivos), 0) AS maxid 
+      FROM public."APS_aud_carga_archivos_pensiones_seguros" AS pen 
+      INNER JOIN "APS_seg_institucion" AS int 
+      ON int.codigo = pen.cod_institucion 
+      INNER JOIN "APS_seg_usuario" AS usuario 
+      ON usuario.id_institucion = int.id_institucion 
+      WHERE usuario.id_usuario=${id_usuario} 
+      AND pen.id_periodo=${periodicidad} 
+      AND pen.fecha_operacion = '${fecha_operacion}') AS max_id 
+      LEFT JOIN "APS_aud_carga_archivos_pensiones_seguros" AS datos 
+      ON max_id.maxid = datos.id_carga_archivos
+    `;
 
   console.log("TEST ULTIMA CARGA", query);
   await pool
@@ -708,447 +707,9 @@ async function ObtenerErroresDiariosMensual(fecha) {
   }
 }
 
-async function Validar(req, res) {
-  try {
-    const { fecha, id_rol_archivos } = req.body;
-    const { id_rol, id_usuario } = req.user;
-    //#region SELECCIONANDO ARCHIVOS REQUERIDOS
-    const idRolFinal = id_rol_archivos ? id_rol_archivos : req.user.id_rol;
-    const params = {
-      body: {
-        fecha,
-        idRolFinal,
-      },
-    };
-    const queryFilesRequired = EjecutarFuncionSQL(
-      "aps_archivos_a_validar",
-      params
-    );
-    const filesRequired = await pool
-      .query(queryFilesRequired)
-      .then((result) => {
-        if (result.rowCount > 0) {
-          return {
-            ok: true,
-            result: result.rows,
-          };
-        } else {
-          return {
-            ok: false,
-            result: result.rows,
-          };
-        }
-      })
-      .catch((err) => {
-        return {
-          ok: null,
-          err,
-        };
-      });
-
-    if (filesRequired.err) {
-      respErrorServidor500END(res, filesRequired.err);
-      return null;
-    }
-    if (!filesRequired.ok) {
-      respResultadoVacio404END(res, "No existen archivos a validar");
-      return null;
-    }
-    //#endregion
-
-    const errorsFinalArray = [];
-    const resultFinalArray = [];
-    const idValidaArchivos = [];
-    const instituciones = [];
-    const institucionesError = [];
-    const unique = (array) => {
-      let result = [];
-
-      for (let val of array) {
-        if (!result.includes(val)) {
-          result.push(val);
-        }
-      }
-
-      return result;
-    };
-
-    const errores = await ObtenerErroresDiariosMensual(fecha);
-
-    if (!errores.ok) {
-      respErrorServidor500END(res, errores.result);
-      return null;
-    }
-    forEach(errores.result, (item, index) => {
-      institucionesError.push(item.cod_institucion);
-    });
-
-    if (size(errores.result) > 0) {
-      console.log("CON ERRORES");
-      isError = true;
-      const institucionesUnicas = unique(institucionesError);
-      for (let index = 0; index < institucionesUnicas.length; index++) {
-        const item = institucionesUnicas[index];
-        //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
-        const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-          fieldMax: "nro_carga",
-          where: [
-            {
-              key: "id_rol",
-              value: id_rol,
-            },
-            {
-              key: "fecha_operacion",
-              value: fecha,
-            },
-            {
-              key: "id_usuario",
-              value: id_usuario,
-            },
-            {
-              key: "cod_institucion",
-              value: item,
-            },
-          ],
-        });
-
-        const carga = await pool
-          .query(queryNroCarga)
-          .then((resultNroCarga) => {
-            let nroCarga = 0;
-            if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-              nroCarga = 0;
-            } else {
-              nroCarga = resultNroCarga.rows[0]?.max
-                ? resultNroCarga.rows[0]?.max
-                : 0;
-            }
-            resultFinalArray.push({
-              result: resultNroCarga.rows,
-              message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
-            });
-            return { nroCarga, cod_institucion: item };
-          })
-          .catch((err) => {
-            console.log("ERR CARGA", err);
-            errorsFinalArray.push({
-              err,
-              message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
-            });
-            return null;
-          });
-
-        if (carga === null) {
-          break;
-        }
-        //#endregion
-        //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
-        const queryInsertValida = InsertarVariosUtil(nameTable, {
-          body: [
-            {
-              fecha_operacion: fecha,
-              cod_institucion: item,
-              nro_carga: parseInt(carga?.nroCarga) + 1,
-              fecha_carga: new Date(),
-              validado: false,
-              id_rol: id_rol,
-              id_usuario: id_usuario,
-            },
-          ],
-          returnValue: ["id_valida_archivos"],
-        });
-        // console.log(queryInsertValida);
-
-        const audInsertValida = await pool
-          .query(queryInsertValida)
-          .then((result) => {
-            idValidaArchivos.push({
-              cod_institucion: item,
-              id_valida_archivos: result.rows[0]?.id_valida_archivos,
-            });
-            resultFinalArray.push({
-              result: result.rows,
-              message: `Se inserto correctamente la validación en la tabla ${nameTable}`,
-            });
-            return result.rows?.[0];
-          })
-          .catch((err) => {
-            errorsFinalArray.push({
-              err,
-              message: `Error al Insertar en la tabla ${nameTable}`,
-            });
-            return null;
-          });
-        if (audInsertValida === null) {
-          break;
-        }
-        //#endregion
-        //#region INSERTANDO LOS ERRORES DE LOS METODOS DE CALIFICADORA RF, RV, OA, Custodio, 411, 412, 413 en la tabla APS_aud_errores_valida_archivos_pensiones_seguros
-        const erroresInsertArray = [];
-        map(errores.result, (itemError, indexError) => {
-          if (itemError.cod_institucion === item) {
-            erroresInsertArray.push({
-              id_valida_archivos: audInsertValida.id_valida_archivos,
-              archivo: itemError.archivo,
-              tipo_error: itemError.tipo_error,
-              descripcion: itemError.mensaje,
-              valor: itemError.valor,
-              enviada: itemError.enviada,
-              aps: itemError.aps,
-              fecha_informacion: itemError.fecha_informacion,
-              cod_institucion: item,
-            });
-          }
-        });
-        const queryInsertErrors = InsertarVariosUtil(nameTableErrors, {
-          body: erroresInsertArray,
-          returnValue: ["id_valida_archivos"],
-        });
-
-        const audInsertErrorsValida = await pool
-          .query(queryInsertErrors)
-          .then((result) => {
-            resultFinalArray.push({
-              result: result.rows,
-              message: `Se inserto correctamente en la tabla ${nameTableErrors}`,
-            });
-            return result.rows;
-          })
-          .catch((err) => {
-            console.log("ERR AUD INSERT VALIDA", err);
-            errorsFinalArray.push({
-              err,
-              message: `Error al insertar en la tabla ${nameTableErrors}`,
-            });
-            return null;
-          });
-        if (audInsertErrorsValida === null) {
-          break;
-        }
-        //#endregion
-      }
-    } else {
-      console.log("SIN ERRORES");
-      isError = false;
-      const institucionesUnicas = uniq(
-        map(filesRequired.result, (item) => {
-          return item.cod_institucion;
-        })
-      );
-      for (let index = 0; index < institucionesUnicas.length; index++) {
-        const item = institucionesUnicas[index];
-        //#region NUMEROS DE CARGA POR INSTITUCION QUE VIENE DE LOS ERRORES
-        const queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-          fieldMax: "nro_carga",
-          where: [
-            {
-              key: "id_rol",
-              value: id_rol,
-            },
-            {
-              key: "fecha_operacion",
-              value: fecha,
-            },
-            {
-              key: "id_usuario",
-              value: id_usuario,
-            },
-            {
-              key: "cod_institucion",
-              value: item,
-            },
-          ],
-        });
-
-        const carga = await pool
-          .query(queryNroCarga)
-          .then((resultNroCarga) => {
-            let nroCarga = 0;
-            if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-              nroCarga = 0;
-            } else {
-              nroCarga = resultNroCarga.rows[0]?.max
-                ? resultNroCarga.rows[0]?.max
-                : 0;
-            }
-            resultFinalArray.push({
-              result: resultNroCarga.rows,
-              message: `Se obtuvo correctamente nro_carga, cod_institucion: ${item}`,
-            });
-            return { nroCarga, cod_institucion: item };
-          })
-          .catch((err) => {
-            console.log("ERR CARGA", err);
-            errorsFinalArray.push({
-              err,
-              message: `Error al obtener nro_carga en la tabla ${nameTable}, cod_institucion ${item}`,
-            });
-            return null;
-          });
-
-        if (carga === null) {
-          break;
-        }
-        //#endregion
-        //#region INSERTANDO EN LA TABLA APS_aud_valida_archivos_pensiones_seguros
-        const queryInsertValida = InsertarVariosUtil(nameTable, {
-          body: [
-            {
-              fecha_operacion: fecha,
-              cod_institucion: item,
-              nro_carga: parseInt(carga?.nroCarga) + 1,
-              fecha_carga: new Date(),
-              validado: true,
-              id_rol: id_rol,
-              id_usuario: id_usuario,
-            },
-          ],
-          returnValue: ["id_valida_archivos"],
-        });
-
-        const audInsertValida = await pool
-          .query(queryInsertValida)
-          .then((result) => {
-            idValidaArchivos.push({
-              cod_institucion: item,
-              id_valida_archivos: result.rows[0]?.id_valida_archivos,
-            });
-            resultFinalArray.push({
-              result: result.rows,
-              message: `Se insertó correctamente la validación en la tabla ${nameTable}`,
-            });
-            return result.rows?.[0];
-          })
-          .catch((err) => {
-            errorsFinalArray.push({
-              err,
-              message: `Error al Insertar en la tabla ${nameTable}`,
-            });
-            return null;
-          });
-        if (audInsertValida === null) {
-          break;
-        }
-        //#endregion
-      }
-    }
-
-    if (size(errorsFinalArray) > 0) {
-      respErrorServidor500END(res, errorsFinalArray);
-    } else if (size(errores.result) > 0) {
-      respResultadoCorrectoObjeto200(
-        res,
-        {
-          idValidaArchivos,
-          errores: errores.result,
-        },
-        "Existen errores al válidar"
-      );
-    } else {
-      respResultadoCorrectoObjeto200(
-        res,
-        {
-          idValidaArchivos,
-          errores: errores.result,
-          validacion: map(filesRequired.result, (item) => {
-            return {
-              archivo: item.nombre,
-              mensaje: `La información está correcta`,
-              fecha,
-            };
-          }),
-        },
-        "No existen errores al válidar"
-      );
-    }
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
-}
-
-async function Reporte(req, res) {
-  try {
-    const { fecha, id_rol, cargado, estado } = req.body;
-    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
-    const cargadoFinal = cargado === true || cargado === false ? cargado : null;
-    const estadoFinal = isEmpty(estado) ? null : estado;
-
-    if (Object.entries(req.body).length === 0) {
-      respDatosNoRecibidos400(res);
-    } else {
-      const queryValida = `SELECT COUNT(*) 
-      FROM public."APS_aud_valida_archivos_pensiones_seguros" 
-      WHERE fecha_operacion='${fecha}' 
-      AND validado=true 
-      AND id_usuario IN (CAST((
-        SELECT DISTINCT cod_institucion 
-        FROM public."APS_aud_carga_archivos_pensiones_seguros" 
-        WHERE cargado = true 
-        AND fecha_operacion = '${fecha}' 
-        AND id_rol = ${id_rol}) AS INTEGER))`;
-
-      const params = {
-        body: {
-          fecha,
-          idRolFinal,
-        },
-      };
-      if (cargadoFinal !== null || estadoFinal !== null) {
-        params.where = [];
-      }
-      if (cargadoFinal !== null) {
-        params.where = [
-          ...params.where,
-          { key: "cargado", value: cargadoFinal },
-        ];
-      }
-      if (estadoFinal !== null) {
-        params.where = [...params.where, { key: "estado", value: estadoFinal }];
-      }
-
-      const querys = [];
-      querys.push(EjecutarFuncionSQL("aps_reporte_control_envio", params));
-      querys.push(queryValida);
-      querys.push(
-        EscogerInternoUtil("APS_aud_valida_archivos_pensiones_seguros", {
-          select: ["*"],
-          where: [
-            { key: "fecha_operacion", value: fecha },
-            { key: "validado", value: true },
-          ],
-        })
-      );
-
-      const results = await EjecutarVariosQuerys(querys);
-
-      if (results.ok === null) {
-        throw results.result;
-      }
-      if (results.ok === false) {
-        throw results.errors;
-      }
-
-      const counterRegistros = results.result?.[1]?.data?.[0]?.count;
-      if (counterRegistros > 0) {
-        if (counterRegistros)
-          respResultadoIncorrectoObjeto200(
-            res,
-            results.result[2].data,
-            "La información ya fue validada"
-          );
-        return;
-      }
-
-      respResultadoCorrectoObjeto200(res, results.result[0].data);
-    }
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
-}
-
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
+  const query = ListarUtil(nameTable, { activo: null });
   await pool
     .query(query)
     .then((result) => {
@@ -1168,6 +729,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -1190,6 +752,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = EscogerUtil(nameTable, params);
     await pool
@@ -1310,6 +873,4 @@ module.exports = {
   ValorMaximo,
   UltimaCarga,
   UltimaCarga2,
-  Validar,
-  Reporte,
 };
