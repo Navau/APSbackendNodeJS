@@ -15,6 +15,7 @@ const {
   EscogerInternoUtil,
   EjecutarFuncionSQL,
   EjecutarVariosQuerys,
+  ObtenerInstitucion,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -448,36 +449,41 @@ async function ReporteEnvio(req, res) {
 
 async function ReporteControlEnvioPorTipoReporte(req, res) {
   try {
-    const { fecha, id_rol, cargado, estado, iid_reporte } = req.body;
+    const { fecha, id_rol, iid_reporte } = req.body;
     const idRolFinal = id_rol ? id_rol : req.user.id_rol;
-    const cargadoFinal = cargado === true || cargado === false ? cargado : null;
-    const estadoFinal = isEmpty(estado) ? null : estado;
-    const cod_institucion = await ObtenerInstitucion({ id_rol: idRolFinal });
-    const params = {
-      body: {
-        fecha,
-        cod_institucion: cod_institucion.result.codigo,
-      },
-    };
+    const instituciones = await pool
+      .query(ListarUtil("APS_seg_institucion"))
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
 
-    if (iid_reporte === 6) {
-      params.body = { ...params.body, periodo: "154,155" };
+    if (instituciones.ok === null) {
+      throw instituciones.err;
     }
-    if (cargadoFinal !== null || estadoFinal !== null) {
-      params.where = [];
-    }
-    if (cargadoFinal !== null) {
-      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
-    }
-    if (estadoFinal !== null) {
-      params.where = [...params.where, { key: "estado", value: estadoFinal }];
-    }
+    // if () {
+    //   params.where = [];
+    // }
 
-    const querys = [
-      iid_reporte === 7 || iid_reporte === 8
-        ? EjecutarFuncionSQL("aps_reporte_control_envio", params)
-        : EjecutarFuncionSQL("aps_reporte_validacion_preliminar", params),
-    ];
+    const preliminares = map(instituciones.result, (item) => {
+      return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
+        body: { fecha, cod_institucion: item.codigo, periodo: "155,154" },
+      });
+    });
+
+    const querys = [];
+    iid_reporte === 7 || iid_reporte === 8
+      ? querys.push(
+          EjecutarFuncionSQL("aps_reporte_control_envio", {
+            body: {
+              fecha,
+              idRolFinal,
+            },
+          })
+        )
+      : forEach(preliminares, (item) => querys.push(item));
 
     const results = await EjecutarVariosQuerys(querys);
 
@@ -487,6 +493,11 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     if (results.ok === false) {
       throw results.errors;
     }
+    let resultFinal = [];
+    forEach(results.result, (item) => {
+      resultFinal = [...resultFinal, ...item.data];
+    });
+    respResultadoCorrectoObjeto200(res, resultFinal);
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -664,4 +675,5 @@ module.exports = {
   UltimaCarga,
   UltimaCarga2,
   ReporteEnvio,
+  ReporteControlEnvioPorTipoReporte,
 };

@@ -1,4 +1,5 @@
 const fs = require("fs");
+const pool = require("../../database");
 const { map } = require("lodash");
 const archiver = require("archiver");
 const {
@@ -7,6 +8,7 @@ const {
   respResultadoVacioObject200,
   respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
+const { EscogerInternoUtil } = require("../../utils/consulta.utils");
 
 const pensionesArray = (date) => {
   return [
@@ -59,12 +61,28 @@ const segurosArray = (date) => {
 
 async function ListarArchivos(req, res) {
   try {
-    const { fecha, id_rol } = req.body;
+    const { fecha, id_tipo_entidad } = req.body;
     const fechaFinal = fecha.replace(/\s/g, "");
     const date = fechaFinal.split("-").join("");
     const filesFinalArray = [];
     const filesFilterArray = [];
     const files = fs.readdirSync("./uploads/tmp");
+    const entidades = await pool
+      .query(
+        EscogerInternoUtil("APS_seg_institucion", {
+          select: ["*"],
+          where: [{ key: "id_tipo_entidad", value: id_tipo_entidad }],
+        })
+      )
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (entidades.ok === null) {
+      throw entidades.err;
+    }
 
     if (parseInt(id_rol) === 10) {
       map(segurosArray(date), (item) => {

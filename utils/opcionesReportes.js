@@ -2374,25 +2374,25 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
     posXIteration += 1;
     posXInitial = posXIteration;
 
-    const labelsChart = [];
-    forEach(data, (item) => {
-      if (!item.tipo_instrumento.toLowerCase().includes("total")) {
-        labelsChart.push(
-          item.tipo_instrumento + " " + item.participacion_m2 + "%"
-        );
-      }
-    });
-    const dataChart = [];
-    forEach(data, (item) => {
-      if (item?.participacion_m2) {
-        if (!item.tipo_instrumento.toLowerCase().includes("total")) {
-          dataChart.push(item.participacion_m2);
-        }
-      }
-    });
+    // const labelsChart = [];
+    // forEach(data, (item) => {
+    //   if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+    //     labelsChart.push(
+    //       item.tipo_instrumento + " " + item.participacion_m2 + "%"
+    //     );
+    //   }
+    // });
+    // const dataChart = [];
+    // forEach(data, (item) => {
+    //   if (item?.participacion_m2) {
+    //     if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+    //       dataChart.push(item.participacion_m2);
+    //     }
+    //   }
+    // });
 
-    const image = await createChart(dataChart, labelsChart, data.header);
-    const pathImage = path.join("reports/charts", `${image}.png`);
+    // const image = await createChart(dataChart, labelsChart, data.header);
+    // const pathImage = path.join("reports/charts", `${image}.png`);
   }
 }
 

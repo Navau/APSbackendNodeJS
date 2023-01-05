@@ -103,8 +103,8 @@ function ObtenerMenuAngUtil(data) {
   //   where public."APS_seg_modulo".activo = true and id_rol = ${data.id_rol.toString()}
   //   order by "APS_seg_modulo".orden) as menu`;
 
-  // console.log(querydet);
-  // console.log(query);
+  console.log(querydet);
+  console.log(query);
   // console.log("ID ROL OBTENER MENU ANGULAR", data.id_rol);
 
   return {
