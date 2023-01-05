@@ -1,4 +1,13 @@
-const { map, forEach, isEmpty, size, find, isUndefined } = require("lodash");
+const {
+  map,
+  forEach,
+  isEmpty,
+  size,
+  find,
+  isUndefined,
+  includes,
+  filter,
+} = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 
@@ -497,7 +506,17 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     forEach(results.result, (item) => {
       resultFinal = [...resultFinal, ...item.data];
     });
-    respResultadoCorrectoObjeto200(res, resultFinal);
+    respResultadoCorrectoObjeto200(
+      res,
+      filter(resultFinal, (item) => {
+        if (
+          includes(item?.resultado, "Error") ||
+          includes(item?.estado, "Error")
+        ) {
+          return true;
+        }
+      })
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }
