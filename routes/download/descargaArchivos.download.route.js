@@ -10,17 +10,22 @@ const api = express.Router();
 api.post(
   "/ListarArchivos",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.ListarArchivos
+  controller.ListarArchivos2
 );
 api.post(
   "/DescargarArchivos",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.DescargarArchivos
+  controller.DescargarArchivos2
 );
 api.post(
   "/DescargarArchivosPorFecha",
   [md_auth.AsegurarAutenticacionConToken],
   controller.DescargarArchivosPorFecha
+);
+api.post(
+  "/Modalidades",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.Modalidades
 );
 
 module.exports = api;

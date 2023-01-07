@@ -1,6 +1,6 @@
 const fs = require("fs");
 const pool = require("../../database");
-const { map } = require("lodash");
+const { map, filter, forEach, split, join, includes, size } = require("lodash");
 const archiver = require("archiver");
 const {
   respDescargarArchivos200,
@@ -8,7 +8,10 @@ const {
   respResultadoVacioObject200,
   respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
-const { EscogerInternoUtil } = require("../../utils/consulta.utils");
+const {
+  EscogerInternoUtil,
+  EjecutarVariosQuerys,
+} = require("../../utils/consulta.utils");
 
 const pensionesArray = (date) => {
   return [
@@ -238,8 +241,139 @@ async function DescargarArchivos(req, res) {
     });
 }
 
+async function DescargarArchivos2(req, res) {
+  const { archivos } = req.body;
+  const filter = split(archivos?.[0], ".")[0];
+  const nameExportZip = `./downloads/archivos_${filter}.zip`;
+  const fileZipPromise = new Promise(async (resolve, reject) => {
+    try {
+      if (archivos.length <= 0) {
+        resolve(archivos);
+      } else {
+        const output = fs.createWriteStream(nameExportZip);
+        const archive = archiver("zip", {
+          zlib: { level: 9 }, // Sets the compression level.
+        });
+        archive.on("error", function (err) {
+          reject(err);
+        });
+        map(archivos, (item, index) => {
+          archive.file(`./uploads/tmp/${item}`, {
+            name: `${item}`,
+          });
+        });
+
+        archive.pipe(output);
+
+        await archive.finalize();
+        output.on("close", () => {
+          resolve(archivos);
+        });
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+
+  fileZipPromise
+    .then((result) => {
+      if (result.length >= 1) {
+        respDescargarArchivos200(res, nameExportZip, result);
+      } else {
+        respResultadoVacioObject200(
+          res,
+          result,
+          "No existen archivos para esa fecha."
+        );
+      }
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    })
+    .finally(() => {
+      codigoInstitucionFechaVar = null;
+    });
+}
+
+async function ListarArchivos2(req, res) {
+  try {
+    const { modalidades } = req.body;
+    const codigos = [];
+    forEach(modalidades, (item) =>
+      filter(item.modalidades, (modalidad) => {
+        if (modalidad.esCompleto === true) {
+          codigos.push({
+            fecha: join(split(item.fecha.replace(/\s/g, ""), "-"), ""),
+            codigo: modalidad.codigo,
+          });
+        }
+      })
+    );
+    const files = fs.readdirSync("./uploads/tmp");
+    const resultFinal = [];
+    forEach(codigos, (item) => {
+      const aux = filter(
+        files,
+        (file) =>
+          includes(file, item.codigo) === true &&
+          includes(file, item.fecha) === true
+      );
+      resultFinal.push(...aux);
+    });
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+async function Modalidades(req, res) {
+  try {
+    const { fecha, id_tipo_modalidad } = req.body;
+    const querys = [
+      EscogerInternoUtil("aps_view_modalidad_seguros", {
+        select: ["*"],
+        where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+      }),
+    ];
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+    const modalidadesArray = map(results.result, (item, index) => {
+      return {
+        id_modalidad: index + 1,
+        titulo: "Todas",
+        fecha,
+        descripcion: "Todas las modalidades",
+        esCompleto: false,
+        esTodoCompleto: false,
+        modalidades: map(results.result?.[0].data, (item) => {
+          return {
+            id_tipo_modalidad: item.id_tipo_entidad,
+            esCompleto: false,
+            descripcion: item.descripcion,
+            codigo: item.codigo,
+            institucion: item.institucion,
+            sigla: item.sigla,
+          };
+        }),
+      };
+    });
+
+    respResultadoCorrectoObjeto200(res, modalidadesArray);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 module.exports = {
   DescargarArchivosPorFecha,
   ListarArchivos,
   DescargarArchivos,
+  Modalidades,
+  ListarArchivos2,
+  DescargarArchivos2,
 };
