@@ -23,6 +23,7 @@ const {
   respIDNoRecibido400,
   respResultadoVacioObject200,
   respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
   respErrorServidor500END,
   respResultadoVacio404END,
 } = require("../../utils/respuesta.utils");
@@ -263,18 +264,15 @@ async function UltimaCarga2(req, res) {
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = ListarUtil(nameTable, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON BUSQUEDA
@@ -286,6 +284,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -308,6 +307,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = EscogerUtil(nameTable, params);
     await pool

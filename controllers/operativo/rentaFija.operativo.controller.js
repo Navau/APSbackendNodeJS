@@ -352,9 +352,9 @@ async function ActualizarPlazoDias(req, res) {
 
   const query = `UPDATE public."${nameTable}" SET id_calificacion = ${
     body.id_calificacion
-  }, id_calificadora = ${body.id_calificadora} WHERE id_emisor = ${
-    body.id_emisor
-  } AND id_tipo_instrumento = 13 ${
+  }, id_calificadora = ${body.id_calificadora}, id_moneda = ${
+    body.id_moneda
+  } WHERE id_emisor = ${body.id_emisor} AND id_tipo_instrumento = 13 ${
     body.id_plazo === "CP"
       ? "AND plazo_dias <= 360"
       : body.id_plazo === "LP"

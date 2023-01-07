@@ -1075,8 +1075,10 @@ async function Reporte(req, res) {
 
     if (Object.entries(req.body).length === 0) {
       respDatosNoRecibidos400(res);
-    } else {
-      const queryValida = `SELECT COUNT(*) 
+      return;
+    }
+
+    const queryValida = `SELECT COUNT(*) 
       FROM public."APS_aud_valida_archivos_pensiones_seguros" 
       WHERE fecha_operacion='${fecha}' 
       AND validado=true 
@@ -1085,62 +1087,57 @@ async function Reporte(req, res) {
         FROM public."APS_aud_carga_archivos_pensiones_seguros" 
         WHERE cargado = true 
         AND fecha_operacion = '${fecha}' 
-        AND id_rol = ${id_rol}) AS INTEGER))`;
+        AND id_rol = 8) AS INTEGER))`;
 
-      const params = {
-        body: {
-          fecha,
-          idRolFinal,
-        },
-      };
-      if (cargadoFinal !== null || estadoFinal !== null) {
-        params.where = [];
-      }
-      if (cargadoFinal !== null) {
-        params.where = [
-          ...params.where,
-          { key: "cargado", value: cargadoFinal },
-        ];
-      }
-      if (estadoFinal !== null) {
-        params.where = [...params.where, { key: "estado", value: estadoFinal }];
-      }
-
-      const querys = [];
-      querys.push(EjecutarFuncionSQL("aps_reporte_control_envio", params));
-      querys.push(queryValida);
-      querys.push(
-        EscogerInternoUtil("APS_aud_valida_archivos_pensiones_seguros", {
-          select: ["*"],
-          where: [
-            { key: "fecha_operacion", value: fecha },
-            { key: "validado", value: true },
-          ],
-        })
-      );
-
-      const results = await EjecutarVariosQuerys(querys);
-
-      if (results.ok === null) {
-        throw results.result;
-      }
-      if (results.ok === false) {
-        throw results.errors;
-      }
-
-      const counterRegistros = results.result?.[1]?.data?.[0]?.count;
-      if (counterRegistros > 0) {
-        if (counterRegistros)
-          respResultadoIncorrectoObjeto200(
-            res,
-            results.result[2].data,
-            "La información ya fue validada"
-          );
-        return;
-      }
-
-      respResultadoCorrectoObjeto200(res, results.result[0].data);
+    const params = {
+      body: {
+        fecha,
+        idRolFinal,
+      },
+    };
+    if (cargadoFinal !== null || estadoFinal !== null) {
+      params.where = [];
     }
+    if (cargadoFinal !== null) {
+      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
+    }
+    if (estadoFinal !== null) {
+      params.where = [...params.where, { key: "estado", value: estadoFinal }];
+    }
+
+    const querys = [
+      EscogerInternoUtil("APS_aud_valida_archivos_pensiones_seguros", {
+        select: ["*"],
+        where: [
+          { key: "fecha_operacion", value: fecha },
+          { key: "validado", value: true },
+        ],
+      }),
+      queryValida,
+      EjecutarFuncionSQL("aps_reporte_control_envio", params),
+    ];
+
+    const results = await EjecutarVariosQuerys(querys);
+
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+
+    const counterRegistros = results.result?.[1]?.data?.[0]?.count;
+    if (counterRegistros > 0) {
+      if (counterRegistros)
+        respResultadoIncorrectoObjeto200(
+          res,
+          results.result[2].data,
+          "La información ya fue validada"
+        );
+      return;
+    }
+
+    respResultadoCorrectoObjeto200(res, results.result[0].data);
   } catch (err) {
     respErrorServidor500END(res, err);
   }

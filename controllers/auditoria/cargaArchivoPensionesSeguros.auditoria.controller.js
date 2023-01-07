@@ -383,6 +383,7 @@ async function ReporteEnvio(req, res) {
         WHERE cargado = true 
         AND fecha_operacion = '${fecha}' 
         AND id_rol = ${id_rol}) AS INTEGER))`;
+
       const queryValora = `SELECT COUNT(*) 
       FROM public."APS_aud_valora_archivos_pensiones_seguros" 
       WHERE fecha_operacion='${fecha}' 
@@ -472,14 +473,14 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     if (instituciones.ok === null) {
       throw instituciones.err;
     }
-    // if () {
-    //   params.where = [];
-    // }
 
     const preliminares = map(instituciones.result, (item) => {
-      return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
-        body: { fecha, cod_institucion: item.codigo, periodo: "155,154" },
-      });
+      if (iid_reporte === 6) {
+        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
+          body: { fecha, cod_institucion: item.codigo, periodo: "154,155" },
+        });
+      }
+      return false;
     });
 
     const querys = [];
@@ -493,6 +494,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           })
         )
       : forEach(preliminares, (item) => querys.push(item));
+    //TO DO: PREGUNTAR QUE REPORTES DEBE SACAR SI ES DE LA BOLSA O SOLAMENTE DE PENSIONES Y SEGUROS
 
     const results = await EjecutarVariosQuerys(querys);
 

@@ -26,18 +26,15 @@ const nameTable = "APS_param_plan_cuentas";
 
 //FUNCION PARA OBTENER TODOS LOS PLAN CUENTAS DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable);
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = ListarUtil(nameTable);
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN PLAN CUENTAS, CON BUSQUEDA

@@ -1,10 +1,12 @@
-const { size, isEmpty } = require("lodash");
+const dayjs = require("dayjs");
+const { size, isEmpty, find, map } = require("lodash");
 const pool = require("../../database");
 const {
   EjecutarProcedimientoSQL,
   EscogerInternoUtil,
   EjecutarFuncionSQL,
   EjecutarVariosQuerys,
+  ListarUtil,
 } = require("../../utils/consulta.utils");
 const {
   respErrorServidor500END,
@@ -70,8 +72,17 @@ async function ObtenerInformacion(req, res) {
       params.where = [...params.where, { key: "estado", value: estadoFinal }];
     }
 
+    // EjecutarFuncionSQL("aps_reporte_control_envio", params),
     const querys = [
-      EjecutarFuncionSQL("aps_reporte_control_envio", params),
+      EscogerInternoUtil("APS_aud_carga_archivos_pensiones_seguros", {
+        select: ["*"],
+        where: [
+          { key: "fecha_operacion", value: fecha },
+          { key: "cargado", value: true },
+          { key: "id_rol", value: 8 },
+          { key: "id_periodo", value: 154 },
+        ],
+      }),
       EscogerInternoUtil("APS_oper_tipo_cambio", {
         select: ["*"],
         where: [{ key: `fecha`, value: fecha }],
@@ -80,13 +91,9 @@ async function ObtenerInformacion(req, res) {
         select: ["*"],
         where: [{ key: `fecha`, value: fecha }],
       }),
-      `SELECT COUNT(*) 
-    FROM public."APS_aud_valora_archivos_pensiones_seguros" 
-    WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion
-    FROM public."APS_aud_carga_archivos_pensiones_seguros"
-    WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol = 8) AS INTEGER))
-  `,
+      `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol = 8) AS INTEGER))`,
     ];
+
     id_rol === 10
       ? querys.push(
           `SELECT COUNT(*) FROM public."APS_view_existe_valores_seguros";`
@@ -97,6 +104,7 @@ async function ObtenerInformacion(req, res) {
         )
       : null;
 
+    querys.push(ListarUtil("APS_seg_usuario"));
     const results = await EjecutarVariosQuerys(querys);
 
     if (results.ok === null) {
@@ -112,7 +120,7 @@ async function ObtenerInformacion(req, res) {
       messages.push("No existe Tipo de Cambio para la Fecha seleccionada");
     }
     if (size(results.result[2].data) === 0) {
-      messages.push("No existe información en la Bolsa");
+      messages.push("No existe información en la Bolsa (Archivo N)");
     }
     const counterRegistros = results.result?.[3]?.data?.[0]?.count;
     if (counterRegistros > 0) {
@@ -129,7 +137,27 @@ async function ObtenerInformacion(req, res) {
       respResultadoIncorrectoObjeto200(res, null, [], messages);
       return;
     }
-    respResultadoCorrectoObjeto200(res, results.result[0].data);
+    respResultadoCorrectoObjeto200(
+      res,
+      map(results.result?.[0].data, (item) => {
+        return {
+          descripcion:
+            item.id_periodo === 154 ? "Diaria" : `Mensual ${item.id_periodo}`,
+          estado: item.cargado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            results.result?.[5].data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_carga_archivo: item.id_carga_archivos,
+          id_rol: item.id_rol,
+          cargado: item.cargado,
+        };
+      })
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }
