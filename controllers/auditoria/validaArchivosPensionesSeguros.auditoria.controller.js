@@ -1082,12 +1082,12 @@ async function Reporte(req, res) {
       FROM public."APS_aud_valida_archivos_pensiones_seguros" 
       WHERE fecha_operacion='${fecha}' 
       AND validado=true 
-      AND id_usuario IN (CAST((
+      AND cod_institucion IN (
         SELECT DISTINCT cod_institucion 
         FROM public."APS_aud_carga_archivos_pensiones_seguros" 
         WHERE cargado = true 
         AND fecha_operacion = '${fecha}' 
-        AND id_rol = 8) AS INTEGER))`;
+        AND id_rol = ${id_rol})`;
 
     const params = {
       body: {
@@ -1114,8 +1114,8 @@ async function Reporte(req, res) {
         ],
       }),
       queryValida,
-      EjecutarFuncionSQL("aps_reporte_control_envio", params),
     ];
+    // EjecutarFuncionSQL("aps_reporte_control_envio", params),
 
     const results = await EjecutarVariosQuerys(querys);
 
@@ -1124,6 +1124,13 @@ async function Reporte(req, res) {
     }
     if (results.ok === false) {
       throw results.errors;
+    }
+    const messages = [];
+    const counterVistas = results.result?.[4]?.data?.[0]?.count;
+    if (counterVistas > 0) {
+      messages.push(
+        "No existen características para los siguientes valores, favor registrar"
+      );
     }
 
     const counterRegistros = results.result?.[1]?.data?.[0]?.count;

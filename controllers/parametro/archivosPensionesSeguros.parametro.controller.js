@@ -26,7 +26,7 @@ const {
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
-const { map } = require("lodash");
+const { map, size, split, slice, forEach } = require("lodash");
 
 const nameTable = "APS_view_archivos_pensiones_seguros";
 
@@ -360,6 +360,65 @@ async function SeleccionarArchivosValidar(req, res) {
   }
 }
 
+async function SeleccionarArchivosCustodio2(req, res) {
+  try {
+    const { fecha_operacion, tipo } = req.body;
+
+    if (Object.entries(req.body).length === 0) {
+      respDatosNoRecibidos400(res);
+      return;
+    }
+    console.log(fecha_operacion);
+    const params = {
+      body: {
+        fecha_operacion,
+      },
+    };
+    // const query = EjecutarFuncionSQL(
+    //   tipo === "seguros"
+    //     ? "aps_fun_archivos_custodio_seguros"
+    //     : "aps_fun_archivos_custodio_pensiones",
+    //   params
+    // );
+    const query =
+      tipo === "seguros"
+        ? `SELECT public.aps_fun_archivos_custodio_seguros('${fecha_operacion}');`
+        : `SELECT public.aps_fun_archivos_custodio_pensiones('${fecha_operacion}');`;
+
+    await pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          const resultFinal = map(result.rows, (item) => {
+            const value =
+              item[
+                tipo === "seguros"
+                  ? "aps_fun_archivos_custodio_seguros"
+                  : "aps_fun_archivos_custodio_pensiones"
+              ];
+            let auxValue = "";
+            forEach(value, (itemAux, indexAux) => {
+              if (indexAux !== 0 && indexAux !== size(value) - 1)
+                auxValue += itemAux;
+            });
+            return {
+              archivo: auxValue,
+            };
+          });
+          respResultadoCorrectoObjeto200(res, resultFinal);
+        } else {
+          respResultadoIncorrectoObjeto200(res, null, result.rows);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        throw err;
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE PARAMETRO
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
@@ -525,4 +584,5 @@ module.exports = {
   SeleccionarArchivosBolsa,
   SeleccionarArchivosCustodio,
   SeleccionarArchivosValidar,
+  SeleccionarArchivosCustodio2,
 };

@@ -18,14 +18,14 @@ api.post(
   controller.SeleccionarArchivosBolsa
 );
 api.post(
-  "/SeleccionarArchivosCustodio",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.SeleccionarArchivosCustodio
-);
-api.post(
   "/SeleccionarArchivosValidar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.SeleccionarArchivosValidar
+);
+api.post(
+  "/SeleccionarArchivosCustodio",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.SeleccionarArchivosCustodio2
 );
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
