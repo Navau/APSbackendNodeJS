@@ -51,26 +51,26 @@ async function Validar(req, res) {
 async function ObtenerInformacion(req, res) {
   try {
     const { fecha, id_rol, cargado, estado } = req.body;
-    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
-    const cargadoFinal = cargado === true || cargado === false ? cargado : null;
-    const estadoFinal = isEmpty(estado) ? null : estado;
+    // const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+    // const cargadoFinal = cargado === true || cargado === false ? cargado : null;
+    // const estadoFinal = isEmpty(estado) ? null : estado;
     if (!fecha) {
       respDatosNoRecibidos400(res, "La fecha es obligatorio");
     }
-    const params = {
-      body: {
-        fecha,
-        idRolFinal,
-      },
-    };
-    params.where = [];
-    params.where = [...params.where, { key: "descripcion", value: "Diaria" }];
-    if (cargadoFinal !== null) {
-      params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
-    }
-    if (estadoFinal !== null) {
-      params.where = [...params.where, { key: "estado", value: estadoFinal }];
-    }
+    // const params = {
+    //   body: {
+    //     fecha,
+    //     idRolFinal,
+    //   },
+    // };
+    // params.where = [];
+    // params.where = [...params.where, { key: "descripcion", value: "Diaria" }];
+    // if (cargadoFinal !== null) {
+    //   params.where = [...params.where, { key: "cargado", value: cargadoFinal }];
+    // }
+    // if (estadoFinal !== null) {
+    //   params.where = [...params.where, { key: "estado", value: estadoFinal }];
+    // }
 
     // EjecutarFuncionSQL("aps_reporte_control_envio", params),
     const querys = [
@@ -137,6 +137,7 @@ async function ObtenerInformacion(req, res) {
       respResultadoIncorrectoObjeto200(res, null, [], messages);
       return;
     }
+
     respResultadoCorrectoObjeto200(
       res,
       map(results.result?.[0].data, (item) => {

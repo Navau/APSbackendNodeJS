@@ -39,7 +39,11 @@ const {
   respResultadoVacio404END,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
-const { formatearFechaDeInformacion } = require("../../utils/formatearDatos");
+const {
+  formatearFechaDeInformacion,
+  ordenarArray,
+} = require("../../utils/formatearDatos");
+const dayjs = require("dayjs");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
@@ -459,10 +463,10 @@ async function ReporteEnvio(req, res) {
 
 async function ReporteControlEnvioPorTipoReporte(req, res) {
   try {
-    const { fecha, id_rol, iid_reporte } = req.body;
-    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
+    const { fecha, id_rol, iid_reporte, periodo } = req.body;
+    const querys = [];
     const instituciones = await pool
-      .query(ListarUtil("APS_seg_institucion"))
+      .query(ListarUtil("aps_view_modalidad_seguros", { activo: null }))
       .then((result) => {
         return { ok: true, result: result.rows };
       })
@@ -473,28 +477,69 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     if (instituciones.ok === null) {
       throw instituciones.err;
     }
-
-    const preliminares = map(instituciones.result, (item) => {
-      if (iid_reporte === 6) {
-        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
-          body: { fecha, cod_institucion: item.codigo, periodo: "154,155" },
-        });
+    if (iid_reporte === 6) {
+      if (!periodo) {
+        respDatosNoRecibidos400(res, "No se envio la periodicidad");
+        return;
       }
-      return false;
-    });
-
-    const querys = [];
-    iid_reporte === 7 || iid_reporte === 8
-      ? querys.push(
-          EjecutarFuncionSQL("aps_reporte_control_envio", {
-            body: {
-              fecha,
-              idRolFinal,
+      // VALIDACION PRELIMINAR
+      const aux = map(instituciones.result, (item) => {
+        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
+          body: { fecha, cod_institucion: item.codigo, periodo: periodo },
+        });
+      });
+      forEach(aux, (item) => querys.push(item));
+    } else if (iid_reporte === 7) {
+      //VALIDACION
+      // querys.push(
+      //   EjecutarFuncionSQL("aps_reporte_control_envio", {
+      //     body: {
+      //       fecha,
+      //       idRolFinal,
+      //     },
+      //   })
+      // );
+      const query = EscogerInternoUtil(
+        "APS_aud_valida_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
             },
-          })
-        )
-      : forEach(preliminares, (item) => querys.push(item));
-    //TO DO: PREGUNTAR QUE REPORTES DEBE SACAR SI ES DE LA BOLSA O SOLAMENTE DE PENSIONES Y SEGUROS
+          ],
+        }
+      );
+      querys.push(query);
+    } else if (iid_reporte === 8) {
+      //VALORACION
+      const query = EscogerInternoUtil(
+        "APS_aud_valora_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
+            },
+          ],
+        }
+      );
+      querys.push(query);
+    }
+
+    querys.push(ListarUtil("APS_seg_usuario"));
 
     const results = await EjecutarVariosQuerys(querys);
 
@@ -504,21 +549,74 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     if (results.ok === false) {
       throw results.errors;
     }
-    let resultFinal = [];
+
+    let resultAux = [];
+
     forEach(results.result, (item) => {
-      resultFinal = [...resultFinal, ...item.data];
+      if (item.table !== "APS_seg_usuario") {
+        resultAux = [...resultAux, ...item.data];
+      }
     });
-    respResultadoCorrectoObjeto200(
-      res,
-      filter(resultFinal, (item) => {
-        if (
-          includes(item?.resultado, "Error") ||
-          includes(item?.estado, "Error")
-        ) {
-          return true;
-        }
-      })
+    const usuarios = find(
+      results.result,
+      (item) => item.table === "APS_seg_usuario"
     );
+
+    const resultFinal = map(resultAux, (item) => {
+      if (iid_reporte === 6) {
+        return {
+          id: item.id_carga_archivos,
+          descripcion: item.descripcion,
+          estado: item.resultado,
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: item.usuario,
+          id_carga_archivos: item.id_carga_archivos,
+          id_rol: item.id_rol,
+        };
+      }
+      if (iid_reporte === 7) {
+        return {
+          id: item.id_valida_archivos,
+          descripcion: "Diaria",
+          estado: item.validado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valida_archivos: item.id_valida_archivos,
+          id_rol: item.id_rol,
+          validado: item.validado,
+        };
+      }
+      if (iid_reporte === 8) {
+        return {
+          id: item.id_valora_archivos,
+          descripcion: "Diaria",
+          estado: item.valorado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valora_archivos: item.id_valora_archivos,
+          id_rol: item.id_rol,
+          valorado: item.valorado,
+        };
+      }
+    });
+    //TO DO PREGUNTAR SI TODAS LAS DESCRIPCIONES DE SEGUROS SON DIARIAS, O COMO PODRIA CONSULTAR ESTO
+
+    respResultadoCorrectoObjeto200(res, ordenarArray(resultFinal, "id", "ASC"));
   } catch (err) {
     respErrorServidor500END(res, err);
   }

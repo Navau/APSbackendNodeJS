@@ -1087,7 +1087,8 @@ async function Reporte(req, res) {
         FROM public."APS_aud_carga_archivos_pensiones_seguros" 
         WHERE cargado = true 
         AND fecha_operacion = '${fecha}' 
-        AND id_rol = ${id_rol})`;
+        AND id_rol = 8)`;
+    //TO DO preguntar porque validado = true, si lo que se queire traer son las cargas en true
 
     const params = {
       body: {
@@ -1125,6 +1126,7 @@ async function Reporte(req, res) {
     if (results.ok === false) {
       throw results.errors;
     }
+
     const messages = [];
     const counterVistas = results.result?.[4]?.data?.[0]?.count;
     if (counterVistas > 0) {
@@ -1135,12 +1137,13 @@ async function Reporte(req, res) {
 
     const counterRegistros = results.result?.[1]?.data?.[0]?.count;
     if (counterRegistros > 0) {
-      if (counterRegistros)
-        respResultadoIncorrectoObjeto200(
-          res,
-          results.result[2].data,
-          "La información ya fue validada"
-        );
+      messages.push("La información ya fue validada");
+    }
+
+    //TO DO: Informar de array de mensajes
+
+    if (size(messages) > 0) {
+      respResultadoIncorrectoObjeto200(res, null, [], messages);
       return;
     }
 

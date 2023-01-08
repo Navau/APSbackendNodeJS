@@ -36,7 +36,41 @@ function separarStringCamelCasePorCaracter(string, characterSplit) {
   return stringFinal;
 }
 
+function ordenarArray(array, propiedad, tipo = "ASC") {
+  if (tipo === "ASC") {
+    console.log(array);
+    return array.sort((a, b) => {
+      const valueA =
+        typeof a === "string" ? a[propiedad].toLowerCase() : a[propiedad];
+      const valueB =
+        typeof b === "string" ? b[propiedad].toLowerCase() : b[propiedad];
+      if (valueA < valueB) {
+        return -1;
+      }
+      if (valueA > valueB) {
+        return 1;
+      }
+      return 0;
+    });
+  } else if ("DESC") {
+    return array.sort((a, b) => {
+      const valueA =
+        typeof a === "string" ? a[propiedad].toLowerCase() : a[propiedad];
+      const valueB =
+        typeof b === "string" ? b[propiedad].toLowerCase() : b[propiedad];
+      if (valueA > valueB) {
+        return -1;
+      }
+      if (valueA < valueB) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+}
+
 module.exports = {
   formatearFechaDeInformacion,
   separarStringCamelCasePorCaracter,
+  ordenarArray,
 };
