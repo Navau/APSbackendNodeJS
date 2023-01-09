@@ -621,22 +621,60 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
 }
 
 async function Entidades(req, res) {
-  const { id_tipo_modalidad } = req.body;
-  const querys = [
-    EscogerInternoUtil("aps_view_modalidad_seguros", {
-      select: ["*"],
-      where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
-    }),
-  ];
-  const results = await EjecutarVariosQuerys(querys);
-  if (results.ok === null) {
-    throw results.result;
-  }
-  if (results.ok === false) {
-    throw results.errors;
-  }
+  try {
+    const { id_tipo_modalidad } = req.body;
+    const querys = [
+      EscogerInternoUtil("aps_view_modalidad_seguros", {
+        select: ["*"],
+        where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+      }),
+    ];
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
 
-  respResultadoCorrectoObjeto200(res, results.result[0].data);
+    respResultadoCorrectoObjeto200(res, results.result[0].data);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+async function HabilitarReproceso(req, res) {
+  try {
+    const { fecha, periodicidad, codigo_entidad } = req.body;
+    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
+      "YYYY-MM-DD HH:mm:ss.SSS"
+    )}}' WHERE fecha_operacion = '${fecha}' AND id_periodo = ${periodicidad} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
+    console.log(queryUpdate);
+    const querys = [
+      queryUpdate,
+      periodicidad === "154"
+        ? EjecutarFuncionSQL("aps_fun_borra_tablas_diarias_seguro", {
+            body: { fecha, codigo_entidad },
+          })
+        : EjecutarFuncionSQL("aps_fun_borra_tablas_mensuales_seguro", {
+            body: { fecha, codigo_entidad },
+          }),
+    ];
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+
+    respResultadoCorrectoObjeto200(res, {
+      actualizacion: results.result[0].data,
+      eliminacion: results.result[1].data,
+    });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
@@ -813,4 +851,5 @@ module.exports = {
   ReporteEnvio,
   ReporteControlEnvioPorTipoReporte,
   Entidades,
+  HabilitarReproceso,
 };

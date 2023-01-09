@@ -203,6 +203,109 @@ async function Validar2(req, res) {
         errores: insersionErrores.result,
       });
     } else {
+      //#region OBTENER COD_INSTITUCION
+      const queryInstitucion = EscogerInternoUtil(
+        "APS_aud_carga_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            { key: "cargado", value: true },
+            { key: "id_periodo", value: "154" },
+            { key: "id_rol", value: 8 },
+          ],
+        }
+      );
+
+      const institucion = await pool
+        .query(queryInstitucion)
+        .then((result) => {
+          return { ok: true, result: result.rows };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+
+      if (institucion?.err) {
+        throw institucion.err;
+      }
+      //#endregion
+      //#region INSTITUCIONES
+      const instituciones = uniq(
+        map(institucion.result, (item) => item.cod_institucion)
+      );
+      //#endregion
+      //#region CARGAS
+      const queryCargas = EscogerInternoUtil(nameTable, {
+        select: ["fecha_operacion, nro_carga, cod_institucion"],
+        where: [
+          { key: "fecha_operacion", value: fecha },
+          { key: "id_rol", value: idRolFinal },
+          { key: "id_usuario", value: id_usuario },
+          {
+            key: "cod_institucion",
+            valuesWhereIn: map(instituciones, (item) => `'${item}'`),
+            whereIn: true,
+          },
+        ],
+        orderby: {
+          field: "nro_carga DESC",
+        },
+      });
+
+      const cargas = await pool
+        .query(queryCargas)
+        .then((result) => {
+          if (result.rowCount > 0) {
+            return { ok: true, result: uniqBy(result.rows, "cod_institucion") };
+          } else {
+            return { ok: false, result: result.rows };
+          }
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (cargas?.err) {
+        throw cargas.err;
+      }
+      //#endregion
+      //#region NUEVAS CARGAS
+      const queryNuevaCarga = InsertarVariosUtil(nameTable, {
+        body: map(instituciones, (codigo) => {
+          const maxAux = max(
+            filter(cargas.result, (itemF) => itemF.cod_institucion === codigo),
+            (item) => {
+              return item.nro_carga;
+            }
+          );
+          return {
+            fecha_operacion: fecha,
+            cod_institucion: codigo,
+            nro_carga: cargas.ok === false ? 1 : maxAux.nro_carga + 1,
+            fecha_carga: new Date(),
+            valorado: true,
+            id_rol: idRolFinal,
+            id_usuario,
+          };
+        }),
+        returnValue: ["*"],
+      });
+      const nuevaCarga = await pool
+        .query(queryNuevaCarga)
+        .then((result) => {
+          return { ok: true, result: result.rows };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (nuevaCarga?.err) {
+        throw nuevaCarga.err;
+      }
+      //#endregion
+      respResultadoCorrectoObjeto200(res, {
+        cargas: nuevaCarga.result,
+        errores: [],
+      });
     }
   } catch (err) {
     respErrorServidor500END(res, err);

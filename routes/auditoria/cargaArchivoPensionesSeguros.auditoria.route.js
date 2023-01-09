@@ -34,6 +34,11 @@ api.post(
   controller.Entidades
 );
 api.post(
+  "/HabilitarReproceso",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.HabilitarReproceso
+);
+api.post(
   "/Escoger",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Escoger
