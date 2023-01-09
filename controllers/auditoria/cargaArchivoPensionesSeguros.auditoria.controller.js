@@ -580,7 +580,6 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
       if (iid_reporte === 7) {
         return {
           id: item.id_valida_archivos,
-          descripcion: "Diaria",
           estado: item.validado ? "Con Éxito" : "Con Error",
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,
@@ -598,7 +597,6 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
       if (iid_reporte === 8) {
         return {
           id: item.id_valora_archivos,
-          descripcion: "Diaria",
           estado: item.valorado ? "Con Éxito" : "Con Error",
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,

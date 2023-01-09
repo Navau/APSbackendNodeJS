@@ -48,6 +48,7 @@ const {
 const {
   ValorMaximoDeCampoUtil,
   InsertarVariosUtil,
+  EjecutarFuncionSQL,
 } = require("../utils/consulta.utils");
 
 const {
@@ -72,8 +73,9 @@ function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
   const verificarArchivos = new Promise((resolve, reject) => {
     const arrayNameFilesToUpperCase = (array, property) => {
       var newArray = [];
-      map(array, (item, index) => {
-        const myObjLower = { ...item, archivo: item[property].toUpperCase() };
+      map(array, (item) => {
+        const value = property !== "archivo" ? item.nombre : item[property];
+        const myObjLower = { ...item, archivo: value?.toUpperCase() };
         newArray.push(myObjLower);
       });
       return newArray;
@@ -98,7 +100,7 @@ function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
     });
     map(arrayResult, (item, index) => {
       let myIndex = findIndex(arrayResult2, (itemFI) => {
-        return itemFI.archivo == item.archivo; // or el.nombre=='T NORTE';
+        return itemFI.archivo == item.archivo;
       });
       if (myIndex !== -1) {
         arrayResult2.splice(myIndex, 1);
@@ -178,34 +180,14 @@ async function obtenerListaArchivos(params) {
   const obtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
     let query = "";
     if (typeFileAux === "CUSTODIO") {
-      query = `SELECT replace(replace(replace(replace(archivo.nombre, 'EEE', institucion.codigo), 
-      'AAAA', EXTRACT(YEAR FROM TIMESTAMP '${fecha_operacion}')::text), 
-      'MM', LPAD(EXTRACT(MONTH FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
-      'DD', LPAD(EXTRACT(DAY FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)) AS archivo, 
-      archivo.id_rol, "APS_seg_usuario".id_usuario 
-      FROM 
-      (SELECT 'CC' as cod, 
-       "APS_seg_institucion".codigo, 
-       "APS_seg_institucion".id_tipo_entidad 
-       FROM public."APS_seg_institucion" 
-       WHERE id_tipo_entidad in (179, 189) 
-       ORDER BY id_institucion ASC) AS institucion 
-       
-      INNER JOIN 
-      (SELECT 
-       "APS_param_archivos_pensiones_seguros".codigo as cod, 
-       "APS_param_archivos_pensiones_seguros".nombre, 
-       "APS_param_archivos_pensiones_seguros".id_rol 
-       FROM public."APS_param_archivos_pensiones_seguros" 
-       ORDER BY id_archivo ASC) AS archivo 
-      
-      INNER JOIN "APS_seg_rol" 
-      ON "APS_seg_rol".id_rol = archivo.id_rol 
-      INNER JOIN "APS_seg_usuario_rol" 
-      ON "APS_seg_usuario_rol".id_rol = "APS_seg_rol".id_rol 
-      INNER JOIN "APS_seg_usuario" 
-      ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
-      ON institucion.cod = archivo.cod;`;
+      query = EjecutarFuncionSQL(
+        id_rol === 10
+          ? "aps_fun_archivos_custodio_seguros"
+          : "aps_fun_archivos_custodio_pensiones",
+        {
+          body: { fecha_operacion },
+        }
+      );
     } else {
       query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
         "APS_param_archivos_pensiones_seguros".nombre::text, 
@@ -313,7 +295,15 @@ async function validarArchivosIteraciones(params) {
     })
       .then((response) => {
         return {
-          result: response.rows,
+          result: map(response.rows, (itemMap) => {
+            if (itemMap?.nombre) {
+              return {
+                ...itemMap,
+                archivo: itemMap.nombre,
+              };
+            }
+            return itemMap;
+          }),
         };
       })
       .catch((err) => {

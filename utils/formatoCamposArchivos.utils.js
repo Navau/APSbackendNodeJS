@@ -3301,7 +3301,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             where: [
               {
                 key: "id_tipo_renta",
-                valuesWhereIn: [135],
+                valuesWhereIn: [135, 136],
                 whereIn: true,
               },
               {
@@ -6481,28 +6481,28 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa_relevante",
-        pattern: /^(0|[1-9][0-9]{0,1})(\.\d{8,8}){1,1}$/,
-        function: [],
+        pattern: /^(^-?(0|[1-9][0-9]{0,1}))(\.\d{8,8}){1,1}$/,
+        function: ["mayorIgualACeroDecimal"],
       },
       {
         columnName: "precio_nominal_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
       },
       {
         columnName: "precio_nominal_bs",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
       },
       {
         columnName: "precio_mercado_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
       },
       {
         columnName: "precio_mercado_bs",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        function: [],
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
+        function: ["mayorACeroDecimal"],
       },
       {
         columnName: "cantidad_valores",
@@ -6511,7 +6511,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "total_mercado_mo",
-        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         function: ["precioMercadoMOMultiplicadoCantidadValores"],
       },
       {

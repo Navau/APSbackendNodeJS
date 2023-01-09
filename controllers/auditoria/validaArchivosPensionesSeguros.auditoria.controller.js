@@ -8,6 +8,7 @@ const {
   includes,
   uniq,
   isUndefined,
+  find,
 } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
@@ -41,6 +42,7 @@ const {
   respResultadoVacio404END,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
+const dayjs = require("dayjs");
 
 const nameTable = "APS_aud_valida_archivos_pensiones_seguros";
 const nameTableErrors = "APS_aud_errores_valida_archivos_pensiones_seguros";
@@ -1107,6 +1109,7 @@ async function Reporte(req, res) {
     }
 
     const querys = [
+      EjecutarFuncionSQL("aps_reporte_control_envio", params),
       EscogerInternoUtil("APS_aud_valida_archivos_pensiones_seguros", {
         select: ["*"],
         where: [
@@ -1116,7 +1119,7 @@ async function Reporte(req, res) {
       }),
       queryValida,
     ];
-    // EjecutarFuncionSQL("aps_reporte_control_envio", params),
+    querys.push(ListarUtil("APS_seg_usuario"));
 
     const results = await EjecutarVariosQuerys(querys);
 
@@ -1127,27 +1130,50 @@ async function Reporte(req, res) {
       throw results.errors;
     }
 
-    const messages = [];
-    const counterVistas = results.result?.[4]?.data?.[0]?.count;
-    if (counterVistas > 0) {
-      messages.push(
-        "No existen características para los siguientes valores, favor registrar"
-      );
-    }
+    // const messages = [];
+    // if (size(messages) > 0) {
+    //   respResultadoIncorrectoObjeto200(res, null, [], messages);
+    //   return;
+    // }
+    const usuarios = find(
+      results.result,
+      (item) => item.table === "APS_seg_usuario"
+    );
 
-    const counterRegistros = results.result?.[1]?.data?.[0]?.count;
+    const counterRegistros = results.result?.[2]?.data?.[0]?.count;
     if (counterRegistros > 0) {
-      messages.push("La información ya fue validada");
-    }
-
-    //TO DO: Informar de array de mensajes
-
-    if (size(messages) > 0) {
-      respResultadoIncorrectoObjeto200(res, null, [], messages);
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        map(results.result[1].data, (item) => {
+          return {
+            id: item.id_valida_archivos,
+            descripcion: "Diaria",
+            estado: item.validado ? "Con Éxito" : "Con Error",
+            cod_institucion: item.cod_institucion,
+            fecha_operacion: item.fecha_operacion,
+            nro_carga: item.nro_carga,
+            fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+            usuario: find(
+              usuarios.data,
+              (itemF) => item.id_usuario === itemF.id_usuario
+            )?.usuario,
+            id_valida_archivos: item.id_valida_archivos,
+            id_rol: item.id_rol,
+            validado: item.validado,
+          };
+        }),
+        "La información ya fue validada"
+      );
       return;
     }
 
-    respResultadoCorrectoObjeto200(res, results.result[0].data);
+    respResultadoCorrectoObjeto200(
+      res,
+      map(results.result[0].data, (item) => {
+        return { id: item.id_carga_archivo, ...item };
+      })
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }

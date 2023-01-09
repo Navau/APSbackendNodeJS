@@ -347,7 +347,7 @@ async function Modalidades(req, res) {
         id_modalidad: index + 1,
         titulo: "Todas",
         fecha,
-        descripcion: "Todas las modalidades",
+        descripcion: "Todas las entidades",
         esCompleto: false,
         esTodoCompleto: false,
         modalidades: map(results.result?.[0].data, (item) => {
