@@ -4,7 +4,7 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("America/La_Paz");
-const { map, forEach, split } = require("lodash");
+const { map, forEach, split, trim, parseInt } = require("lodash");
 
 function formatearFechaDeInformacion(data) {
   const resultFinal = data;
@@ -69,8 +69,27 @@ function ordenarArray(array, propiedad, tipo = "ASC") {
   }
 }
 
+function obtenerFechaActual() {
+  const splitDate = new Date()
+    .toLocaleString("es-MX", {
+      timeZone: "America/La_Paz",
+    })
+    .split(",");
+  const date = map(splitDate[0].split("/"), (item) => parseInt(trim(item)));
+  const hours = splitDate[1];
+  const dateFinal = new Date();
+  dateFinal.setDate(date[0]);
+  dateFinal.setMonth(date[1] - 1);
+  dateFinal.setFullYear(date[2]);
+  const hoursFinal = map(hours.split(":"), (item) => parseInt(trim(item)));
+  dateFinal.setHours(hoursFinal[0]);
+  console.log(dateFinal);
+  return dateFinal;
+}
+
 module.exports = {
   formatearFechaDeInformacion,
   separarStringCamelCasePorCaracter,
   ordenarArray,
+  obtenerFechaActual,
 };

@@ -1,5 +1,16 @@
 const dayjs = require("dayjs");
-const { size, isEmpty, find, map } = require("lodash");
+const {
+  size,
+  isEmpty,
+  find,
+  map,
+  result,
+  uniq,
+  forEach,
+  uniqBy,
+  filter,
+  max,
+} = require("lodash");
 const pool = require("../../database");
 const {
   EjecutarProcedimientoSQL,
@@ -7,13 +18,20 @@ const {
   EjecutarFuncionSQL,
   EjecutarVariosQuerys,
   ListarUtil,
+  InsertarUtil,
+  InsertarVariosUtil,
+  ValorMaximoDeCampoUtil,
 } = require("../../utils/consulta.utils");
+const { obtenerFechaActual } = require("../../utils/formatearDatos");
 const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respDatosNoRecibidos400,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
+
+const nameTable = "APS_aud_valora_archivos_pensiones_seguros";
+const nameTableErrors = "APS_aud_errores_valora_archivos_pensiones_seguros";
 
 async function Validar(req, res) {
   const { fecha } = req.body;
@@ -46,6 +64,149 @@ async function Validar(req, res) {
     .catch((err) => {
       respErrorServidor500END(res, err);
     });
+}
+
+async function Validar2(req, res) {
+  try {
+    const { fecha, id_rol_valora } = req.body;
+    const { id_rol, id_usuario } = req.user;
+    const idRolFinal = id_rol_valora ? id_rol_valora : id_rol;
+
+    const valoracion = await pool
+      .query(
+        EjecutarFuncionSQL("aps_valida_valoracion_cartera", { body: { fecha } })
+      )
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (valoracion?.err) {
+      throw valoracion.err;
+    }
+
+    if (size(valoracion.result) > 0) {
+      //#region INSTITUCIONES
+      const instituciones = uniq(
+        map(valoracion.result, (item) => item.cod_institucion)
+      );
+      //#endregion
+      //#region CARGAS
+      const queryCargas = EscogerInternoUtil(nameTable, {
+        select: ["fecha_operacion, nro_carga, cod_institucion"],
+        where: [
+          { key: "fecha_operacion", value: fecha },
+          { key: "id_rol", value: idRolFinal },
+          { key: "id_usuario", value: id_usuario },
+          {
+            key: "cod_institucion",
+            valuesWhereIn: map(instituciones, (item) => `'${item}'`),
+            whereIn: true,
+          },
+        ],
+        orderby: {
+          field: "nro_carga DESC",
+        },
+      });
+
+      const cargas = await pool
+        .query(queryCargas)
+        .then((result) => {
+          if (result.rowCount > 0) {
+            return { ok: true, result: uniqBy(result.rows, "cod_institucion") };
+          } else {
+            return { ok: false, result: result.rows };
+          }
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (cargas?.err) {
+        throw cargas.err;
+      }
+      //#endregion
+      //#region NUEVAS CARGAS
+      const queryNuevaCarga = InsertarVariosUtil(nameTable, {
+        body: map(instituciones, (codigo) => {
+          const maxAux = max(
+            filter(cargas.result, (itemF) => itemF.cod_institucion === codigo),
+            (item) => {
+              return item.nro_carga;
+            }
+          );
+          return {
+            fecha_operacion: fecha,
+            cod_institucion: codigo,
+            nro_carga: cargas.ok === false ? 1 : maxAux.nro_carga + 1,
+            fecha_carga: new Date(),
+            valorado: false,
+            id_rol: idRolFinal,
+            id_usuario,
+          };
+        }),
+        returnValue: ["*"],
+      });
+      const nuevaCarga = await pool
+        .query(queryNuevaCarga)
+        .then((result) => {
+          return { ok: true, result: result.rows };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (nuevaCarga?.err) {
+        throw nuevaCarga.err;
+      }
+      //#endregion
+      //#region INSERCION DE ERRORES
+      const InsertarErroresArray = [];
+      forEach(nuevaCarga.result, (itemCarga) => {
+        const erroresAux = filter(
+          valoracion.result,
+          (itemF) => itemF.cod_institucion === itemCarga.cod_institucion
+        );
+        InsertarErroresArray.push(
+          ...map(erroresAux, (itemAux) => {
+            return {
+              id_valida_archivos: itemCarga.id_valora_archivos,
+              tipo_instrumento: itemAux.tipo_instrumento,
+              serie: itemAux.serie,
+              descripcion: itemAux.descripcion,
+              enviada: itemAux.enviada,
+              aps: itemAux.aps,
+              cod_institucion: itemCarga.cod_institucion,
+              fecha_informacion: itemCarga.fecha_operacion,
+            };
+          })
+        );
+      });
+      const queryInsertarErrores = InsertarVariosUtil(nameTableErrors, {
+        body: InsertarErroresArray,
+        returnValue: ["*"],
+      });
+      const insersionErrores = await pool
+        .query(queryInsertarErrores)
+        .then((result) => {
+          return { ok: true, result: result.rows };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (insersionErrores?.err) {
+        throw insersionErrores.err;
+      }
+      //#endregion
+
+      respResultadoCorrectoObjeto200(res, {
+        cargas: nuevaCarga.result,
+        errores: insersionErrores.result,
+      });
+    } else {
+    }
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 async function ObtenerInformacion(req, res) {
@@ -166,5 +327,6 @@ async function ObtenerInformacion(req, res) {
 
 module.exports = {
   Validar,
+  Validar2,
   ObtenerInformacion,
 };

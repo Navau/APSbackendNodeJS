@@ -620,6 +620,25 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
   }
 }
 
+async function Entidades(req, res) {
+  const { id_tipo_modalidad } = req.body;
+  const querys = [
+    EscogerInternoUtil("aps_view_modalidad_seguros", {
+      select: ["*"],
+      where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+    }),
+  ];
+  const results = await EjecutarVariosQuerys(querys);
+  if (results.ok === null) {
+    throw results.result;
+  }
+  if (results.ok === false) {
+    throw results.errors;
+  }
+
+  respResultadoCorrectoObjeto200(res, results.result[0].data);
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });
@@ -793,4 +812,5 @@ module.exports = {
   UltimaCarga2,
   ReporteEnvio,
   ReporteControlEnvioPorTipoReporte,
+  Entidades,
 };

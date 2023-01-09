@@ -9,7 +9,7 @@ const api = express.Router();
 api.post(
   "/Validar",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.Validar
+  controller.Validar2
 );
 api.post(
   "/ObtenerInformacion",

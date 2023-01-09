@@ -29,6 +29,11 @@ api.post(
 );
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
+  "/Entidades",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.Entidades
+);
+api.post(
   "/Escoger",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Escoger

@@ -359,7 +359,7 @@ function formatDataReportExcel(headers, body, wb) {
   });
 }
 
-function formatDataChartsReportExcel(fecha, body, wb) {
+function formatDataChartsReportExcel(fecha, body, header, wb) {
   // //#region CLASIFICANDO POR TIPO_INDICADOR LA INFORMACION Y TAMBIEN AÑADIENDO TIPO_INDICADOR_FINAL A CADA CLASIFICACION
   // for (const dataEntidad of body) {
   //   let TIPO_INDICADOR = {
@@ -394,18 +394,7 @@ function formatDataChartsReportExcel(fecha, body, wb) {
     ? (body["codeSegurosAux"] = body[0].codeSeguros)
     : "";
 
-  !("header" in body)
-    ? (body["header"] = {
-        acronym: "BC1_4",
-        title: `INVERSIONES SEGUROS AL ${dayjs(fecha)
-          .locale("es")
-          .format("DD [DE] MMMM [DE] YYYY")
-          .toUpperCase()}`,
-        portfolio: "CARTERA VALORADA A PRECIOS DE  MERCADO",
-        date: fecha,
-        expressedIn: "Bolivianos",
-      })
-    : "";
+  !("header" in body) ? (body["header"] = header) : "";
 
   !("typeInstrument" in body)
     ? (body["typeInstrument"] = "TIPO INSTRUMENTO")
@@ -435,6 +424,44 @@ function formatDataChartsReportExcel(fecha, body, wb) {
     : "";
   !("participationM2" in body)
     ? (body["participationM2"] = "Participación %")
+    : "";
+
+  !("titulo_codeEmisor" in body) ? (body["titulo_codeEmisor"] = "Código") : "";
+  !("titulo_emisor" in body) ? (body["titulo_emisor"] = "Emisor") : "";
+
+  !("titulo_general" in body)
+    ? (body["titulo_general"] = "Seguros Generales")
+    : "";
+
+  !("titulo_personal" in body)
+    ? (body["titulo_personal"] = "Seguros Personales")
+    : "";
+
+  !("titulo_prepago" in body)
+    ? (body["titulo_prepago"] = "Seguros Prepago")
+    : "";
+
+  !("titulo_entidades" in body)
+    ? (body["titulo_entidades"] = "Total entidades")
+    : "";
+
+  !("titulo_monto_valorado" in body)
+    ? (body["titulo_monto_valorado"] = "Monto Valorado $us")
+    : "";
+  !("titulo_porcentaje_valorado" in body)
+    ? (body["titulo_porcentaje_valorado"] = "%")
+    : "";
+
+  !("titulo_porcentaje_valorado" in body)
+    ? (body["titulo_porcentaje_valorado"] = "%")
+    : "";
+
+  !("titulo_extranjero" in body)
+    ? (body["titulo_extranjero"] = "Extranjero")
+    : "";
+  !("titulo_nacional" in body) ? (body["titulo_nacional"] = "Nacional") : "";
+  !("titulo_total_general" in body)
+    ? (body["titulo_total_general"] = "Total General")
     : "";
   //#endregion
   //#endregion
@@ -642,7 +669,7 @@ async function createChart(data, labels, header) {
 }
 
 async function bodyCommonStyleReportExcel(ws, wb, report) {
-  // console.log(report.data);
+  console.log(report.code);
   if (report.code === "ALI-G" || report.code === "INN-R") {
     const styleDefault = defaultStyleReportExcel("body");
     let posXInitial = 8;
@@ -2100,7 +2127,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
       posXIteration += 1;
       posXInitial = posXIteration;
     });
-  } else if (report.code === "BC1_4") {
+  } else if (report.code === "Boletín Cuadro 1.4") {
     const styleDefault = defaultStyleReportExcel("body");
     let posXInitial = 4;
     let posXIteration = posXInitial;
@@ -2110,9 +2137,9 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
     // console.log("data", data);
     ws.column(1).setWidth(70);
     ws.column(2).setWidth(25);
-    ws.column(3).setWidth(25);
+    ws.column(3).setWidth(30);
     ws.column(4).setWidth(25);
-    ws.column(5).setWidth(25);
+    ws.column(5).setWidth(30);
     ws.column(6).setWidth(25);
     //#region CABECERAS
     const cellHeaderStyle = {
@@ -2240,8 +2267,8 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
 
     //#endregion
     posXIteration += 2;
-    forEach(data, (itemData, indexData) => {
-      if (itemData.codeSeguros === "BC1_4") {
+    forEach(data, (itemData) => {
+      if (itemData.codeSeguros === "Boletín Cuadro 1.4") {
         //#region ESTIDLOS BODY
         const VALUE_TOTAL =
           itemData.tipo_instrumento.toLowerCase().includes("final") ||
@@ -2357,6 +2384,851 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
         ws.cell(posXIteration, posYIteration + 4)
           .string(
             itemData?.participacion_m2 ? itemData.participacion_m2 + "%" : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        posXIteration++;
+      }
+    });
+
+    posXIteration += 1;
+    posXInitial = posXIteration;
+
+    // const labelsChart = [];
+    // forEach(data, (item) => {
+    //   if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+    //     labelsChart.push(
+    //       item.tipo_instrumento + " " + item.participacion_m2 + "%"
+    //     );
+    //   }
+    // });
+    // const dataChart = [];
+    // forEach(data, (item) => {
+    //   if (item?.participacion_m2) {
+    //     if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+    //       dataChart.push(item.participacion_m2);
+    //     }
+    //   }
+    // });
+
+    // const image = await createChart(dataChart, labelsChart, data.header);
+    // const pathImage = path.join("reports/charts", `${image}.png`);
+  } else if (report.code === "REP EMISOR TIPO ASEGURADORA") {
+    const styleDefault = defaultStyleReportExcel("body");
+    let posXInitial = 4;
+    let posXIteration = posXInitial;
+    let posYInitial = 1;
+    let posYIteration = posYInitial;
+    const data = report?.data;
+    // console.log("data", data);
+    ws.column(1).setWidth(20);
+    ws.column(2).setWidth(60);
+    ws.column(3).setWidth(25);
+    ws.column(4).setWidth(25);
+    ws.column(5).setWidth(25);
+    ws.column(6).setWidth(25);
+    ws.column(7).setWidth(25);
+    ws.column(8).setWidth(25);
+    ws.column(9).setWidth(25);
+    ws.column(10).setWidth(25);
+    //#region CABECERAS
+    const cellHeaderStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        font: {
+          color: "#FFFFFF",
+          size: 14,
+        },
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "366092",
+        },
+        border: {
+          top: { style: "hair" },
+          bottom: { style: "hair" },
+          left: { style: "hair" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    const cellTitleStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "95B3D7",
+        },
+        border: {
+          top: { style: "medium" },
+          bottom: { style: "medium" },
+          left: { style: "medium" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    //#region CABECERAS PRINCIPALES
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.title)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.subtitle1)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.subtitle2)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.subtitle3)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    //#endregion
+
+    //#region CABECERAS SECUNDARIAS
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration + 1,
+      posYIteration,
+      true
+    )
+      .string(data?.titulo_codeEmisor)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 1,
+      posXIteration + 1,
+      posYIteration + 1,
+      true
+    )
+      .string(data?.titulo_emisor)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 2,
+      posXIteration,
+      posYIteration + 3,
+      true
+    )
+      .string(data?.titulo_general)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 2)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 3)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 4,
+      posXIteration,
+      posYIteration + 5,
+      true
+    )
+      .string(data?.titulo_personal)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 4)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 5)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 6,
+      posXIteration,
+      posYIteration + 7,
+      true
+    )
+      .string(data?.titulo_prepago)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 6)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 7)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 8,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.titulo_entidades)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 8)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 9)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    //#endregion
+    //#endregion
+    posXIteration += 2;
+    forEach(data, (itemData) => {
+      if (itemData.codeSeguros === "REP EMISOR TIPO ASEGURADORA") {
+        //#region ESTILOS BODY
+        const VALUE_TOTAL =
+          itemData.codemisor.toLowerCase().includes("final") ||
+          itemData.codemisor.toLowerCase().includes("total")
+            ? {
+                border: {
+                  border: {
+                    bottom: { style: "medium" },
+                  },
+                },
+                fill: customSingleStyleReportExcel(wb, {
+                  fill: {
+                    type: "pattern",
+                    patternType: "solid",
+                    fgColor: "8EA9DB",
+                  },
+                }),
+                align: alignTextStyleReportExcel("center"),
+                fontBold: (bold = true) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                border: {},
+                fill: {},
+                align: alignTextStyleReportExcel("center"),
+                fontBold: () => {
+                  return {};
+                },
+              };
+        const VALUE_GROUP =
+          size(trim(itemData?.codemisor)) > 0
+            ? {
+                value: itemData.codemisor,
+                key: "codemisor",
+                indent: indentStyleReportExcel(3, 3),
+                align: alignTextStyleReportExcel("center"),
+                style: {
+                  ...customSingleStyleReportExcel(wb, {
+                    border: {
+                      bottom: { style: "dashed" },
+                      right: { style: "thin" },
+                      left: { style: "medium" },
+                    },
+                  }),
+                },
+                fontBold: (bold = false) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                value: "Sin información",
+                key: "",
+                indent: {},
+                style: {},
+                align: {},
+                fontBold: (bold) => {
+                  return {};
+                },
+              };
+        //#endregion
+        ws.cell(posXIteration, posYIteration)
+          .string(`${VALUE_GROUP.value}`)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.indent)
+          .style(VALUE_GROUP.fontBold())
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 1)
+          .string(itemData?.emisor)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(itemData?.sgeneralcartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(
+            itemData?.sgeneralporcentaje
+              ? itemData.sgeneralporcentaje + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(itemData?.spersonascartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 5)
+          .string(
+            itemData?.spersonasporcentaje
+              ? itemData.spersonasporcentaje + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 6)
+          .string(itemData?.sprepagocartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 7)
+          .string(
+            itemData?.sprepagoporcentaje
+              ? itemData.sprepagoporcentaje + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 8)
+          .string(itemData?.totalsprepagocartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 9)
+          .string(
+            itemData?.totalporcentaje ? itemData.totalporcentaje + "%" : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        posXIteration++;
+      }
+    });
+
+    posXIteration += 1;
+    posXInitial = posXIteration;
+
+    // const labelsChart = [];
+    // forEach(data, (item) => {
+    //   if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+    //     labelsChart.push(
+    //       item.tipo_instrumento + " " + item.participacion_m2 + "%"
+    //     );
+    //   }
+    // });
+    // const dataChart = [];
+    // forEach(data, (item) => {
+    //   if (item?.participacion_m2) {
+    //     if (!item.tipo_instrumento.toLowerCase().includes("total")) {
+    //       dataChart.push(item.participacion_m2);
+    //     }
+    //   }
+    // });
+
+    // const image = await createChart(dataChart, labelsChart, data.header);
+    // const pathImage = path.join("reports/charts", `${image}.png`);
+  } else if (report.code === "REP EMISOR") {
+    const styleDefault = defaultStyleReportExcel("body");
+    let posXInitial = 4;
+    let posXIteration = posXInitial;
+    let posYInitial = 1;
+    let posYIteration = posYInitial;
+    const data = report?.data;
+    // console.log("data", data);
+    ws.column(1).setWidth(30);
+    ws.column(2).setWidth(30);
+    ws.column(3).setWidth(30);
+    ws.column(4).setWidth(30);
+    //#region CABECERAS
+    const cellHeaderStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        font: {
+          color: "#FFFFFF",
+          size: 14,
+        },
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "366092",
+        },
+        border: {
+          top: { style: "hair" },
+          bottom: { style: "hair" },
+          left: { style: "hair" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    const cellTitleStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "95B3D7",
+        },
+        border: {
+          top: { style: "medium" },
+          bottom: { style: "medium" },
+          left: { style: "medium" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    //#region CABECERAS PRINCIPALES
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(data?.header.title)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(data?.header.subtitle1)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 4,
+      true
+    )
+      .string(data?.header.subtitle2)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    //#endregion
+
+    //#region CABECERAS SECUNDARIAS
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration + 1,
+      posYIteration,
+      true
+    )
+      .string(data?.titulo_emisor)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 1,
+      posXIteration + 1,
+      posYIteration + 1,
+      true
+    )
+      .string(data?.titulo_emisor)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 2,
+      posXIteration,
+      posYIteration + 3,
+      true
+    )
+      .string(data?.titulo_general)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 2)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 3)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 4,
+      posXIteration,
+      posYIteration + 5,
+      true
+    )
+      .string(data?.titulo_personal)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 4)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 5)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 6,
+      posXIteration,
+      posYIteration + 7,
+      true
+    )
+      .string(data?.titulo_prepago)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 6)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 7)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 8,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.titulo_entidades)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 8)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 9)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    //#endregion
+    //#endregion
+    posXIteration += 2;
+    forEach(data, (itemData) => {
+      if (itemData.codeSeguros === "REP EMISOR TIPO ASEGURADORA") {
+        //#region ESTILOS BODY
+        const VALUE_TOTAL =
+          itemData.codemisor.toLowerCase().includes("final") ||
+          itemData.codemisor.toLowerCase().includes("total")
+            ? {
+                border: {
+                  border: {
+                    bottom: { style: "medium" },
+                  },
+                },
+                fill: customSingleStyleReportExcel(wb, {
+                  fill: {
+                    type: "pattern",
+                    patternType: "solid",
+                    fgColor: "8EA9DB",
+                  },
+                }),
+                align: alignTextStyleReportExcel("center"),
+                fontBold: (bold = true) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                border: {},
+                fill: {},
+                align: alignTextStyleReportExcel("center"),
+                fontBold: () => {
+                  return {};
+                },
+              };
+        const VALUE_GROUP =
+          size(trim(itemData?.codemisor)) > 0
+            ? {
+                value: itemData.codemisor,
+                key: "codemisor",
+                indent: indentStyleReportExcel(3, 3),
+                align: alignTextStyleReportExcel("center"),
+                style: {
+                  ...customSingleStyleReportExcel(wb, {
+                    border: {
+                      bottom: { style: "dashed" },
+                      right: { style: "thin" },
+                      left: { style: "medium" },
+                    },
+                  }),
+                },
+                fontBold: (bold = false) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                value: "Sin información",
+                key: "",
+                indent: {},
+                style: {},
+                align: {},
+                fontBold: (bold) => {
+                  return {};
+                },
+              };
+        //#endregion
+        ws.cell(posXIteration, posYIteration)
+          .string(`${VALUE_GROUP.value}`)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.indent)
+          .style(VALUE_GROUP.fontBold())
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 1)
+          .string(itemData?.emisor)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(itemData?.sgeneralcartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(
+            itemData?.sgeneralporcentaje
+              ? itemData.sgeneralporcentaje + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(itemData?.spersonascartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 5)
+          .string(
+            itemData?.spersonasporcentaje
+              ? itemData.spersonasporcentaje + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 6)
+          .string(itemData?.sprepagocartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 7)
+          .string(
+            itemData?.sprepagoporcentaje
+              ? itemData.sprepagoporcentaje + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 8)
+          .string(itemData?.totalsprepagocartera)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold())
+          .style(VALUE_TOTAL.align);
+
+        ws.cell(posXIteration, posYIteration + 9)
+          .string(
+            itemData?.totalporcentaje ? itemData.totalporcentaje + "%" : ""
           )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
