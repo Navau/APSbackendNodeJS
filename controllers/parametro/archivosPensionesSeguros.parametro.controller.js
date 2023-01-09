@@ -382,28 +382,15 @@ async function SeleccionarArchivosCustodio2(req, res) {
     // );
     const query =
       tipo === "seguros"
-        ? `SELECT public.aps_fun_archivos_custodio_seguros('${fecha_operacion}');`
-        : `SELECT public.aps_fun_archivos_custodio_pensiones('${fecha_operacion}');`;
+        ? `SELECT * FROM public.aps_fun_archivos_custodio_seguros('${fecha_operacion}');`
+        : `SELECT * FROM public.aps_fun_archivos_custodio_pensiones('${fecha_operacion}');`;
 
     await pool
       .query(query)
       .then((result) => {
         if (result.rowCount > 0) {
           const resultFinal = map(result.rows, (item) => {
-            const value =
-              item[
-                tipo === "seguros"
-                  ? "aps_fun_archivos_custodio_seguros"
-                  : "aps_fun_archivos_custodio_pensiones"
-              ];
-            let auxValue = "";
-            forEach(value, (itemAux, indexAux) => {
-              if (indexAux !== 0 && indexAux !== size(value) - 1)
-                auxValue += itemAux;
-            });
-            return {
-              archivo: auxValue,
-            };
+            return { archivo: item.nombre, archivo_vacio: item.archivo_vacio };
           });
           respResultadoCorrectoObjeto200(res, resultFinal);
         } else {
