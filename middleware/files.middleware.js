@@ -4412,22 +4412,29 @@ exports.validarArchivo = async (req, res, next) => {
       const nroCargaPromise = new Promise(async (resolve, reject) => {
         let result = 1;
         let nroCarga = 1;
+        const whereAux = [
+          {
+            key: "id_rol",
+            value: id_rol,
+          },
+          {
+            key: "fecha_operacion",
+            value: fechaInicialOperacion,
+          },
+          {
+            key: "id_usuario",
+            value: id_usuario,
+          },
+        ];
+        if (nameTable === "APS_aud_carga_archivos_pensiones_seguros") {
+          whereAux.push({
+            key: "id_periodo",
+            value: tipo_periodo === "M" ? 155 : 154,
+          });
+        }
         queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
           fieldMax: "nro_carga",
-          where: [
-            {
-              key: "id_rol",
-              value: id_rol,
-            },
-            {
-              key: "fecha_operacion",
-              value: fechaInicialOperacion,
-            },
-            {
-              key: "id_usuario",
-              value: id_usuario,
-            },
-          ],
+          where: whereAux,
         });
 
         await pool
