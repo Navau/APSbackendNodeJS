@@ -465,8 +465,14 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
   try {
     const { fecha, id_rol, iid_reporte, periodo } = req.body;
     const querys = [];
+    const queryInstituciones = ListarUtil(
+      id_rol === 10
+        ? "aps_view_modalidad_seguros"
+        : "aps_view_modalidad_pensiones",
+      { activo: null }
+    );
     const instituciones = await pool
-      .query(ListarUtil("aps_view_modalidad_seguros", { activo: null }))
+      .query(queryInstituciones)
       .then((result) => {
         return { ok: true, result: result.rows };
       })
@@ -477,6 +483,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     if (instituciones.ok === null) {
       throw instituciones.err;
     }
+
     if (iid_reporte === 6) {
       if (!periodo) {
         respDatosNoRecibidos400(res, "No se envio la periodicidad");

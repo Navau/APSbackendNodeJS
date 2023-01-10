@@ -4377,6 +4377,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -4489,6 +4490,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -4650,6 +4652,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -4726,6 +4729,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -6097,6 +6101,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
@@ -6202,6 +6207,7 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         function: ["custodio"],
+        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
