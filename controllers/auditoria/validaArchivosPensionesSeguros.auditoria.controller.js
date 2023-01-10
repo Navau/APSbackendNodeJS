@@ -1070,7 +1070,7 @@ async function Validar(req, res) {
 
 async function Reporte(req, res) {
   try {
-    const { fecha, id_rol, cargado, estado } = req.body;
+    const { fecha, id_rol, id_rol_cargas, cargado, estado } = req.body;
     const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const cargadoFinal = cargado === true || cargado === false ? cargado : null;
     const estadoFinal = isEmpty(estado) ? null : estado;
@@ -1089,8 +1089,8 @@ async function Reporte(req, res) {
         FROM public."APS_aud_carga_archivos_pensiones_seguros" 
         WHERE cargado = true 
         AND fecha_operacion = '${fecha}' 
-        AND id_rol = 8)`;
-    //TO DO preguntar porque validado = true, si lo que se queire traer son las cargas en true
+        AND id_rol IN (${id_rol_cargas.join()}))`;
+    console.log(queryValida);
 
     const params = {
       body: {

@@ -314,7 +314,7 @@ async function Validar2(req, res) {
 
 async function ObtenerInformacion(req, res) {
   try {
-    const { fecha, id_rol, cargado, estado } = req.body;
+    const { fecha, id_rol, id_rol_cargas, cargado, estado } = req.body;
     // const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     // const cargadoFinal = cargado === true || cargado === false ? cargado : null;
     // const estadoFinal = isEmpty(estado) ? null : estado;
@@ -342,8 +342,8 @@ async function ObtenerInformacion(req, res) {
         select: ["*"],
         where: [
           { key: "fecha_operacion", value: fecha },
-          { key: "cargado", value: true },
-          { key: "id_rol", value: 8 },
+          { key: "cargado", value: cargado },
+          { key: "id_rol", valuesWhereIn: id_rol_cargas, whereIn: true },
           { key: "id_periodo", value: 154 },
         ],
       }),
@@ -355,7 +355,7 @@ async function ObtenerInformacion(req, res) {
         select: ["*"],
         where: [{ key: `fecha`, value: fecha }],
       }),
-      `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol = 8) AS INTEGER))`,
+      `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol IN (${id_rol_cargas.join()})) AS INTEGER))`,
     ];
 
     id_rol === 10
@@ -364,11 +364,12 @@ async function ObtenerInformacion(req, res) {
         )
       : id_rol === 7
       ? querys.push(
-          `SELECT COUNT(*) FROM public."APS_view_existe_valores_pensiones`
+          `SELECT COUNT(*) FROM public."APS_view_existe_valores_pensiones"`
         )
       : null;
 
     querys.push(ListarUtil("APS_seg_usuario"));
+    console.log(querys);
     const results = await EjecutarVariosQuerys(querys);
 
     if (results.ok === null) {
@@ -395,6 +396,9 @@ async function ObtenerInformacion(req, res) {
       messages.push(
         "No existen características para los siguientes valores, favor registrar"
       );
+    }
+    if (size(results.result?.[0]) === 0) {
+      messages.push("No existen registros en valoracion cartera");
     }
 
     if (size(messages) > 0) {
