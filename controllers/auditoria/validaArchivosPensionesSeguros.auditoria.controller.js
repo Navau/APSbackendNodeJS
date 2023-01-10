@@ -1115,6 +1115,7 @@ async function Reporte(req, res) {
         where: [
           { key: "fecha_operacion", value: fecha },
           { key: "validado", value: true },
+          { key: "id_rol", value: idRolFinal },
         ],
       }),
       queryValida,
