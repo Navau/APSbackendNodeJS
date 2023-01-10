@@ -231,7 +231,7 @@ async function UltimaCarga(req, res) {
 async function UltimaCarga2(req, res) {
   const { fecha_operacion } = req.body;
   const { id_rol, id_usuario } = req.user;
-  let query = `
+  const query = `
   SELECT CASE 
   WHEN maxid > 0 
       THEN nro_carga 
