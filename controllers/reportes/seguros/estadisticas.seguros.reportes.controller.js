@@ -297,7 +297,7 @@ async function estadisticasInversiones3(req, res) {
       if (err) {
         respErrorServidor500END(res, err);
       } else {
-        respDescargarArchivos200(res, pathExcel);
+        respDescargarArchivos200(res, pathExcel, nameExcelExport);
       }
     });
   } catch (err) {

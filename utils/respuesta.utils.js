@@ -188,7 +188,7 @@ function respIDNoRecibido400(res, msg) {
 }
 
 function respDescargarArchivos200(res, file, data, msg) {
-  res.status(200).download(file, (err) => {
+  res.status(200).download(file, data, (err) => {
     console.log("ERROR", err);
     console.log("ARCHIVOS", data);
   });
