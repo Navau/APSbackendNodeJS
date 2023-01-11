@@ -7,7 +7,7 @@ const api = express.Router();
 api.post(
   "/Inversiones",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.estadisticasInversiones2
+  controller.estadisticasInversiones3
 );
 
 module.exports = api;

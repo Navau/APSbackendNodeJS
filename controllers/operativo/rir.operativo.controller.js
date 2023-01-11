@@ -11,6 +11,8 @@ const {
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
   ObtenerUltimoRegistro,
+  EjecutarVariosQuerys,
+  AsignarInformacionCompletaPorUnaClave,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -25,6 +27,7 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_rir";
+const nameTableFK1 = "aps_view_modalidad_seguros";
 
 async function ValorMaximo(req, res) {
   const { body } = req;
@@ -163,20 +166,41 @@ async function UltimoRegistro(req, res) {
   respResultadoCorrectoObjeto200(res, lastInfo);
 }
 
+async function ListarCompleto(req, res) {
+  try {
+    const querys = [
+      ListarUtil(nameTable, { activo: null }),
+      ListarUtil(nameTableFK1, { activo: null }),
+    ];
+    const resultQuerys = await EjecutarVariosQuerys(querys);
+    if (resultQuerys.ok === null) {
+      throw resultQuerys.result;
+    }
+    if (resultQuerys.ok === false) {
+      throw resultQuerys.errors;
+    }
+    const resultFinal = AsignarInformacionCompletaPorUnaClave(
+      resultQuerys.result,
+      [{ table: nameTableFK1, key: "id_tipo_entidad" }]
+    );
+
+    respResultadoCorrectoObjeto200(res, resultFinal);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 //FUNCION PARA OBTENER TODOS LOS TIPO CAMBIO DE SEGURIDAD
 async function Listar(req, res) {
-  let query = ListarUtil(nameTable, { activo: null });
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  const query = ListarUtil(nameTable, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA OBTENER UN TIPO CAMBIO, CON BUSQUEDA
@@ -331,4 +355,5 @@ module.exports = {
   Deshabilitar,
   ValorMaximo,
   UltimoRegistro,
+  ListarCompleto,
 };

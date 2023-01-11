@@ -13,6 +13,7 @@ const {
 const {
   EscogerInternoUtil,
   EjecutarFuncionSQL,
+  EjecutarVariosQuerys,
 } = require("../../../utils/consulta.utils");
 const {
   defaultOptionsReportExcel,
@@ -128,6 +129,22 @@ function tipoReporte(id, fecha) {
         date: fecha,
       },
     },
+    10: {
+      fun: "aps_fun_inversiones_tgn",
+      acronym: "TGN-BCB",
+      header: {
+        acronym: "TGN-BCB",
+        title: `AUTORIDAD DE FISCALIZACIÓN Y CONTROL DE PENSIONES Y SEGUROS`,
+        subtitle1: "DIRECCIÓN DE INVERSIONES",
+        subtitle2: dayjs(fecha)
+          .locale("es")
+          .format(
+            "[Detalle de cartera de inversión admisible total mercado por emisor TGN - BCB al] DD [DE] MMMM [DE] YYYY"
+          )
+          .toUpperCase(),
+        date: fecha,
+      },
+    },
     11: {
       fun: "aps_fun_inversiones_por_emisor",
       acronym: "REP EMISOR",
@@ -142,7 +159,6 @@ function tipoReporte(id, fecha) {
         date: fecha,
       },
     },
-    10: { fun: "aps_fun_inversiones_tgn", acronym: "TGN-BCB" },
   };
 
   return REPORTES_FUNCIONES[id];
@@ -224,7 +240,73 @@ async function estadisticasInversiones2(req, res) {
   }
 }
 
+async function estadisticasInversiones3(req, res) {
+  try {
+    const { fecha, reportes } = req.body;
+    if (!fecha || !reportes) {
+      respDatosNoRecibidos400(res, "Los datos no fueron recibidos");
+      return;
+    }
+    const nameExcelExport = `Estadisticas_Inversiones ${dayjs(fecha)
+      .locale("es")
+      .format("MMMM YYYY")
+      .toUpperCase()}.xlsx`;
+
+    const infoReportesAuxArray = [];
+
+    const querys = map(reportes, (id_reporte) => {
+      const infoReporte = tipoReporte(id_reporte, fecha);
+      infoReportesAuxArray.push(infoReporte);
+      return EjecutarFuncionSQL(infoReporte.fun, {
+        body: {
+          fecha,
+        },
+      });
+    });
+
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+
+    const estadisticosDataFinal = map(results.result, (item, index) => {
+      forEach(item.data, (itemData) => {
+        !("codeSeguros" in itemData)
+          ? (itemData["codeSeguros"] = infoReportesAuxArray[index].acronym)
+          : "";
+        !("header" in item.data)
+          ? (item.data["header"] = infoReportesAuxArray[index].header)
+          : "";
+      });
+      return item.data;
+    });
+
+    const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
+    forEach(estadisticosDataFinal, (item) => {
+      formatDataChartsReportExcel(fecha, item, item.header, wb);
+    });
+    const pathExcel = path.join("reports", nameExcelExport);
+
+    wb.write(pathExcel, (err, stats) => {
+      // console.log("ERR", err);
+      //   console.log("stats", stats);
+      // console.log("RIR", segurosRIR);
+      if (err) {
+        respErrorServidor500END(res, err);
+      } else {
+        respDescargarArchivos200(res, pathExcel);
+      }
+    });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 module.exports = {
   estadisticasInversiones,
   estadisticasInversiones2,
+  estadisticasInversiones3,
 };
