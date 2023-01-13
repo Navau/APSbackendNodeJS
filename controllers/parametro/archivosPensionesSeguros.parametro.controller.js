@@ -102,83 +102,84 @@ async function SeleccionarArchivosBolsa(req, res) {
   const id_rol = req.user.id_rol;
   const id_usuario = req.user.id_usuario;
 
-  const tipoDeCambio = async () => {
-    const resultFinal = { ok: false, message: "", err: null };
-    const queryTipoCambio = EscogerInternoUtil("APS_oper_tipo_cambio", {
-      select: ["count(*)"],
-      where: [
-        { key: `id_moneda`, valuesWhereIn: [3], whereIn: true },
-        { key: `fecha`, value: fecha_operacion },
-      ],
-    });
-    await pool
-      .query(queryTipoCambio)
-      .then((result) => {
-        if (parseInt(result.rows[0].count) >= 1) {
-          resultFinal.ok = true;
-          resultFinal.message =
-            "Correcto. Existe Tipo de Cambio para la Fecha seleccionada.";
-        } else {
-          resultFinal.ok = false;
-          resultFinal.message =
-            "No existe Tipo de Cambio para la Fecha seleccionada.";
-        }
-      })
-      .catch((err) => {
-        resultFinal.ok = null;
-        resultFinal.err = err;
-      });
-    return resultFinal;
-  };
+  // const tipoDeCambio = async () => {
+  //   const resultFinal = { ok: false, message: "", err: null };
+  //   const queryTipoCambio = EscogerInternoUtil("APS_oper_tipo_cambio", {
+  //     select: ["count(*)"],
+  //     where: [
+  //       { key: `id_moneda`, valuesWhereIn: [3], whereIn: true },
+  //       { key: `fecha`, value: fecha_operacion },
+  //     ],
+  //   });
+  //   await pool
+  //     .query(queryTipoCambio)
+  //     .then((result) => {
+  //       if (parseInt(result.rows[0].count) >= 1) {
+  //         resultFinal.ok = true;
+  //         resultFinal.message =
+  //           "Correcto. Existe Tipo de Cambio para la Fecha seleccionada.";
+  //       } else {
+  //         resultFinal.ok = false;
+  //         resultFinal.message =
+  //           "No existe Tipo de Cambio para la Fecha seleccionada.";
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       resultFinal.ok = null;
+  //       resultFinal.err = err;
+  //     });
+  //   return resultFinal;
+  // };
 
   if (!fecha_operacion) {
     respDatosNoRecibidos400(
       res,
       "La información que se mando no es suficiente, falta la fecha de operación."
     );
-  } else {
-    const _tipoDeCambio = await tipoDeCambio();
-    if (_tipoDeCambio.err !== null) {
-      respErrorServidor500END(res, _tipoDeCambio.err);
-      return;
-    } else if (_tipoDeCambio.ok === false) {
-      respResultadoCorrectoObjeto200(res, null, _tipoDeCambio.message);
-      return;
-    }
-    // const queryFeriado = EscogerInternoUtil("APS_param_feriado", {
-    //   select: ["*"],
-    //   where: [
-    //     {
-    //       key: "fecha",
-    //       value: fecha_operacion,
-    //     },
-    //   ],
-    // });
-    // const holidays = await pool
-    //   .query(queryFeriado)
-    //   .then((result) => {
-    //     return result.rows;
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //     respErrorServidor500END(res, err);
-    //     return null;
-    //   });
+    return;
+  }
+  // const _tipoDeCambio = await tipoDeCambio();
+  // if (_tipoDeCambio.err !== null) {
+  //   respErrorServidor500END(res, _tipoDeCambio.err);
+  //   return;
+  // } else if (_tipoDeCambio.ok === false) {
+  //   respResultadoCorrectoObjeto200(res, null, _tipoDeCambio.message);
+  //   return;
+  // }
+  // const queryFeriado = EscogerInternoUtil("APS_param_feriado", {
+  //   select: ["*"],
+  //   where: [
+  //     {
+  //       key: "fecha",
+  //       value: fecha_operacion,
+  //     },
+  //   ],
+  // });
+  // const holidays = await pool
+  //   .query(queryFeriado)
+  //   .then((result) => {
+  //     return result.rows;
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //     respErrorServidor500END(res, err);
+  //     return null;
+  //   });
 
-    // if (holidays === null) {
-    //   return null;
-    // }
+  // if (holidays === null) {
+  //   return null;
+  // }
 
-    // const fechaOperacion = new Date(fecha_operacion);
-    // const day = fechaOperacion.getUTCDay();
-    // let periodicidad = [154]; //VALOR POR DEFECTO
+  // const fechaOperacion = new Date(fecha_operacion);
+  // const day = fechaOperacion.getUTCDay();
+  // let periodicidad = [154]; //VALOR POR DEFECTO
 
-    // if (day === 0 || day === 6 || holidays.length >= 1) {
-    //   periodicidad = [154]; // DIARIOS
-    // } else {
-    //   periodicidad = [154, 219]; // DIAS HABILES
-    // }
-    const queryFeriado = `SELECT 
+  // if (day === 0 || day === 6 || holidays.length >= 1) {
+  //   periodicidad = [154]; // DIARIOS
+  // } else {
+  //   periodicidad = [154, 219]; // DIAS HABILES
+  // }
+  const queryFeriado = `SELECT 
     CASE 
     WHEN EXTRACT 
     (DOW FROM TIMESTAMP'${fecha_operacion}') IN (6,0) OR 
@@ -186,29 +187,29 @@ async function SeleccionarArchivosBolsa(req, res) {
     THEN 0 
     ELSE 1 
     END`;
-    console.log(queryFeriado);
-    const workingDay = await pool
-      .query(queryFeriado)
-      .then((result) => {
-        return result.rows;
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-        return null;
-      });
+  console.log(queryFeriado);
+  const workingDay = await pool
+    .query(queryFeriado)
+    .then((result) => {
+      return result.rows;
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500END(res, err);
+      return null;
+    });
 
-    let periodicidad = [154]; //VALOR POR DEFECTO
+  let periodicidad = [154]; //VALOR POR DEFECTO
 
-    console.log(workingDay);
+  console.log(workingDay);
 
-    if (parseInt(workingDay?.[0].case) === 0) {
-      periodicidad = [154]; // DIARIOS
-    } else {
-      periodicidad = [154, 219]; // DIAS HABILES
-    }
+  if (parseInt(workingDay?.[0].case) === 0) {
+    periodicidad = [154]; // DIARIOS
+  } else {
+    periodicidad = [154, 219]; // DIAS HABILES
+  }
 
-    let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
+  let query = `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
   "APS_param_archivos_pensiones_seguros".nombre::text, 
   'nnn'::text, "APS_seg_institucion".codigo::text),
   'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text),
@@ -236,32 +237,31 @@ async function SeleccionarArchivosBolsa(req, res) {
   AND "APS_seg_usuario_rol".id_rol = '${id_rol}' 
   AND "APS_param_archivos_pensiones_seguros".activo = true;`;
 
-    console.log(query);
+  console.log(query);
 
-    pool
-      .query(query)
-      .then((result) => {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          const resultArray = result.rows.sort((a, b) => {
-            if (a.archivo.toLowerCase() < b.archivo.toLowerCase()) {
-              return -1;
-            }
-            if (a.archivo.toLowerCase() > b.archivo.toLowerCase()) {
-              return 1;
-            }
-            return 0;
-          });
-          console.log(resultArray);
-          respResultadoCorrectoObjeto200(res, resultArray);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-      });
-  }
+  pool
+    .query(query)
+    .then((result) => {
+      if (!result.rowCount || result.rowCount < 1) {
+        respResultadoVacio404(res);
+      } else {
+        const resultArray = result.rows.sort((a, b) => {
+          if (a.archivo.toLowerCase() < b.archivo.toLowerCase()) {
+            return -1;
+          }
+          if (a.archivo.toLowerCase() > b.archivo.toLowerCase()) {
+            return 1;
+          }
+          return 0;
+        });
+        console.log(resultArray);
+        respResultadoCorrectoObjeto200(res, resultArray);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      respErrorServidor500END(res, err);
+    });
 }
 
 async function SeleccionarArchivosCustodio(req, res) {
