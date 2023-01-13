@@ -1,7 +1,7 @@
 const pool = require("../../../database");
 const xl = require("excel4node");
 const path = require("path");
-const { forEach, map, uniqBy, uniq, findIndex } = require("lodash");
+const { forEach, map, uniqBy, uniq, findIndex, groupBy } = require("lodash");
 
 const {
   respErrorServidor500END,
@@ -125,6 +125,21 @@ function tipoReporte(id, fecha) {
         subtitle3: dayjs(fecha)
           .locale("es")
           .format("[AL] DD [DE] MMMM [DE] YYYY")
+          .toUpperCase(),
+        date: fecha,
+      },
+    },
+    9: {
+      fun: "aps_fun_inversionesrir",
+      acronym: "Boletín Cuadro 1.5",
+      header: {
+        acronym: "Boletín Cuadro 1.5",
+        titl1: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PERSONAS`,
+        title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE GENERALES`,
+        title3: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PREPAGO`,
+        subtitle1: dayjs(fecha)
+          .locale("es")
+          .format("[Al] DD [DE] MMMM [DE] YYYY [- Expresado en Bolivianos]")
           .toUpperCase(),
         date: fecha,
       },
@@ -283,6 +298,24 @@ async function estadisticasInversiones3(req, res) {
       });
       return item.data;
     });
+    console.log(estadisticosDataFinal);
+    forEach(estadisticosDataFinal, (itemData, indexData) => {
+      if (itemData?.header?.acronym === "Boletín Cuadro 1.5") {
+        const entidades = groupBy(itemData, "tipoentidad");
+        const arrayAux = [];
+        forEach(
+          entidades["Empresas de Seguros de Personas"],
+          (itemEntidad, indexEntidad) => {
+            arrayAux.push({
+              // composicion: ,
+              // [itemEntidad.institucion]:
+            });
+          }
+        );
+        console.log(arrayAux);
+      }
+    });
+    // console.log(estadisticosDataFinal);
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
     forEach(estadisticosDataFinal, (item) => {

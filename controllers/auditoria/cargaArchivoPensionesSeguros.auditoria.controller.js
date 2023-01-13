@@ -440,19 +440,6 @@ async function ReporteEnvio(req, res) {
       if (results.ok === false) {
         throw results.errors;
       }
-      // const counterRegistros = results.result?.[1]?.data?.[0]?.count;
-      // if (!isUndefined(tipo)) {
-      //   if (counterRegistros > 0) {
-      //     if (counterRegistros)
-      //       respResultadoIncorrectoObjeto200(
-      //         res,
-      //         null,
-      //         [],
-      //         "No existen características para los siguientes valores, favor registrar"
-      //       );
-      //     return;
-      //   }
-      // }
 
       respResultadoCorrectoObjeto200(res, results.result[0].data);
     }

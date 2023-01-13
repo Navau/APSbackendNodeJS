@@ -1,4 +1,4 @@
-const { map, partial } = require("lodash");
+const { map, partial, split, forEach, uniq, size, replace } = require("lodash");
 const pool = require("../../database");
 const fs = require("fs");
 
@@ -151,7 +151,6 @@ async function CargarArchivo(req, res) {
             }
           });
           //#endregion
-          // console.log(arrayDataObject);
 
           let headers = null;
           let detailsHeaders = null;
@@ -161,6 +160,8 @@ async function CargarArchivo(req, res) {
           let idTable = null;
           let dateField = null;
           let institutionField = null;
+          let typeInstrumentField = null;
+          let serieField = null;
 
           //#region SELECCION DE CODIGO DE ARCHIVO Y TABLA DE ARCHIVO
           if (item.originalname.includes("K.")) {
@@ -313,6 +314,11 @@ async function CargarArchivo(req, res) {
             table: tableFile,
             id: idTable,
           };
+          const splitFecha = split(fechaInicialOperacion, "-").join("");
+          const codInstitucionAux =
+            infoTables.cod_institution === "CC"
+              ? split(item.originalname.toUpperCase(), splitFecha)[0]
+              : infoTables.cod_institution;
           //#endregion
 
           headers?.splice(0, 1); // ELIMINAR ID DE TABLA
@@ -336,6 +342,8 @@ async function CargarArchivo(req, res) {
                     `'fecha'`,
                     `'fecha_informacion'`,
                     `'cod_institucion'`,
+                    infoTables.cod_institution === "CC" && `'tipo_instrumento'`,
+                    infoTables.cod_institution === "CC" && `'serie'`,
                   ],
                   whereIn: true,
                 },
@@ -353,10 +361,21 @@ async function CargarArchivo(req, res) {
             .query(queryInfoSchema)
             .then((result) => {
               if (result.rowCount > 0) {
-                // console.log(result.rows);
                 map(result.rows, (itemResult, indexResult) => {
                   if (itemResult.column_name === "cod_institucion") {
                     institutionField = itemResult.column_name;
+                  }
+                  if (
+                    itemResult.column_name === "tipo_instrumento" &&
+                    infoTables.cod_institution === "CC"
+                  ) {
+                    typeInstrumentField = itemResult.column_name;
+                  }
+                  if (
+                    itemResult.column_name === "serie" &&
+                    infoTables.cod_institution === "CC"
+                  ) {
+                    serieField = itemResult.column_name;
                   }
                   if (itemResult.column_name.includes("fecha")) {
                     dateField = itemResult.column_name;
@@ -400,27 +419,85 @@ async function CargarArchivo(req, res) {
               );
             }
           } else {
-            if (!dateField || !institutionField) {
-              errorsDateArray.push({
-                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
-              });
+            if (infoTables.cod_institution === "CC") {
+              if (
+                !dateField ||
+                !institutionField ||
+                !typeInstrumentField ||
+                !serieField
+              ) {
+                errorsDateArray.push({
+                  message: `No existe el campo cod_institucion, fecha, tipo_instrumento y serie para poder validar unicidad en la tabla ${tableFile}.`,
+                });
+              } else {
+                const typeInstrumentsValuesAux = [];
+                const seriesValuesAux = [];
+                forEach(arrayDataObject, (itemAux) => {
+                  forEach(itemAux, (itemAux2, indexAux2) => {
+                    if (indexAux2 === 0) {
+                      typeInstrumentsValuesAux.push(itemAux2);
+                    } else if (indexAux2 === 1) {
+                      seriesValuesAux.push(itemAux2);
+                    }
+                  });
+                });
+                const seriesUniqs = map(uniq(seriesValuesAux), (itemAux) =>
+                  replace(itemAux, /\"/g, `'`)
+                );
+                const typeInstrumentsUniqs = map(
+                  uniq(typeInstrumentsValuesAux),
+                  (itemAux) => replace(itemAux, /\"/g, `'`)
+                );
+                const whereDelete = [
+                  {
+                    key: dateField,
+                    value: fechaInicialOperacion,
+                  },
+                  {
+                    key: institutionField,
+                    value: codInstitucionAux,
+                  },
+                  size(seriesUniqs) > 0 && {
+                    key: serieField,
+                    valuesWhereIn: seriesUniqs,
+                    whereIn: true,
+                  },
+                  size(seriesUniqs) > 0 && {
+                    key: typeInstrumentField,
+                    valuesWhereIn: typeInstrumentsUniqs,
+                    whereIn: true,
+                  },
+                ];
+                await eliminarInformacionDuplicada(
+                  tableFile,
+                  whereDelete,
+                  sequenceTableFile,
+                  idTable
+                );
+              }
             } else {
-              const whereDelete = [
-                {
-                  key: dateField,
-                  value: fechaInicialOperacion,
-                },
-                {
-                  key: institutionField,
-                  value: infoTables.cod_institution,
-                },
-              ];
-              await eliminarInformacionDuplicada(
-                tableFile,
-                whereDelete,
-                sequenceTableFile,
-                idTable
-              );
+              if (!dateField || !institutionField) {
+                errorsDateArray.push({
+                  message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
+                });
+              } else {
+                const whereDelete = [
+                  {
+                    key: dateField,
+                    value: fechaInicialOperacion,
+                  },
+                  {
+                    key: institutionField,
+                    value: codInstitucionAux,
+                  },
+                ];
+                await eliminarInformacionDuplicada(
+                  tableFile,
+                  whereDelete,
+                  sequenceTableFile,
+                  idTable
+                );
+              }
             }
           }
 
@@ -445,7 +522,7 @@ async function CargarArchivo(req, res) {
             arrayHeadersAux.push("id_carga_archivos");
           }
           if (headers.includes("cod_institucion")) {
-            stringFinalFile += `,"${infoTables.cod_institution}"`;
+            stringFinalFile += `,"${codInstitucionAux}"`;
             arrayHeadersAux.push("cod_institucion");
           }
           if (headers.includes("fecha_informacion")) {
@@ -521,15 +598,13 @@ async function CargarArchivo(req, res) {
           let queryFiles = "";
 
           if (bodyFinalQuery.length >= 1) {
+            const codeFileAux = codeFile.toLowerCase();
             queryFiles = InsertarVariosUtil(tableFile, {
               body: bodyFinalQuery,
-              returnValue: [`id_archivo_${codeFile.toLowerCase()}`],
+              returnValue: [
+                `id_archivo_${codeFileAux === "cc" ? "custodio" : codeFileAux}`,
+              ],
             });
-          }
-
-          if (codeFile === "UA") {
-            console.log(queryFiles);
-            console.log("newArrayDataObject", bodyFinalQuery);
           }
 
           bodyFinalQuery = [];
