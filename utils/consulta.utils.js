@@ -1435,7 +1435,7 @@ async function ObtenerUsuariosPorRol(user) {
   return resultFinal;
 }
 
-async function EjecutarVariosQuerys(querys = []) {
+async function EjecutarVariosQuerys(querys = [], newID) {
   if (size(querys) < 0) return null;
   const resultFinal = [];
   const errors = [];
@@ -1456,7 +1456,10 @@ async function EjecutarVariosQuerys(querys = []) {
           data: result.rows,
           table: v,
           order: counterAux,
-          id: ObtenerIDDeTabla(v, result.rows)?.idKey,
+          id:
+            newID.order === counterAux
+              ? newID.id
+              : ObtenerIDDeTabla(v, result.rows)?.idKey,
         });
       })
       .catch((err) => {
@@ -1496,9 +1499,10 @@ function AsignarInformacionCompletaPorUnaClave(result, options) {
         const item = newResult[indexAux];
         set(item, "id_new", option.key);
         forEach(item.data, (itemAux) => {
-          !(option.key in itemAux)
-            ? (itemAux[option.key] = itemAux[item.id])
-            : "";
+          const valueIdAux = isUndefined(itemAux[item.id])
+            ? itemAux[item.id_new]
+            : itemAux[item.id];
+          !(option.key in itemAux) ? (itemAux[option.key] = valueIdAux) : "";
           delete itemAux[item.id];
         });
       }
@@ -1510,10 +1514,15 @@ function AsignarInformacionCompletaPorUnaClave(result, options) {
     const idFind = itemResult?.id_new ? itemResult.id_new : itemResult.id;
     if (itemResult.table !== main.table) {
       forEach(main.data, (itemMain) => {
+        // console.log("itemMain", itemMain);
+        // console.log("itemResult", itemResult);
         const findValue = find(itemResult.data, (itemFind) => {
+          // console.log("itemFind", itemFind);
+          // console.log("itemMain", itemMain);
           if (itemFind[idFind] === itemMain[idFind]) return true;
         });
         // set(itemMain, idFind, findValue);
+        // console.log(findValue);
         let x = "";
         forEach(split(idFind, "_"), (itemSplit, indexSplit) => {
           indexSplit > 0 ? (x += `_${itemSplit}`) : (x += "");

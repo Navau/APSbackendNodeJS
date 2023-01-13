@@ -29,6 +29,7 @@ const {
 const nameTable = "APS_param_emisor_vinculado";
 const nameTableFK1 = "APS_param_emisor";
 const nameTableFK2 = "APS_seg_institucion";
+const nameTableFK3 = "aps_view_modalidad_seguros";
 
 async function ListarCompleto(req, res) {
   try {
@@ -36,9 +37,13 @@ async function ListarCompleto(req, res) {
       ListarUtil(nameTable),
       ListarUtil(nameTableFK1),
       ListarUtil(nameTableFK2),
+      ListarUtil(nameTableFK3, { activo: null }),
     ];
     //ASEGURADORA === INSTITUCION
-    const resultQuerys = await EjecutarVariosQuerys(querys);
+    const resultQuerys = await EjecutarVariosQuerys(querys, {
+      order: 3,
+      id: "id_tipo_entidad",
+    });
     if (resultQuerys.ok === null) {
       throw resultQuerys.result;
     }
@@ -47,7 +52,10 @@ async function ListarCompleto(req, res) {
     }
     const resultFinal = AsignarInformacionCompletaPorUnaClave(
       resultQuerys.result,
-      [{ table: nameTableFK2, key: "id_aseguradora" }]
+      [
+        { table: nameTableFK2, key: "id_aseguradora" },
+        { table: nameTableFK3, key: "id_tipo_modalidad" },
+      ]
     );
 
     respResultadoCorrectoObjeto200(res, resultFinal);
