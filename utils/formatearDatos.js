@@ -38,7 +38,7 @@ function separarStringCamelCasePorCaracter(string, characterSplit) {
 
 function ordenarArray(array, propiedad, tipo = "ASC") {
   if (tipo === "ASC") {
-    console.log(array);
+    // console.log(array);
     return array.sort((a, b) => {
       const valueA =
         typeof a === "string" ? a[propiedad].toLowerCase() : a[propiedad];

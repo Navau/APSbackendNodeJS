@@ -56,7 +56,7 @@ async function ListarCompleto(req, res) {
       EscogerInternoUtil(nameTableFK4, {
         select: ["*"],
         where: [
-          { key: "id_clasificador_comun_grupo", value: 6 },
+          { key: "id_clasificador_comun_grupo", value: 36 },
           { key: "activo", value: true },
         ],
       }), //CALIFICACION

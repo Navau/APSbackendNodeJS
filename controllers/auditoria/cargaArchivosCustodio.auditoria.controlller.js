@@ -1,4 +1,4 @@
-const { map } = require("lodash");
+const { map, find, forEach } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 
@@ -13,6 +13,7 @@ const {
   ValorMaximoDeCampoUtil,
   ObtenerUltimoRegistro,
   EscogerInternoUtil,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -27,6 +28,11 @@ const {
   respErrorServidor500END,
   respResultadoVacio404END,
 } = require("../../utils/respuesta.utils");
+const {
+  formatearFechaDeInformacion,
+  ordenarArray,
+} = require("../../utils/formatearDatos");
+const dayjs = require("dayjs");
 
 const nameTable = "APS_aud_carga_archivos_custodio";
 
@@ -264,38 +270,13 @@ async function UltimaCarga2(req, res) {
 
 async function Reporte(req, res) {
   try {
-    const { fecha, id_rol, iid_reporte, periodo } = req.body;
+    const { fecha, id_rol } = req.body;
     const querys = [];
-    const queryInstituciones = ListarUtil(
-      id_rol === 10
-        ? "aps_view_modalidad_seguros"
-        : "aps_view_modalidad_pensiones",
-      { activo: null }
-    );
-    const instituciones = await pool
-      .query(queryInstituciones)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-
-    if (instituciones.ok === null) {
-      throw instituciones.err;
-    }
-    const query = EscogerInternoUtil("APS_aud_carga_archivos_custodio", {
+    const query = EscogerInternoUtil(nameTable, {
       select: ["*"],
       where: [
         { key: "fecha_operacion", value: fecha },
-        {
-          key: "cod_institucion",
-          valuesWhereIn: map(
-            instituciones.result,
-            (item) => `'${item.codigo}'`
-          ),
-          whereIn: true,
-        },
+        { key: "id_rol", value: id_rol },
       ],
     });
     querys.push(query);
@@ -324,57 +305,22 @@ async function Reporte(req, res) {
     );
 
     const resultFinal = map(resultAux, (item) => {
-      if (iid_reporte === 6) {
-        return {
-          id: item.id_carga_archivos,
-          descripcion: item.descripcion,
-          estado: item.resultado,
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: item.usuario,
-          id_carga_archivos: item.id_carga_archivos,
-          id_rol: item.id_rol,
-        };
-      }
-      if (iid_reporte === 7) {
-        return {
-          id: item.id_valida_archivos,
-          estado: item.validado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valida_archivos: item.id_valida_archivos,
-          id_rol: item.id_rol,
-          validado: item.validado,
-        };
-      }
-      if (iid_reporte === 8) {
-        return {
-          id: item.id_valora_archivos,
-          estado: item.valorado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valora_archivos: item.id_valora_archivos,
-          id_rol: item.id_rol,
-          valorado: item.valorado,
-        };
-      }
+      return {
+        id: item.id_carga_archivos,
+        id_carga_archivos: item.id_carga_archivos,
+        estado: item.cargado ? "Con Éxito" : "Con Error",
+        cargado: item.cargado,
+        fecha_operacion: item.fecha_operacion,
+        fecha_entrega: item.fecha_entrega,
+        fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+        nro_carga: item.nro_carga,
+        usuario: find(
+          usuarios.data,
+          (itemF) => item.id_usuario === itemF.id_usuario
+        )?.usuario,
+        id_rol: item.id_rol,
+      };
     });
-    //TO DO PREGUNTAR SI TODAS LAS DESCRIPCIONES DE SEGUROS SON DIARIAS, O COMO PODRIA CONSULTAR ESTO
-
     respResultadoCorrectoObjeto200(res, ordenarArray(resultFinal, "id", "ASC"));
   } catch (err) {
     respErrorServidor500END(res, err);
@@ -542,4 +488,5 @@ module.exports = {
   ValorMaximo,
   UltimaCarga,
   UltimaCarga2,
+  Reporte,
 };
