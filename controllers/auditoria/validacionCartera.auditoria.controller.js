@@ -355,9 +355,10 @@ async function ObtenerInformacion(req, res) {
         select: ["*"],
         where: [{ key: `fecha`, value: fecha }],
       }),
-      `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol IN (${id_rol_cargas.join()})) AS INTEGER))`,
+      `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND cod_institucion IN (SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol IN (${id_rol_cargas.join()}))`,
     ];
 
+    // `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol IN (${id_rol_cargas.join()})) AS INTEGER))`,
     id_rol === 10
       ? querys.push(
           `SELECT COUNT(*) FROM public."APS_view_existe_valores_seguros";`
