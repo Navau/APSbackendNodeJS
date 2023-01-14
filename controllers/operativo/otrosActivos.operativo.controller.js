@@ -92,6 +92,24 @@ async function ListarCompleto(req, res) {
   }
 }
 
+async function EmisorTGN(req, res) {
+  const query = EscogerInternoUtil(nameTableFK1, {
+    select: ["*"],
+    where: [
+      { key: "id_pais", value: 8, operator: "<>" },
+      { key: "codigo_rmv", value: "TGN", operatorSQL: "OR" },
+    ],
+  });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 //FUNCION PARA OBTENER TODOS LOS OTROS ACTIVOS DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
@@ -254,4 +272,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   ListarCompleto,
+  EmisorTGN,
 };

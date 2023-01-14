@@ -612,21 +612,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         };
       }
       if (iid_reporte === 25) {
-        return {
-          id: item.id_valora_archivos,
-          estado: item.valorado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valora_archivos: item.id_valora_archivos,
-          id_rol: item.id_rol,
-          valorado: item.valorado,
-        };
+        return item;
       }
     });
     //TO DO PREGUNTAR SI TODAS LAS DESCRIPCIONES DE SEGUROS SON DIARIAS, O COMO PODRIA CONSULTAR ESTO
@@ -665,7 +651,7 @@ async function HabilitarReproceso(req, res) {
     const { fecha, periodicidad, codigo_entidad } = req.body;
     const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
       "YYYY-MM-DD HH:mm:ss.SSS"
-    )}}' WHERE fecha_operacion = '${fecha}' AND id_periodo = ${periodicidad} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
+    )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND id_periodo = ${periodicidad} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
     console.log(queryUpdate);
     const querys = [
       queryUpdate,

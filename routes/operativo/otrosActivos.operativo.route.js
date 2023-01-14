@@ -12,6 +12,11 @@ api.get(
   [md_auth.AsegurarAutenticacionConToken],
   controller.ListarCompleto
 );
+api.get(
+  "/EmisorTGN",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.EmisorTGN
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",
