@@ -1457,8 +1457,8 @@ async function EjecutarVariosQuerys(querys = [], newID) {
           table: v,
           order: counterAux,
           id:
-            newID.order === counterAux
-              ? newID.id
+            newID?.order === counterAux
+              ? newID?.id
               : ObtenerIDDeTabla(v, result.rows)?.idKey,
         });
       })
