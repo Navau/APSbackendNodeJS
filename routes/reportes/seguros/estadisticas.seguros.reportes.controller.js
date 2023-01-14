@@ -9,5 +9,10 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.estadisticasInversiones3
 );
+api.post(
+  "/NombreReporte",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.nombreReporte
+);
 
 module.exports = api;

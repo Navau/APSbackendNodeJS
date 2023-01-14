@@ -86,10 +86,16 @@ function obtenerFechaActual() {
   console.log(dateFinal);
   return dateFinal;
 }
+const formatoMiles = (number) => {
+  const exp = /(\d)(?=(\d{3})+(?!\d))/g;
+  const rep = "$1,";
+  return number.toString().replace(exp, rep);
+};
 
 module.exports = {
   formatearFechaDeInformacion,
   separarStringCamelCasePorCaracter,
   ordenarArray,
   obtenerFechaActual,
+  formatoMiles,
 };

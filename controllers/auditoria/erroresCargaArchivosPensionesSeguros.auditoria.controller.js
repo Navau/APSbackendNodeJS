@@ -138,6 +138,43 @@ async function Escoger(req, res) {
   }
 }
 
+async function EscogerValidacionPreliminar(req, res) {
+  const { id_carga_archivos, fecha_carga, reproceso, cargado } = req.body;
+
+  const params = {
+    activo: null,
+    body: {
+      id_carga_archivos,
+    },
+  };
+  const query = EscogerUtil(nameTable, params);
+  if (cargado === true && reproceso === false) {
+    respResultadoCorrectoObjeto200(
+      res,
+      [],
+      "La Validación Preliminar fue exitosa"
+    );
+    return;
+  } else if (cargado === true && reproceso === true) {
+    respResultadoCorrectoObjeto200(
+      res,
+      [],
+      `Hubo Autorización de Reproceso ${dayjs(fecha_carga)
+        .locale("es")
+        .format("[el día] DD [de] MMMM [de] YYYY [a las] HH:mm")}`
+    );
+    return;
+  }
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 async function Reporte(req, res) {
   function padTo2Digits(num) {
     return num.toString().padStart(2, "0");
@@ -478,4 +515,5 @@ module.exports = {
   ValorMaximo,
   Reporte,
   EnviarCorreo,
+  EscogerValidacionPreliminar,
 };

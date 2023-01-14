@@ -104,6 +104,7 @@ function tipoReporte(id, fecha) {
       fun: "aps_fun_seguros_cartera_valorada",
       acronym: "Boletín Cuadro 1.4",
       header: {
+        nameExcel: "Comparativo Tipo Instrumento.xlsx",
         acronym: "BC1_4",
         title: `INVERSIONES SEGUROS AL ${dayjs(fecha)
           .locale("es")
@@ -118,6 +119,7 @@ function tipoReporte(id, fecha) {
       fun: "aps_fun_diversificacion_emisor_tipoaseguradora",
       acronym: "REP EMISOR TIPO ASEGURADORA",
       header: {
+        nameExcel: "Diversificacion Emisor.xlsx",
         acronym: "R.E.T.A",
         title: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
         subtitle1: "Entidades de Seguros y Reaseguros",
@@ -129,25 +131,26 @@ function tipoReporte(id, fecha) {
         date: fecha,
       },
     },
-    9: {
-      fun: "aps_fun_inversionesrir",
-      acronym: "Boletín Cuadro 1.5",
-      header: {
-        acronym: "Boletín Cuadro 1.5",
-        titl1: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PERSONAS`,
-        title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE GENERALES`,
-        title3: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PREPAGO`,
-        subtitle1: dayjs(fecha)
-          .locale("es")
-          .format("[Al] DD [DE] MMMM [DE] YYYY [- Expresado en Bolivianos]")
-          .toUpperCase(),
-        date: fecha,
-      },
-    },
+    // 9: {
+    //   fun: "aps_fun_inversionesrir",
+    //   acronym: "Boletín Cuadro 1.5",
+    //   header: {
+    //     acronym: "Boletín Cuadro 1.5",
+    //     titl1: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PERSONAS`,
+    //     title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE GENERALES`,
+    //     title3: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PREPAGO`,
+    //     subtitle1: dayjs(fecha)
+    //       .locale("es")
+    //       .format("[Al] DD [DE] MMMM [DE] YYYY [- Expresado en Bolivianos]")
+    //       .toUpperCase(),
+    //     date: fecha,
+    //   },
+    // },
     10: {
       fun: "aps_fun_inversiones_tgn",
       acronym: "TGN-BCB",
       header: {
+        nameExcel: "RIA TGN-BCB.xlsx",
         acronym: "TGN-BCB",
         title: `AUTORIDAD DE FISCALIZACIÓN Y CONTROL DE PENSIONES Y SEGUROS`,
         subtitle1: "DIRECCIÓN DE INVERSIONES",
@@ -164,12 +167,29 @@ function tipoReporte(id, fecha) {
       fun: "aps_fun_inversiones_por_emisor",
       acronym: "REP EMISOR",
       header: {
+        nameExcel: "Valores por Emisor.xlsx",
         acronym: "R.E",
         title: `CARTERA DE INVERSIONES DE VALORES POR EMISOR`,
         subtitle1: "Seguros Generales y Seguros de Personas",
         subtitle2: dayjs(fecha)
           .locale("es")
           .format("[INVERSIONES SEGUROS AL] DD [DE] MMMM [DE] YYYY")
+          .toUpperCase(),
+        date: fecha,
+      },
+    },
+    24: {
+      fun: "aps_fun_diversificacion_emisor_tipoaseguradora",
+      acronym: "REP INSTRUMENTO TIPO ASEGURADORA",
+      header: {
+        nameExcel: "Inversiones Tipo Instrumento.xlsx",
+        acronym: "R.I.T.A",
+        title: `INVERSIONES POR TIPO INSTRUMENTO`,
+        subtitle1: "TOTAL Seguros Personales",
+        subtitle2: "Cartera a Valor de Mercado",
+        subtitle3: dayjs(fecha)
+          .locale("es")
+          .format("[AL] DD [DE] MMMM [DE] YYYY")
           .toUpperCase(),
         date: fecha,
       },
@@ -262,15 +282,22 @@ async function estadisticasInversiones3(req, res) {
       respDatosNoRecibidos400(res, "Los datos no fueron recibidos");
       return;
     }
-    const nameExcelExport = `Estadisticas_Inversiones ${dayjs(fecha)
+
+    const infoReportesAuxArray = [];
+    const nameAux = `Estadisticas_Inversiones ${dayjs(fecha)
       .locale("es")
       .format("MMMM YYYY")
       .toUpperCase()}.xlsx`;
+    const ExcelExport = {
+      name: nameAux,
+      count: 0,
+    };
 
-    const infoReportesAuxArray = [];
-
-    const querys = map(reportes, (id_reporte) => {
+    const querys = map(reportes, (id_reporte, index) => {
       const infoReporte = tipoReporte(id_reporte, fecha);
+      ExcelExport.name = infoReporte.header.nameExcel;
+      ExcelExport.count = index;
+
       infoReportesAuxArray.push(infoReporte);
       return EjecutarFuncionSQL(infoReporte.fun, {
         body: {
@@ -298,30 +325,14 @@ async function estadisticasInversiones3(req, res) {
       });
       return item.data;
     });
-    console.log(estadisticosDataFinal);
-    forEach(estadisticosDataFinal, (itemData, indexData) => {
-      if (itemData?.header?.acronym === "Boletín Cuadro 1.5") {
-        const entidades = groupBy(itemData, "tipoentidad");
-        const arrayAux = [];
-        forEach(
-          entidades["Empresas de Seguros de Personas"],
-          (itemEntidad, indexEntidad) => {
-            arrayAux.push({
-              // composicion: ,
-              // [itemEntidad.institucion]:
-            });
-          }
-        );
-        console.log(arrayAux);
-      }
-    });
-    // console.log(estadisticosDataFinal);
+    // // console.log(estadisticosDataFinal);
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
     forEach(estadisticosDataFinal, (item) => {
       formatDataChartsReportExcel(fecha, item, item.header, wb);
     });
-    const pathExcel = path.join("reports", nameExcelExport);
+    const nameExcelFinal = ExcelExport.count > 0 ? nameAux : ExcelExport.name;
+    const pathExcel = path.join("reports", nameExcelFinal);
 
     wb.write(pathExcel, (err, stats) => {
       // console.log("ERR", err);
@@ -330,9 +341,25 @@ async function estadisticasInversiones3(req, res) {
       if (err) {
         respErrorServidor500END(res, err);
       } else {
-        respDescargarArchivos200(res, pathExcel, nameExcelExport);
+        respDescargarArchivos200(res, pathExcel, nameExcelFinal);
       }
     });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+function nombreReporte(req, res) {
+  try {
+    const { reporte, fecha } = req.body;
+    const nameAux = `Estadisticas_Inversiones ${dayjs(fecha)
+      .locale("es")
+      .format("MMMM YYYY")
+      .toUpperCase()}.xlsx`;
+    respResultadoCorrectoObjeto200(
+      res,
+      tipoReporte(reporte, fecha)?.header?.nameExcel || nameAux
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -342,4 +369,5 @@ module.exports = {
   estadisticasInversiones,
   estadisticasInversiones2,
   estadisticasInversiones3,
+  nombreReporte,
 };

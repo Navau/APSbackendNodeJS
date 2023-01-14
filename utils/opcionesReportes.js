@@ -13,6 +13,7 @@ const {
 } = require("lodash");
 const fs = require("fs");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
+const { formatoMiles } = require("./formatearDatos");
 
 require("dayjs/locale/es");
 dayjs.locale("es");
@@ -449,11 +450,11 @@ function formatDataChartsReportExcel(fecha, body, header, wb) {
     ? (body["titulo_monto_valorado"] = "Monto Valorado $us")
     : "";
   !("titulo_porcentaje_valorado" in body)
-    ? (body["titulo_porcentaje_valorado"] = "%")
+    ? (body["titulo_porcentaje_valorado"] = "Porcentaje %")
     : "";
 
   !("titulo_porcentaje_valorado" in body)
-    ? (body["titulo_porcentaje_valorado"] = "%")
+    ? (body["titulo_porcentaje_valorado"] = "Porcentaje %")
     : "";
 
   !("titulo_extranjero" in body)
@@ -481,6 +482,7 @@ function formatDataChartsReportExcel(fecha, body, header, wb) {
   // console.log(body);
   //#endregion
   //#endregion
+  // console.log(body.header.nameExcel);
   const ws = wb.addWorksheet(body.codeSegurosAux); // HOJA DE INSTITUCION
 
   const dataReportBody = {
@@ -2302,7 +2304,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                     fgColor: "8EA9DB",
                   },
                 }),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 fontBold: (bold = true) => {
                   return customSingleStyleReportExcel(wb, {
                     font: {
@@ -2314,7 +2316,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
             : {
                 border: {},
                 fill: {},
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 fontBold: () => {
                   return {};
                 },
@@ -2325,7 +2327,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                 value: itemData.tipo_instrumento,
                 key: "tipo_instrumento",
                 indent: indentStyleReportExcel(3, 3),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 style: {
                   ...customSingleStyleReportExcel(wb, {
                     border: {
@@ -2364,18 +2366,10 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 1)
-          .string(itemData?.valor_cartera_m1)
-          .style(styleDefault)
-          .style(VALUE_GROUP.style)
-          .style(VALUE_GROUP.fontBold(false))
-          .style(VALUE_GROUP.align)
-          .style(VALUE_TOTAL.border)
-          .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
-        ws.cell(posXIteration, posYIteration + 2)
           .string(
-            itemData?.participacion_m1 ? itemData.participacion_m1 + "%" : ""
+            itemData?.valor_cartera_m1 || itemData?.valor_cartera_m1 === 0
+              ? formatoMiles(parseFloat(itemData.valor_cartera_m1).toFixed(2))
+              : ""
           )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
@@ -2383,23 +2377,41 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
-        ws.cell(posXIteration, posYIteration + 3)
-          .string(itemData?.valor_cartera_m2)
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(
+            itemData?.participacion_m1 || itemData?.participacion_m1 === 0
+              ? parseFloat(itemData.participacion_m1).toFixed(2) + "%"
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(
+            itemData?.valor_cartera_m2 || itemData?.valor_cartera_m2 === 0
+              ? formatoMiles(parseFloat(itemData.valor_cartera_m2).toFixed(2))
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 4)
           .string(
-            itemData?.participacion_m2 ? itemData.participacion_m2 + "%" : ""
+            itemData?.participacion_m2 || itemData?.participacion_m2 === 0
+              ? parseFloat(itemData.participacion_m2).toFixed(2) + "%"
+              : ""
           )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
@@ -2407,8 +2419,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         posXIteration++;
       }
@@ -2667,7 +2678,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                     fgColor: "8EA9DB",
                   },
                 }),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 fontBold: (bold = true) => {
                   return customSingleStyleReportExcel(wb, {
                     font: {
@@ -2690,7 +2701,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                 value: itemData.codemisor,
                 key: "codemisor",
                 indent: indentStyleReportExcel(3, 3),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 style: {
                   ...customSingleStyleReportExcel(wb, {
                     border: {
@@ -2733,27 +2744,14 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
-          .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 2)
-          .string(itemData?.sgeneralcartera)
-          .style(styleDefault)
-          .style(VALUE_GROUP.style)
-          .style(VALUE_GROUP.fontBold(false))
-          .style(VALUE_GROUP.align)
-          .style(VALUE_TOTAL.border)
-          .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
-
-        ws.cell(posXIteration, posYIteration + 3)
           .string(
-            itemData?.sgeneralporcentaje
-              ? itemData.sgeneralporcentaje + "%"
+            itemData?.sgeneralcartera || itemData?.sgeneralcartera === 0
+              ? formatoMiles(parseFloat(itemData.sgeneralcartera).toFixed(2))
               : ""
           )
           .style(styleDefault)
@@ -2762,24 +2760,40 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
-
-        ws.cell(posXIteration, posYIteration + 4)
-          .string(itemData?.spersonascartera)
+          .style(VALUE_TOTAL.fontBold());
+        // number.toLocaleString('es-MX')
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(
+            itemData?.sgeneralporcentaje || itemData?.sgeneralporcentaje === 0
+              ? parseFloat(itemData.sgeneralporcentaje).toFixed(2) + "%"
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(
+            itemData?.spersonascartera || itemData?.spersonascartera === 0
+              ? formatoMiles(parseFloat(itemData.spersonascartera).toFixed(2))
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 5)
           .string(
             itemData?.spersonasporcentaje
-              ? itemData.spersonasporcentaje + "%"
+              ? parseFloat(itemData.spersonasporcentaje).toFixed(2) + "%"
               : ""
           )
           .style(styleDefault)
@@ -2788,24 +2802,26 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 6)
-          .string(itemData?.sprepagocartera)
+          .string(
+            itemData?.sprepagocartera || itemData?.sprepagocartera === 0
+              ? formatoMiles(parseFloat(itemData.sprepagocartera).toFixed(2))
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 7)
           .string(
             itemData?.sprepagoporcentaje
-              ? itemData.sprepagoporcentaje + "%"
+              ? parseFloat(itemData.sprepagoporcentaje).toFixed(2) + "%"
               : ""
           )
           .style(styleDefault)
@@ -2814,23 +2830,16 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 8)
-          .string(itemData?.totalsprepagocartera)
-          .style(styleDefault)
-          .style(VALUE_GROUP.style)
-          .style(VALUE_GROUP.fontBold(false))
-          .style(VALUE_GROUP.align)
-          .style(VALUE_TOTAL.border)
-          .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
-
-        ws.cell(posXIteration, posYIteration + 9)
           .string(
-            itemData?.totalporcentaje ? itemData.totalporcentaje + "%" : ""
+            itemData?.totalsprepagocartera ||
+              itemData?.totalsprepagocartera === 0
+              ? formatoMiles(
+                  parseFloat(itemData.totalsprepagocartera).toFixed(2)
+                )
+              : ""
           )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
@@ -2838,8 +2847,21 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 9)
+          .string(
+            itemData?.totalporcentaje
+              ? parseFloat(itemData.totalporcentaje).toFixed(2) + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
 
         posXIteration++;
       }
@@ -2993,7 +3015,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                     fgColor: "8EA9DB",
                   },
                 }),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 fontBold: (bold = true) => {
                   return customSingleStyleReportExcel(wb, {
                     font: {
@@ -3016,7 +3038,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                 value: itemData.emisor,
                 key: "emisor",
                 indent: indentStyleReportExcel(3, 3),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 style: {
                   ...customSingleStyleReportExcel(wb, {
                     border: {
@@ -3055,37 +3077,46 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 1)
-          .string(itemData?.extranjero)
+          .string(
+            itemData?.extranjero || itemData?.extranjero === 0
+              ? formatoMiles(parseFloat(itemData.extranjero).toFixed(2))
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 2)
-          .string(itemData?.nacional)
+          .string(
+            itemData?.nacional || itemData?.nacional === 0
+              ? formatoMiles(parseFloat(itemData.nacional).toFixed(2))
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 3)
-          .string(itemData?.totalgeneral)
+          .string(
+            itemData?.totalgeneral || itemData?.totalgeneral === 0
+              ? formatoMiles(parseFloat(itemData.totalgeneral).toFixed(2))
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         posXIteration++;
       }
@@ -3093,26 +3124,6 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
 
     posXIteration += 1;
     posXInitial = posXIteration;
-
-    // const labelsChart = [];
-    // forEach(data, (item) => {
-    //   if (!item.tipo_instrumento.toLowerCase().includes("total")) {
-    //     labelsChart.push(
-    //       item.tipo_instrumento + " " + item.participacion_m2 + "%"
-    //     );
-    //   }
-    // });
-    // const dataChart = [];
-    // forEach(data, (item) => {
-    //   if (item?.participacion_m2) {
-    //     if (!item.tipo_instrumento.toLowerCase().includes("total")) {
-    //       dataChart.push(item.participacion_m2);
-    //     }
-    //   }
-    // });
-
-    // const image = await createChart(dataChart, labelsChart, data.header);
-    // const pathImage = path.join("reports/charts", `${image}.png`);
   } else if (report.code === "TGN-BCB") {
     const styleDefault = defaultStyleReportExcel("body");
     let posXInitial = 4;
@@ -3203,12 +3214,15 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
     ws.cell(posXIteration, posYIteration)
       .string(data?.titulo_instrumento)
       .style(styleDefault)
-      .style(cellTitleStyle.style);
+      .style(cellTitleStyle.style)
+      .style(alignTextStyleReportExcel("left"));
 
     ws.cell(posXIteration, posYIteration + 1)
       .string(data?.titulo_serie)
       .style(styleDefault)
-      .style(cellTitleStyle.style);
+      .style(cellTitleStyle.style)
+      .style(alignTextStyleReportExcel("left"));
+
     ws.cell(posXIteration, posYIteration + 2)
       .string(data?.titulo_cantidad_valores)
       .style(styleDefault)
@@ -3245,7 +3259,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                     fgColor: "8EA9DB",
                   },
                 }),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 fontBold: (bold = true) => {
                   return customSingleStyleReportExcel(wb, {
                     font: {
@@ -3268,7 +3282,7 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
                 value: itemData.instrumento,
                 key: "instrumento",
                 indent: indentStyleReportExcel(3, 3),
-                align: alignTextStyleReportExcel("center"),
+                align: alignTextStyleReportExcel("right"),
                 style: {
                   ...customSingleStyleReportExcel(wb, {
                     border: {
@@ -3311,11 +3325,9 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
-          .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 2)
           .string(`${itemData?.cantidad}`)
@@ -3325,30 +3337,457 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 3)
-          .string(itemData?.totalvaloradousd)
+          .string(
+            itemData?.totalvaloradousd || itemData?.totalvaloradousd === 0
+              ? formatoMiles(parseFloat(itemData.totalvaloradousd).toFixed(2))
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
 
         ws.cell(posXIteration, posYIteration + 4)
-          .string(itemData?.totalvaloradobs)
+          .string(
+            itemData?.totalvaloradobs || itemData?.totalvaloradobs === 0
+              ? formatoMiles(parseFloat(itemData.totalvaloradobs).toFixed(2))
+              : ""
+          )
           .style(styleDefault)
           .style(VALUE_GROUP.style)
           .style(VALUE_GROUP.fontBold(false))
           .style(VALUE_GROUP.align)
           .style(VALUE_TOTAL.border)
           .style(VALUE_TOTAL.fill)
-          .style(VALUE_TOTAL.fontBold())
-          .style(VALUE_TOTAL.align);
+          .style(VALUE_TOTAL.fontBold());
+
+        posXIteration++;
+      }
+    });
+
+    posXIteration += 1;
+    posXInitial = posXIteration;
+  } else if (report.code === "REP INSTRUMENTO TIPO ASEGURADORA") {
+    const styleDefault = defaultStyleReportExcel("body");
+    let posXInitial = 4;
+    let posXIteration = posXInitial;
+    let posYInitial = 1;
+    let posYIteration = posYInitial;
+    const data = report?.data;
+    // console.log("data", data);
+    ws.column(1).setWidth(20);
+    ws.column(2).setWidth(60);
+    ws.column(3).setWidth(25);
+    ws.column(4).setWidth(25);
+    ws.column(5).setWidth(25);
+    ws.column(6).setWidth(25);
+    ws.column(7).setWidth(25);
+    ws.column(8).setWidth(25);
+    ws.column(9).setWidth(25);
+    ws.column(10).setWidth(25);
+    //#region CABECERAS
+    const cellHeaderStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        font: {
+          color: "#FFFFFF",
+          size: 14,
+        },
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "366092",
+        },
+        border: {
+          top: { style: "hair" },
+          bottom: { style: "hair" },
+          left: { style: "hair" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    const cellTitleStyle = {
+      style: customSingleStyleReportExcel(wb, {
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "95B3D7",
+        },
+        border: {
+          top: { style: "medium" },
+          bottom: { style: "medium" },
+          left: { style: "medium" },
+          right: { style: "hair" },
+        },
+        ...alignTextStyleReportExcel("center"),
+      }),
+    };
+    //#region CABECERAS PRINCIPALES
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.title)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.subtitle1)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.subtitle2)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.header.subtitle3)
+      .style(styleDefault)
+      .style(cellHeaderStyle.style);
+    posXIteration += 1;
+    //#endregion
+
+    //#region CABECERAS SECUNDARIAS
+    ws.cell(
+      posXIteration,
+      posYIteration,
+      posXIteration + 1,
+      posYIteration,
+      true
+    )
+      .string(data?.titulo_codeEmisor)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 1,
+      posXIteration + 1,
+      posYIteration + 1,
+      true
+    )
+      .string(data?.titulo_emisor)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 2,
+      posXIteration,
+      posYIteration + 3,
+      true
+    )
+      .string(data?.titulo_general)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 2)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 3)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 4,
+      posXIteration,
+      posYIteration + 5,
+      true
+    )
+      .string(data?.titulo_personal)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 4)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 5)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 6,
+      posXIteration,
+      posYIteration + 7,
+      true
+    )
+      .string(data?.titulo_prepago)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 6)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 7)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(
+      posXIteration,
+      posYIteration + 8,
+      posXIteration,
+      posYIteration + 9,
+      true
+    )
+      .string(data?.titulo_entidades)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 8)
+      .string(data?.titulo_monto_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    ws.cell(posXIteration + 1, posYIteration + 9)
+      .string(data?.titulo_porcentaje_valorado)
+      .style(styleDefault)
+      .style(cellTitleStyle.style);
+
+    //#endregion
+    //#endregion
+    posXIteration += 2;
+    forEach(data, (itemData) => {
+      if (itemData.codeSeguros === "REP INSTRUMENTO TIPO ASEGURADORA") {
+        //#region ESTILOS BODY
+        const VALUE_TOTAL =
+          itemData.codemisor.toLowerCase().includes("final") ||
+          itemData.codemisor.toLowerCase().includes("total")
+            ? {
+                border: {
+                  border: {
+                    bottom: { style: "medium" },
+                  },
+                },
+                fill: customSingleStyleReportExcel(wb, {
+                  fill: {
+                    type: "pattern",
+                    patternType: "solid",
+                    fgColor: "8EA9DB",
+                  },
+                }),
+                align: alignTextStyleReportExcel("right"),
+                fontBold: (bold = true) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                border: {},
+                fill: {},
+                align: alignTextStyleReportExcel("center"),
+                fontBold: () => {
+                  return {};
+                },
+              };
+        const VALUE_GROUP =
+          size(trim(itemData?.codemisor)) > 0
+            ? {
+                value: itemData.codemisor,
+                key: "codemisor",
+                indent: indentStyleReportExcel(3, 3),
+                align: alignTextStyleReportExcel("right"),
+                style: {
+                  ...customSingleStyleReportExcel(wb, {
+                    border: {
+                      bottom: { style: "dashed" },
+                      right: { style: "thin" },
+                      left: { style: "medium" },
+                    },
+                  }),
+                },
+                fontBold: (bold = false) => {
+                  return customSingleStyleReportExcel(wb, {
+                    font: {
+                      bold,
+                    },
+                  });
+                },
+              }
+            : {
+                value: "Sin información",
+                key: "",
+                indent: {},
+                style: {},
+                align: {},
+                fontBold: (bold) => {
+                  return {};
+                },
+              };
+        //#endregion
+        ws.cell(posXIteration, posYIteration)
+          .string(`${VALUE_GROUP.value}`)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.indent)
+          .style(VALUE_GROUP.fontBold())
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 1)
+          .string(itemData?.emisor)
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 2)
+          .string(
+            itemData?.sgeneralcartera || itemData?.sgeneralcartera === 0
+              ? formatoMiles(parseFloat(itemData.sgeneralcartera).toFixed(2))
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+        // number.toLocaleString('es-MX')
+        ws.cell(posXIteration, posYIteration + 3)
+          .string(
+            itemData?.sgeneralporcentaje || itemData?.sgeneralporcentaje === 0
+              ? parseFloat(itemData.sgeneralporcentaje).toFixed(2) + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 4)
+          .string(
+            itemData?.spersonascartera || itemData?.spersonascartera === 0
+              ? formatoMiles(parseFloat(itemData.spersonascartera).toFixed(2))
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 5)
+          .string(
+            itemData?.spersonasporcentaje
+              ? parseFloat(itemData.spersonasporcentaje).toFixed(2) + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 6)
+          .string(
+            itemData?.sprepagocartera || itemData?.sprepagocartera === 0
+              ? formatoMiles(parseFloat(itemData.sprepagocartera).toFixed(2))
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 7)
+          .string(
+            itemData?.sprepagoporcentaje
+              ? parseFloat(itemData.sprepagoporcentaje).toFixed(2) + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 8)
+          .string(
+            itemData?.totalsprepagocartera ||
+              itemData?.totalsprepagocartera === 0
+              ? formatoMiles(
+                  parseFloat(itemData.totalsprepagocartera).toFixed(2)
+                )
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
+
+        ws.cell(posXIteration, posYIteration + 9)
+          .string(
+            itemData?.totalporcentaje
+              ? parseFloat(itemData.totalporcentaje).toFixed(2) + "%"
+              : ""
+          )
+          .style(styleDefault)
+          .style(VALUE_GROUP.style)
+          .style(VALUE_GROUP.fontBold(false))
+          .style(VALUE_GROUP.align)
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.fontBold());
 
         posXIteration++;
       }

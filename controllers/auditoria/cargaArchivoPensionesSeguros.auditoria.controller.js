@@ -448,9 +448,52 @@ async function ReporteEnvio(req, res) {
   }
 }
 
+async function Modalidades(req, res) {
+  try {
+    const { fecha, id_tipo_modalidad } = req.body;
+    const querys = [
+      EscogerInternoUtil("aps_view_modalidad_seguros", {
+        select: ["*"],
+        where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+      }),
+    ];
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+    const modalidadesArray = map(results.result, (item, index) => {
+      return {
+        id_modalidad: index + 1,
+        titulo: "Todas",
+        fecha,
+        descripcion: "Todas las entidades",
+        esCompleto: false,
+        esTodoCompleto: false,
+        modalidades: map(results.result?.[0].data, (item) => {
+          return {
+            id_tipo_modalidad: item.id_tipo_entidad,
+            esCompleto: false,
+            descripcion: item.descripcion,
+            codigo: item.codigo,
+            institucion: item.institucion,
+            sigla: item.sigla,
+          };
+        }),
+      };
+    });
+
+    respResultadoCorrectoObjeto200(res, modalidadesArray);
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 async function ReporteControlEnvioPorTipoReporte(req, res) {
   try {
-    const { fecha, id_rol, iid_reporte, periodo } = req.body;
+    const { fecha, id_rol, iid_reporte, periodo, modalidades } = req.body;
     const querys = [];
     const queryInstituciones = ListarUtil(
       id_rol === 10
@@ -532,11 +575,26 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
       );
       querys.push(query);
     } else if (iid_reporte === 25) {
-      //VALORACION
-      const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", {
+      //CUSTODIO
+      const codigos = [];
+      forEach(modalidades, (item) =>
+        filter(item.modalidades, (modalidad) => {
+          if (modalidad.esCompleto === true) {
+            codigos.push(`'${modalidad.codigo}'`);
+          }
+        })
+      );
+      const paramsAux = {
         body: { fecha },
-      });
-      querys.push(query);
+      };
+      if (size(codigos) > 0) {
+        paramsAux.where = [
+          { key: "cod_institucion", valuesWhereIn: codigos, whereIn: true },
+        ];
+
+        const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", paramsAux);
+        querys.push(query);
+      }
     }
 
     querys.push(ListarUtil("APS_seg_usuario"));
@@ -855,4 +913,5 @@ module.exports = {
   ReporteControlEnvioPorTipoReporte,
   Entidades,
   HabilitarReproceso,
+  Modalidades,
 };

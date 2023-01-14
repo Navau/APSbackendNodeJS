@@ -19,6 +19,11 @@ api.post(
   controller.Escoger
 );
 api.post(
+  "/EscogerValidacionPreliminar",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.EscogerValidacionPreliminar
+);
+api.post(
   "/Reporte",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Reporte

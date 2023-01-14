@@ -166,18 +166,9 @@ function SiglaDescripcion(req, res) {
 }
 
 function TipoInstrumentoDetalle(req, res) {
-  const query = EscogerInternoUtil(nameTable, {
-    select: [
-      "id_tipo_instrumento",
-      "sigla",
-      "descripcion",
-      "id_grupo",
-      "es_seriado",
-      "id_tipo_renta",
-      "id_tipo_mercado",
-      "activo",
-    ],
-    where: [
+  try {
+    const body = req.body;
+    let whereAux = [
       {
         key: "es_seriado",
         value: true,
@@ -197,24 +188,49 @@ function TipoInstrumentoDetalle(req, res) {
         whereIn: true,
         searchCriteriaWhereIn: "NOT IN",
       },
-    ],
-    orderby: {
-      field: "sigla",
-    },
-  });
+    ];
 
-  pool
-    .query(query)
-    .then((result) => {
-      if (result.rowCount > 0) {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      } else {
-        respResultadoIncorrectoObjeto200(res, result.rows);
-      }
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
+    if (body?.id_tipo_instrumento)
+      whereAux = [
+        ...whereAux,
+        {
+          key: "id_tipo_instrumento",
+          valuesWhereIn: body.id_tipo_instrumento,
+          whereIn: true,
+        },
+      ];
+    const query = EscogerInternoUtil(nameTable, {
+      select: [
+        "id_tipo_instrumento",
+        "sigla",
+        "descripcion",
+        "id_grupo",
+        "es_seriado",
+        "id_tipo_renta",
+        "id_tipo_mercado",
+        "activo",
+      ],
+      where: whereAux,
+      orderby: {
+        field: "sigla",
+      },
     });
+
+    pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(res, result.rows);
+        }
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 //FUNCION PARA INSERTAR UN TIPO INSTRUMENTO
