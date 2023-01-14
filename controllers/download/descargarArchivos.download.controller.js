@@ -316,7 +316,8 @@ async function ListarArchivos2(req, res) {
         files,
         (file) =>
           includes(file, item.codigo) === true &&
-          includes(file, item.fecha) === true
+          includes(file, item.fecha) === true &&
+          !includes(file, ".CC")
       );
       resultFinal.push(...aux);
     });
