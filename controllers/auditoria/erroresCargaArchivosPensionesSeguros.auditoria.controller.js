@@ -149,15 +149,17 @@ async function EscogerValidacionPreliminar(req, res) {
   };
   const query = EscogerUtil(nameTable, params);
   if (cargado === true && reproceso === false) {
-    respResultadoCorrectoObjeto200(
+    respResultadoIncorrectoObjeto200(
       res,
+      null,
       [],
       "La Validación Preliminar fue exitosa"
     );
     return;
   } else if (cargado === true && reproceso === true) {
-    respResultadoCorrectoObjeto200(
+    respResultadoIncorrectoObjeto200(
       res,
+      null,
       [],
       `Hubo Autorización de Reproceso ${dayjs(fecha_carga)
         .locale("es")
