@@ -330,6 +330,18 @@ async function CargarArchivo(req, res) {
           });
           idTablesFilesArray.push(idTable);
 
+          const valuesWhereInAux = [
+            `'fecha_operacion'`,
+            `'fecha'`,
+            `'fecha_informacion'`,
+            `'cod_institucion'`,
+          ];
+
+          if (infoTables.cod_institution === "CC") {
+            valuesWhereInAux.push(`'tipo_instrumento'`);
+            valuesWhereInAux.push(`'serie'`);
+          }
+
           const queryInfoSchema = EscogerInternoUtil(
             "INFORMATION_SCHEMA.COLUMNS",
             {
@@ -337,14 +349,7 @@ async function CargarArchivo(req, res) {
               where: [
                 {
                   key: "COLUMN_NAME",
-                  valuesWhereIn: [
-                    `'fecha_operacion'`,
-                    `'fecha'`,
-                    `'fecha_informacion'`,
-                    `'cod_institucion'`,
-                    infoTables.cod_institution === "CC" && `'tipo_instrumento'`,
-                    infoTables.cod_institution === "CC" && `'serie'`,
-                  ],
+                  valuesWhereIn: valuesWhereInAux,
                   whereIn: true,
                 },
                 {
