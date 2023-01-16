@@ -72,24 +72,33 @@ async function Validar2(req, res) {
     const { id_rol, id_usuario } = req.user;
     const idRolFinal = id_rol_valora ? id_rol_valora : id_rol;
 
-    const valoracion = await pool
-      .query(
-        EjecutarFuncionSQL("aps_valida_valoracion_cartera", { body: { fecha } })
-      )
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-    if (valoracion?.err) {
-      throw valoracion.err;
-    }
+    const querys = [
+      EjecutarProcedimientoSQL(
+        idRolFinal === 10
+          ? "aps_proc_valoracion_cartera_seguros"
+          : "aps_proc_valoracion_cartera_pensiones",
+        {
+          body: {
+            fecha,
+          },
+        }
+      ),
+      EjecutarFuncionSQL("aps_valida_valoracion_cartera", { body: { fecha } }),
+    ];
 
-    if (size(valoracion.result) > 0) {
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+    const valoracion = results.result[1].data;
+
+    if (size(valoracion) > 0) {
       //#region INSTITUCIONES
       const instituciones = uniq(
-        map(valoracion.result, (item) => item.cod_institucion)
+        map(valoracion, (item) => item.cod_institucion)
       );
       //#endregion
       //#region CARGAS
@@ -163,7 +172,7 @@ async function Validar2(req, res) {
       const InsertarErroresArray = [];
       forEach(nuevaCarga.result, (itemCarga) => {
         const erroresAux = filter(
-          valoracion.result,
+          valoracion,
           (itemF) => itemF.cod_institucion === itemCarga.cod_institucion
         );
         InsertarErroresArray.push(
