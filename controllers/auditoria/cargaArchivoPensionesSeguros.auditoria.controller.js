@@ -7,9 +7,12 @@ const {
   isUndefined,
   includes,
   filter,
+  keys,
+  sortBy,
 } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
+const xl = require("excel4node");
 
 const {
   ListarUtil,
@@ -38,12 +41,18 @@ const {
   respErrorServidor500END,
   respResultadoVacio404END,
   respResultadoIncorrectoObjeto200,
+  respDescargarArchivos200,
 } = require("../../utils/respuesta.utils");
 const {
   formatearFechaDeInformacion,
   ordenarArray,
 } = require("../../utils/formatearDatos");
 const dayjs = require("dayjs");
+const {
+  defaultOptionsReportExcel,
+  SimpleReport,
+} = require("../../utils/opcionesReportes");
+const path = require("path");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
@@ -595,6 +604,11 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", paramsAux);
         querys.push(query);
       }
+    } else if (iid_reporte === 26) {
+      const query = EjecutarFuncionSQL("aps_fun_reporte_cartera_valorada", {
+        body: { fecha },
+      });
+      querys.push(query);
     }
 
     querys.push(ListarUtil("APS_seg_usuario"));
@@ -634,8 +648,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_carga_archivos: item.id_carga_archivos,
           id_rol: item.id_rol,
         };
-      }
-      if (iid_reporte === 7) {
+      } else if (iid_reporte === 7) {
         return {
           id: item.id_valida_archivos,
           estado: item.validado ? "Con Éxito" : "Con Error",
@@ -651,8 +664,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_rol: item.id_rol,
           validado: item.validado,
         };
-      }
-      if (iid_reporte === 8) {
+      } else if (iid_reporte === 8) {
         return {
           id: item.id_valora_archivos,
           estado: item.valorado ? "Con Éxito" : "Con Error",
@@ -668,14 +680,92 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_rol: item.id_rol,
           valorado: item.valorado,
         };
-      }
-      if (iid_reporte === 25) {
-        return item;
+      } else if (iid_reporte === 25) {
+        return {
+          Código: item.cod_institucion,
+          Fecha: item.fecha_informacion,
+          Instrumento: item.tipo_instrumento,
+          Serie: item.serie,
+          Total_MO_EDV: item.total_mo_edv,
+          Total_MO_APS: item.total_mo_aps,
+          Diferencia_Total: item.diferencia_total,
+          Cantidad_EDV: item.cantidad_edv,
+          Cantidad_APS: item.cantidad_aps,
+          Diferencia_Cantidad: item.diferencia_cantidad,
+        };
+      } else if (iid_reporte === 26) {
+        return {
+          Código: item.cod_institucion,
+          Fecha: item.fecha_informacion,
+          Instrumento: item.tipo_instrumento,
+          Serie: item.serie,
+          Total_MO: item.total_mo,
+          Total_APS: item.total_aps,
+          Diferencia_Total: item.diferencia_total,
+          Cantidad: item.cantidad,
+          Cantidad_APS: item.cantidad_aps,
+          Diferencia_Cantidad: item.diferencia_cantidad,
+        };
       }
     });
-    //TO DO PREGUNTAR SI TODAS LAS DESCRIPCIONES DE SEGUROS SON DIARIAS, O COMO PODRIA CONSULTAR ESTO
+    if (iid_reporte === 25 || iid_reporte === 26) {
+      if (size(resultFinal) > 0) {
+        const wb = new xl.Workbook(defaultOptionsReportExcel());
+        const keysResult = keys(resultFinal?.[0]);
+        const { folder, nameSheet, nameExcel } = TipoReporte(iid_reporte);
+        SimpleReport({
+          wb,
+          data: { headers: keysResult, values: resultFinal },
+          nameSheet,
+        });
+        const pathExcel = path.join(`reports/${folder}`, nameExcel);
 
-    respResultadoCorrectoObjeto200(res, ordenarArray(resultFinal, "id", "ASC"));
+        wb.write(pathExcel, (err, stats) => {
+          if (err) {
+            respErrorServidor500END(res, err);
+          } else {
+            respDescargarArchivos200(res, pathExcel, nameExcel);
+          }
+        });
+        return;
+      }
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        resultFinal,
+        "No existen registros para obtener el reporte"
+      );
+      return;
+    }
+
+    respResultadoCorrectoObjeto200(res, sortBy(resultFinal, ["id"]));
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+function TipoReporte(id) {
+  const ID_REPORTES = {
+    25: {
+      folder: "custodio",
+      nameSheet: "Custodio",
+      nameExcel: "Custodio Entidad.xlsx",
+    },
+    26: {
+      folder: "cartera",
+      nameSheet: "Cartera",
+      nameExcel: "Cartera Valorada.xlsx",
+    },
+  };
+
+  return ID_REPORTES[id];
+}
+
+function NombreReporte(req, res) {
+  try {
+    const { iid_reporte } = req.body;
+
+    return TipoReporte(iid_reporte)?.nameExcel || "Reporte";
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -914,4 +1004,5 @@ module.exports = {
   Entidades,
   HabilitarReproceso,
   Modalidades,
+  NombreReporte,
 };

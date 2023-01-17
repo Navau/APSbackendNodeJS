@@ -3798,6 +3798,93 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
   }
 }
 
+async function SimpleReport(params) {
+  const { wb, data, name } = params;
+  const { headers, values } = data;
+  const ws = wb.addWorksheet(name);
+  const styleDefault = defaultStyleReportExcel("body");
+  let posXInitial = 1;
+  let posXIteration = posXInitial;
+  let posYInitial = 1;
+  let posYIteration = posYInitial;
+  forEach(values, (itemValue, indexValue) => {
+    posYIteration = posYInitial;
+    if (indexValue === 0) {
+      forEach(headers, (itemHeader, indexHeader) => {
+        ws.column(indexHeader + 1).setWidth(30);
+        ws.cell(posXIteration, posYIteration)
+          .string(itemHeader)
+          .style(styleDefault)
+          .style(cellHeaderStyleDefault(wb));
+        posYIteration += 1;
+      });
+    } else {
+      const VALUES_STYLE = {
+        indent: indentStyleReportExcel(3, 3),
+        align: alignTextStyleReportExcel("center"),
+        style: {
+          ...customSingleStyleReportExcel(wb, {
+            border: {
+              bottom: { style: "dashed" },
+              right: { style: "thin" },
+              left: { style: "medium" },
+            },
+          }),
+        },
+        fontBold: (bold = false) => {
+          return customSingleStyleReportExcel(wb, {
+            font: {
+              bold,
+            },
+          });
+        },
+      };
+      forEach(itemValue, (itemValue2) => {
+        ws.cell(posXIteration, posYIteration)
+          .string(showValueInCell(itemValue2))
+          .style(styleDefault)
+          .style(VALUES_STYLE.indent)
+          .style(VALUES_STYLE.align)
+          .style(VALUES_STYLE.style)
+          .style(VALUES_STYLE.fontBold(false));
+        posYIteration += 1;
+      });
+    }
+    posXIteration += 1;
+  });
+}
+
+function showValueInCell(value) {
+  if (value instanceof Date) {
+    return dayjs(value).format("DD/MMMM/YYYY");
+  } else if (typeof value === "number") {
+    return formatoMiles(parseFloat(value).toFixed(2));
+  } else {
+    return value;
+  }
+}
+
+function cellHeaderStyleDefault(wb) {
+  return customSingleStyleReportExcel(wb, {
+    font: {
+      color: "#FFFFFF",
+      size: 14,
+    },
+    fill: {
+      type: "pattern",
+      patternType: "solid",
+      fgColor: "366092",
+    },
+    border: {
+      top: { style: "hair" },
+      bottom: { style: "hair" },
+      left: { style: "hair" },
+      right: { style: "hair" },
+    },
+    ...alignTextStyleReportExcel("center"),
+  });
+}
+
 module.exports = {
   alignTextStyleReportExcel,
   defaultOptionsReportExcel,
@@ -3807,5 +3894,6 @@ module.exports = {
   formatDataReportExcel,
   singleFormatDataReportExcel,
   formatDataChartsReportExcel,
+  SimpleReport,
   createChart,
 };

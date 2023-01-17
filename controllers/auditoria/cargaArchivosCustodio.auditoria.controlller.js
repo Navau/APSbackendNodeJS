@@ -1,4 +1,4 @@
-const { map, find, forEach } = require("lodash");
+const { map, find, forEach, sortBy } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
 
@@ -321,7 +321,8 @@ async function Reporte(req, res) {
         id_rol: item.id_rol,
       };
     });
-    respResultadoCorrectoObjeto200(res, ordenarArray(resultFinal, "id", "ASC"));
+    // respResultadoCorrectoObjeto200(res, ordenarArray(resultFinal, "id", "ASC"));
+    respResultadoCorrectoObjeto200(res, sortBy(resultFinal, ["id"]));
   } catch (err) {
     respErrorServidor500END(res, err);
   }
