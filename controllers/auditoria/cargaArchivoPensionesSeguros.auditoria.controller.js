@@ -744,6 +744,250 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
   }
 }
 
+async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
+  try {
+    const { fecha, id_rol, iid_reporte, periodo, modalidades } = req.body;
+    const querys = [];
+    const queryInstituciones = ListarUtil(
+      id_rol === 10
+        ? "aps_view_modalidad_seguros"
+        : "aps_view_modalidad_pensiones",
+      { activo: null }
+    );
+    const instituciones = await pool
+      .query(queryInstituciones)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+
+    if (instituciones.ok === null) {
+      throw instituciones.err;
+    }
+
+    if (iid_reporte === 6) {
+      if (!periodo) {
+        respDatosNoRecibidos400(res, "No se envio la periodicidad");
+        return;
+      }
+      // VALIDACION PRELIMINAR
+      const aux = map(instituciones.result, (item) => {
+        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
+          body: { fecha, cod_institucion: item.codigo, periodo: periodo },
+        });
+      });
+      forEach(aux, (item) => querys.push(item));
+    } else if (iid_reporte === 7) {
+      //VALIDACION
+      // querys.push(
+      //   EjecutarFuncionSQL("aps_reporte_control_envio", {
+      //     body: {
+      //       fecha,
+      //       idRolFinal,
+      //     },
+      //   })
+      // );
+      const query = EscogerInternoUtil(
+        "APS_aud_valida_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
+            },
+          ],
+        }
+      );
+      querys.push(query);
+    } else if (iid_reporte === 8) {
+      //VALORACION
+      const query = EscogerInternoUtil(
+        "APS_aud_valora_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
+            },
+          ],
+        }
+      );
+      querys.push(query);
+    } else if (iid_reporte === 25) {
+      //CUSTODIO
+      const codigos = [];
+      forEach(modalidades, (item) =>
+        filter(item.modalidades, (modalidad) => {
+          if (modalidad.esCompleto === true) {
+            codigos.push(`'${modalidad.codigo}'`);
+          }
+        })
+      );
+      const paramsAux = {
+        body: { fecha },
+      };
+      if (size(codigos) > 0) {
+        paramsAux.where = [
+          { key: "cod_institucion", valuesWhereIn: codigos, whereIn: true },
+        ];
+
+        const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", paramsAux);
+        querys.push(query);
+      }
+    } else if (iid_reporte === 26) {
+      const query = EjecutarFuncionSQL("aps_fun_reporte_cartera_valorada", {
+        body: { fecha },
+      });
+      querys.push(query);
+    }
+
+    querys.push(ListarUtil("APS_seg_usuario"));
+
+    const results = await EjecutarVariosQuerys(querys);
+
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+
+    let resultAux = [];
+
+    forEach(results.result, (item) => {
+      if (item.table !== "APS_seg_usuario") {
+        resultAux = [...resultAux, ...item.data];
+      }
+    });
+    const usuarios = find(
+      results.result,
+      (item) => item.table === "APS_seg_usuario"
+    );
+
+    const resultFinal = map(resultAux, (item) => {
+      if (iid_reporte === 6) {
+        return {
+          id: item.id_carga_archivos,
+          descripcion: item.descripcion,
+          estado: item.resultado,
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: item.usuario,
+          id_carga_archivos: item.id_carga_archivos,
+          id_rol: item.id_rol,
+        };
+      } else if (iid_reporte === 7) {
+        return {
+          id: item.id_valida_archivos,
+          estado: item.validado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valida_archivos: item.id_valida_archivos,
+          id_rol: item.id_rol,
+          validado: item.validado,
+        };
+      } else if (iid_reporte === 8) {
+        return {
+          id: item.id_valora_archivos,
+          estado: item.valorado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valora_archivos: item.id_valora_archivos,
+          id_rol: item.id_rol,
+          valorado: item.valorado,
+        };
+      } else if (iid_reporte === 25) {
+        return {
+          Código: item.cod_institucion,
+          Fecha: item.fecha_informacion,
+          Instrumento: item.tipo_instrumento,
+          Serie: item.serie,
+          Total_MO_EDV: item.total_mo_edv,
+          Total_MO_APS: item.total_mo_aps,
+          Diferencia_Total: item.diferencia_total,
+          Cantidad_EDV: item.cantidad_edv,
+          Cantidad_APS: item.cantidad_aps,
+          Diferencia_Cantidad: item.diferencia_cantidad,
+        };
+      } else if (iid_reporte === 26) {
+        return {
+          Código: item.cod_institucion,
+          Fecha: item.fecha_informacion,
+          Instrumento: item.tipo_instrumento,
+          Serie: item.serie,
+          Total_MO: item.total_mo,
+          Total_APS: item.total_aps,
+          Diferencia_Total: item.diferencia_total,
+          Cantidad: item.cantidad,
+          Cantidad_APS: item.cantidad_aps,
+          Diferencia_Cantidad: item.diferencia_cantidad,
+        };
+      }
+    });
+    if (iid_reporte === 25 || iid_reporte === 26) {
+      if (size(resultFinal) > 0) {
+        const wb = new xl.Workbook(defaultOptionsReportExcel());
+        const keysResult = keys(resultFinal?.[0]);
+        const { folder, nameSheet, nameExcel } = TipoReporte(iid_reporte);
+        SimpleReport({
+          wb,
+          data: { headers: keysResult, values: resultFinal },
+          nameSheet,
+        });
+        const pathExcel = path.join(`reports/${folder}`, nameExcel);
+
+        wb.write(pathExcel, (err, stats) => {
+          if (err) {
+            respErrorServidor500END(res, err);
+          } else {
+            respDescargarArchivos200(res, pathExcel, nameExcel);
+          }
+        });
+        return;
+      }
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        resultFinal,
+        "No existen registros para obtener el reporte"
+      );
+      return;
+    }
+
+    respResultadoCorrectoObjeto200(res, sortBy(resultFinal, ["id"]));
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 function TipoReporte(id) {
   const ID_REPORTES = {
     25: {
@@ -1008,4 +1252,5 @@ module.exports = {
   HabilitarReproceso,
   Modalidades,
   NombreReporte,
+  ReporteControlEnvioPorTipoReporteDescargas,
 };

@@ -28,6 +28,11 @@ api.post(
   controller.ReporteControlEnvioPorTipoReporte
 );
 api.post(
+  "/ReporteControlEnvioPorTipoReporteDescargas",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ReporteControlEnvioPorTipoReporteDescargas
+);
+api.post(
   "/NombreReporte",
   [md_auth.AsegurarAutenticacionConToken],
   controller.NombreReporte
