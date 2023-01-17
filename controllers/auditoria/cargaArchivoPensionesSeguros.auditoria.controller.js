@@ -763,9 +763,12 @@ function TipoReporte(id) {
 
 function NombreReporte(req, res) {
   try {
-    const { iid_reporte } = req.body;
+    const { reporte } = req.body;
 
-    return TipoReporte(iid_reporte)?.nameExcel || "Reporte";
+    respResultadoCorrectoObjeto200(
+      res,
+      TipoReporte(reporte)?.nameExcel || "Reporte"
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }
