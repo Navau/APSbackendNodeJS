@@ -13,6 +13,11 @@ api.post(
   controller.Reporte
 );
 api.post(
+  "/ReporteExito",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ReporteExito
+);
+api.post(
   "/ValorMaximo",
   [md_auth.AsegurarAutenticacionConToken],
   controller.ValorMaximo

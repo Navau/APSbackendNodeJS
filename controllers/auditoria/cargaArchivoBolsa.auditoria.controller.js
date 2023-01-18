@@ -189,7 +189,7 @@ async function UltimaCarga2(req, res) {
 
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO BOLSA DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
+  const query = ListarUtil(nameTable, { activo: null });
   await pool
     .query(query)
     .then((result) => {
@@ -209,6 +209,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -231,6 +232,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = EscogerUtil(nameTable, params);
     await pool
@@ -279,6 +281,36 @@ async function Reporte(req, res) {
         respErrorServidor500END(res, err);
       });
   }
+}
+
+async function ReporteExito(req, res) {
+  const { id_carga_archivos } = req.body;
+
+  await pool
+    .query(
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "id_carga_archivos", value: id_carga_archivos },
+          { key: "cargado", value: true },
+        ],
+      })
+    )
+    .then((result) => {
+      respResultadoCorrectoObjeto200(
+        res,
+        map(result.rows, (item) => {
+          return {
+            cod_institucion: "BBV",
+            descripcion: "La información esta correcta",
+            fecha_carga: item.fecha_carga,
+          };
+        })
+      );
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
 //FUNCION PARA INSERTAR UN CARGA ARCHIVO BOLSA
@@ -389,4 +421,5 @@ module.exports = {
   ValorMaximo,
   UltimaCarga,
   UltimaCarga2,
+  ReporteExito,
 };

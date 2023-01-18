@@ -392,7 +392,7 @@ function formatDataChartsReportExcel(fecha, body, header, wb) {
 
   // #region AÑADIENDO CAMPOS NECESARIOS AL OBJETO FINAL
   !("codeSegurosAux" in body)
-    ? (body["codeSegurosAux"] = body[0].codeSeguros)
+    ? (body["codeSegurosAux"] = body[0]?.codeSeguros)
     : "";
 
   !("header" in body) ? (body["header"] = header) : "";
