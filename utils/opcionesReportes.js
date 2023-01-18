@@ -108,7 +108,7 @@ function defaultStyleReportExcel(custom) {
         wrapText: true,
         horizontal: "left",
       },
-      numberFormat: "#,##0.00; (#,##0.00); -",
+      numberFormat: "#,##0.00; (#,##0.00); 0",
     };
   } else if (custom === "body") {
     return {
@@ -121,7 +121,7 @@ function defaultStyleReportExcel(custom) {
         wrapText: true,
         horizontal: "left",
       },
-      numberFormat: "#,##0.00; (#,##0.00); -",
+      numberFormat: "#,##0.00; (#,##0.00); 0",
     };
   }
 }
@@ -3799,9 +3799,9 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
 }
 
 async function SimpleReport(params) {
-  const { wb, data, name } = params;
+  const { wb, data, nameSheet } = params;
   const { headers, values } = data;
-  const ws = wb.addWorksheet(name);
+  const ws = wb.addWorksheet(nameSheet);
   const styleDefault = defaultStyleReportExcel("body");
   let posXInitial = 1;
   let posXIteration = posXInitial;
@@ -3840,13 +3840,14 @@ async function SimpleReport(params) {
         },
       };
       forEach(itemValue, (itemValue2) => {
-        ws.cell(posXIteration, posYIteration)
-          .string(showValueInCell(itemValue2))
-          .style(styleDefault)
-          .style(VALUES_STYLE.indent)
-          .style(VALUES_STYLE.align)
-          .style(VALUES_STYLE.style)
-          .style(VALUES_STYLE.fontBold(false));
+        showCell({
+          itemValue2,
+          posXIteration,
+          posYIteration,
+          ws,
+          VALUES_STYLE,
+          styleDefault,
+        });
         posYIteration += 1;
       });
     }
@@ -3856,11 +3857,47 @@ async function SimpleReport(params) {
 
 function showValueInCell(value) {
   if (value instanceof Date) {
-    return dayjs(value).format("DD/MMMM/YYYY");
+    return dayjs(value).format("DD/MM/YYYY");
   } else if (typeof value === "number") {
     return formatoMiles(parseFloat(value).toFixed(2));
   } else {
     return value;
+  }
+}
+
+function showCell(params) {
+  const {
+    itemValue2,
+    posXIteration,
+    posYIteration,
+    ws,
+    VALUES_STYLE,
+    styleDefault,
+  } = params;
+  if (itemValue2 instanceof Date) {
+    ws.cell(posXIteration, posYIteration)
+      .string(showValueInCell(itemValue2))
+      .style(styleDefault)
+      .style(VALUES_STYLE.indent)
+      .style(VALUES_STYLE.align)
+      .style(VALUES_STYLE.style)
+      .style(VALUES_STYLE.fontBold(false));
+  } else if (typeof itemValue2 === "number") {
+    ws.cell(posXIteration, posYIteration)
+      .number(itemValue2 === 0 ? 0 : itemValue2)
+      .style(styleDefault)
+      .style(VALUES_STYLE.indent)
+      .style(VALUES_STYLE.align)
+      .style(VALUES_STYLE.style)
+      .style(VALUES_STYLE.fontBold(false));
+  } else {
+    ws.cell(posXIteration, posYIteration)
+      .string(showValueInCell(itemValue2))
+      .style(styleDefault)
+      .style(VALUES_STYLE.indent)
+      .style(VALUES_STYLE.align)
+      .style(VALUES_STYLE.style)
+      .style(VALUES_STYLE.fontBold(false));
   }
 }
 

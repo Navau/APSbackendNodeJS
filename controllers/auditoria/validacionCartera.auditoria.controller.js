@@ -442,8 +442,200 @@ async function ObtenerInformacion(req, res) {
   }
 }
 
+async function Listar(req, res) {
+  const query = ListarUtil(nameTable, { activo: null });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
+//FUNCION PARA OBTENER UN CARGA ARCHIVO BOLSA, CON BUSQUEDA
+async function Buscar(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body,
+      activo: null,
+    };
+    const query = BuscarUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
+//FUNCION PARA OBTENER UN CARGA ARCHIVO BOLSA, CON ID DEL CARGA ARCHIVO BOLSA
+async function Escoger(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body,
+      activo: null,
+    };
+    const query = EscogerUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
+async function ReporteExito(req, res) {
+  const { id_valora_archivos } = req.body;
+
+  await pool
+    .query(
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "id_valora_archivos", value: id_valora_archivos },
+          { key: "valorado", value: true },
+        ],
+      })
+    )
+    .then((result) => {
+      respResultadoCorrectoObjeto200(
+        res,
+        map(result.rows, (item) => {
+          return {
+            cod_institucion: item.cod_institucion,
+            descripcion: "La información fue valorada correctamente",
+            fecha_carga: item.fecha_carga,
+          };
+        })
+      );
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
+//FUNCION PARA INSERTAR UN CARGA ARCHIVO BOLSA
+async function Insertar(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      body,
+    };
+    const query = InsertarUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(
+          res,
+          result.rows,
+          "Información guardada correctamente"
+        );
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
+//FUNCION PARA ACTUALIZAR UN CARGA ARCHIVO BOLSA
+async function Actualizar(req, res) {
+  const body = req.body;
+
+  let query = "";
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    if (!idInfo.idOk) {
+      respIDNoRecibido400(res);
+    } else {
+      const params = {
+        body: body,
+        idKey: idInfo.idKey,
+        idValue: idInfo.idValue,
+      };
+      query = ActualizarUtil(nameTable, params);
+
+      pool.query(query, (err, result) => {
+        if (err) {
+          respErrorServidor500(res, err);
+        } else {
+          if (!result.rowCount || result.rowCount < 1) {
+            respResultadoVacio404(res);
+          } else {
+            respResultadoCorrecto200(
+              res,
+              result,
+              "Información actualizada correctamente"
+            );
+          }
+        }
+      });
+    }
+  }
+}
+
+//FUNCION PARA DESHABILITAR UN CARGA ARCHIVO BOLSA
+async function Deshabilitar(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    if (!idInfo.idOk) {
+      respIDNoRecibido400(res);
+    } else {
+      const params = {
+        body: body,
+        idKey: idInfo.idKey,
+        idValue: idInfo.idValue,
+      };
+      query = DeshabilitarUtil(nameTable, params);
+      pool.query(query, (err, result) => {
+        if (err) {
+          respErrorServidor500(res, err);
+        } else {
+          if (!result.rowCount || result.rowCount < 1) {
+            respResultadoVacio404(res);
+          } else {
+            respResultadoCorrecto200(res, result);
+          }
+        }
+      });
+    }
+  }
+}
+
 module.exports = {
+  Listar,
+  Escoger,
+  Buscar,
+  Actualizar,
+  Insertar,
+  Deshabilitar,
   Validar,
   Validar2,
   ObtenerInformacion,
+  ReporteExito,
 };

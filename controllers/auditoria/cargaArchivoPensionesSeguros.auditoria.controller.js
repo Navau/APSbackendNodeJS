@@ -780,15 +780,6 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
       });
       forEach(aux, (item) => querys.push(item));
     } else if (iid_reporte === 7) {
-      //VALIDACION
-      // querys.push(
-      //   EjecutarFuncionSQL("aps_reporte_control_envio", {
-      //     body: {
-      //       fecha,
-      //       idRolFinal,
-      //     },
-      //   })
-      // );
       const query = EscogerInternoUtil(
         "APS_aud_valida_archivos_pensiones_seguros",
         {
@@ -849,10 +840,29 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
         querys.push(query);
       }
     } else if (iid_reporte === 26) {
-      const query = EjecutarFuncionSQL("aps_fun_reporte_cartera_valorada", {
+      //CARTERA VALORADA
+      const codigos = [];
+      forEach(modalidades, (item) =>
+        filter(item.modalidades, (modalidad) => {
+          if (modalidad.esCompleto === true) {
+            codigos.push(`'${modalidad.codigo}'`);
+          }
+        })
+      );
+      const paramsAux = {
         body: { fecha },
-      });
-      querys.push(query);
+      };
+      if (size(codigos) > 0) {
+        paramsAux.where = [
+          { key: "cod_institucion", valuesWhereIn: codigos, whereIn: true },
+        ];
+
+        const query = EjecutarFuncionSQL(
+          "aps_fun_reporte_cartera_valorada",
+          paramsAux
+        );
+        querys.push(query);
+      }
     }
 
     querys.push(ListarUtil("APS_seg_usuario"));
