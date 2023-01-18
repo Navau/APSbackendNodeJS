@@ -1,7 +1,15 @@
 const pool = require("../../../database");
 const xl = require("excel4node");
 const path = require("path");
-const { forEach, map, uniqBy, uniq, findIndex, groupBy } = require("lodash");
+const {
+  forEach,
+  map,
+  uniqBy,
+  uniq,
+  findIndex,
+  groupBy,
+  size,
+} = require("lodash");
 
 const {
   respErrorServidor500END,
@@ -25,6 +33,7 @@ const {
   singleFormatDataReportExcel,
   formatDataChartsReportExcel,
   createChart,
+  StatisticalReport,
 } = require("../../../utils/opcionesReportes");
 const dayjs = require("dayjs");
 require("dayjs/locale/es");
@@ -102,7 +111,7 @@ function tipoReporte(id, fecha) {
   const REPORTES_FUNCIONES = {
     1: {
       fun: "aps_fun_seguros_cartera_valorada",
-      acronym: "Boletín Cuadro 1.4",
+      name: "Boletín Cuadro 1.4",
       header: {
         nameExcel: "Comparativo Tipo Instrumento.xlsx",
         acronym: "BC1_4",
@@ -117,7 +126,7 @@ function tipoReporte(id, fecha) {
     },
     5: {
       fun: "aps_fun_diversificacion_emisor_tipoaseguradora",
-      acronym: "REP EMISOR TIPO ASEGURADORA",
+      name: "REP EMISOR TIPO ASEGURADORA",
       header: {
         nameExcel: "Diversificacion Emisor.xlsx",
         acronym: "R.E.T.A",
@@ -133,7 +142,7 @@ function tipoReporte(id, fecha) {
     },
     // 9: {
     //   fun: "aps_fun_inversionesrir",
-    //   acronym: "Boletín Cuadro 1.5",
+    //   name: "Boletín Cuadro 1.5",
     //   header: {
     //     acronym: "Boletín Cuadro 1.5",
     //     titl1: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PERSONAS`,
@@ -148,7 +157,7 @@ function tipoReporte(id, fecha) {
     // },
     10: {
       fun: "aps_fun_inversiones_tgn",
-      acronym: "TGN-BCB",
+      name: "TGN-BCB",
       header: {
         nameExcel: "RIA TGN-BCB.xlsx",
         acronym: "TGN-BCB",
@@ -165,7 +174,7 @@ function tipoReporte(id, fecha) {
     },
     11: {
       fun: "aps_fun_inversiones_por_emisor",
-      acronym: "REP EMISOR",
+      name: "REP EMISOR",
       header: {
         nameExcel: "Valores por Emisor.xlsx",
         acronym: "R.E",
@@ -180,7 +189,7 @@ function tipoReporte(id, fecha) {
     },
     24: {
       fun: "aps_fun_diversificacion_emisor_tipoaseguradora",
-      acronym: "REP INSTRUMENTO TIPO ASEGURADORA",
+      name: "REP INSTRUMENTO TIPO ASEGURADORA",
       header: {
         nameExcel: "Inversiones Tipo Instrumento.xlsx",
         acronym: "R.I.T.A",
@@ -275,7 +284,7 @@ async function estadisticasInversiones2(req, res) {
   }
 }
 
-async function estadisticasInversiones3(req, res) {
+async function EstadisticasInversiones3(req, res) {
   try {
     const { fecha, reportes } = req.body;
     if (!fecha || !reportes) {
@@ -315,29 +324,44 @@ async function estadisticasInversiones3(req, res) {
     }
 
     const estadisticosDataFinal = map(results.result, (item, index) => {
-      forEach(item.data, (itemData) => {
-        !("codeSeguros" in itemData)
-          ? (itemData["codeSeguros"] = infoReportesAuxArray[index].acronym)
-          : "";
-        !("header" in item.data)
-          ? (item.data["header"] = infoReportesAuxArray[index].header)
-          : "";
-      });
+      if (size(item.data) > 0) {
+        forEach(item.data, (itemData) => {
+          !("codeSeguros" in itemData)
+            ? (itemData["codeSeguros"] = infoReportesAuxArray[index].name)
+            : "";
+          !("codeSeguros" in itemData)
+            ? (item.data["codeSeguros"] = infoReportesAuxArray[index].name)
+            : "";
+          !("header" in item.data)
+            ? (item.data["header"] = infoReportesAuxArray[index].header)
+            : "";
+        });
+      } else {
+        item.data.push({
+          codeSeguros: infoReportesAuxArray[index].name,
+        });
+        item.data["codeSeguros"] = infoReportesAuxArray[index].name;
+        item.data["header"] = infoReportesAuxArray[index].header;
+      }
+      item.data["fields"] = item.fields;
       return item.data;
     });
-    // // console.log(estadisticosDataFinal);
 
     const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
     forEach(estadisticosDataFinal, (item) => {
-      formatDataChartsReportExcel(fecha, item, item.header, wb);
+      StatisticalReport({
+        fecha,
+        data: item,
+        fields: item.fields,
+        header: item.header,
+        wb,
+      });
     });
+    return;
     const nameExcelFinal = ExcelExport.count > 0 ? nameAux : ExcelExport.name;
     const pathExcel = path.join("reports", nameExcelFinal);
 
     wb.write(pathExcel, (err, stats) => {
-      // console.log("ERR", err);
-      //   console.log("stats", stats);
-      // console.log("RIR", segurosRIR);
       if (err) {
         respErrorServidor500END(res, err);
       } else {
@@ -349,7 +373,7 @@ async function estadisticasInversiones3(req, res) {
   }
 }
 
-function nombreReporte(req, res) {
+function NombreReporte(req, res) {
   try {
     const { reporte, fecha } = req.body;
     const nameAux = `Estadisticas_Inversiones ${dayjs(fecha)
@@ -368,6 +392,6 @@ function nombreReporte(req, res) {
 module.exports = {
   estadisticasInversiones,
   estadisticasInversiones2,
-  estadisticasInversiones3,
-  nombreReporte,
+  EstadisticasInversiones3,
+  NombreReporte,
 };

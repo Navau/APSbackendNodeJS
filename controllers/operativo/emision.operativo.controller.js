@@ -156,7 +156,8 @@ async function Insertar(req, res) {
     const queryExist = EscogerUtil(nameTable, {
       body: {
         id_emisor: body.id_emisor,
-        fecha_actualizacion: body.fecha_actualizacion,
+        id_tipo_instrumento: body.id_tipo_instrumento,
+        denominacion: body.denominacion,
       },
       activo: null,
     });

@@ -1456,6 +1456,7 @@ async function EjecutarVariosQuerys(querys = [], newID) {
           data: result.rows,
           table: v,
           order: counterAux,
+          fields: map(result?.fields, (field) => field.name),
           id:
             newID?.order === counterAux
               ? newID?.id

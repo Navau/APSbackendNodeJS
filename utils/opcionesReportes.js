@@ -361,35 +361,6 @@ function formatDataReportExcel(headers, body, wb) {
 }
 
 function formatDataChartsReportExcel(fecha, body, header, wb) {
-  // //#region CLASIFICANDO POR TIPO_INDICADOR LA INFORMACION Y TAMBIEN AÑADIENDO TIPO_INDICADOR_FINAL A CADA CLASIFICACION
-  // for (const dataEntidad of body) {
-  //   let TIPO_INDICADOR = {
-  //     indicador: null,
-  //   };
-  //   if (
-  //     dataEntidad?.tipo_instrumento &&
-  //     dataEntidad.codeSeguros === "BC1_4"
-  //   ) {
-  //     TIPO_INDICADOR.indicador = dataEntidad.tipo_instrumento;
-  //   }
-
-  //   if (tipoIndicador !== TIPO_INDICADOR.indicador) {
-  //     tipoIndicador = TIPO_INDICADOR.indicador;
-  //     indicadoresArray[
-  //       TIPO_INDICADOR.indicador + "-" + dataEntidad.codeSeguros
-  //     ] = [dataEntidad];
-  //   } else {
-  //     indicadoresArray[
-  //       TIPO_INDICADOR.indicador + "-" + dataEntidad.codeSeguros
-  //     ] = [
-  //       ...indicadoresArray[
-  //         TIPO_INDICADOR.indicador + "-" + dataEntidad.codeSeguros
-  //       ],
-  //       dataEntidad,
-  //     ];
-  //   }
-  // }
-
   // #region AÑADIENDO CAMPOS NECESARIOS AL OBJETO FINAL
   !("codeSegurosAux" in body)
     ? (body["codeSegurosAux"] = body[0]?.codeSeguros)
@@ -3798,7 +3769,13 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
   }
 }
 
-async function SimpleReport(params) {
+function StatisticalReport(params) {
+  const { fecha, fields, data, header, wb } = params;
+  const ws = wb.addWorksheet(data.codeSegurosAux);
+  forEach(fields, (field) => {});
+}
+
+function SimpleReport(params) {
   const { wb, data, nameSheet } = params;
   const { headers, values } = data;
   const ws = wb.addWorksheet(nameSheet);
@@ -3841,13 +3818,16 @@ async function SimpleReport(params) {
       };
       forEach(itemValue, (itemValue2) => {
         showCell({
-          itemValue2,
-          posXIteration,
-          posYIteration,
+          value: itemValue2,
+          x: posXIteration,
+          y: posYIteration,
           ws,
-          VALUES_STYLE,
-          styleDefault,
-        });
+        })
+          .style(styleDefault)
+          .style(VALUES_STYLE.indent)
+          .style(VALUES_STYLE.align)
+          .style(VALUES_STYLE.style)
+          .style(VALUES_STYLE.fontBold(false));
         posYIteration += 1;
       });
     }
@@ -3866,38 +3846,13 @@ function showValueInCell(value) {
 }
 
 function showCell(params) {
-  const {
-    itemValue2,
-    posXIteration,
-    posYIteration,
-    ws,
-    VALUES_STYLE,
-    styleDefault,
-  } = params;
-  if (itemValue2 instanceof Date) {
-    ws.cell(posXIteration, posYIteration)
-      .string(showValueInCell(itemValue2))
-      .style(styleDefault)
-      .style(VALUES_STYLE.indent)
-      .style(VALUES_STYLE.align)
-      .style(VALUES_STYLE.style)
-      .style(VALUES_STYLE.fontBold(false));
-  } else if (typeof itemValue2 === "number") {
-    ws.cell(posXIteration, posYIteration)
-      .number(itemValue2 === 0 ? 0 : itemValue2)
-      .style(styleDefault)
-      .style(VALUES_STYLE.indent)
-      .style(VALUES_STYLE.align)
-      .style(VALUES_STYLE.style)
-      .style(VALUES_STYLE.fontBold(false));
+  const { ws, value, x, y } = params;
+  if (value instanceof Date) {
+    return ws.cell(x, y).string(showValueInCell(value));
+  } else if (typeof value === "number") {
+    return ws.cell(x, y).number(value === 0 ? 0 : value);
   } else {
-    ws.cell(posXIteration, posYIteration)
-      .string(showValueInCell(itemValue2))
-      .style(styleDefault)
-      .style(VALUES_STYLE.indent)
-      .style(VALUES_STYLE.align)
-      .style(VALUES_STYLE.style)
-      .style(VALUES_STYLE.fontBold(false));
+    return ws.cell(x, y).string(showValueInCell(value));
   }
 }
 
@@ -3933,4 +3888,5 @@ module.exports = {
   formatDataChartsReportExcel,
   SimpleReport,
   createChart,
+  StatisticalReport,
 };
