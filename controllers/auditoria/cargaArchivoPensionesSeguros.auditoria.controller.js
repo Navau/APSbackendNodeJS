@@ -998,6 +998,36 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
   }
 }
 
+async function ReporteExito(req, res) {
+  const { id_carga_archivos } = req.body;
+
+  await pool
+    .query(
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "id_carga_archivos", value: id_carga_archivos },
+          { key: "cargado", value: true },
+        ],
+      })
+    )
+    .then((result) => {
+      respResultadoCorrectoObjeto200(
+        res,
+        map(result.rows, (item) => {
+          return {
+            cod_institucion: item.cod_institucion,
+            descripcion: "La información fue validada correctamente",
+            fecha_carga: item.fecha_carga,
+          };
+        })
+      );
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 function TipoReporte(id) {
   const ID_REPORTES = {
     25: {
@@ -1263,4 +1293,5 @@ module.exports = {
   Modalidades,
   NombreReporte,
   ReporteControlEnvioPorTipoReporteDescargas,
+  ReporteExito,
 };

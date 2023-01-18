@@ -361,6 +361,36 @@ async function ReporteEnvio(req, res) {
   }
 }
 
+async function ReporteExito(req, res) {
+  const { id_carga_archivos } = req.body;
+
+  await pool
+    .query(
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "id_carga_archivos", value: id_carga_archivos },
+          { key: "cargado", value: true },
+        ],
+      })
+    )
+    .then((result) => {
+      respResultadoCorrectoObjeto200(
+        res,
+        map(result.rows, (item) => {
+          return {
+            cod_institucion: item.cod_institucion,
+            descripcion: "La información fue validada correctamente",
+            fecha_carga: item.fecha_carga,
+          };
+        })
+      );
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
@@ -526,4 +556,5 @@ module.exports = {
   UltimaCarga,
   UltimaCarga2,
   ReporteEnvio,
+  ReporteExito,
 };

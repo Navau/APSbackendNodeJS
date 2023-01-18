@@ -27,6 +27,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Reporte
 );
+api.post(
+  "/ReporteExito",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ReporteExito
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

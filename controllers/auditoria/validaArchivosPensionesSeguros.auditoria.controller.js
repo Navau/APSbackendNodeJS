@@ -1180,9 +1180,39 @@ async function Reporte(req, res) {
   }
 }
 
+async function ReporteExito(req, res) {
+  const { id_valida_archivos } = req.body;
+
+  await pool
+    .query(
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "id_valida_archivos", value: id_valida_archivos },
+          { key: "validado", value: true },
+        ],
+      })
+    )
+    .then((result) => {
+      respResultadoCorrectoObjeto200(
+        res,
+        map(result.rows, (item) => {
+          return {
+            cod_institucion: item.cod_institucion,
+            descripcion: "La información fue validada correctamente",
+            fecha_carga: item.fecha_carga,
+          };
+        })
+      );
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
+}
+
 //FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
+  const query = ListarUtil(nameTable, { activo: null });
   await pool
     .query(query)
     .then((result) => {
@@ -1202,6 +1232,7 @@ async function Buscar(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = BuscarUtil(nameTable, params);
     await pool
@@ -1224,6 +1255,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = EscogerUtil(nameTable, params);
     await pool
@@ -1346,4 +1378,5 @@ module.exports = {
   UltimaCarga2,
   Validar,
   Reporte,
+  ReporteExito,
 };
