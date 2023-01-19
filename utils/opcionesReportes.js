@@ -15,6 +15,8 @@ const {
   includes,
   toString,
   toLower,
+  isEmpty,
+  isUndefined,
 } = require("lodash");
 const fs = require("fs");
 const path = require("path");
@@ -3924,8 +3926,9 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
 
 function StatisticalReport(params) {
   try {
-    const { fecha, fields, data, header, wb } = params;
+    const { fecha, fields, data, header, mainValues, wb } = params;
     const ws = wb.addWorksheet(header?.name || "Reporte");
+    const sizeColumnsAux = [];
     const styleDefaultTitle = defaultStyleReport("ESTADISTICO", "header", wb);
     const styleDefaultSubtitle = defaultStyleReport(
       "ESTADISTICO",
@@ -3996,7 +3999,12 @@ function StatisticalReport(params) {
           .style(styleDefaultSubtitle);
 
         forEach(field, (subfield) => {
-          ws.column(CONF_POSITIONS.iterationY).setWidth(25);
+          const sizeColumn = size(subfield) + 10;
+          sizeColumnsAux.push({
+            indexSize: CONF_POSITIONS.iterationY,
+            sizeColumn: sizeColumn,
+          });
+          ws.column(CONF_POSITIONS.iterationY).setWidth(sizeColumn);
           ws.cell(
             CONF_POSITIONS.iterationX + aux,
             CONF_POSITIONS.iterationY,
@@ -4009,7 +4017,12 @@ function StatisticalReport(params) {
           CONF_POSITIONS.iterationY += 1;
         });
       } else {
-        ws.column(CONF_POSITIONS.iterationY).setWidth(50);
+        const sizeColumn = size(field) + 10;
+        sizeColumnsAux.push({
+          indexSize: CONF_POSITIONS.iterationY,
+          sizeColumn: sizeColumn,
+        });
+        ws.column(CONF_POSITIONS.iterationY).setWidth(sizeColumn);
         ws.cell(
           CONF_POSITIONS.iterationX,
           CONF_POSITIONS.iterationY,
@@ -4026,9 +4039,6 @@ function StatisticalReport(params) {
 
     CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
 
-    // console.log(CONF_POSITIONS);
-    // console.log(data);
-
     const VALUE_TOTAL = defaultStyleReport("ESTADISTICO", "value_total", wb);
     const VALUE_GROUP = defaultStyleReport("ESTADISTICO", "value_group", wb);
     const VALUES_TOTAL_AUX = {
@@ -4039,6 +4049,11 @@ function StatisticalReport(params) {
       CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
       let counterAux = 0;
       forEach(itemData, (value, index) => {
+        const sizeColumnConf = sizeColumnsAux[CONF_POSITIONS.iterationY - 1];
+        if (size(value) + 10 > sizeColumnConf.sizeColumn) {
+          sizeColumnConf.sizeColumn = size(value) + 10;
+          ws.column(CONF_POSITIONS.iterationY).setWidth(size(value) + 10);
+        }
         showCellStatisticalReport({
           ws,
           value,
@@ -4047,7 +4062,7 @@ function StatisticalReport(params) {
           styleDefaultData,
           VALUE_TOTAL,
           VALUE_GROUP,
-          mainValue: counterAux === 0 ? true : false,
+          mainValue: !isUndefined(mainValues?.[counterAux]) ? true : false,
           VALUES_TOTAL_AUX,
         });
         counterAux += 1;
@@ -4166,8 +4181,8 @@ function showCellStatisticalReport(params) {
       .style(VALUE_GROUP.border)
       .style(VALUE_GROUP.align("center"))
       .style(VALUE_GROUP.fontBold(false));
-  } else if (typeof value === "number" || !isNaN(value)) {
-    console.log(VALUES_TOTAL_AUX, value);
+  } else if (typeof value === "number" || (!isNaN(value) && !isEmpty(value))) {
+    // console.log(VALUES_TOTAL_AUX, value);
     if (VALUES_TOTAL_AUX.ok === true && !isNaN(value)) {
       //TO DO: SEGUIR PROBANDO LOS REPORTES
       return ws
@@ -4177,7 +4192,7 @@ function showCellStatisticalReport(params) {
         .style(VALUE_TOTAL.border)
         .style(VALUE_TOTAL.fill)
         .style(VALUE_GROUP.align("center"))
-        .style(VALUE_GROUP.fontBold(false));
+        .style(VALUE_GROUP.fontBold(true));
     } else {
       return ws
         .cell(x, y)
@@ -4200,7 +4215,15 @@ function showCellStatisticalReport(params) {
         .style(VALUE_TOTAL.align("left"))
         .style(VALUE_TOTAL.fontBold(true));
     } else {
-      if (VALUES_TOTAL_AUX.ok === true) {
+      if (mainValue === true) {
+        return ws
+          .cell(x, y)
+          .string(showValueInCell(value))
+          .style(VALUE_GROUP.border)
+          .style(VALUE_GROUP.indent(3, 3))
+          .style(VALUE_GROUP.align("left"))
+          .style(VALUE_GROUP.fontBold(false));
+      } else if (VALUES_TOTAL_AUX.ok === true) {
         return ws
           .cell(VALUES_TOTAL_AUX.index, y)
           .string(showValueInCell(value))
@@ -4209,14 +4232,6 @@ function showCellStatisticalReport(params) {
           .style(VALUE_TOTAL.indent(3, 3))
           .style(VALUE_TOTAL.align("left"))
           .style(VALUE_TOTAL.fontBold(true));
-      } else if (mainValue === true) {
-        return ws
-          .cell(x, y)
-          .string(showValueInCell(value))
-          .style(VALUE_GROUP.border)
-          .style(VALUE_GROUP.indent(3, 3))
-          .style(VALUE_GROUP.align("left"))
-          .style(VALUE_GROUP.fontBold(false));
       } else {
         return ws
           .cell(x, y)

@@ -118,9 +118,10 @@ function tipoReporte(id, fecha) {
   const REPORTES_FUNCIONES = {
     1: {
       id: 1,
-      fun: "aps_fun_seguros_cartera_valorada",
+      fun: ["aps_fun_seguros_cartera_valorada"],
       editFields: true,
       editData: true,
+      mainValues: [0],
       header: {
         name: "Boletín Cuadro 1.4",
         nameExcel: "Comparativo Tipo Instrumento.xlsx",
@@ -132,24 +133,50 @@ function tipoReporte(id, fecha) {
           title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
           title3: "Expresado en Bolivianos",
         },
-        date: fecha,
-        expressedIn: "Bolivianos",
+      },
+    },
+    3: {
+      id: 3,
+      fun: [
+        "aps_fun_inversiones_rir_generales",
+        "aps_fun_inversiones_rir_personales",
+        "aps_fun_inversiones_rir_prepago",
+        "aps_fun_inversiones_rir_totalmercado",
+      ],
+      moneda: 3,
+      editFields: true,
+      mainValues: [0],
+      multipleTables: true,
+      header: {
+        name: "REP INST (3)",
+        nameExcel: "Tipo Instrumento Valor Mercado.xlsx",
+        titles: {
+          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+            .locale("es")
+            .format("DD [DE] MMMM [DE] YYYY")
+            .toUpperCase()}`,
+          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
+          title3: "Expresado en Bolivianos",
+        },
       },
     },
     5: {
       id: 5,
-      fun: "aps_fun_diversificacion_emisor_tipoaseguradora",
+      fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
+      editFields: true,
+      mainValues: [0, 1, 2], //FECHA, CODIGO, EMISOR
       header: {
         name: "REP EMISOR TIPO ASEGURADORA",
         nameExcel: "Diversificacion Emisor.xlsx",
-        title: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
-        subtitle1: "Entidades de Seguros y Reaseguros",
-        subtitle2: "Cartera a Valor de Mercado",
-        subtitle3: dayjs(fecha)
-          .locale("es")
-          .format("[AL] DD [DE] MMMM [DE] YYYY")
-          .toUpperCase(),
-        date: fecha,
+        titles: {
+          title1: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
+          title2: "Entidades de Seguros y Reaseguros",
+          title3: "Cartera a Valor de Mercado",
+          title4: dayjs(fecha)
+            .locale("es")
+            .format("[AL] DD [DE] MMMM [DE] YYYY")
+            .toUpperCase(),
+        },
       },
     },
     // 9: {
@@ -169,7 +196,9 @@ function tipoReporte(id, fecha) {
     // },
     10: {
       id: 10,
-      fun: "aps_fun_inversiones_tgn",
+      fun: ["aps_fun_inversiones_tgn"],
+      editFields: true,
+      mainValues: [0, 1],
       header: {
         name: "TGN-BCB",
         nameExcel: "RIA TGN-BCB.xlsx",
@@ -183,12 +212,13 @@ function tipoReporte(id, fecha) {
             )
             .toUpperCase(),
         },
-        date: fecha,
       },
     },
     11: {
       id: 11,
-      fun: "aps_fun_inversiones_por_emisor",
+      editFields: true,
+      mainValues: [0],
+      fun: ["aps_fun_inversiones_por_emisor"],
       header: {
         name: "REP EMISOR",
         nameExcel: "Valores por Emisor.xlsx",
@@ -200,12 +230,13 @@ function tipoReporte(id, fecha) {
             .format("[INVERSIONES SEGUROS AL] DD [DE] MMMM [DE] YYYY")
             .toUpperCase(),
         },
-        date: fecha,
       },
     },
     24: {
       id: 24,
-      fun: "aps_fun_diversificacion_emisor_tipoaseguradora",
+      editFields: true,
+      mainValues: [0, 1, 2],
+      fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
       header: {
         name: "REP INSTRUMENTO TIPO ASEGURADORA",
         nameExcel: "Inversiones Tipo Instrumento.xlsx",
@@ -218,7 +249,6 @@ function tipoReporte(id, fecha) {
             .format("[AL] DD [DE] MMMM [DE] YYYY")
             .toUpperCase(),
         },
-        date: fecha,
       },
     },
   };
@@ -230,7 +260,14 @@ function EditarSubtitulos(id, data, fields, fecha) {
   const CHANGE_FIELDS = {
     1: () => {
       let fieldsAux = {};
-      forEach(fields, (item) => {
+      const formatFields = map(fields, (item) => {
+        if (includes(item, "participacion")) {
+          const identificador = includes(item, "_m1") ? "_m1" : "_m2";
+          return `participación_(%)${identificador}`;
+        }
+        return item;
+      });
+      forEach(formatFields, (item) => {
         if (
           item === "fecha_informacion_m1" ||
           item === "fecha_informacion_m2"
@@ -248,12 +285,14 @@ function EditarSubtitulos(id, data, fields, fecha) {
           fieldsAux = {
             ...fieldsAux,
             [fechaFinal]: filter(
-              fields,
+              formatFields,
               (itemMap) =>
                 includes(itemMap, identificador) &&
                 !includes(itemMap, "fecha_informacion")
             ),
           };
+        } else if (item === "tipo_instrumento") {
+          fieldsAux = { ...fieldsAux, [`${item}_main`]: item };
         } else {
           fieldsAux = { ...fieldsAux, [item]: item };
         }
@@ -272,6 +311,52 @@ function EditarSubtitulos(id, data, fields, fecha) {
         }
       });
       return fieldsAux;
+    },
+    3: () => {
+      return fields;
+    },
+    5: () => {
+      const formatFields = {
+        fecha: "fecha",
+        codigo: "codigo",
+        emisor: "emisor",
+        seguros_generales: ["monto_valorado_$us", "porcentaje_(%)"],
+        seguros_personales: ["monto_valorado_$us", "porcentaje_(%)"],
+        seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
+        total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
+      };
+      return formatFields;
+    },
+    10: () => {
+      return {
+        fecha: "fecha",
+        instrumento: "instrumento",
+        serie: "serie",
+        cantidad: "cantidad_de_valores",
+        moneda: "moneda",
+        totalvaloradousd: "total_valorado_usd",
+        totalvaloradobs: "total_valorado_en_bs",
+      };
+    },
+    11: () => {
+      return {
+        emisor: "emisor",
+        extranjero: "extranjero",
+        nacional: "nacional",
+        totalgeneral: "total_general",
+      };
+    },
+    24: () => {
+      const formatFields = {
+        fecha: "fecha",
+        codigo: "codigo",
+        emisor: "emisor",
+        seguros_generales: ["monto_valorado_$us", "porcentaje_(%)"],
+        seguros_personales: ["monto_valorado_$us", "porcentaje_(%)"],
+        seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
+        total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
+      };
+      return formatFields;
     },
   };
   return CHANGE_FIELDS[id]();
@@ -391,14 +476,20 @@ async function EstadisticasInversiones3(req, res) {
       ExcelExport.count = index;
 
       infoReportesAuxArray.push(infoReporte);
-      return EjecutarFuncionSQL(infoReporte.fun, {
-        body: {
-          fecha,
-        },
+      return map(infoReporte.fun, (item) => {
+        const bodyAux = { fecha };
+        if (infoReporte?.moneda) {
+          bodyAux.moneda = infoReporte.moneda;
+        }
+        return EjecutarFuncionSQL(item, {
+          body: bodyAux,
+        });
       });
     });
 
-    const results = await EjecutarVariosQuerys(querys);
+    const results = await EjecutarVariosQuerys(
+      map(querys, (query) => query[0])
+    );
     if (results.ok === null) {
       throw results.result;
     }
@@ -417,6 +508,7 @@ async function EstadisticasInversiones3(req, res) {
           ? EditarInformacion(report.id, item.data, fecha)
           : item.data;
       item.data["header"] = report.header;
+      item.data["mainValues"] = report?.mainValues;
       return item.data;
     });
 
@@ -427,6 +519,7 @@ async function EstadisticasInversiones3(req, res) {
         data: item,
         fields: item.fields,
         header: item.header,
+        mainValues: item?.mainValues,
         wb,
       });
       if (resultReport.ok === null) errorsReports.push(resultReport.err);
