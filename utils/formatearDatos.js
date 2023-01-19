@@ -36,6 +36,11 @@ function separarStringCamelCasePorCaracter(string, characterSplit) {
   return stringFinal;
 }
 
+function separarStringPorCaracter(string, currentCharacter, newCharacter) {
+  const stringFinal = split(string, currentCharacter).join(newCharacter);
+  return stringFinal.toUpperCase();
+}
+
 function ordenarArray(array, propiedad, tipo = "ASC") {
   if (tipo === "ASC") {
     // console.log(array);
@@ -86,10 +91,19 @@ function obtenerFechaActual() {
   console.log(dateFinal);
   return dateFinal;
 }
+
 const formatoMiles = (number) => {
   const exp = /(\d)(?=(\d{3})+(?!\d))/g;
   const rep = "$1,";
   return number.toString().replace(exp, rep);
+};
+
+const TransformarArrayAObjeto = (array) => {
+  let arrayAux;
+  forEach(array, (item) => {
+    arrayAux = { ...arrayAux, [item]: item };
+  });
+  return arrayAux;
 };
 
 module.exports = {
@@ -98,4 +112,6 @@ module.exports = {
   ordenarArray,
   obtenerFechaActual,
   formatoMiles,
+  TransformarArrayAObjeto,
+  separarStringPorCaracter,
 };

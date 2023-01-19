@@ -10,10 +10,16 @@ const {
   indexOf,
   size,
   filter,
+  isObject,
+  isArray,
+  includes,
+  toString,
+  toLower,
 } = require("lodash");
 const fs = require("fs");
+const path = require("path");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
-const { formatoMiles } = require("./formatearDatos");
+const { formatoMiles, separarStringPorCaracter } = require("./formatearDatos");
 
 require("dayjs/locale/es");
 dayjs.locale("es");
@@ -101,7 +107,7 @@ function defaultStyleReportExcel(custom) {
     return {
       font: {
         bold: true,
-        size: 10,
+        size: 12,
       },
       alignment: {
         shrinkToFit: true,
@@ -110,6 +116,33 @@ function defaultStyleReportExcel(custom) {
       },
       numberFormat: "#,##0.00; (#,##0.00); 0",
     };
+  }
+  if (custom === "subheaders") {
+    return customSingleStyleReportExcel(wb, {
+      font: {
+        color: "#F4F4F4",
+        bold: true,
+        size: 12,
+      },
+      alignment: {
+        shrinkToFit: true,
+        wrapText: true,
+        horizontal: "left",
+      },
+      fill: {
+        type: "pattern",
+        patternType: "solid",
+        fgColor: "95B3D7",
+      },
+      border: {
+        top: { style: "medium" },
+        bottom: { style: "medium" },
+        left: { style: "medium" },
+        right: { style: "hair" },
+      },
+      numberFormat: "#,##0.00; (#,##0.00); 0",
+      ...alignTextStyleReportExcel("center"),
+    });
   } else if (custom === "body") {
     return {
       font: {
@@ -124,6 +157,126 @@ function defaultStyleReportExcel(custom) {
       numberFormat: "#,##0.00; (#,##0.00); 0",
     };
   }
+}
+
+function defaultStyleReport(type, custom, wb, valueAux) {
+  const TYPE_REPORT = {
+    ESTADISTICO: {
+      header: customSingleStyleReportExcel(wb, {
+        font: {
+          color: "#FFFFFF",
+          bold: true,
+          size: 12,
+        },
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "366092",
+        },
+        border: {
+          top: { style: "hair" },
+          bottom: { style: "hair" },
+          left: { style: "hair" },
+          right: { style: "hair" },
+        },
+        alignment: {
+          shrinkToFit: true,
+          wrapText: true,
+          horizontal: "left",
+        },
+        numberFormat: "#,##0.00; (#,##0.00); 0",
+        ...alignTextStyleReportExcel("center"),
+      }),
+      subheader: customSingleStyleReportExcel(wb, {
+        font: {
+          color: "#F4F4F4",
+          bold: true,
+          size: 12,
+        },
+        alignment: {
+          shrinkToFit: true,
+          wrapText: true,
+          horizontal: "left",
+        },
+        fill: {
+          type: "pattern",
+          patternType: "solid",
+          fgColor: "95B3D7",
+        },
+        border: {
+          top: { style: "medium" },
+          bottom: { style: "medium" },
+          left: { style: "medium" },
+          right: { style: "hair" },
+        },
+        numberFormat: "#,##0.00; (#,##0.00); 0",
+        ...alignTextStyleReportExcel("center"),
+      }),
+      data: customSingleStyleReportExcel(wb, {
+        font: {
+          bold: true,
+          size: 10,
+        },
+        alignment: {
+          shrinkToFit: true,
+          wrapText: true,
+          horizontal: "left",
+        },
+        numberFormat: "#,##0.00; (#,##0.00); 0",
+      }),
+      value_total: {
+        border: {
+          border: {
+            bottom: { style: "medium" },
+          },
+        },
+        indent: (a = 0, b = 0) => {
+          return indentStyleReportExcel(a, b);
+        },
+        fill: customSingleStyleReportExcel(wb, {
+          fill: {
+            type: "pattern",
+            patternType: "solid",
+            fgColor: "8EA9DB",
+          },
+        }),
+        align: (orientation = "center") => {
+          return alignTextStyleReportExcel(orientation);
+        },
+        fontBold: (bold = true) => {
+          return customSingleStyleReportExcel(wb, {
+            font: {
+              bold,
+            },
+          });
+        },
+      },
+      value_group: {
+        border: {
+          border: {
+            bottom: { style: "dashed" },
+            right: { style: "thin" },
+            left: { style: "medium" },
+          },
+        },
+        indent: (a = 3, b = 3) => {
+          return indentStyleReportExcel(a, b);
+        },
+        align: (orientation = "center") => {
+          return alignTextStyleReportExcel(orientation);
+        },
+        fontBold: (bold = false) => {
+          return customSingleStyleReportExcel(wb, {
+            font: {
+              bold,
+            },
+          });
+        },
+      },
+    },
+  };
+
+  return TYPE_REPORT[type][custom];
 }
 
 function borderAndCellsCommonReportExcel(
@@ -3770,9 +3923,146 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
 }
 
 function StatisticalReport(params) {
-  const { fecha, fields, data, header, wb } = params;
-  const ws = wb.addWorksheet(data.codeSegurosAux);
-  forEach(fields, (field) => {});
+  try {
+    const { fecha, fields, data, header, wb } = params;
+    const ws = wb.addWorksheet(header?.name || "Reporte");
+    const styleDefaultTitle = defaultStyleReport("ESTADISTICO", "header", wb);
+    const styleDefaultSubtitle = defaultStyleReport(
+      "ESTADISTICO",
+      "subheader",
+      wb
+    );
+
+    const styleDefaultData = defaultStyleReport("ESTADISTICO", "data", wb);
+
+    let counterSizeSubtitleYAux = 1;
+    forEach(fields, (field) => {
+      if (isArray(field)) {
+        if (size(field) > counterSizeSubtitleYAux)
+          counterSizeSubtitleYAux = size(field);
+      }
+    });
+
+    const maxFields = (fieldsAux) => {
+      let counterMax = 0;
+      forEach(fieldsAux, (field) => {
+        if (isArray(field)) {
+          forEach(field, (subfield) => {
+            counterMax += 1;
+          });
+        } else {
+          counterMax += 1;
+        }
+      });
+      return counterMax;
+    };
+
+    const CONF_POSITIONS = {
+      initialX: 1,
+      initialY: 1,
+      iterationX: 6,
+      iterationY: 1,
+      columnCounter: 0,
+      sizeSubTitleY: counterSizeSubtitleYAux,
+      max_X: maxFields(fields),
+    };
+
+    addLogoAPS(ws, CONF_POSITIONS); //LOGO
+
+    forEach(header.titles, (title) => {
+      ws.cell(
+        CONF_POSITIONS.iterationX,
+        CONF_POSITIONS.iterationY,
+        CONF_POSITIONS.iterationX,
+        CONF_POSITIONS.max_X,
+        true
+      )
+        .string(title)
+        .style(styleDefaultTitle);
+      CONF_POSITIONS.iterationX += 1;
+    });
+
+    forEach(fields, (field, index) => {
+      let aux = CONF_POSITIONS.sizeSubTitleY > 1 ? 1 : 0;
+      if (isArray(field)) {
+        ws.cell(
+          CONF_POSITIONS.iterationX,
+          CONF_POSITIONS.iterationY,
+          CONF_POSITIONS.iterationX,
+          CONF_POSITIONS.iterationY - 1 + CONF_POSITIONS.sizeSubTitleY,
+          true
+        )
+          .string(separarStringPorCaracter(index, "_", " "))
+          .style(styleDefaultSubtitle);
+
+        forEach(field, (subfield) => {
+          ws.column(CONF_POSITIONS.iterationY).setWidth(25);
+          ws.cell(
+            CONF_POSITIONS.iterationX + aux,
+            CONF_POSITIONS.iterationY,
+            CONF_POSITIONS.iterationX + aux,
+            CONF_POSITIONS.iterationY,
+            true
+          )
+            .string(separarStringPorCaracter(subfield, "_", " "))
+            .style(styleDefaultSubtitle);
+          CONF_POSITIONS.iterationY += 1;
+        });
+      } else {
+        ws.column(CONF_POSITIONS.iterationY).setWidth(50);
+        ws.cell(
+          CONF_POSITIONS.iterationX,
+          CONF_POSITIONS.iterationY,
+          CONF_POSITIONS.iterationX + aux,
+          CONF_POSITIONS.iterationY,
+          true
+        )
+          .string(separarStringPorCaracter(field, "_", " "))
+          .style(styleDefaultSubtitle);
+        CONF_POSITIONS.iterationY += 1;
+      }
+    });
+    CONF_POSITIONS.iterationX += CONF_POSITIONS.sizeSubTitleY > 1 ? 2 : 1;
+
+    CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
+
+    // console.log(CONF_POSITIONS);
+    // console.log(data);
+
+    const VALUE_TOTAL = defaultStyleReport("ESTADISTICO", "value_total", wb);
+    const VALUE_GROUP = defaultStyleReport("ESTADISTICO", "value_group", wb);
+    const VALUES_TOTAL_AUX = {
+      index: CONF_POSITIONS.iterationX,
+      ok: false,
+    };
+    forEach(data, (itemData) => {
+      CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
+      let counterAux = 0;
+      forEach(itemData, (value, index) => {
+        showCellStatisticalReport({
+          ws,
+          value,
+          x: CONF_POSITIONS.iterationX,
+          y: CONF_POSITIONS.iterationY,
+          styleDefaultData,
+          VALUE_TOTAL,
+          VALUE_GROUP,
+          mainValue: counterAux === 0 ? true : false,
+          VALUES_TOTAL_AUX,
+        });
+        counterAux += 1;
+        CONF_POSITIONS.iterationY += 1;
+      });
+      VALUES_TOTAL_AUX.ok === false
+        ? (VALUES_TOTAL_AUX.index += 1)
+        : (VALUES_TOTAL_AUX.index += 0);
+      CONF_POSITIONS.iterationX += 1;
+    });
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: null, err };
+  }
 }
 
 function SimpleReport(params) {
@@ -3856,6 +4146,89 @@ function showCell(params) {
   }
 }
 
+function showCellStatisticalReport(params) {
+  const {
+    ws,
+    value,
+    x,
+    y,
+    styleDefaultData,
+    VALUE_TOTAL,
+    VALUE_GROUP,
+    mainValue,
+    VALUES_TOTAL_AUX,
+  } = params;
+  if (value instanceof Date) {
+    return ws
+      .cell(x, y)
+      .string(showValueInCell(value))
+      .style(styleDefaultData)
+      .style(VALUE_GROUP.border)
+      .style(VALUE_GROUP.align("center"))
+      .style(VALUE_GROUP.fontBold(false));
+  } else if (typeof value === "number" || !isNaN(value)) {
+    console.log(VALUES_TOTAL_AUX, value);
+    if (VALUES_TOTAL_AUX.ok === true && !isNaN(value)) {
+      //TO DO: SEGUIR PROBANDO LOS REPORTES
+      return ws
+        .cell(VALUES_TOTAL_AUX.index, y)
+        .number(parseFloat(value))
+        .style(VALUE_GROUP.border)
+        .style(VALUE_TOTAL.border)
+        .style(VALUE_TOTAL.fill)
+        .style(VALUE_GROUP.align("center"))
+        .style(VALUE_GROUP.fontBold(false));
+    } else {
+      return ws
+        .cell(x, y)
+        .number(parseFloat(value))
+        .style(styleDefaultData)
+        .style(VALUE_GROUP.border)
+        .style(VALUE_GROUP.align("center"))
+        .style(VALUE_GROUP.fontBold(false));
+    }
+  } else {
+    const valueAux = toLower(toString(value));
+    if (includes(valueAux, "total") || includes(valueAux, "final")) {
+      VALUES_TOTAL_AUX.ok = true;
+      return ws
+        .cell(x, y)
+        .string(showValueInCell(value))
+        .style(VALUE_TOTAL.border)
+        .style(VALUE_TOTAL.fill)
+        .style(VALUE_TOTAL.indent(3, 3))
+        .style(VALUE_TOTAL.align("left"))
+        .style(VALUE_TOTAL.fontBold(true));
+    } else {
+      if (VALUES_TOTAL_AUX.ok === true) {
+        return ws
+          .cell(VALUES_TOTAL_AUX.index, y)
+          .string(showValueInCell(value))
+          .style(VALUE_TOTAL.border)
+          .style(VALUE_TOTAL.fill)
+          .style(VALUE_TOTAL.indent(3, 3))
+          .style(VALUE_TOTAL.align("left"))
+          .style(VALUE_TOTAL.fontBold(true));
+      } else if (mainValue === true) {
+        return ws
+          .cell(x, y)
+          .string(showValueInCell(value))
+          .style(VALUE_GROUP.border)
+          .style(VALUE_GROUP.indent(3, 3))
+          .style(VALUE_GROUP.align("left"))
+          .style(VALUE_GROUP.fontBold(false));
+      } else {
+        return ws
+          .cell(x, y)
+          .string(showValueInCell(value))
+          .style(VALUE_GROUP.border)
+          .style(VALUE_GROUP.align("center"))
+          .style(VALUE_GROUP.fontBold(false));
+      }
+    }
+  }
+}
+
 function cellHeaderStyleDefault(wb) {
   return customSingleStyleReportExcel(wb, {
     font: {
@@ -3874,6 +4247,29 @@ function cellHeaderStyleDefault(wb) {
       right: { style: "hair" },
     },
     ...alignTextStyleReportExcel("center"),
+  });
+}
+
+function addLogoAPS(ws, CONF_POSITIONS) {
+  ws.addImage({
+    path: "./assets/aps-logo.png",
+    name: "logo",
+    type: "picture",
+    position: {
+      type: "twoCellAnchor",
+      from: {
+        col: CONF_POSITIONS.max_X,
+        colOff: 0,
+        row: CONF_POSITIONS.initialY,
+        rowOff: 0,
+      },
+      to: {
+        col: CONF_POSITIONS.max_X + 1,
+        colOff: 0,
+        row: CONF_POSITIONS.initialY + 4,
+        rowOff: 0,
+      },
+    },
   });
 }
 
