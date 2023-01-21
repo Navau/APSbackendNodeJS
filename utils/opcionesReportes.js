@@ -623,7 +623,7 @@ function formatDataChartsReportExcel(fecha, body, header, wb) {
 function headerStyleReportExcel(ws, wb, report) {
   if (report.code === "ALI-G" || report.code === "INN-R") {
     const date = report?.data.date;
-    const styleDefault = defaultStyleReportExcel("header");
+    const styleDefault = defaultStyleReportExcel(wb, "header");
     cellsBorderStyleReportExcel(4, 1, 6, 3, ws, wb);
     customBorderStyleReportExcel(4, 1, 4, 3, ws, wb, {
       top: { style: "medium" },
@@ -816,7 +816,7 @@ async function createChart(data, labels, header) {
 async function bodyCommonStyleReportExcel(ws, wb, report) {
   // console.log(report.code);
   if (report.code === "ALI-G" || report.code === "INN-R") {
-    const styleDefault = defaultStyleReportExcel("body");
+    const styleDefault = defaultStyleReportExcel(wb, "body");
     let posXInitial = 8;
     let posXIteration = posXInitial;
     let posYInitial = 1;
