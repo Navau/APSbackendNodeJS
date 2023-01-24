@@ -1435,7 +1435,7 @@ async function ObtenerUsuariosPorRol(user) {
   return resultFinal;
 }
 
-async function EjecutarVariosQuerys(querys = [], newID) {
+async function EjecutarVariosQuerys(querys = [], newID, newTable) {
   if (size(querys) < 0) return null;
   const resultFinal = [];
   const errors = [];
@@ -1454,7 +1454,7 @@ async function EjecutarVariosQuerys(querys = [], newID) {
       .then((result) => {
         resultFinal.push({
           data: result.rows,
-          table: v,
+          table: newTable?.[counterAux] ? newTable[counterAux] : v,
           order: counterAux,
           fields: map(result?.fields, (field) => field.name),
           id:
@@ -1479,6 +1479,62 @@ async function EjecutarVariosQuerys(querys = [], newID) {
   if (size(errors) > 0) return { ok: false, errors };
   if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
   return { ok: null, result: [errors, resultFinal] };
+}
+
+async function EjecutarQuerysReportes(opciones = {}, tipoReporte) {
+  if (size(opciones) < 0)
+    return {
+      ok: null,
+      result: "No se envio ninguna opcion para obtener el reporte",
+    };
+  const resultFinal = [];
+  const errors = [];
+  const TIPOS_REPORTES = {
+    ESTADISTICOS: async () => {
+      let counterAux = 0;
+      for await (const opcion of opciones) {
+        counterAux = 0;
+        for await (const item of opcion) {
+          await pool
+            .query(item.query)
+            .then((result) => {
+              resultFinal.push({
+                id: item.id,
+                name: item.header.name,
+                mainValuesAux: item.mainValuesAux,
+                header: item.header,
+                fun: item.fun,
+                table: item.header.tables[counterAux],
+                fields: map(result?.fields, (field) => field.name),
+                data: result.rows,
+              });
+            })
+            .catch((err) => {
+              errors.push({
+                err,
+                message: err?.message,
+                table: item.fun,
+              });
+            })
+            .finally(() => {
+              counterAux += 1;
+            });
+        }
+      }
+      if (size(errors) > 0) return { ok: false, result: errors };
+      if (size(resultFinal) > 0)
+        return {
+          ok: true,
+          result: groupBy(
+            resultFinal,
+            (item) => `${item.id}(-separador-)${item.name}`
+          ),
+        };
+      return { ok: null, result: [errors, resultFinal] };
+    },
+  };
+
+  return await TIPOS_REPORTES[tipoReporte]();
 }
 
 function AsignarInformacionCompletaPorUnaClave(result, options) {
@@ -1576,4 +1632,5 @@ module.exports = {
   EjecutarProcedimientoSQL,
   EjecutarVariosQuerys,
   AsignarInformacionCompletaPorUnaClave,
+  EjecutarQuerysReportes,
 };

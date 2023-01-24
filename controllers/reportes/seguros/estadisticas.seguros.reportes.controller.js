@@ -15,6 +15,9 @@ const {
   filter,
   isArray,
   replace,
+  find,
+  split,
+  lastIndexOf,
 } = require("lodash");
 
 const {
@@ -28,6 +31,8 @@ const {
   EscogerInternoUtil,
   EjecutarFuncionSQL,
   EjecutarVariosQuerys,
+  ListarUtil,
+  EjecutarQuerysReportes,
 } = require("../../../utils/consulta.utils");
 const {
   defaultOptionsReportExcel,
@@ -40,79 +45,11 @@ const {
   formatDataChartsReportExcel,
   createChart,
   StatisticalReport,
+  StatisticalReport2,
 } = require("../../../utils/opcionesReportes");
 const dayjs = require("dayjs");
 const { TransformarArrayAObjeto } = require("../../../utils/formatearDatos");
 require("dayjs/locale/es");
-
-async function estadisticasInversiones(req, res) {
-  try {
-    const { fecha } = req.body;
-    if (!fecha) {
-      respDatosNoRecibidos400(res, "La fecha no fue recibida");
-      return;
-    }
-    const nameExcelExport = `Estadisticas_Inversiones ${dayjs(fecha)
-      .locale("es")
-      .format("MMMM YYYY")
-      .toUpperCase()}.xlsx`;
-
-    //#region OBTENIENDO INFORMACION DE aps_fun_seguros_cartera_valorada
-    const queryBoletinCuadro1_4 = EjecutarFuncionSQL(
-      "aps_fun_seguros_cartera_valorada",
-      {
-        body: {
-          fecha,
-        },
-      }
-    );
-
-    const boletinCuadro1_4 = await pool
-      .query(queryBoletinCuadro1_4)
-      .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows };
-        else return { ok: false, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-
-    if (boletinCuadro1_4.ok === null) {
-      respErrorServidor500END(res, boletinCuadro1_4.err);
-      return null;
-    } else if (boletinCuadro1_4.ok === false) {
-      respResultadoIncorrectoObjeto200(res, null, boletinCuadro1_4.result);
-      return null;
-    }
-    //#endregion
-
-    //#region JUNTANDO TODA LA INFORMACION EN segurosDataFinal
-    forEach(boletinCuadro1_4.result, (itemI) => {
-      !("codeSeguros" in itemI) ? (itemI["codeSeguros"] = "BC1_4") : "";
-    });
-
-    const segurosDataFinal = [...boletinCuadro1_4.result];
-    // console.log("segurosDataFinal", segurosDataFinal);
-    //#endregion
-
-    const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
-    formatDataChartsReportExcel(fecha, segurosDataFinal, wb);
-    const pathExcel = path.join("reports", nameExcelExport);
-
-    wb.write(pathExcel, (err, stats) => {
-      // console.log("ERR", err);
-      //   console.log("stats", stats);
-      // console.log("RIR", segurosRIR);
-      if (err) {
-        respErrorServidor500END(res, err);
-      } else {
-        respDescargarArchivos200(res, pathExcel);
-      }
-    });
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
-}
 
 function tipoReporte(id, fecha) {
   const REPORTES_FUNCIONES = {
@@ -121,18 +58,20 @@ function tipoReporte(id, fecha) {
       fun: ["aps_fun_seguros_cartera_valorada"],
       editFields: true,
       editData: true,
-      mainValues: [0],
+      mainValues: [0, 1],
       header: {
-        name: "Boletín Cuadro 1.4",
+        name: "BOLETÍN CUADRO 1.4",
         nameExcel: "Comparativo Tipo Instrumento.xlsx",
-        titles: {
-          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
-            .locale("es")
-            .format("DD [DE] MMMM [DE] YYYY")
-            .toUpperCase()}`,
-          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
-          title3: "Expresado en Bolivianos",
-        },
+        tables: [
+          {
+            title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
+            title3: "Expresado en Bolivianos",
+          },
+        ],
       },
     },
     3: {
@@ -144,39 +83,68 @@ function tipoReporte(id, fecha) {
         "aps_fun_inversiones_rir_totalmercado",
       ],
       moneda: 3,
-      editFields: true,
-      mainValues: [0],
-      multipleTables: true,
+      mainValues: [0, 1],
       header: {
-        name: "REP INST (3)",
+        name: "REP INSTITUCION (3)",
         nameExcel: "Tipo Instrumento Valor Mercado.xlsx",
-        titles: {
-          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
-            .locale("es")
-            .format("DD [DE] MMMM [DE] YYYY")
-            .toUpperCase()}`,
-          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
-          title3: "Expresado en Bolivianos",
-        },
+        tables: [
+          {
+            title1: `INVERSIONES POR TIPO INSTRUMENTO`,
+            title2: "TOTAL SEGUROS GENERALES",
+            title3: `CARTERA A VALOR DE MERCADO AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title4: `EN DOLARES ESTADOUNIDENSES`,
+          },
+          {
+            title1: `INVERSIONES POR TIPO INSTRUMENTO`,
+            title2: "TOTAL SEGUROS PERSONALES",
+            title3: `CARTERA A VALOR DE MERCADO AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title4: `EN DOLARES ESTADOUNIDENSES`,
+          },
+          {
+            title1: `INVERSIONES POR TIPO INSTRUMENTO`,
+            title2: "TOTAL SEGUROS PREPAGO",
+            title3: `CARTERA A VALOR DE MERCADO AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title4: `EN DOLARES ESTADOUNIDENSES`,
+          },
+          {
+            title1: `INVERSIONES POR TIPO INSTRUMENTO`,
+            title2: "TOTAL MERCADO DE SEGUROS",
+            title3: `CARTERA A VALOR DE MERCADO AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title4: `EN DOLARES ESTADOUNIDENSES`,
+          },
+        ],
       },
     },
     5: {
       id: 5,
       fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
-      editFields: true,
       mainValues: [0, 1, 2], //FECHA, CODIGO, EMISOR
       header: {
-        name: "REP EMISOR TIPO ASEGURADORA",
+        name: "ASEGURADORA POR EMISOR",
         nameExcel: "Diversificacion Emisor.xlsx",
-        titles: {
-          title1: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
-          title2: "Entidades de Seguros y Reaseguros",
-          title3: "Cartera a Valor de Mercado",
-          title4: dayjs(fecha)
-            .locale("es")
-            .format("[AL] DD [DE] MMMM [DE] YYYY")
-            .toUpperCase(),
-        },
+        tables: [
+          {
+            title1: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
+            title2: "Entidades de Seguros y Reaseguros",
+            title3: "Cartera a Valor de Mercado",
+            title4: dayjs(fecha)
+              .locale("es")
+              .format("[AL] DD [DE] MMMM [DE] YYYY")
+              .toUpperCase(),
+          },
+        ],
       },
     },
     // 9: {
@@ -197,125 +165,177 @@ function tipoReporte(id, fecha) {
     10: {
       id: 10,
       fun: ["aps_fun_inversiones_tgn"],
-      editFields: true,
       mainValues: [0, 1],
       header: {
         name: "TGN-BCB",
         nameExcel: "RIA TGN-BCB.xlsx",
-        titles: {
-          title1: `AUTORIDAD DE FISCALIZACIÓN Y CONTROL DE PENSIONES Y SEGUROS`,
-          title2: "DIRECCIÓN DE INVERSIONES",
-          title3: dayjs(fecha)
-            .locale("es")
-            .format(
-              "[Detalle de cartera de inversión admisible total mercado por emisor TGN - BCB al] DD [DE] MMMM [DE] YYYY"
-            )
-            .toUpperCase(),
-        },
+        tables: [
+          {
+            title1: `AUTORIDAD DE FISCALIZACIÓN Y CONTROL DE PENSIONES Y SEGUROS`,
+            title2: "DIRECCIÓN DE INVERSIONES",
+            title3: dayjs(fecha)
+              .locale("es")
+              .format(
+                "[Detalle de cartera de inversión admisible total mercado por emisor TGN - BCB al] DD [DE] MMMM [DE] YYYY"
+              )
+              .toUpperCase(),
+          },
+        ],
       },
     },
     11: {
       id: 11,
-      editFields: true,
       mainValues: [0],
       fun: ["aps_fun_inversiones_por_emisor"],
       header: {
         name: "REP EMISOR",
         nameExcel: "Valores por Emisor.xlsx",
-        titles: {
-          title1: `CARTERA DE INVERSIONES DE VALORES POR EMISOR`,
-          title2: "Seguros Generales y Seguros de Personas",
-          title3: dayjs(fecha)
-            .locale("es")
-            .format("[INVERSIONES SEGUROS AL] DD [DE] MMMM [DE] YYYY")
-            .toUpperCase(),
-        },
+        tables: [
+          {
+            title1: `CARTERA DE INVERSIONES DE VALORES POR EMISOR`,
+            title2: "Seguros Generales y Seguros de Personas",
+            title3: dayjs(fecha)
+              .locale("es")
+              .format("[INVERSIONES SEGUROS AL] DD [DE] MMMM [DE] YYYY")
+              .toUpperCase(),
+          },
+        ],
       },
     },
     24: {
       id: 24,
-      editFields: true,
       mainValues: [0, 1, 2],
       fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
       header: {
-        name: "REP INSTRUMENTO TIPO ASEGURADORA",
+        name: "REP INSTRUMENTO",
         nameExcel: "Inversiones Tipo Instrumento.xlsx",
-        titles: {
-          title1: `INVERSIONES POR TIPO INSTRUMENTO`,
-          title2: "TOTAL Seguros Personales",
-          title3: "Cartera a Valor de Mercado",
-          title4: dayjs(fecha)
-            .locale("es")
-            .format("[AL] DD [DE] MMMM [DE] YYYY")
-            .toUpperCase(),
-        },
+        tables: [
+          {
+            title1: `INVERSIONES POR TIPO INSTRUMENTO`,
+            title2: "TOTAL Seguros Personales",
+            title3: "Cartera a Valor de Mercado",
+            title4: dayjs(fecha)
+              .locale("es")
+              .format("[AL] DD [DE] MMMM [DE] YYYY")
+              .toUpperCase(),
+          },
+        ],
       },
     },
   };
-
   return REPORTES_FUNCIONES[id];
 }
 
-function EditarSubtitulos(id, data, fields, fecha) {
-  const CHANGE_FIELDS = {
-    1: () => {
-      let fieldsAux = {};
-      const formatFields = map(fields, (item) => {
-        if (includes(item, "participacion")) {
-          const identificador = includes(item, "_m1") ? "_m1" : "_m2";
-          return `participación_(%)${identificador}`;
-        }
-        return item;
+function PrepararReportes(reportes, instituciones) {
+  const ID_TIPO_REPORTE = {
+    1: (reporte) => {
+      forEach(reporte, (item) => {
+        //#region FIELDS
+        let fieldsAux = {};
+        const formatFields = map(item.fields, (field) => {
+          if (includes(field, "participacion")) {
+            const identificador = includes(field, "_m1") ? "_m1" : "_m2";
+            return `participación_(%)${identificador}`;
+          }
+          return field;
+        });
+
+        forEach(formatFields, (fField) => {
+          if (
+            fField === "fecha_informacion_m1" ||
+            fField === "fecha_informacion_m2"
+          ) {
+            const identificador = includes(fField, "m1") ? "m1" : "m2";
+            const value = item.data[0]?.[fField]
+              ? item.data[0]?.[fField]
+              : fecha;
+            const fechaFinal =
+              includes(fField, "m1") && !item.data[0]?.[fField]
+                ? dayjs(value)
+                    .add(-1, "month")
+                    .locale("es")
+                    .format("MMMM[_]YYYY")
+                    .toUpperCase()
+                : dayjs(value).locale("es").format("MMMM[_]YYYY").toUpperCase();
+            fieldsAux = {
+              ...fieldsAux,
+              [fechaFinal]: filter(
+                formatFields,
+                (itemMap) =>
+                  includes(itemMap, identificador) &&
+                  !includes(itemMap, "fecha_informacion")
+              ),
+            };
+          } else if (fField === "tipo_instrumento") {
+            fieldsAux = { ...fieldsAux, [`${fField}_main`]: fField };
+          } else {
+            fieldsAux = { ...fieldsAux, [fField]: fField };
+          }
+        });
+        forEach(fieldsAux, (field, index) => {
+          if (isArray(field)) {
+            const aux = [];
+            forEach(field, (subfield) => {
+              delete fieldsAux[subfield];
+              const identificador = includes(subfield, "_m1") ? "_m1" : "_m2";
+              if (includes(subfield, identificador)) {
+                aux.push(replace(subfield, identificador, ""));
+              }
+            });
+            set(fieldsAux, index, aux);
+          }
+        });
+        item.fields = fieldsAux;
+        //#endregion
+        //#region DATA
+        forEach(item.data, (itemData) => {
+          delete itemData.fecha_informacion_m1;
+          delete itemData.fecha_informacion_m2;
+        });
+        //#endregion
       });
-      forEach(formatFields, (item) => {
-        if (
-          item === "fecha_informacion_m1" ||
-          item === "fecha_informacion_m2"
-        ) {
-          const identificador = includes(item, "m1") ? "m1" : "m2";
-          const value = data[0]?.[item] ? data[0]?.[item] : fecha;
-          const fechaFinal =
-            includes(item, "m1") && !data[0]?.[item]
-              ? dayjs(value)
-                  .add(-1, "month")
-                  .locale("es")
-                  .format("MMMM[_]YYYY")
-                  .toUpperCase()
-              : dayjs(value).locale("es").format("MMMM[_]YYYY").toUpperCase();
-          fieldsAux = {
-            ...fieldsAux,
-            [fechaFinal]: filter(
-              formatFields,
-              (itemMap) =>
-                includes(itemMap, identificador) &&
-                !includes(itemMap, "fecha_informacion")
-            ),
-          };
-        } else if (item === "tipo_instrumento") {
-          fieldsAux = { ...fieldsAux, [`${item}_main`]: item };
-        } else {
-          fieldsAux = { ...fieldsAux, [item]: item };
-        }
-      });
-      forEach(fieldsAux, (field, index) => {
-        if (isArray(field)) {
-          const aux = [];
-          forEach(field, (subfield) => {
-            delete fieldsAux[subfield];
-            const identificador = includes(subfield, "_m1") ? "_m1" : "_m2";
-            if (includes(subfield, identificador)) {
-              aux.push(replace(subfield, identificador, ""));
-            }
+    },
+    3: (reporte) => {
+      forEach(reporte, (item) => {
+        forEach(item.fields, (field, indexField) => {
+          const institucionAux = find(instituciones, (itemInstitucion) => {
+            return field.substring(1, size(field)) === itemInstitucion.codigo;
           });
-          set(fieldsAux, index, aux);
-        }
+          if (institucionAux?.institucion)
+            set(item.fields, indexField, institucionAux.institucion);
+          else if (field === "titulo")
+            set(item.fields, indexField, "instrumento");
+          else if (field === "total" || field === "ctotal")
+            set(item.fields, indexField, "total");
+        });
+        item.fields = TransformarArrayAObjeto(item.fields);
+
+        const arrayAux = [];
+        forEach(item.fields, (field, indexField) => {
+          if (field !== "fecha" && field !== "instrumento") {
+            arrayAux.push(
+              field === "composicion" || field === "porcentaje"
+                ? `${field}_(%)`
+                : field
+            );
+            delete item.fields[indexField];
+          }
+        });
+        const indexFieldAux = item.fun.substring(
+          lastIndexOf(item.fun, "_"),
+          size(item.fun)
+        );
+        item.fields[
+          `seguros${
+            includes(indexFieldAux, "totalmercado")
+              ? "_total_mercado"
+              : indexFieldAux
+          }`
+        ] = arrayAux;
+        // console.log(item.fields);
       });
-      return fieldsAux;
     },
-    3: () => {
-      return fields;
-    },
-    5: () => {
+    5: (reporte) => {
       const formatFields = {
         fecha: "fecha",
         codigo: "codigo",
@@ -325,133 +345,55 @@ function EditarSubtitulos(id, data, fields, fecha) {
         seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
         total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
       };
-      return formatFields;
+      forEach(reporte, (item) => {
+        item.fields = formatFields;
+      });
     },
-    10: () => {
-      return {
-        fecha: "fecha",
-        instrumento: "instrumento",
-        serie: "serie",
-        cantidad: "cantidad_de_valores",
-        moneda: "moneda",
-        totalvaloradousd: "total_valorado_usd",
-        totalvaloradobs: "total_valorado_en_bs",
-      };
+    10: (reporte) => {
+      forEach(reporte, (item) => {
+        item.fields = {
+          fecha: "fecha",
+          instrumento: "instrumento",
+          serie: "serie",
+          cantidad: "cantidad_de_valores",
+          moneda: "moneda",
+          totalvaloradousd: "total_valorado_usd",
+          totalvaloradobs: "total_valorado_en_bs",
+        };
+      });
     },
-    11: () => {
-      return {
-        emisor: "emisor",
-        extranjero: "extranjero",
-        nacional: "nacional",
-        totalgeneral: "total_general",
-      };
+    11: (reporte) => {
+      forEach(reporte, (item) => {
+        item.fields = {
+          emisor: "emisor",
+          extranjero: "extranjero",
+          nacional: "nacional",
+          totalgeneral: "total_general",
+        };
+      });
     },
-    24: () => {
-      const formatFields = {
-        fecha: "fecha",
-        codigo: "codigo",
-        emisor: "emisor",
-        seguros_generales: ["monto_valorado_$us", "porcentaje_(%)"],
-        seguros_personales: ["monto_valorado_$us", "porcentaje_(%)"],
-        seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
-        total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
-      };
-      return formatFields;
+    24: (reporte) => {
+      forEach(reporte, (item) => {
+        item.fields = {
+          fecha: "fecha",
+          codigo: "codigo",
+          emisor: "emisor",
+          seguros_generales: ["monto_valorado_$us", "porcentaje_(%)"],
+          seguros_personales: ["monto_valorado_$us", "porcentaje_(%)"],
+          seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
+          total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
+        };
+      });
     },
   };
-  return CHANGE_FIELDS[id]();
+  forEach(reportes, (item, index) => {
+    ID_TIPO_REPORTE[split(index, "(-separador-)")[0]](item);
+  });
+
+  return reportes;
 }
 
-function EditarInformacion(id, data, fecha) {
-  const CHANGE_DATA = {
-    1: () => {
-      forEach(data, (item) => {
-        delete item.fecha_informacion_m1;
-        delete item.fecha_informacion_m2;
-      });
-      return data;
-    },
-  };
-  return CHANGE_DATA[id]();
-}
-
-async function estadisticasInversiones2(req, res) {
-  try {
-    const { fecha, id_reporte } = req.body;
-    if (!fecha || !id_reporte) {
-      respDatosNoRecibidos400(res, "Los datos no fueron recibidos");
-      return;
-    }
-    const infoReporte = tipoReporte(id_reporte, fecha);
-    const nameExcelExport = `Estadisticas_Inversiones ${dayjs(fecha)
-      .locale("es")
-      .format("MMMM YYYY")
-      .toUpperCase()}.xlsx`;
-
-    //#region OBTENIENDO INFORMACION DE REPORTE
-    const queryReporte = EjecutarFuncionSQL(infoReporte.fun, {
-      body: {
-        fecha,
-      },
-    });
-    const reporte = await pool
-      .query(queryReporte)
-      .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows };
-        else return { ok: false, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-
-    if (reporte.ok === null) {
-      throw reporte.err;
-    } else if (reporte.ok === false) {
-      respResultadoIncorrectoObjeto200(
-        res,
-        null,
-        reporte.result,
-        "No existe información para este reporte"
-      );
-      return null;
-    }
-    //#endregion
-    //#region JUNTANDO TODA LA INFORMACION EN estadisticosDataFinal
-    forEach(reporte.result, (itemI) => {
-      !("codeSeguros" in itemI)
-        ? (itemI["codeSeguros"] = infoReporte.acronym)
-        : "";
-    });
-
-    const estadisticosDataFinal = [...reporte.result];
-    // console.log("estadisticosDataFinal", estadisticosDataFinal);
-    //#endregion
-
-    const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
-    formatDataChartsReportExcel(
-      fecha,
-      estadisticosDataFinal,
-      infoReporte.header,
-      wb
-    );
-    const pathExcel = path.join("reports", nameExcelExport);
-
-    wb.write(pathExcel, (err, stats) => {
-      // console.log("ERR", err);
-      //   console.log("stats", stats);
-      // console.log("RIR", segurosRIR);
-      if (err) {
-        respErrorServidor500END(res, err);
-      } else {
-        respDescargarArchivos200(res, pathExcel);
-      }
-    });
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
-}
-
-async function EstadisticasInversiones3(req, res) {
+async function EstadisticasInversiones(req, res) {
   try {
     const { fecha, reportes } = req.body;
     const errorsReports = [];
@@ -459,8 +401,24 @@ async function EstadisticasInversiones3(req, res) {
       respDatosNoRecibidos400(res, "Los datos no fueron recibidos");
       return;
     }
+    //#region OBTENIENDO INSTITUCIONES
+    const queryInstituciones = ListarUtil("aps_view_modalidad_seguros", {
+      activo: null,
+    });
+    const instituciones = await pool
+      .query(queryInstituciones)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (instituciones.ok === null) {
+      throw instituciones.err;
+    }
+    //#endregion
 
-    const infoReportesAuxArray = [];
+    //#region DECLARACION DE VARIABLES
     const nameAux = `Estadisticas_Inversiones ${dayjs(fecha)
       .locale("es")
       .format("MMMM YYYY")
@@ -469,64 +427,53 @@ async function EstadisticasInversiones3(req, res) {
       name: nameAux,
       count: 0,
     };
+    //#endregion
 
-    const querys = map(reportes, (id_reporte, index) => {
+    const optionsReport = [];
+    forEach(reportes, (id_reporte, index) => {
       const infoReporte = tipoReporte(id_reporte, fecha);
       ExcelExport.name = infoReporte.header.nameExcel;
       ExcelExport.count = index;
-
-      infoReportesAuxArray.push(infoReporte);
-      return map(infoReporte.fun, (item) => {
-        const bodyAux = { fecha };
-        if (infoReporte?.moneda) {
-          bodyAux.moneda = infoReporte.moneda;
-        }
-        return EjecutarFuncionSQL(item, {
-          body: bodyAux,
-        });
-      });
+      optionsReport.push(
+        map(infoReporte.fun, (item) => {
+          const bodyAux = { fecha };
+          if (infoReporte?.moneda) {
+            bodyAux.moneda = infoReporte.moneda;
+          }
+          return {
+            id: id_reporte,
+            fun: item,
+            query: EjecutarFuncionSQL(item, {
+              body: bodyAux,
+            }),
+            header: infoReporte.header,
+            mainValuesAux: infoReporte.mainValues,
+          };
+        })
+      );
     });
+    const results = await EjecutarQuerysReportes(optionsReport, "ESTADISTICOS");
+    if (results.ok === null) throw results.result;
+    if (results.ok === false) throw results.result;
 
-    const results = await EjecutarVariosQuerys(
-      map(querys, (query) => query[0])
+    const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO PARA CREAR EL ARCHIVO EXCEL
+    const reportesEstadisticosFinal = PrepararReportes(
+      results.result,
+      instituciones.result
     );
-    if (results.ok === null) {
-      throw results.result;
-    }
-    if (results.ok === false) {
-      throw results.errors;
-    }
-
-    const estadisticosDataFinal = map(results.result, (item, index) => {
-      const report = infoReportesAuxArray[index];
-      item.data["fields"] =
-        report?.editFields === true
-          ? EditarSubtitulos(report.id, item.data, item.fields, fecha)
-          : TransformarArrayAObjeto(item.fields);
-      item.data =
-        report?.editData === true
-          ? EditarInformacion(report.id, item.data, fecha)
-          : item.data;
-      item.data["header"] = report.header;
-      item.data["mainValues"] = report?.mainValues;
-      return item.data;
-    });
-
-    const wb = new xl.Workbook(defaultOptionsReportExcel()); //INSTANCIA DEL OBJETO
-    forEach(estadisticosDataFinal, (item) => {
-      const resultReport = StatisticalReport({
+    // console.log(reportesEstadisticosFinal);
+    forEach(reportesEstadisticosFinal, (item, index) => {
+      const resultReport = StatisticalReport2({
         fecha,
-        data: item,
-        fields: item.fields,
-        header: item.header,
-        mainValues: item?.mainValues,
+        reporte: item,
+        indexReporteAux: index,
         wb,
       });
       if (resultReport.ok === null) errorsReports.push(resultReport.err);
     });
     if (size(errorsReports) > 0) throw errorsReports;
     const nameExcelFinal = ExcelExport.count > 0 ? nameAux : ExcelExport.name;
-    const pathExcel = path.join("reports", nameExcelFinal);
+    const pathExcel = path.join("reports/estadisticos", nameExcelFinal);
 
     wb.write(pathExcel, (err, stats) => {
       if (err) {
@@ -557,8 +504,6 @@ function NombreReporte(req, res) {
 }
 
 module.exports = {
-  estadisticasInversiones,
-  estadisticasInversiones2,
-  EstadisticasInversiones3,
+  EstadisticasInversiones,
   NombreReporte,
 };

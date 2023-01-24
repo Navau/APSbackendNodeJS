@@ -7,7 +7,7 @@ const api = express.Router();
 api.post(
   "/Inversiones",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.EstadisticasInversiones3
+  controller.EstadisticasInversiones
 );
 api.post(
   "/NombreReporte",

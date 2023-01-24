@@ -17,6 +17,8 @@ const {
   toLower,
   isEmpty,
   isUndefined,
+  split,
+  find,
 } = require("lodash");
 const fs = require("fs");
 const path = require("path");
@@ -104,9 +106,9 @@ function defaultOptionsReportExcel() {
   };
 }
 
-function defaultStyleReportExcel(custom) {
+function defaultStyleReportExcel(wb, custom) {
   if (custom === "header") {
-    return {
+    return customSingleStyleReportExcel(wb, {
       font: {
         bold: true,
         size: 12,
@@ -117,7 +119,7 @@ function defaultStyleReportExcel(custom) {
         horizontal: "left",
       },
       numberFormat: "#,##0.00; (#,##0.00); 0",
-    };
+    });
   }
   if (custom === "subheaders") {
     return customSingleStyleReportExcel(wb, {
@@ -146,7 +148,7 @@ function defaultStyleReportExcel(custom) {
       ...alignTextStyleReportExcel("center"),
     });
   } else if (custom === "body") {
-    return {
+    return customSingleStyleReportExcel(wb, {
       font: {
         bold: true,
         size: 10,
@@ -157,7 +159,7 @@ function defaultStyleReportExcel(custom) {
         horizontal: "left",
       },
       numberFormat: "#,##0.00; (#,##0.00); 0",
-    };
+    });
   }
 }
 
@@ -193,7 +195,7 @@ function defaultStyleReport(type, custom, wb, valueAux) {
         font: {
           color: "#F4F4F4",
           bold: true,
-          size: 12,
+          size: 10,
         },
         alignment: {
           shrinkToFit: true,
@@ -224,7 +226,7 @@ function defaultStyleReport(type, custom, wb, valueAux) {
           wrapText: true,
           horizontal: "left",
         },
-        numberFormat: "#,##0.00; (#,##0.00); 0",
+        numberFormat: "#,##0.00; (#,##0.00); 0.00",
       }),
       value_total: {
         border: {
@@ -622,7 +624,7 @@ function formatDataChartsReportExcel(fecha, body, header, wb) {
 function headerStyleReportExcel(ws, wb, report) {
   if (report.code === "ALI-G" || report.code === "INN-R") {
     const date = report?.data.date;
-    const styleDefault = defaultStyleReportExcel("header");
+    const styleDefault = defaultStyleReportExcel(wb, "header");
     cellsBorderStyleReportExcel(4, 1, 6, 3, ws, wb);
     customBorderStyleReportExcel(4, 1, 4, 3, ws, wb, {
       top: { style: "medium" },
@@ -815,7 +817,7 @@ async function createChart(data, labels, header) {
 async function bodyCommonStyleReportExcel(ws, wb, report) {
   // console.log(report.code);
   if (report.code === "ALI-G" || report.code === "INN-R") {
-    const styleDefault = defaultStyleReportExcel("body");
+    const styleDefault = defaultStyleReportExcel(wb, "body");
     let posXInitial = 8;
     let posXIteration = posXInitial;
     let posYInitial = 1;
@@ -3935,7 +3937,6 @@ function StatisticalReport(params) {
       "subheader",
       wb
     );
-
     const styleDefaultData = defaultStyleReport("ESTADISTICO", "data", wb);
 
     let counterSizeSubtitleYAux = 1;
@@ -4035,6 +4036,7 @@ function StatisticalReport(params) {
         CONF_POSITIONS.iterationY += 1;
       }
     });
+
     CONF_POSITIONS.iterationX += CONF_POSITIONS.sizeSubTitleY > 1 ? 2 : 1;
 
     CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
@@ -4074,6 +4076,214 @@ function StatisticalReport(params) {
       CONF_POSITIONS.iterationX += 1;
     });
 
+    return { ok: true };
+  } catch (err) {
+    return { ok: null, err };
+  }
+}
+
+function StatisticalReport2(params) {
+  try {
+    const { fecha, reporte, indexReporteAux, wb } = params;
+    const CONF_POSITIONS = {
+      initialX: 1,
+      initialY: 1,
+      iterationX: 6,
+      iterationY: 1,
+      columnCounter: 0,
+      sizeSubTitleY: 0,
+      max_X: 0,
+    };
+    const styleDefaultTitle = defaultStyleReport("ESTADISTICO", "header", wb);
+    const styleDefaultSubtitle = defaultStyleReport(
+      "ESTADISTICO",
+      "subheader",
+      wb
+    );
+    const styleDefaultData = defaultStyleReport("ESTADISTICO", "data", wb);
+    const ws = wb.addWorksheet(
+      split(indexReporteAux, "(-separador-)")[1] || "Reporte"
+    );
+    const sizeColumnsAux = {};
+    forEach(reporte, (itemReporte, indexReporte) => {
+      const { id, header, mainValuesAux, fun, table, fields, data } =
+        itemReporte;
+      let counterSizeSubtitleYAux = 1;
+      forEach(fields, (field) => {
+        if (isArray(field)) {
+          if (size(field) > counterSizeSubtitleYAux)
+            counterSizeSubtitleYAux = size(field);
+        }
+      });
+      const maxFields = (fieldsAux) => {
+        let counterMax = 0;
+        forEach(fieldsAux, (field) => {
+          if (isArray(field)) {
+            forEach(field, (subfield) => {
+              counterMax += 1;
+            });
+          } else {
+            counterMax += 1;
+          }
+        });
+        return counterMax;
+      };
+
+      CONF_POSITIONS.sizeSubTitleY = counterSizeSubtitleYAux;
+      CONF_POSITIONS.max_X = maxFields(fields);
+
+      if (indexReporte === 0) {
+        ws.cell(
+          CONF_POSITIONS.initialX,
+          CONF_POSITIONS.initialY,
+          CONF_POSITIONS.initialX,
+          parseInt(CONF_POSITIONS.max_X / 2),
+          true
+        )
+          .string(
+            dayjs()
+              .locale("es")
+              .format("[EMITIDO EL] DD [DE] MMMM [DE] YYYY [a las] HH:mm:ss")
+          )
+          .style(styleDefaultTitle);
+        addLogoAPS(ws, CONF_POSITIONS);
+      } //LOGO Y EMISION
+
+      forEach(table, (title) => {
+        ws.cell(
+          CONF_POSITIONS.iterationX,
+          CONF_POSITIONS.iterationY,
+          CONF_POSITIONS.iterationX,
+          CONF_POSITIONS.max_X,
+          true
+        )
+          .string(title)
+          .style(styleDefaultTitle);
+        CONF_POSITIONS.iterationX += 1;
+      });
+
+      forEach(fields, (field, index) => {
+        let aux = CONF_POSITIONS.sizeSubTitleY > 1 ? 1 : 0;
+        if (isArray(field)) {
+          ws.cell(
+            CONF_POSITIONS.iterationX,
+            CONF_POSITIONS.iterationY,
+            CONF_POSITIONS.iterationX,
+            CONF_POSITIONS.iterationY - 1 + CONF_POSITIONS.sizeSubTitleY,
+            true
+          )
+            .string(separarStringPorCaracter(index, "_", " "))
+            .style(styleDefaultSubtitle);
+
+          forEach(field, (subfield) => {
+            const sizeColumnPartial = size(subfield);
+            const sizeColumnFinal =
+              sizeColumnPartial >= 40
+                ? sizeColumnPartial + 30
+                : sizeColumnPartial + 10;
+            if (
+              isUndefined(sizeColumnsAux?.[CONF_POSITIONS.iterationY]) ||
+              sizeColumnFinal >
+                sizeColumnsAux?.[CONF_POSITIONS.iterationY]?.sizeColumn
+            ) {
+              sizeColumnsAux[CONF_POSITIONS.iterationY] = {
+                sizeColumn: sizeColumnFinal,
+                field: subfield,
+              };
+            }
+            ws.column(CONF_POSITIONS.iterationY).setWidth(
+              sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn
+            );
+            ws.cell(
+              CONF_POSITIONS.iterationX + aux,
+              CONF_POSITIONS.iterationY,
+              CONF_POSITIONS.iterationX + aux,
+              CONF_POSITIONS.iterationY,
+              true
+            )
+              .string(separarStringPorCaracter(subfield, "_", " "))
+              .style(styleDefaultSubtitle);
+            CONF_POSITIONS.iterationY += 1;
+          });
+        } else {
+          const sizeColumnPartial = size(field);
+          const sizeColumnFinal =
+            sizeColumnPartial >= 40
+              ? sizeColumnPartial + 30
+              : sizeColumnPartial + 10;
+          if (
+            isUndefined(sizeColumnsAux?.[CONF_POSITIONS.iterationY]) ||
+            sizeColumnFinal >
+              sizeColumnsAux?.[CONF_POSITIONS.iterationY]?.sizeColumn
+          ) {
+            sizeColumnsAux[CONF_POSITIONS.iterationY] = {
+              sizeColumn: sizeColumnFinal,
+              field: field,
+            };
+          }
+          ws.column(CONF_POSITIONS.iterationY).setWidth(
+            sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn
+          );
+          ws.cell(
+            CONF_POSITIONS.iterationX,
+            CONF_POSITIONS.iterationY,
+            CONF_POSITIONS.iterationX + aux,
+            CONF_POSITIONS.iterationY,
+            true
+          )
+            .string(separarStringPorCaracter(field, "_", " "))
+            .style(styleDefaultSubtitle);
+          CONF_POSITIONS.iterationY += 1;
+        }
+      });
+
+      CONF_POSITIONS.iterationX += CONF_POSITIONS.sizeSubTitleY > 1 ? 2 : 1;
+
+      CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
+
+      const VALUE_TOTAL = defaultStyleReport("ESTADISTICO", "value_total", wb);
+      const VALUE_GROUP = defaultStyleReport("ESTADISTICO", "value_group", wb);
+      const VALUES_TOTAL_AUX = {
+        index: CONF_POSITIONS.iterationX,
+        ok: false,
+      };
+      forEach(data, (itemData) => {
+        CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
+        let counterAux = 0;
+        forEach(itemData, (value, index) => {
+          if (
+            size(value) + 10 >
+            sizeColumnsAux?.[CONF_POSITIONS.iterationY]?.sizeColumn
+          ) {
+            sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn =
+              size(value) + 10;
+            ws.column(CONF_POSITIONS.iterationY).setWidth(
+              sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn
+            );
+          }
+          showCellStatisticalReport({
+            ws,
+            value,
+            x: CONF_POSITIONS.iterationX,
+            y: CONF_POSITIONS.iterationY,
+            styleDefaultData,
+            VALUE_TOTAL,
+            VALUE_GROUP,
+            mainValue: !isUndefined(mainValuesAux?.[counterAux]) ? true : false,
+            VALUES_TOTAL_AUX,
+          });
+          counterAux += 1;
+          CONF_POSITIONS.iterationY += 1;
+        });
+        VALUES_TOTAL_AUX.ok === false
+          ? (VALUES_TOTAL_AUX.index += 1)
+          : (VALUES_TOTAL_AUX.index += 0);
+        CONF_POSITIONS.iterationX += 1;
+        // console.log(sizeColumnsAux);
+      });
+      CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
+      CONF_POSITIONS.iterationX += 3;
+    });
     return { ok: true };
   } catch (err) {
     return { ok: null, err };
@@ -4182,8 +4392,8 @@ function showCellStatisticalReport(params) {
       .style(VALUE_GROUP.align("center"))
       .style(VALUE_GROUP.fontBold(false));
   } else if (typeof value === "number" || (!isNaN(value) && !isEmpty(value))) {
-    // console.log(VALUES_TOTAL_AUX, value);
     if (VALUES_TOTAL_AUX.ok === true && !isNaN(value)) {
+      // console.log(value, VALUES_TOTAL_AUX);
       //TO DO: SEGUIR PROBANDO LOS REPORTES
       return ws
         .cell(VALUES_TOTAL_AUX.index, y)
@@ -4300,4 +4510,5 @@ module.exports = {
   SimpleReport,
   createChart,
   StatisticalReport,
+  StatisticalReport2,
 };
