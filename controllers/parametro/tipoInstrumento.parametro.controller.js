@@ -134,7 +134,7 @@ async function Escoger(req, res) {
   }
 }
 
-function SiglaDescripcion(req, res) {
+async function SiglaDescripcion(req, res) {
   const query = EscogerInternoUtil(nameTable, {
     select: ["*", "sigla ||'-'|| descripcion AS sigla_descripcion"],
     where: [
@@ -152,20 +152,17 @@ function SiglaDescripcion(req, res) {
       field: "sigla ASC",
     },
   });
-  pool.query(query, (err, result) => {
-    if (err) {
-      respErrorServidor500(res, err);
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
-      } else {
-        respResultadoCorrecto200(res, result);
-      }
-    }
-  });
+  await pool
+    .query(query)
+    .then((result) => {
+      respResultadoCorrectoObjeto200(res, result.rows);
+    })
+    .catch((err) => {
+      respErrorServidor500END(res, err);
+    });
 }
 
-function TipoInstrumentoDetalle(req, res) {
+async function TipoInstrumentoDetalle(req, res) {
   try {
     const body = req.body;
     let whereAux = [
@@ -200,23 +197,14 @@ function TipoInstrumentoDetalle(req, res) {
         },
       ];
     const query = EscogerInternoUtil(nameTable, {
-      select: [
-        "id_tipo_instrumento",
-        "sigla",
-        "descripcion",
-        "id_grupo",
-        "es_seriado",
-        "id_tipo_renta",
-        "id_tipo_mercado",
-        "activo",
-      ],
+      select: ["*"],
       where: whereAux,
       orderby: {
         field: "sigla",
       },
     });
 
-    pool
+    await pool
       .query(query)
       .then((result) => {
         if (result.rowCount > 0) {

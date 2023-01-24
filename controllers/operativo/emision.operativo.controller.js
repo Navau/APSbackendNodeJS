@@ -1,3 +1,4 @@
+const { size, forEach, map } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -127,20 +128,104 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
-      activo: null,
     };
-    let query = EscogerUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacioObject200(res, result.rows);
-        } else {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        }
+    const query = EscogerUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  }
+}
+
+async function EscogerPorTipoInstrumentoDetalle(req, res) {
+  try {
+    const { id_emisor, id_tipo_instrumento } = req.body;
+    //#region TIPO INSTRUMENTO DETALLE
+    const whereAux = [
+      {
+        key: "id_tipo_instrumento",
+        value: id_tipo_instrumento,
+      },
+      {
+        key: "es_seriado",
+        value: true,
+      },
+      {
+        key: "id_tipo_renta",
+        valuesWhereIn: [135, 136],
+        whereIn: true,
+      },
+      {
+        key: "activo",
+        value: true,
+      },
+      {
+        key: "id_grupo",
+        valuesWhereIn: [111, 119, 121, 126, 127],
+        whereIn: true,
+        searchCriteriaWhereIn: "NOT IN",
+      },
+    ];
+    const queryTipoInstrumentoDetalle = EscogerInternoUtil(
+      "APS_param_tipo_instrumento",
+      {
+        select: ["*"],
+        where: whereAux,
+        orderby: {
+          field: "sigla",
+        },
       }
+    );
+    const tipoInstrumentoDetalle = await pool
+      .query(queryTipoInstrumentoDetalle)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (tipoInstrumentoDetalle.ok === null) throw tipoInstrumentoDetalle.err;
+    //#endregion
+    const instrumentos = map(
+      tipoInstrumentoDetalle.result,
+      (instrumento) => `'${instrumento.id_tipo_instrumento}'`
+    );
+    if (size(instrumentos) === 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        instrumentos,
+        "No existe ningún tipo de instrumento que coincida para obtener la emisión"
+      );
+      return;
+    }
+    const query = EscogerInternoUtil(nameTable, {
+      select: ["*"],
+      where: [{ key: "id_emisor", value: id_emisor }],
     });
+    await pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        } else {
+          respResultadoIncorrectoObjeto200(
+            res,
+            null,
+            result.rows,
+            "No existe ninguna emisión registrada"
+          );
+        }
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
   }
 }
 
@@ -281,4 +366,5 @@ module.exports = {
   Deshabilitar,
   BuscarDiferente,
   ListarCompleto,
+  EscogerPorTipoInstrumentoDetalle,
 };

@@ -45,7 +45,6 @@ const {
   formatDataChartsReportExcel,
   createChart,
   StatisticalReport,
-  StatisticalReport2,
 } = require("../../../utils/opcionesReportes");
 const dayjs = require("dayjs");
 const { TransformarArrayAObjeto } = require("../../../utils/formatearDatos");
@@ -72,25 +71,56 @@ function tipoReporte(id, fecha) {
             title3: "Expresado en Bolivianos",
           },
         ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     2: {
       id: 2,
-      fun: ["aps_fun_seguros_cartera_valorada"],
-      editFields: true,
-      editData: true,
+      fun: [
+        "aps_fun_inversiones_rir_tipo_aseguradora_personas",
+        "aps_fun_inversiones_rir_tipo_aseguradora_generales",
+        "aps_fun_inversiones_rir_tipo_aseguradora_prepago",
+      ],
       mainValues: [0],
+      moneda: 3,
       header: {
-        name: "Boletín Cuadro 1.4",
+        name: "RIR(2) y (RIR)",
         nameExcel: "RIR USD.xlsx",
-        titles: {
-          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
-            .locale("es")
-            .format("DD [DE] MMMM [DE] YYYY")
-            .toUpperCase()}`,
-          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
-          title3: "Expresado en Bolivianos",
-        },
+        tables: [
+          {
+            title1: `SEGUROS PERSONALES`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+          {
+            title1: `SEGUROS GENERALES`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+          {
+            title1: `SEGUROS PREPAGO`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+        ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     3: {
@@ -144,25 +174,29 @@ function tipoReporte(id, fecha) {
             title4: `EN DOLARES ESTADOUNIDENSES`,
           },
         ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     4: {
       id: 4,
       fun: ["aps_fun_seguros_cartera_valorada"],
-      editFields: true,
-      editData: true,
       mainValues: [0],
       header: {
-        name: "Boletín Cuadro 1.4",
+        name: "REP INST (VN)",
         nameExcel: "Tipo Instrumento Valor Nominal.xlsx",
-        titles: {
-          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
-            .locale("es")
-            .format("DD [DE] MMMM [DE] YYYY")
-            .toUpperCase()}`,
-          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
-          title3: "Expresado en Bolivianos",
-        },
+        tables: [
+          {
+            title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
+            title3: "Expresado en Bolivianos",
+          },
+        ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     5: {
@@ -183,25 +217,56 @@ function tipoReporte(id, fecha) {
               .toUpperCase(),
           },
         ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     9: {
-      id: 9,
-      fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
-      editFields: true,
-      mainValues: [0, 1, 2], //FECHA, CODIGO, EMISOR
+      id: 2,
+      fun: [
+        "aps_fun_inversiones_rir_tipo_aseguradora_personas",
+        "aps_fun_inversiones_rir_tipo_aseguradora_generales",
+        "aps_fun_inversiones_rir_tipo_aseguradora_prepago",
+      ],
+      mainValues: [0],
+      moneda: 1,
       header: {
-        name: "REP EMISOR TIPO ASEGURADORA",
+        name: "BOLETÍN CUADRO 1.5",
         nameExcel: "RIR BOB.xlsx",
-        titles: {
-          title1: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
-          title2: "Entidades de Seguros y Reaseguros",
-          title3: "Cartera a Valor de Mercado",
-          title4: dayjs(fecha)
-            .locale("es")
-            .format("[AL] DD [DE] MMMM [DE] YYYY")
-            .toUpperCase(),
-        },
+        tables: [
+          {
+            title1: `SEGUROS PERSONALES`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+          {
+            title1: `SEGUROS GENERALES`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+          {
+            title1: `SEGUROS PREPAGO`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+        ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     10: {
@@ -223,6 +288,8 @@ function tipoReporte(id, fecha) {
               .toUpperCase(),
           },
         ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     11: {
@@ -242,6 +309,8 @@ function tipoReporte(id, fecha) {
               .toUpperCase(),
           },
         ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
     12: {
@@ -250,7 +319,7 @@ function tipoReporte(id, fecha) {
       mainValues: [0],
       fun: ["aps_fun_inversiones_por_emisor"],
       header: {
-        name: "REP EMISOR",
+        name: "DPF POR PLAZO",
         nameExcel: "DPF por Plazo.xlsx",
         titles: {
           title1: `CARTERA DE INVERSIONES DE VALORES POR EMISOR`,
@@ -261,6 +330,8 @@ function tipoReporte(id, fecha) {
             .toUpperCase(),
         },
       },
+      source:
+        "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
     },
     24: {
       id: 24,
@@ -280,6 +351,8 @@ function tipoReporte(id, fecha) {
               .toUpperCase(),
           },
         ],
+        source:
+          "Informes Diarios de Valoraciones de Carteras de Inversión de Entidades Aseguradoras.",
       },
     },
   };
@@ -355,8 +428,35 @@ function PrepararReportes(reportes, instituciones) {
         //#endregion
       });
     },
+    2: (reporte) => {
+      forEach(reporte, (item) => {
+        //#region FIELDS
+        forEach(item.fields, (field, indexField) => {
+          const institucionAux = find(instituciones, (itemInstitucion) => {
+            return field.substring(1, size(field)) === itemInstitucion.codigo;
+          });
+          if (institucionAux?.institucion)
+            set(item.fields, indexField, institucionAux.institucion);
+          else if (field === "indicador")
+            set(item.fields, indexField, "cartera_de_inversion");
+        });
+        item.fields = TransformarArrayAObjeto(item.fields);
+        delete item.fields?.id_tipo_entidad;
+        delete item.fields?.fecha;
+        delete item.fields?.id_indicador;
+        //#endregion
+        //#region DATA
+        forEach(item.data, (itemData) => {
+          delete itemData?.id_tipo_entidad;
+          delete itemData?.fecha;
+          delete itemData?.id_indicador;
+        });
+        //#endregion
+      });
+    },
     3: (reporte) => {
       forEach(reporte, (item) => {
+        //#region FIELDS
         forEach(item.fields, (field, indexField) => {
           const institucionAux = find(instituciones, (itemInstitucion) => {
             return field.substring(1, size(field)) === itemInstitucion.codigo;
@@ -392,7 +492,7 @@ function PrepararReportes(reportes, instituciones) {
               : indexFieldAux
           }`
         ] = arrayAux;
-        // console.log(item.fields);
+        //#endregion
       });
     },
     5: (reporte) => {
@@ -407,6 +507,36 @@ function PrepararReportes(reportes, instituciones) {
       };
       forEach(reporte, (item) => {
         item.fields = formatFields;
+      });
+    },
+    9: (reporte) => {
+      forEach(reporte, (item) => {
+        //#region FIELDS
+        forEach(item.fields, (field, indexField) => {
+          const institucionAux = find(instituciones, (itemInstitucion) => {
+            return field.substring(1, size(field)) === itemInstitucion.codigo;
+          });
+          if (institucionAux?.institucion)
+            set(item.fields, indexField, institucionAux.institucion);
+          else if (field === "indicador")
+            set(
+              item.fields,
+              indexField,
+              "composicion_de_inversiones_admisibles"
+            );
+        });
+        item.fields = TransformarArrayAObjeto(item.fields);
+        delete item.fields?.id_tipo_entidad;
+        delete item.fields?.fecha;
+        delete item.fields?.id_indicador;
+        //#endregion
+        //#region DATA
+        forEach(item.data, (itemData) => {
+          delete itemData?.id_tipo_entidad;
+          delete itemData?.fecha;
+          delete itemData?.id_indicador;
+        });
+        //#endregion
       });
     },
     10: (reporte) => {
@@ -512,6 +642,14 @@ async function EstadisticasInversiones(req, res) {
         })
       );
     });
+    if (size(filter(reportes, (item) => item === 4 || item === 12)) > 0) {
+      const nameExcelFinal = ExcelExport.count > 0 ? nameAux : ExcelExport.name;
+      const pathExcel = path.join("reports/temp", nameExcelFinal);
+
+      respDescargarArchivos200(res, pathExcel, nameExcelFinal);
+      return;
+    }
+
     const results = await EjecutarQuerysReportes(optionsReport, "ESTADISTICOS");
     if (results.ok === null) throw results.result;
     if (results.ok === false) throw results.result;
@@ -521,9 +659,8 @@ async function EstadisticasInversiones(req, res) {
       results.result,
       instituciones.result
     );
-    // console.log(reportesEstadisticosFinal);
     forEach(reportesEstadisticosFinal, (item, index) => {
-      const resultReport = StatisticalReport2({
+      const resultReport = StatisticalReport({
         fecha,
         reporte: item,
         indexReporteAux: index,

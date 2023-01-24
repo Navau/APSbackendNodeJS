@@ -24,6 +24,11 @@ api.post(
   controller.Escoger
 );
 api.post(
+  "/EscogerPorTipoInstrumentoDetalle",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.EscogerPorTipoInstrumentoDetalle
+);
+api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Insertar

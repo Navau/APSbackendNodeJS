@@ -253,6 +253,9 @@ function defaultStyleReport(type, custom, wb, valueAux) {
             },
           });
         },
+        numberFormat: customSingleStyleReportExcel(wb, {
+          numberFormat: "#,##0.00; (#,##0.00); 0.00",
+        }),
       },
       value_group: {
         border: {
@@ -275,6 +278,9 @@ function defaultStyleReport(type, custom, wb, valueAux) {
             },
           });
         },
+        numberFormat: customSingleStyleReportExcel(wb, {
+          numberFormat: "#,##0.00; (#,##0.00); 0.00",
+        }),
       },
     },
   };
@@ -3927,162 +3933,6 @@ async function bodyCommonStyleReportExcel(ws, wb, report) {
 
 function StatisticalReport(params) {
   try {
-    const { fecha, fields, data, header, mainValues, wb } = params;
-    const ws = wb.addWorksheet(header?.name || "Reporte");
-    const sizeColumnsAux = [];
-    const styleDefaultTitle = defaultStyleReport("ESTADISTICO", "header", wb);
-    const styleDefaultSubtitle = defaultStyleReport(
-      "ESTADISTICO",
-      "subheader",
-      wb
-    );
-    const styleDefaultData = defaultStyleReport("ESTADISTICO", "data", wb);
-
-    let counterSizeSubtitleYAux = 1;
-    forEach(fields, (field) => {
-      if (isArray(field)) {
-        if (size(field) > counterSizeSubtitleYAux)
-          counterSizeSubtitleYAux = size(field);
-      }
-    });
-
-    const maxFields = (fieldsAux) => {
-      let counterMax = 0;
-      forEach(fieldsAux, (field) => {
-        if (isArray(field)) {
-          forEach(field, (subfield) => {
-            counterMax += 1;
-          });
-        } else {
-          counterMax += 1;
-        }
-      });
-      return counterMax;
-    };
-
-    const CONF_POSITIONS = {
-      initialX: 1,
-      initialY: 1,
-      iterationX: 6,
-      iterationY: 1,
-      columnCounter: 0,
-      sizeSubTitleY: counterSizeSubtitleYAux,
-      max_X: maxFields(fields),
-    };
-
-    addLogoAPS(ws, CONF_POSITIONS); //LOGO
-
-    forEach(header.titles, (title) => {
-      ws.cell(
-        CONF_POSITIONS.iterationX,
-        CONF_POSITIONS.iterationY,
-        CONF_POSITIONS.iterationX,
-        CONF_POSITIONS.max_X,
-        true
-      )
-        .string(title)
-        .style(styleDefaultTitle);
-      CONF_POSITIONS.iterationX += 1;
-    });
-
-    forEach(fields, (field, index) => {
-      let aux = CONF_POSITIONS.sizeSubTitleY > 1 ? 1 : 0;
-      if (isArray(field)) {
-        ws.cell(
-          CONF_POSITIONS.iterationX,
-          CONF_POSITIONS.iterationY,
-          CONF_POSITIONS.iterationX,
-          CONF_POSITIONS.iterationY - 1 + CONF_POSITIONS.sizeSubTitleY,
-          true
-        )
-          .string(separarStringPorCaracter(index, "_", " "))
-          .style(styleDefaultSubtitle);
-
-        forEach(field, (subfield) => {
-          const sizeColumn = size(subfield) + 10;
-          sizeColumnsAux.push({
-            indexSize: CONF_POSITIONS.iterationY,
-            sizeColumn: sizeColumn,
-          });
-          ws.column(CONF_POSITIONS.iterationY).setWidth(sizeColumn);
-          ws.cell(
-            CONF_POSITIONS.iterationX + aux,
-            CONF_POSITIONS.iterationY,
-            CONF_POSITIONS.iterationX + aux,
-            CONF_POSITIONS.iterationY,
-            true
-          )
-            .string(separarStringPorCaracter(subfield, "_", " "))
-            .style(styleDefaultSubtitle);
-          CONF_POSITIONS.iterationY += 1;
-        });
-      } else {
-        const sizeColumn = size(field) + 10;
-        sizeColumnsAux.push({
-          indexSize: CONF_POSITIONS.iterationY,
-          sizeColumn: sizeColumn,
-        });
-        ws.column(CONF_POSITIONS.iterationY).setWidth(sizeColumn);
-        ws.cell(
-          CONF_POSITIONS.iterationX,
-          CONF_POSITIONS.iterationY,
-          CONF_POSITIONS.iterationX + aux,
-          CONF_POSITIONS.iterationY,
-          true
-        )
-          .string(separarStringPorCaracter(field, "_", " "))
-          .style(styleDefaultSubtitle);
-        CONF_POSITIONS.iterationY += 1;
-      }
-    });
-
-    CONF_POSITIONS.iterationX += CONF_POSITIONS.sizeSubTitleY > 1 ? 2 : 1;
-
-    CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
-
-    const VALUE_TOTAL = defaultStyleReport("ESTADISTICO", "value_total", wb);
-    const VALUE_GROUP = defaultStyleReport("ESTADISTICO", "value_group", wb);
-    const VALUES_TOTAL_AUX = {
-      index: CONF_POSITIONS.iterationX,
-      ok: false,
-    };
-    forEach(data, (itemData) => {
-      CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
-      let counterAux = 0;
-      forEach(itemData, (value, index) => {
-        const sizeColumnConf = sizeColumnsAux[CONF_POSITIONS.iterationY - 1];
-        if (size(value) + 10 > sizeColumnConf.sizeColumn) {
-          sizeColumnConf.sizeColumn = size(value) + 10;
-          ws.column(CONF_POSITIONS.iterationY).setWidth(size(value) + 10);
-        }
-        showCellStatisticalReport({
-          ws,
-          value,
-          x: CONF_POSITIONS.iterationX,
-          y: CONF_POSITIONS.iterationY,
-          styleDefaultData,
-          VALUE_TOTAL,
-          VALUE_GROUP,
-          mainValue: !isUndefined(mainValues?.[counterAux]) ? true : false,
-          VALUES_TOTAL_AUX,
-        });
-        counterAux += 1;
-        CONF_POSITIONS.iterationY += 1;
-      });
-      VALUES_TOTAL_AUX.ok === false
-        ? (VALUES_TOTAL_AUX.index += 1)
-        : (VALUES_TOTAL_AUX.index += 0);
-      CONF_POSITIONS.iterationX += 1;
-    });
-
-    return { ok: true };
-  } catch (err) {
-    return { ok: null, err };
-  }
-}
-
-function StatisticalReport2(params) {
-  try {
     const { fecha, reporte, indexReporteAux, wb } = params;
     const CONF_POSITIONS = {
       initialX: 1,
@@ -4131,22 +3981,7 @@ function StatisticalReport2(params) {
       CONF_POSITIONS.sizeSubTitleY = counterSizeSubtitleYAux;
       CONF_POSITIONS.max_X = maxFields(fields);
 
-      if (indexReporte === 0) {
-        ws.cell(
-          CONF_POSITIONS.initialX,
-          CONF_POSITIONS.initialY,
-          CONF_POSITIONS.initialX,
-          parseInt(CONF_POSITIONS.max_X / 2),
-          true
-        )
-          .string(
-            dayjs()
-              .locale("es")
-              .format("[EMITIDO EL] DD [DE] MMMM [DE] YYYY [a las] HH:mm:ss")
-          )
-          .style(styleDefaultTitle);
-        addLogoAPS(ws, CONF_POSITIONS);
-      } //LOGO Y EMISION
+      if (indexReporte === 0) addLogoAPS(ws, CONF_POSITIONS); //LOGO
 
       forEach(table, (title) => {
         ws.cell(
@@ -4281,7 +4116,37 @@ function StatisticalReport2(params) {
         // console.log(sizeColumnsAux);
       });
       CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
+      var complexString = [
+        {
+          bold: true,
+          size: 8,
+        },
+        "FUENTE: ",
+        {
+          bold: false,
+          size: 8,
+        },
+        `${header?.source}`,
+      ];
+      ws.cell(CONF_POSITIONS.iterationX, CONF_POSITIONS.iterationY).string(
+        complexString
+      );
       CONF_POSITIONS.iterationX += 3;
+
+      if (indexReporte === size(reporte) - 1)
+        ws.cell(
+          CONF_POSITIONS.iterationX + 1,
+          CONF_POSITIONS.max_X,
+          CONF_POSITIONS.iterationX + 2,
+          CONF_POSITIONS.max_X,
+          true
+        )
+          .string(
+            dayjs()
+              .locale("es")
+              .format("[EMITIDO EL] DD [DE] MMMM [DE] YYYY [a las] HH:mm:ss")
+          )
+          .style(styleDefaultTitle);
     });
     return { ok: true };
   } catch (err) {
@@ -4398,8 +4263,6 @@ function showCellStatisticalReport(params) {
       .style(VALUE_GROUP.fontBold(false));
   } else if (typeof value === "number" || (!isNaN(value) && !isEmpty(value))) {
     if (VALUES_TOTAL_AUX.ok === true && !isNaN(value)) {
-      // console.log(value, VALUES_TOTAL_AUX);
-      //TO DO: SEGUIR PROBANDO LOS REPORTES
       return ws
         .cell(VALUES_TOTAL_AUX.index, y)
         .number(parseFloat(value))
@@ -4407,7 +4270,8 @@ function showCellStatisticalReport(params) {
         .style(VALUE_TOTAL.border)
         .style(VALUE_TOTAL.fill)
         .style(VALUE_GROUP.align("center"))
-        .style(VALUE_GROUP.fontBold(true));
+        .style(VALUE_GROUP.fontBold(true))
+        .style(VALUE_TOTAL.numberFormat);
     } else {
       return ws
         .cell(x, y)
@@ -4481,6 +4345,7 @@ function cellHeaderStyleDefault(wb) {
 }
 
 function addLogoAPS(ws, CONF_POSITIONS) {
+  ws.column(CONF_POSITIONS.max_X + 1).setWidth(30);
   ws.addImage({
     path: "./assets/aps-logo.png",
     name: "logo",
@@ -4488,13 +4353,13 @@ function addLogoAPS(ws, CONF_POSITIONS) {
     position: {
       type: "twoCellAnchor",
       from: {
-        col: CONF_POSITIONS.max_X,
+        col: CONF_POSITIONS.max_X + 1,
         colOff: 0,
         row: CONF_POSITIONS.initialY,
         rowOff: 0,
       },
       to: {
-        col: CONF_POSITIONS.max_X + 1,
+        col: CONF_POSITIONS.max_X + 2,
         colOff: 0,
         row: CONF_POSITIONS.initialY + 4,
         rowOff: 0,
@@ -4515,5 +4380,4 @@ module.exports = {
   SimpleReport,
   createChart,
   StatisticalReport,
-  StatisticalReport2,
 };
