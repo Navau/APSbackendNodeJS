@@ -74,6 +74,25 @@ function tipoReporte(id, fecha) {
         ],
       },
     },
+    2: {
+      id: 2,
+      fun: ["aps_fun_seguros_cartera_valorada"],
+      editFields: true,
+      editData: true,
+      mainValues: [0],
+      header: {
+        name: "Boletín Cuadro 1.4",
+        nameExcel: "RIR USD.xlsx",
+        titles: {
+          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+            .locale("es")
+            .format("DD [DE] MMMM [DE] YYYY")
+            .toUpperCase()}`,
+          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
+          title3: "Expresado en Bolivianos",
+        },
+      },
+    },
     3: {
       id: 3,
       fun: [
@@ -127,6 +146,25 @@ function tipoReporte(id, fecha) {
         ],
       },
     },
+    4: {
+      id: 4,
+      fun: ["aps_fun_seguros_cartera_valorada"],
+      editFields: true,
+      editData: true,
+      mainValues: [0],
+      header: {
+        name: "Boletín Cuadro 1.4",
+        nameExcel: "Tipo Instrumento Valor Nominal.xlsx",
+        titles: {
+          title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+            .locale("es")
+            .format("DD [DE] MMMM [DE] YYYY")
+            .toUpperCase()}`,
+          title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
+          title3: "Expresado en Bolivianos",
+        },
+      },
+    },
     5: {
       id: 5,
       fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
@@ -147,21 +185,25 @@ function tipoReporte(id, fecha) {
         ],
       },
     },
-    // 9: {
-    //   fun: "aps_fun_inversionesrir",
-    //   header: {
-    //   name: "Boletín Cuadro 1.5",
-    //     acronym: "Boletín Cuadro 1.5",
-    //     titl1: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PERSONAS`,
-    //     title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE GENERALES`,
-    //     title3: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS - SEGUROS DE PREPAGO`,
-    //     subtitle1: dayjs(fecha)
-    //       .locale("es")
-    //       .format("[Al] DD [DE] MMMM [DE] YYYY [- Expresado en Bolivianos]")
-    //       .toUpperCase(),
-    //     date: fecha,
-    //   },
-    // },
+    9: {
+      id: 9,
+      fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
+      editFields: true,
+      mainValues: [0, 1, 2], //FECHA, CODIGO, EMISOR
+      header: {
+        name: "REP EMISOR TIPO ASEGURADORA",
+        nameExcel: "RIR BOB.xlsx",
+        titles: {
+          title1: `DIVERSIFICACIÓN POR EMISOR DE LA CARTERA DE INVERSIONES SEGUROS`,
+          title2: "Entidades de Seguros y Reaseguros",
+          title3: "Cartera a Valor de Mercado",
+          title4: dayjs(fecha)
+            .locale("es")
+            .format("[AL] DD [DE] MMMM [DE] YYYY")
+            .toUpperCase(),
+        },
+      },
+    },
     10: {
       id: 10,
       fun: ["aps_fun_inversiones_tgn"],
@@ -200,6 +242,24 @@ function tipoReporte(id, fecha) {
               .toUpperCase(),
           },
         ],
+      },
+    },
+    12: {
+      id: 12,
+      editFields: true,
+      mainValues: [0],
+      fun: ["aps_fun_inversiones_por_emisor"],
+      header: {
+        name: "REP EMISOR",
+        nameExcel: "DPF por Plazo.xlsx",
+        titles: {
+          title1: `CARTERA DE INVERSIONES DE VALORES POR EMISOR`,
+          title2: "Seguros Generales y Seguros de Personas",
+          title3: dayjs(fecha)
+            .locale("es")
+            .format("[INVERSIONES SEGUROS AL] DD [DE] MMMM [DE] YYYY")
+            .toUpperCase(),
+        },
       },
     },
     24: {

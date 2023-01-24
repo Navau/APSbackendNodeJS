@@ -120,8 +120,7 @@ function defaultStyleReportExcel(wb, custom) {
       },
       numberFormat: "#,##0.00; (#,##0.00); 0",
     });
-  }
-  if (custom === "subheaders") {
+  } else if (custom === "subheaders") {
     return customSingleStyleReportExcel(wb, {
       font: {
         color: "#F4F4F4",
@@ -4294,11 +4293,12 @@ function SimpleReport(params) {
   const { wb, data, nameSheet } = params;
   const { headers, values } = data;
   const ws = wb.addWorksheet(nameSheet);
-  const styleDefault = defaultStyleReportExcel("body");
-  let posXInitial = 1;
+  const styleDefault = defaultStyleReportExcel(wb, "body");
+  let posXInitial = 6;
   let posXIteration = posXInitial;
   let posYInitial = 1;
   let posYIteration = posYInitial;
+  addLogoAPS(ws, { max_X: size(headers), initialY: posYInitial });
   forEach(values, (itemValue, indexValue) => {
     posYIteration = posYInitial;
     if (indexValue === 0) {
@@ -4331,9 +4331,10 @@ function SimpleReport(params) {
           });
         },
       };
-      forEach(itemValue, (itemValue2) => {
+      forEach(itemValue, (itemValue2, indexValue) => {
         showCell({
           value: itemValue2,
+          index: indexValue,
           x: posXIteration,
           y: posYIteration,
           ws,
@@ -4361,13 +4362,17 @@ function showValueInCell(value) {
 }
 
 function showCell(params) {
-  const { ws, value, x, y } = params;
+  const { ws, index, value, x, y } = params;
+  // console.log(!isNaN(value), index, value);
   if (value instanceof Date) {
-    return ws.cell(x, y).string(showValueInCell(value));
-  } else if (typeof value === "number") {
-    return ws.cell(x, y).number(value === 0 ? 0 : value);
+    return ws.cell(x, y).string(dayjs(value).format("DD/MM/YYYY"));
+  } else if (
+    typeof value === "number" ||
+    (!isNaN(parseFloat(value)) && !isEmpty(value) && index !== "Código")
+  ) {
+    return ws.cell(x, y).number(parseFloat(value));
   } else {
-    return ws.cell(x, y).string(showValueInCell(value));
+    return ws.cell(x, y).string(toString(value));
   }
 }
 
