@@ -128,6 +128,7 @@ async function Escoger(req, res) {
   } else {
     const params = {
       body,
+      activo: null,
     };
     const query = EscogerUtil(nameTable, params);
     await pool
