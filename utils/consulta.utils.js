@@ -268,12 +268,12 @@ function ListarUtil(table, params) {
       " WHERE id_clasificador_comun_grupo = " +
       params.idClasificadorComunGrupo;
     if (params?.activo !== null) {
-      query = query + " AND activo = true";
+      query = query + " AND activo IN (true, false)";
     }
   } else {
     query = `SELECT * FROM public."${table}"`;
     if (params?.activo !== null) {
-      query = query + " WHERE activo = true";
+      query = query + " AND activo IN (true, false)";
     }
     if (params?.idKey && params?.idValue) {
       query = query + ` WHERE ${params.idKey} = ${params.idValue}`;
@@ -304,7 +304,7 @@ function BuscarUtil(table, params) {
   let query = "";
   params.body && (query = query + `SELECT * FROM public."${table}" `);
   if (params?.activo !== null) {
-    query = query + " WHERE activo = true";
+    query = query + " AND activo IN (true, false)";
   }
 
   query &&
@@ -434,7 +434,7 @@ function EscogerUtil(table, params) {
   } else {
     params.body && (query = query + `SELECT * FROM public."${table}" `);
     if (params?.activo !== null) {
-      query = query + " WHERE activo = true";
+      query = query + " AND activo IN (true, false)";
     }
 
     query &&

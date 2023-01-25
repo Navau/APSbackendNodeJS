@@ -203,11 +203,10 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
         whereIn: true,
       });
     } else {
-      respResultadoIncorrectoObjeto200(
+      respResultadoCorrectoObjeto200(
         res,
-        null,
         instrumentos,
-        "No existe ningún tipo de instrumento que coincida para obtener la emisión"
+        "Tipo Instrumento no válido"
       );
       return;
     }
@@ -221,9 +220,8 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
         if (result.rowCount > 0) {
           respResultadoCorrectoObjeto200(res, result.rows);
         } else {
-          respResultadoIncorrectoObjeto200(
+          respResultadoCorrectoObjeto200(
             res,
-            null,
             result.rows,
             "No existe ninguna emisión registrada"
           );
