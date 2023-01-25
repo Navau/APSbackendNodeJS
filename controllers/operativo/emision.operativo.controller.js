@@ -195,7 +195,14 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
       tipoInstrumentoDetalle.result,
       (instrumento) => `'${instrumento.id_tipo_instrumento}'`
     );
-    if (size(instrumentos) === 0) {
+    const whereAuxEmision = [{ key: "id_emisor", value: id_emisor }];
+    if (size(instrumentos) > 0) {
+      whereAuxEmision.push({
+        key: "id_tipo_instrumento",
+        valuesWhereIn: instrumentos,
+        whereIn: true,
+      });
+    } else {
       respResultadoIncorrectoObjeto200(
         res,
         null,
@@ -206,7 +213,7 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
     }
     const query = EscogerInternoUtil(nameTable, {
       select: ["*"],
-      where: [{ key: "id_emisor", value: id_emisor }],
+      where: whereAuxEmision,
     });
     await pool
       .query(query)
