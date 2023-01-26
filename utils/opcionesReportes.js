@@ -3937,7 +3937,7 @@ function StatisticalReport(params) {
     const CONF_POSITIONS = {
       initialX: 1,
       initialY: 1,
-      iterationX: 6,
+      iterationX: 7,
       iterationY: 1,
       columnCounter: 0,
       sizeSubTitleY: 0,
@@ -3981,7 +3981,7 @@ function StatisticalReport(params) {
       CONF_POSITIONS.sizeSubTitleY = counterSizeSubtitleYAux;
       CONF_POSITIONS.max_X = maxFields(fields);
 
-      if (indexReporte === 0) addLogoAPS(ws, CONF_POSITIONS); //LOGO
+      if (indexReporte === 0) addLogoAPSAbsolute(ws, CONF_POSITIONS); //LOGO
 
       forEach(table, (title) => {
         ws.cell(
@@ -4116,38 +4116,42 @@ function StatisticalReport(params) {
         // console.log(sizeColumnsAux);
       });
       CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
-      var complexString = [
-        {
-          bold: true,
-          size: 8,
-        },
-        "FUENTE: ",
-        {
-          bold: false,
-          size: 8,
-        },
-        `${header?.source}`,
-      ];
-      ws.cell(CONF_POSITIONS.iterationX, CONF_POSITIONS.iterationY).string(
-        complexString
-      );
+      if (header.source) {
+        var complexString = [
+          {
+            bold: true,
+            size: 8,
+          },
+          "FUENTE: ",
+          {
+            bold: false,
+            size: 8,
+          },
+          `${header.source}`,
+        ];
+        ws.cell(CONF_POSITIONS.iterationX, CONF_POSITIONS.iterationY).string(
+          complexString
+        );
+      }
       CONF_POSITIONS.iterationX += 3;
 
-      if (indexReporte === size(reporte) - 1)
-        ws.cell(
-          CONF_POSITIONS.iterationX + 1,
-          CONF_POSITIONS.max_X,
-          CONF_POSITIONS.iterationX + 2,
-          CONF_POSITIONS.max_X,
-          true
-        )
-          .string(
-            dayjs()
-              .locale("es")
-              .format("[EMITIDO EL] DD [DE] MMMM [DE] YYYY [a las] HH:mm:ss")
-          )
-          .style(styleDefaultTitle);
+      // if (indexReporte === size(reporte) - 1)
+      //   ws.cell(
+      //     CONF_POSITIONS.iterationX + 1,
+      //     CONF_POSITIONS.max_X,
+      //     CONF_POSITIONS.iterationX + 2,
+      //     CONF_POSITIONS.max_X,
+      //     true
+      //   )
+      //     .string(
+      //       dayjs()
+      //         .locale("es")
+      //         .format("[EMITIDO EL] DD [DE] MMMM [DE] YYYY [a las] HH:mm:ss")
+      //     )
+      //     .style(styleDefaultTitle);
     });
+
+    //TO DO: AUMENTAR EL setHeight cuando una cabecera sobrepase el limite de las celdas combinadas
     return { ok: true };
   } catch (err) {
     return { ok: null, err };
@@ -4269,7 +4273,8 @@ function showCellStatisticalReport(params) {
         .style(VALUE_GROUP.border)
         .style(VALUE_TOTAL.border)
         .style(VALUE_TOTAL.fill)
-        .style(VALUE_GROUP.align("center"))
+        .style(VALUE_TOTAL.indent(1, 2))
+        .style(VALUE_TOTAL.align("right"))
         .style(VALUE_GROUP.fontBold(true))
         .style(VALUE_TOTAL.numberFormat);
     } else {
@@ -4278,7 +4283,8 @@ function showCellStatisticalReport(params) {
         .number(parseFloat(value))
         .style(styleDefaultData)
         .style(VALUE_GROUP.border)
-        .style(VALUE_GROUP.align("center"))
+        .style(VALUE_GROUP.indent(1, 2))
+        .style(VALUE_GROUP.align("right"))
         .style(VALUE_GROUP.fontBold(false));
     }
   } else {
@@ -4345,7 +4351,6 @@ function cellHeaderStyleDefault(wb) {
 }
 
 function addLogoAPS(ws, CONF_POSITIONS) {
-  ws.column(CONF_POSITIONS.max_X + 1).setWidth(30);
   ws.addImage({
     path: "./assets/aps-logo.png",
     name: "logo",
@@ -4353,17 +4358,30 @@ function addLogoAPS(ws, CONF_POSITIONS) {
     position: {
       type: "twoCellAnchor",
       from: {
-        col: CONF_POSITIONS.max_X + 1,
-        colOff: 0,
+        col: CONF_POSITIONS.initialX,
+        colOff: "1mm",
         row: CONF_POSITIONS.initialY,
-        rowOff: 0,
+        rowOff: "1mm",
       },
       to: {
-        col: CONF_POSITIONS.max_X + 2,
-        colOff: 0,
-        row: CONF_POSITIONS.initialY + 4,
-        rowOff: 0,
+        col: CONF_POSITIONS.initialX + 2,
+        colOff: "6mm",
+        row: CONF_POSITIONS.initialY + 3,
+        rowOff: "6mm",
       },
+    },
+  });
+}
+
+function addLogoAPSAbsolute(ws, CONF_POSITIONS) {
+  // ws.column(CONF_POSITIONS.max_X + 1).setWidth(30);
+  ws.addImage({
+    path: "./assets/aps-logo.png",
+    type: "picture",
+    position: {
+      type: "absoluteAnchor",
+      x: "10mm",
+      y: "2mm",
     },
   });
 }

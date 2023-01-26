@@ -519,9 +519,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         return { ok: null, err };
       });
 
-    if (instituciones.ok === null) {
-      throw instituciones.err;
-    }
+    if (instituciones.ok === null) throw instituciones.err;
 
     if (iid_reporte === 6) {
       if (!periodo) {
@@ -615,12 +613,9 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
 
     const results = await EjecutarVariosQuerys(querys);
 
-    if (results.ok === null) {
-      throw results.result;
-    }
-    if (results.ok === false) {
-      throw results.errors;
-    }
+    if (results.ok === null) throw results.result;
+
+    if (results.ok === false) throw results.errors;
 
     let resultAux = [];
 

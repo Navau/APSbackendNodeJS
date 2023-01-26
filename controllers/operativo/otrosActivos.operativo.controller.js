@@ -1,3 +1,4 @@
+const { indexOf, size } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -188,7 +189,17 @@ async function Insertar(req, res) {
         );
       })
       .catch((err) => {
-        respErrorServidor500END(res, err);
+        if (err?.code === "23505")
+          respResultadoIncorrectoObjeto200(
+            res,
+            err,
+            [],
+            `La Clave de Instrumento${err?.detail.substring(
+              indexOf(err?.detail, "=") + 1,
+              size(err?.detail) - 1
+            )} ya está registrada`
+          );
+        else respErrorServidor500END(res, err);
       });
   }
 }
