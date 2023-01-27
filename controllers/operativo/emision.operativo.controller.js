@@ -203,7 +203,7 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
         whereIn: true,
       });
     } else {
-      respResultadoCorrectoObjeto200(
+      respResultadoIncorrectoObjeto200(
         res,
         instrumentos,
         "Tipo Instrumento no válido"
