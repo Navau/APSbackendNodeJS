@@ -94,7 +94,7 @@ function tipoReporte(id, fecha) {
         nameExcel: "RIR USD.xlsx",
         tables: [
           {
-            title1: `SEGUROS PERSONALES`,
+            title1: `SEGUROS DE PERSONAS`,
             title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
               fecha
             )
@@ -142,9 +142,9 @@ function tipoReporte(id, fecha) {
         [fecha, 3],
         [fecha, 3],
       ],
-      mainValues: [0, 1],
+      mainValues: [0],
       header: {
-        name: "REP INSTITUCION (3)",
+        name: "REP INST (3)",
         nameExcel: "Tipo Instrumento Valor Mercado.xlsx",
         tables: [
           {
@@ -158,7 +158,7 @@ function tipoReporte(id, fecha) {
           },
           {
             title1: `INVERSIONES POR TIPO INSTRUMENTO`,
-            title2: "TOTAL SEGUROS PERSONALES",
+            title2: "TOTAL SEGUROS DE PERSONAS",
             title3: `CARTERA A VALOR DE MERCADO AL ${dayjs(fecha)
               .locale("es")
               .format("DD [DE] MMMM [DE] YYYY")
@@ -213,9 +213,9 @@ function tipoReporte(id, fecha) {
       id: 5,
       fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
       params: [[fecha]],
-      mainValues: [0, 1, 2], //FECHA, CODIGO, EMISOR
+      mainValues: [0, 1],
       header: {
-        name: "ASEGURADORA POR EMISOR",
+        name: "ASEGURADORA REP EMISOR",
         nameExcel: "Diversificacion Emisor.xlsx",
         tables: [
           {
@@ -308,7 +308,7 @@ function tipoReporte(id, fecha) {
       fun: ["aps_fun_inversiones_por_emisor"],
       params: [[fecha]],
       header: {
-        name: "REP EMISOR",
+        name: "POR EMISOR",
         nameExcel: "Valores por Emisor.xlsx",
         tables: [
           {
@@ -357,7 +357,7 @@ function tipoReporte(id, fecha) {
     },
     24: {
       id: 24,
-      mainValues: [0, 1, 2],
+      mainValues: [0, 1],
       fun: ["aps_fun_diversificacion_emisor_tipoaseguradora"],
       params: [[fecha]],
       header: {
@@ -366,7 +366,7 @@ function tipoReporte(id, fecha) {
         tables: [
           {
             title1: `INVERSIONES POR TIPO INSTRUMENTO`,
-            title2: "TOTAL Seguros Personales",
+            title2: "TOTAL Seguros de Personas",
             title3: "Cartera a Valor de Mercado",
             title4: dayjs(fecha)
               .locale("es")
@@ -504,6 +504,10 @@ function PrepararReportes(reportes, instituciones) {
             delete item.fields[indexField];
           }
         });
+        delete item.fields?.fecha;
+        forEach(item.data, (itemData) => {
+          delete itemData.fecha;
+        });
         const indexFieldAux = item.fun.substring(
           lastIndexOf(item.fun, "_"),
           size(item.fun)
@@ -520,16 +524,18 @@ function PrepararReportes(reportes, instituciones) {
     },
     5: (reporte) => {
       const formatFields = {
-        fecha: "fecha",
         codigo: "codigo",
         emisor: "emisor",
         seguros_generales: ["monto_valorado_$us", "porcentaje_(%)"],
-        seguros_personales: ["monto_valorado_$us", "porcentaje_(%)"],
+        seguros_de_personas: ["monto_valorado_$us", "porcentaje_(%)"],
         seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
         total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
       };
       forEach(reporte, (item) => {
         item.fields = formatFields;
+        forEach(item.data, (itemData) => {
+          delete itemData.fecha;
+        });
       });
     },
     9: (reporte) => {
@@ -576,7 +582,6 @@ function PrepararReportes(reportes, instituciones) {
     10: (reporte) => {
       forEach(reporte, (item) => {
         item.fields = {
-          fecha: "fecha",
           instrumento: "instrumento",
           serie: "serie",
           cantidad: "cantidad_de_valores",
@@ -611,14 +616,16 @@ function PrepararReportes(reportes, instituciones) {
     24: (reporte) => {
       forEach(reporte, (item) => {
         item.fields = {
-          fecha: "fecha",
           codigo: "codigo",
           emisor: "emisor",
           seguros_generales: ["monto_valorado_$us", "porcentaje_(%)"],
-          seguros_personales: ["monto_valorado_$us", "porcentaje_(%)"],
+          seguros_de_personas: ["monto_valorado_$us", "porcentaje_(%)"],
           seguros_prepago: ["monto_valorado_$us", "porcentaje_(%)"],
           total_entidades: ["monto_valorado_$us", "porcentaje_(%)"],
         };
+        forEach(item.data, (itemData) => {
+          delete itemData.fecha;
+        });
       });
     },
   };
