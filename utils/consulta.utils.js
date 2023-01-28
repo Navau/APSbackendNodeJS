@@ -1255,8 +1255,8 @@ function ValidarIDActualizarUtil(nameTable, body, newID) {
   let idOk = false;
   let idValue = null;
 
-  map(body, (item, index) => {
-    if (idKey === index && item) {
+  forEach(body, (item, index) => {
+    if (idKey === index && (item || item === 0)) {
       idOk = true;
       idValue = item;
       return;
