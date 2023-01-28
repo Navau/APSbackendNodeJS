@@ -215,7 +215,7 @@ function tipoReporte(id, fecha) {
       params: [[fecha]],
       mainValues: [0, 1],
       header: {
-        name: "ASEGURADORA REP EMISOR",
+        name: "REP EMISOR",
         nameExcel: "Diversificacion Emisor.xlsx",
         tables: [
           {
