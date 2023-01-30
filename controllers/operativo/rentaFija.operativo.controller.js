@@ -242,49 +242,6 @@ async function Escoger(req, res) {
 //FUNCION PARA INSERTAR UN RENTA FIJA
 async function Insertar(req, res) {
   const body = req.body;
-  const { clave_instrumento, fecha_emision } = body;
-
-  if (!clave_instrumento) {
-    respDatosNoRecibidos400(res, "No se recibio clave_instrumento");
-    return;
-  }
-
-  const queryClaveInstrumento = EscogerInternoUtil(nameTable, {
-    select: ["*"],
-    where: [
-      {
-        key: "clave_instrumento",
-        value: clave_instrumento,
-      },
-    ],
-  });
-
-  const claveInstrumentoValidacion = await pool
-    .query(queryClaveInstrumento)
-    .then((result) => {
-      if (result.rowCount > 0) {
-        return { ok: false, data: result };
-      } else {
-        return { ok: true, data: result };
-      }
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-
-  if (claveInstrumentoValidacion.ok === false) {
-    respResultadoIncorrectoObjeto200(
-      res,
-      null,
-      claveInstrumentoValidacion?.data.rows,
-      "Clave de Instrumento ya se encuentra registrada"
-    );
-    return;
-  }
-  if (claveInstrumentoValidacion.ok === null) {
-    respErrorServidor500END(res, claveInstrumentoValidacion?.err);
-    return;
-  }
 
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
@@ -303,7 +260,17 @@ async function Insertar(req, res) {
         );
       })
       .catch((err) => {
-        respErrorServidor500END(res, err);
+        if (err?.code === "23505")
+          respResultadoIncorrectoObjeto200(
+            res,
+            err,
+            [],
+            `La Clave de Instrumento${err?.detail.substring(
+              indexOf(err?.detail, "=") + 1,
+              size(err?.detail) - 1
+            )} ya está registrada`
+          );
+        else respErrorServidor500END(res, err);
       });
   }
 }
