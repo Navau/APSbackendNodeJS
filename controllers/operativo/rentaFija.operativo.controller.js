@@ -1,4 +1,4 @@
-const { split, indexOf } = require("lodash");
+const { split, indexOf, isUndefined } = require("lodash");
 const pool = require("../../database");
 
 const {
@@ -301,24 +301,28 @@ async function Actualizar(req, res) {
         .catch((err) => {
           if (err?.code === "23505") {
             const detail = err?.detail;
-            const arrayDetail = split(detail, "=");
-            const fieldsAux = arrayDetail[0];
-            const valuesAux = arrayDetail[1];
-            const fields = fieldsAux.substring(
-              indexOf(fieldsAux, "("),
-              indexOf(fieldsAux, ")") + 1
-            );
-            const values = valuesAux.substring(
-              indexOf(valuesAux, "("),
-              indexOf(valuesAux, ")") + 1
-            );
+            if (!isUndefined(detail)) {
+              const arrayDetail = split(detail, "=");
+              const fieldsAux = arrayDetail[0];
+              const valuesAux = arrayDetail[1];
+              const fields = fieldsAux.substring(
+                indexOf(fieldsAux, "("),
+                indexOf(fieldsAux, ")") + 1
+              );
+              const values = valuesAux.substring(
+                indexOf(valuesAux, "("),
+                indexOf(valuesAux, ")") + 1
+              );
 
-            respResultadoIncorrectoObjeto200(
-              res,
-              err,
-              [],
-              `Los campos ${fields} con los valores ${values} ya esta registrado`
-            );
+              respResultadoIncorrectoObjeto200(
+                res,
+                err,
+                [],
+                `Los campos ${fields} con los valores ${values} ya esta registrado`
+              );
+            } else {
+              respErrorServidor500END(res, err);
+            }
           } else respErrorServidor500END(res, err);
         });
     }
