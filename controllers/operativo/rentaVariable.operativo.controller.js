@@ -192,12 +192,10 @@ async function Insertar(req, res) {
 async function Actualizar(req, res) {
   const body = req.body;
 
-  let query = "";
-
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    const idInfo = ValidarIDActualizarUtil(nameTable, body);
     if (!idInfo.idOk) {
       respIDNoRecibido400(res);
     } else {
@@ -206,23 +204,15 @@ async function Actualizar(req, res) {
         idKey: idInfo.idKey,
         idValue: idInfo.idValue,
       };
-      query = ActualizarUtil(nameTable, params);
-
-      pool.query(query, (err, result) => {
-        if (err) {
-          respErrorServidor500(res, err);
-        } else {
-          if (!result.rowCount || result.rowCount < 1) {
-            respResultadoVacio404(res);
-          } else {
-            respResultadoCorrecto200(
-              res,
-              result,
-              "Información actualizada correctamente"
-            );
-          }
-        }
-      });
+      const query = ActualizarUtil(nameTable, params);
+      await pool
+        .query(query)
+        .then((result) => {
+          respResultadoCorrectoObjeto200(res, result.rows);
+        })
+        .catch((err) => {
+          respErrorServidor500END(res, err);
+        });
     }
   }
 }
