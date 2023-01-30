@@ -1,3 +1,4 @@
+const { indexOf, size } = require("lodash");
 const pool = require("../../database");
 
 const {
