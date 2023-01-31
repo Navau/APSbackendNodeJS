@@ -554,7 +554,7 @@ function PrepararReportes(reportes, instituciones) {
               "composicion_de_inversiones_admisibles"
             );
         });
-        set(item.fields, size(item.fields), "total");
+        // set(item.fields, size(item.fields), "total");
         item.fields = TransformarArrayAObjeto(item.fields);
         delete item.fields?.id_tipo_entidad;
         delete item.fields?.fecha;
@@ -566,16 +566,16 @@ function PrepararReportes(reportes, instituciones) {
           delete itemData?.fecha;
           delete itemData?.id_indicador;
         });
-        forEach(item.data, (itemData) => {
-          const arrayAux = [];
-          forEach(itemData, (itemData2, indexData2) => {
-            if (indexData2 !== "indicador") {
-              arrayAux.push(parseFloat(itemData2));
-            }
-          });
-          const total = sum(arrayAux);
-          itemData.total = total;
-        });
+        // forEach(item.data, (itemData) => {
+        //   const arrayAux = [];
+        //   forEach(itemData, (itemData2, indexData2) => {
+        //     if (indexData2 !== "indicador") {
+        //       arrayAux.push(parseFloat(itemData2));
+        //     }
+        //   });
+        //   const total = sum(arrayAux);
+        //   itemData.total = total;
+        // });
         //#endregion
       });
     },
@@ -589,6 +589,9 @@ function PrepararReportes(reportes, instituciones) {
           totalvaloradousd: "total_valorado_usd",
           totalvaloradobs: "total_valorado_en_bs",
         };
+        forEach(item.data, (itemData) => {
+          delete itemData.fecha;
+        });
       });
     },
     11: (reporte) => {

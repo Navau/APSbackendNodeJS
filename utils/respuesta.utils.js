@@ -1,3 +1,18 @@
+const {
+  isUndefined,
+  split,
+  indexOf,
+  forEach,
+  size,
+  trim,
+  includes,
+  join,
+  lastIndexOf,
+  replace,
+  set,
+  forEachRight,
+} = require("lodash");
+
 function respErrorServidor500(res, err, msg) {
   console.log(err);
   const errMessage = err?.message ? err?.message : "";
@@ -10,19 +25,53 @@ function respErrorServidor500(res, err, msg) {
 }
 
 function respErrorServidor500END(res, err, msg, datos = null) {
-  console.log(err);
-  const errMessage = err?.message ? err?.message : "";
-  res
-    .status(500)
-    .send({
-      resultado: 0,
-      datos,
-      mensaje: msg
-        ? msg + errMessage
-        : "Error del servidor. ERROR:" + errMessage,
-      err,
-    })
-    .end();
+  if (err?.code === "23505") {
+    const detail = err?.detail;
+    if (!isUndefined(detail)) {
+      const arrayDetail = split(detail, "=");
+      const fieldsAux = arrayDetail[0];
+      const valuesAux = arrayDetail[1];
+      const fields = fieldsAux.substring(
+        indexOf(fieldsAux, "(") + 1,
+        indexOf(fieldsAux, ")")
+      );
+      const values = valuesAux.substring(
+        indexOf(valuesAux, "(") + 1,
+        indexOf(valuesAux, ")")
+      );
+      const fieldsSplit = split(fields, ",");
+      const valuesSplit = split(values, ",");
+      const fieldsWithValuesArray = [];
+      forEach(fieldsSplit, (field, index) => {
+        const value = valuesSplit[index];
+        if (!includes(field, "id_"))
+          fieldsWithValuesArray.push(`${trim(field)} = ${trim(value)}`);
+      });
+      const fieldsWithValuesString = join(fieldsWithValuesArray, ", ");
+
+      const messageFinal = `${
+        size(fieldsWithValuesArray) > 1 ? "Los valores" : "El valor"
+      } (${fieldsWithValuesString}) ya se ${
+        size(fieldsWithValuesArray) > 1
+          ? "encuentran registrados"
+          : "encuentra registrado"
+      }`;
+      respResultadoIncorrectoObjeto200(res, err, [], messageFinal);
+    }
+  } else {
+    const errMessage = err?.message ? err?.message : "";
+    res
+      .status(500)
+      .send({
+        resultado: 0,
+        datos,
+        mensaje: msg
+          ? msg + errMessage
+          : "Error del servidor. ERROR:" + errMessage,
+        err,
+      })
+      .end();
+  }
 }
 
 function respErrorMulter500(res, err, msg) {

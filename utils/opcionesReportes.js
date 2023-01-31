@@ -19,6 +19,7 @@ const {
   isUndefined,
   split,
   find,
+  isInteger,
 } = require("lodash");
 const fs = require("fs");
 const path = require("path");
@@ -253,9 +254,11 @@ function defaultStyleReport(type, custom, wb, valueAux) {
             },
           });
         },
-        numberFormat: customSingleStyleReportExcel(wb, {
-          numberFormat: "#,##0.00; (#,##0.00); 0.00",
-        }),
+        numberFormat: (format = "0.00") => {
+          return customSingleStyleReportExcel(wb, {
+            numberFormat: `#,##${format}; (#,##${format}); ${format}`,
+          });
+        },
       },
       value_group: {
         border: {
@@ -278,9 +281,11 @@ function defaultStyleReport(type, custom, wb, valueAux) {
             },
           });
         },
-        numberFormat: customSingleStyleReportExcel(wb, {
-          numberFormat: "#,##0.00; (#,##0.00); 0.00",
-        }),
+        numberFormat: (format = "0.00") => {
+          return customSingleStyleReportExcel(wb, {
+            numberFormat: `#,##${format}; (#,##${format}); ${format}`,
+          });
+        },
       },
     },
   };
@@ -4276,7 +4281,7 @@ function showCellStatisticalReport(params) {
         .style(VALUE_TOTAL.indent(1, 2))
         .style(VALUE_TOTAL.align("right"))
         .style(VALUE_GROUP.fontBold(true))
-        .style(VALUE_TOTAL.numberFormat);
+        .style(VALUE_TOTAL.numberFormat(isInteger(value) ? "0" : "0.00"));
     } else {
       return ws
         .cell(x, y)
@@ -4285,7 +4290,8 @@ function showCellStatisticalReport(params) {
         .style(VALUE_GROUP.border)
         .style(VALUE_GROUP.indent(1, 2))
         .style(VALUE_GROUP.align("right"))
-        .style(VALUE_GROUP.fontBold(false));
+        .style(VALUE_GROUP.fontBold(false))
+        .style(VALUE_GROUP.numberFormat(isInteger(value) ? "0" : "0.00"));
     }
   } else {
     const valueAux = toLower(toString(value));

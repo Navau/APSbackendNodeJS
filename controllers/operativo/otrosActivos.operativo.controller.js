@@ -189,17 +189,7 @@ async function Insertar(req, res) {
         );
       })
       .catch((err) => {
-        if (err?.code === "23505")
-          respResultadoIncorrectoObjeto200(
-            res,
-            err,
-            [],
-            `La Clave de Instrumento${err?.detail.substring(
-              indexOf(err?.detail, "=") + 1,
-              size(err?.detail) - 1
-            )} ya está registrada`
-          );
-        else respErrorServidor500END(res, err);
+        respErrorServidor500END(res, err);
       });
   }
 }
@@ -227,31 +217,7 @@ async function Actualizar(req, res) {
           respResultadoCorrectoObjeto200(res, result.rows);
         })
         .catch((err) => {
-          if (err?.code === "23505") {
-            const detail = err?.detail;
-            if (!isUndefined(detail)) {
-              const arrayDetail = split(detail, "=");
-              const fieldsAux = arrayDetail[0];
-              const valuesAux = arrayDetail[1];
-              const fields = fieldsAux.substring(
-                indexOf(fieldsAux, "("),
-                indexOf(fieldsAux, ")") + 1
-              );
-              const values = valuesAux.substring(
-                indexOf(valuesAux, "("),
-                indexOf(valuesAux, ")") + 1
-              );
-
-              respResultadoIncorrectoObjeto200(
-                res,
-                err,
-                [],
-                `Los campos ${fields} con los valores ${values} ya esta registrado`
-              );
-            } else {
-              respErrorServidor500END(res, err);
-            }
-          } else respErrorServidor500END(res, err);
+          respErrorServidor500END(res, err);
         });
     }
   }
