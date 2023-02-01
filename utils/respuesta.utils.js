@@ -176,6 +176,17 @@ function respResultadoCorrectoObjeto200(res, data, msg) {
     .end();
 }
 
+function respDatosNoRecibidos200END(res, msg) {
+  res
+    .status(200)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición",
+    })
+    .end();
+}
+
 function respUsuarioNoAutorizado(res, msg) {
   res
     .status(200)
@@ -260,4 +271,5 @@ module.exports = {
   respResultadoIncorrectoObjeto200,
   respDescargarArchivos200,
   respUsuarioNoAutorizado,
+  respDatosNoRecibidos200END,
 };

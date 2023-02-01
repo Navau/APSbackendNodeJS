@@ -11,15 +11,7 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.InstitucionConIDUsuario
 );
-api.get(
-  "/Listar",
-  [
-    md_auth.AsegurarAutenticacionConToken,
-    (req, res, next) =>
-      md_permissions.permisoUsuario(req, res, next, basename(__dirname)),
-  ],
-  controller.Listar
-);
+api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",
@@ -35,11 +27,6 @@ api.post(
   "/Actualizar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Actualizar
-);
-api.post(
-  "/Deshabilitar",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.Deshabilitar
 );
 
 module.exports = api;

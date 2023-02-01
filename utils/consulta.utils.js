@@ -252,6 +252,16 @@ function ResetearIDUtil(table, params) {
   return query;
 }
 
+function ListarCamposDeTablaUtil(table) {
+  const query = `SELECT * FROM information_schema.columns 
+  WHERE table_schema = 'public' 
+  AND table_name  = '${table}'`;
+
+  // console.log(query);
+
+  return query;
+}
+
 function ListarUtil(table, params) {
   let query = "";
   if (params?.clasificador) {
@@ -1269,6 +1279,7 @@ function ValidarIDActualizarUtil(nameTable, body, newID) {
     idValue,
   };
 }
+
 function ObtenerIDDeTabla(nameTable, data, newID) {
   let indexId = nameTable.indexOf("_", 5);
   let idKey = newID
@@ -1601,6 +1612,7 @@ function AsignarInformacionCompletaPorUnaClave(result, options) {
 
 module.exports = {
   ListarUtil,
+  ListarCamposDeTablaUtil,
   BuscarUtil,
   BuscarDiferenteUtil,
   EscogerUtil,

@@ -82,12 +82,9 @@ function tipoReporte(id, fecha) {
         "aps_fun_inversiones_rir_tipo_aseguradora_personas",
         "aps_fun_inversiones_rir_tipo_aseguradora_generales",
         "aps_fun_inversiones_rir_tipo_aseguradora_prepago",
+        "aps_fun_resumen_seguros",
       ],
-      params: [
-        [fecha, 3],
-        [fecha, 3],
-        [fecha, 3],
-      ],
+      params: [[fecha, 3], [fecha, 3], [fecha, 3], [fecha]],
       mainValues: [0],
       header: {
         name: "RIR(2) y (RIR)",
@@ -115,6 +112,16 @@ function tipoReporte(id, fecha) {
           },
           {
             title1: `SEGUROS PREPAGO`,
+            title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
+              fecha
+            )
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+            title3: "EXPRESADO EN $US",
+          },
+          {
+            title1: `SEGUROS GENERALES, SEGUROS DE PERSONAS Y SEGUROS PREPAGO`,
             title2: `INVERSIONES QUE RESPALDAN LOS RECURSOS DE INVERSIÓN REQUERIDOS ${dayjs(
               fecha
             )
@@ -462,6 +469,12 @@ function PrepararReportes(reportes, instituciones) {
             set(item.fields, indexField, institucionAux.institucion);
           else if (field === "indicador")
             set(item.fields, indexField, "cartera_de_inversion");
+          if (reporte.fun === "aps_fun_resumen_seguros") {
+            if (field === "tipo")
+              set(item.fields, indexField, "tipo_de_compañia");
+            else if (field === "prestamos_garantia")
+              set(item.fields, indexField, "préstamos_con_garantía_de_pólizas");
+          }
         });
         item.fields = TransformarArrayAObjeto(item.fields);
         delete item.fields?.id_tipo_entidad;
