@@ -1,4 +1,4 @@
-const { map } = require("lodash");
+const { map, forEach } = require("lodash");
 const moment = require("moment");
 const pool = require("../database");
 const {
@@ -14,7 +14,8 @@ const {
   respErrorServidor500END,
 } = require("./respuesta.utils");
 
-async function VerificarPermisoTablaUsuario(params) {
+//TO DO: Cambiar "permiso" por "auditoria"
+async function VerificarPermisoTablaUsuarioAuditoria(params) {
   const { table, action, req, res } = params;
   const { id_usuario } = req.user;
   let resultFinal = null;
@@ -52,158 +53,119 @@ async function VerificarPermisoTablaUsuario(params) {
   return resultFinal;
 }
 
-async function DatosCriticos(params) {
-  const { table, action, req, res } = params;
-  let resultFinal = null;
-  let queryDatosCriticos = EscogerInternoUtil("APS_seg_view_critico", {
-    where: [
-      {
-        key: "tabla",
-        value: table,
+async function ObtenerDatosCriticosAuditoria(params) {
+  try {
+    const { table, action, req, res } = params;
+    const queryDatosCriticos = EscogerInternoUtil("APS_seg_view_critico", {
+      where: [
+        { key: "tabla", value: table },
+        { key: "accion", value: action },
+      ],
+    });
+
+    return await pool
+      .query(queryDatosCriticos)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+  } catch (err) {
+    return { ok: null, err };
+  }
+}
+
+async function ObtenerInformacionAnteriorAuditoria(params) {
+  try {
+    const { nameTable, idInfo, req, res } = params;
+    const { body } = req;
+
+    const queryDatosAnteriores = EscogerInternoUtil(nameTable, {
+      select: ["*"],
+      where: [{ key: idInfo.idKey, value: idInfo.idValue }],
+    });
+
+    return await pool
+      .query(queryDatosAnteriores)
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result: result.rows };
+        else return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+  } catch (err) {
+    return { ok: null, err };
+  }
+}
+
+async function LogAuditoria(params) {
+  try {
+    const { id_registro, id_tabla_accion, id_accion, req, res } = params;
+    const { id_usuario } = req.user;
+
+    const queryLogs = InsertarUtil("APS_seg_log", {
+      body: {
+        id_usuario: id_usuario,
+        id_tabla_accion: id_tabla_accion,
+        id_accion: id_accion,
+        id_registro,
+        activo: true,
       },
-      {
-        key: "accion",
-        value: action,
-      },
-    ],
-  });
-
-  await pool
-    .query(queryDatosCriticos)
-    .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        resultFinal = { result, ok: false };
-      } else {
-        resultFinal = { result, ok: true };
-      }
-    })
-    .catch((err) => {
-      resultFinal = { err, ok: false };
+      returnValue: ["id_log"],
     });
 
-  return resultFinal;
+    return await pool
+      .query(queryLogs)
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result: result.rows };
+        else return { ok: false, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+  } catch (err) {
+    return { ok: null, err };
+  }
 }
 
-async function DatosAnteriores(params) {
-  const { table, newID, req, res } = params;
-  const { body } = req;
-  const idInfo = newID
-    ? ValidarIDActualizarUtil(table, body, newID)
-    : ValidarIDActualizarUtil(table, body);
-  const { id_usuario } = req.user;
-  let resultFinal = null;
-
-  let bodyFinal = {
-    [idInfo.idKey]: idInfo.idValue,
-  };
-  // let bodyFinal = body?.password
-  //   ? {
-  //       [idInfo.idKey]: idInfo.idValue,
-  //       password: body?.password,
-  //     }
-  //   : {
-  //       [idInfo.idKey]: idInfo.idValue,
-  //     };
-
-  let queryDatosAnteriores = EscogerUtil(table, {
-    body: bodyFinal,
-  });
-
-  await pool
-    .query(queryDatosAnteriores)
-    .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        resultFinal = { result, ok: false };
-      } else {
-        resultFinal = { result, ok: true };
-      }
-    })
-    .catch((err) => {
-      resultFinal = { err, ok: false };
+async function LogDetAuditoria(params) {
+  try {
+    const { id_log, actualizacion, req, res } = params;
+    const { body } = req;
+    const datosNuevos = body;
+    const queryLogsDet = InsertarVariosUtil("APS_seg_log_det", {
+      body: map(datosNuevos, (item, index) => {
+        const valorOriginal = actualizacion[0][index];
+        return {
+          id_log: id_log,
+          columna: index,
+          valor_original: valorOriginal,
+          valor_nuevo: item,
+          activo: true,
+        };
+      }),
+      returnValue: ["id_log_det"],
     });
-
-  return resultFinal;
-}
-
-async function Log(params) {
-  const { id_tabla_accion, id_accion, resultAux, req, res } = params;
-  const { id_usuario } = req.user;
-  let resultFinal = null;
-
-  const queryLogs = InsertarUtil("APS_seg_log", {
-    body: {
-      id_usuario: id_usuario,
-      id_tabla_accion: id_tabla_accion,
-      id_accion: id_accion,
-      id_registro: 1,
-      activo: true,
-    },
-    returnValue: ["id_log"],
-  });
-
-  await pool
-    .query(queryLogs)
-    .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        resultFinal = { result, ok: false };
-      } else {
-        resultFinal = { result, ok: true };
-      }
-    })
-    .catch((err) => {
-      resultFinal = { err, ok: false };
-    });
-
-  return resultFinal;
-}
-
-async function LogDet(params) {
-  const { id_log, datosAnteriores, req, res } = params;
-  const { body } = req;
-  const datosNuevos = body;
-  let bodyQueryFinal = [];
-  let resultFinal = null;
-
-  map(datosNuevos, (item, index) => {
-    let valorOriginal = datosAnteriores.result.rows[0][index];
-    bodyQueryFinal.push({
-      id_log: id_log,
-      columna: index,
-      valor_original: valorOriginal,
-      valor_nuevo: item,
-      activo: true,
-    });
-  });
-
-  console.log(bodyQueryFinal);
-
-  let queryLogsDet = InsertarVariosUtil("APS_seg_log_det", {
-    body: bodyQueryFinal,
-    returnValue: ["id_log_det"],
-  });
-
-  console.log(queryLogsDet);
-
-  await pool
-    .query(queryLogsDet)
-    .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        resultFinal = { result, ok: false };
-      } else {
-        resultFinal = { result, ok: true };
-      }
-    })
-    .catch((err) => {
-      resultFinal = { err, ok: false };
-    });
-
-  return resultFinal;
+    return await pool
+      .query(queryLogsDet)
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result: result.rows };
+        else return { ok: false, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+  } catch (err) {
+    return { ok: null, err };
+  }
 }
 
 module.exports = {
-  VerificarPermisoTablaUsuario,
-  DatosCriticos,
-  DatosAnteriores,
-  Log,
-  LogDet,
+  VerificarPermisoTablaUsuarioAuditoria,
+  ObtenerDatosCriticosAuditoria,
+  ObtenerInformacionAnteriorAuditoria,
+  LogAuditoria,
+  LogDetAuditoria,
 };

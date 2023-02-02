@@ -281,7 +281,7 @@ function ListarUtil(table, params) {
       query = query + " AND activo IN (true, false)";
     }
   } else {
-    query = `SELECT * FROM public."${table}"`;
+    query = `SELECT * FROM public."${table}" `;
     if (params?.activo !== null) {
       query = query + " AND activo IN (true, false)";
     }
@@ -1257,6 +1257,7 @@ function VerificarPermisoUtil(table, params) {
   return query;
 }
 
+//TO DO: Cambiar el nombre de ValidarIDActualizarUtil a infoIDPorTabla, y reorganizarlo en otro archivo
 function ValidarIDActualizarUtil(nameTable, body, newID) {
   let indexId = nameTable.indexOf("_", 5);
   let idKey = newID

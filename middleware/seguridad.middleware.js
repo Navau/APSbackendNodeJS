@@ -1,5 +1,7 @@
 const { split } = require("lodash");
-const { VerificarPermisoTablaUsuario } = require("../utils/permiso.utils");
+const {
+  VerificarPermisoTablaUsuarioAuditoria,
+} = require("../utils/permiso.utils");
 const {
   respUsuarioNoAutorizado,
   respErrorServidor500END,
@@ -20,7 +22,7 @@ exports.permisoUsuario = async (req, res, next, section) => {
       respUsuarioNoAutorizado(res);
       return;
     }
-    const permiso = await VerificarPermisoTablaUsuario({
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       req,
       res,
       table: responseTable?.tabla,

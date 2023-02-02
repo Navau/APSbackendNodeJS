@@ -14,6 +14,7 @@ const {
   BuscarCRUD,
   EscogerCRUD,
   InsertarCRUD,
+  ActualizarCRUD,
 } = require("../../utils/crud.utils");
 
 const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
@@ -39,6 +40,7 @@ const {
 
 const nameTable = "APS_seg_usuario";
 
+//TO DO: Arreglar y Eliminar lo de "SelectInnerJoinSimple"
 async function InstitucionConIDUsuario(req, res) {
   const { id_usuario } = req.body;
 
@@ -90,93 +92,32 @@ async function InstitucionConIDUsuario(req, res) {
 
 //FUNCION PARA OBTENER TODOS LOS USUARIO DE SEGURIDAD
 async function Listar(req, res) {
-  await ListarCRUD(req, res, nameTable);
+  const params = { req, res, nameTable };
+  await ListarCRUD(params);
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON BUSQUEDA
 async function Buscar(req, res) {
-  await BuscarCRUD(req, res, nameTable);
+  const params = { req, res, nameTable };
+  await BuscarCRUD(params);
 }
 
 //FUNCION PARA OBTENER UN USUARIO, CON ID DEL USUARIO
 async function Escoger(req, res) {
-  await EscogerCRUD(req, res, nameTable);
+  const params = { req, res, nameTable };
+  await EscogerCRUD(params);
 }
 
 //FUNCION PARA INSERTAR UN USUARIO
 async function Insertar(req, res) {
-  await InsertarCRUD(req, res, nameTable);
+  const params = { req, res, nameTable };
+  await InsertarCRUD(params);
 }
 
 //FUNCION PARA ACTUALIZAR UN USUARIO
 async function Actualizar(req, res) {
-  const body = req.body;
-
-  let query = "";
-  const datosAnteriores = await DatosAnteriores({
-    req,
-    res,
-    table: nameTable,
-  });
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-        returnValue: ["*"],
-      };
-      query = ActualizarUtil(nameTable, params);
-      let resultAux = {};
-
-      await pool
-        .query(query)
-        .then((result) => {
-          resultAux = result;
-          respResultadoCorrectoObjeto200(res, result.rows);
-        })
-        .catch((err) => {
-          respErrorServidor500(res, err);
-        });
-      const criticos = await DatosCriticos({
-        req,
-        res,
-        table: nameTable,
-        action: "Actualizar",
-      });
-      // console.log("criticos", criticos);
-      if (criticos?.ok === true) {
-        // console.log("datosAnteriores", datosAnteriores);
-        if (datosAnteriores?.ok === true) {
-          let idTablaAccion = criticos?.result?.rows[0]?.id_tabla_accion;
-          const idAccion = criticos?.result?.rows[0]?.id_accion;
-          const log = await Log({
-            req,
-            res,
-            resultAux,
-            id_tabla_accion: idTablaAccion ? idTablaAccion : 12,
-            idAccion,
-          });
-          // console.log("log", log);
-          if (log?.ok === true) {
-            const logDet = await LogDet({
-              req,
-              res,
-              datosAnteriores: datosAnteriores,
-              id_log: log.result.rows[0].id_log,
-            });
-            console.log("logDet", logDet);
-          }
-        }
-      }
-    }
-  }
+  const params = { req, res, nameTable };
+  await ActualizarCRUD(params);
 }
 
 module.exports = {

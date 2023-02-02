@@ -25,6 +25,7 @@ function respErrorServidor500(res, err, msg) {
 }
 
 function respErrorServidor500END(res, err, msg, datos = null) {
+  console.log(err);
   if (err?.code === "23505") {
     const detail = err?.detail;
     if (!isUndefined(detail)) {
