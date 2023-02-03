@@ -28,6 +28,11 @@ api.post(
   controller.ReporteExito
 );
 api.post(
+  "/ReporteReproceso",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ReporteReproceso
+);
+api.post(
   "/ReporteControlEnvioPorTipoReporte",
   [md_auth.AsegurarAutenticacionConToken],
   controller.ReporteControlEnvioPorTipoReporte

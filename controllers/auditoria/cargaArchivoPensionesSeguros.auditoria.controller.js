@@ -757,11 +757,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
       .catch((err) => {
         return { ok: null, err };
       });
-
-    if (instituciones.ok === null) {
-      throw instituciones.err;
-    }
-
+    if (instituciones.ok === null) throw instituciones.err;
     if (iid_reporte === 6) {
       if (!periodo) {
         respDatosNoRecibidos400(res, "No se envio la periodicidad");
@@ -988,6 +984,85 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
     }
 
     respResultadoCorrectoObjeto200(res, sortBy(resultFinal, ["id"]));
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+async function ReporteReproceso(req, res) {
+  try {
+    const { fecha, id_rol, periodo, reproceso } = req.body;
+    const queryInstituciones = ListarUtil(
+      id_rol === 10
+        ? "aps_view_modalidad_seguros"
+        : "aps_view_modalidad_pensiones",
+      { activo: null }
+    );
+    const instituciones = await pool
+      .query(queryInstituciones)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+
+    if (instituciones.ok === null) throw instituciones.err;
+    if (!periodo) {
+      respDatosNoRecibidos400(res, "No se envio la periodicidad");
+      return;
+    }
+    const querys = [
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "id_periodo", valuesWhereIn: periodo, whereIn: true },
+          { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
+          {
+            key: "cod_institucion",
+            valuesWhereIn: map(
+              instituciones.result,
+              (item) => `'${item.codigo}'`
+            ),
+            whereIn: true,
+          },
+          { key: "fecha_operacion", value: fecha },
+        ],
+      }),
+      ListarUtil("APS_seg_usuario"),
+    ];
+    const results = await EjecutarVariosQuerys(querys);
+
+    if (results.ok === null) throw results.result;
+
+    if (results.ok === false) throw results.errors;
+
+    const usuarios = find(
+      results.result,
+      (item) => item.table === "APS_seg_usuario"
+    );
+    respResultadoCorrectoObjeto200(
+      res,
+      map(results.result[0].data, (item) => {
+        return {
+          id: item.id_carga_archivos,
+          descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
+          estado: item.cargado ? "Con Éxito" : "Con Error",
+          reproceso: item.reproceso,
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_carga_archivos: item.id_carga_archivos,
+          id_rol: item.id_rol,
+          cargado: item.cargado,
+        };
+      })
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -1289,4 +1364,5 @@ module.exports = {
   NombreReporte,
   ReporteControlEnvioPorTipoReporteDescargas,
   ReporteExito,
+  ReporteReproceso,
 };
