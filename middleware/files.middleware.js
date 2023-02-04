@@ -11,6 +11,7 @@ const {
   replace,
   forEach,
   size,
+  find,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -1057,6 +1058,8 @@ async function validarArchivosIteraciones(params) {
                             fechaOperacion,
                             fechaInicialOperacion,
                             item,
+                            index,
+                            isAllFiles,
                             infoArchivo,
                             instrumento,
                             _tipoAccion,
@@ -1164,6 +1167,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       const fechaOperacion = params.fechaOperacion;
       const fechaInicialOperacion = params.fechaInicialOperacion;
       const item = params.item;
+      const indexMainFiles = params.index;
+      const isAllFiles = params.isAllFiles;
       const infoArchivo = params.infoArchivo;
       const instrumento = params.instrumento;
       const _tipoAccion = params._tipoAccion;
@@ -4287,30 +4292,68 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
       };
 
       if (
-        size(arrayDataObject) === 0 &&
-        (codeCurrentFile === "TD" || codeCurrentFile === "TO")
+        codeCurrentFile === "TD" ||
+        codeCurrentFile === "TO" ||
+        codeCurrentFile === "UD" ||
+        codeCurrentFile === "CO"
       ) {
         dependenciesArrayEmptys.push({
           code: codeCurrentFile,
           file: item.archivo,
-          empty: true,
+          empty: size(arrayDataObject) === 0 ? true : false,
         });
       }
-      if (codeCurrentFile === "UD" || codeCurrentFile === "CO") {
+      if (
+        indexMainFiles === size(isAllFiles.currentFiles) - 1 &&
+        size(dependenciesArrayEmptys) !== 0
+      ) {
+        const auxEmpty = {
+          TD: find(
+            dependenciesArrayEmptys,
+            (itemFind) => itemFind.code === "TD"
+          ),
+          TO: find(
+            dependenciesArrayEmptys,
+            (itemFind) => itemFind.code === "TO"
+          ),
+          UD: find(
+            dependenciesArrayEmptys,
+            (itemFind) => itemFind.code === "UD"
+          ),
+          CO: find(
+            dependenciesArrayEmptys,
+            (itemFind) => itemFind.code === "CO"
+          ),
+        };
         forEach(dependenciesArrayEmptys, (itemDAE) => {
-          if (
-            ((itemDAE.code === "TD" && codeCurrentFile === "UD") ||
-              (itemDAE.code === "TO" && codeCurrentFile === "CO")) &&
-            itemDAE.empty === true
-          ) {
+          const errorAux = (code1, file1, code2, file2) => {
             errors.push({
               archivo: item.archivo,
-              tipo_error: `ERROR DE CONTENIDO de ${itemDAE.code} a ${codeCurrentFile}`,
-              descripcion: `El Archivo ${itemDAE.code} (${itemDAE.file}) esta vacío o sin información por lo tanto el archivo ${codeCurrentFile} (${item.archivo}) tambien debe estar vacío o sin información`,
+              tipo_error: `ERROR DE CONTENIDO de ${code1} a ${code2}`,
+              descripcion: `El Archivo ${code1} (${file1}) esta vacío o sin información por lo tanto el archivo ${code2} (${file2}) tambien debe estar vacío o sin información`,
               valor: `VACIO`,
               columna: "",
               fila: -1,
             });
+          };
+          if (itemDAE.code === "TD") {
+            if (itemDAE.empty === true && auxEmpty.UD.empty === false) {
+              errorAux(
+                itemDAE.code,
+                itemDAE.file,
+                auxEmpty.UD.code,
+                auxEmpty.UD.file
+              );
+            }
+          } else if (itemDAE.code === "TO") {
+            if (itemDAE.empty === true && auxEmpty.CO.empty === false) {
+              errorAux(
+                itemDAE.code,
+                itemDAE.file,
+                auxEmpty.CO.code,
+                auxEmpty.CO.file
+              );
+            }
           }
         });
       }
