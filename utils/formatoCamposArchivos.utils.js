@@ -6542,6 +6542,7 @@ async function formatearDatosEInsertarCabeceras(
     let errors = [];
     let errorsValues = [];
     headers?.splice(0, 1); // ELIMINAR ID DE TABLA
+    // console.log(codeCurrentFile, dataSplit);
 
     map(
       ["id_carga_archivos", "cod_institucion", "fecha_informacion"],
@@ -6552,7 +6553,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    console.log("CABECERAS", codeCurrentFile, headers);
+    // console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
@@ -6739,14 +6740,22 @@ async function formatearDatosEInsertarCabeceras(
       });
       // console.log("arrayDataObject", arrayDataObject);
     };
-
     // console.log("INFORMACION", codeCurrentFile, dataSplit);
+
     if (
-      (codeCurrentFile === "444" || codeCurrentFile === "445") &&
+      (codeCurrentFile === "444" ||
+        codeCurrentFile === "445" ||
+        codeCurrentFile === "TD" ||
+        codeCurrentFile === "TO") &&
       dataSplit[0] !== ""
     ) {
       formatFile();
-    } else if (codeCurrentFile !== "444" && codeCurrentFile !== "445") {
+    } else if (
+      codeCurrentFile !== "444" &&
+      codeCurrentFile !== "445" &&
+      codeCurrentFile !== "TD" &&
+      codeCurrentFile !== "TO"
+    ) {
       formatFile();
     }
 

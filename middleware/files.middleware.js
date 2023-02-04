@@ -10,6 +10,7 @@ const {
   includes,
   replace,
   forEach,
+  size,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -67,6 +68,7 @@ var nameTableErrors = "";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
+var dependenciesArrayEmptys = [];
 var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
 
 function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
@@ -433,9 +435,14 @@ async function validarArchivosIteraciones(params) {
               });
             } else if (
               data.length === 0 &&
-              (!item.archivo.includes("444") || !item.archivo.includes("445"))
+              !item.archivo.includes("444") &&
+              !item.archivo.includes("445") &&
+              !item.archivo.includes("TD") &&
+              !item.archivo.includes("TO") &&
+              !item.archivo.includes("UD") &&
+              !item.archivo.includes("CO")
             ) {
-              // console.log("DATA", data);
+              // console.log("DATA TEST", data.length, item.archivo);
               let myIndex = findIndex(isAllFiles.currentFiles, (itemFI) => {
                 return itemFI.archivo == item.archivo;
               });
@@ -445,6 +452,7 @@ async function validarArchivosIteraciones(params) {
               index--;
             } else {
               // console.log("dataSplit", dataSplit);
+              // console.log({ archivo: item.archivo });
               if (dataSplit.length === 0) {
                 errors.push({
                   archivo: item.archivo,
@@ -471,7 +479,7 @@ async function validarArchivosIteraciones(params) {
                     nameTable = await infoArchivo.nameTable;
                     headers = await infoArchivo.headers;
                     detailsHeaders = await infoArchivo.detailsHeaders;
-                    // console.log(headers);
+                    // console.log(codeCurrentFile, headers);
 
                     codeCurrentFilesArray.push(codeCurrentFile);
 
@@ -4278,6 +4286,34 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         }
       };
 
+      if (
+        size(arrayDataObject) === 0 &&
+        (codeCurrentFile === "TD" || codeCurrentFile === "TO")
+      ) {
+        dependenciesArrayEmptys.push({
+          code: codeCurrentFile,
+          file: item.archivo,
+          empty: true,
+        });
+      }
+      if (codeCurrentFile === "UD" || codeCurrentFile === "CO") {
+        forEach(dependenciesArrayEmptys, (itemDAE) => {
+          if (
+            ((itemDAE.code === "TD" && codeCurrentFile === "UD") ||
+              (itemDAE.code === "TO" && codeCurrentFile === "CO")) &&
+            itemDAE.empty === true
+          ) {
+            errors.push({
+              archivo: item.archivo,
+              tipo_error: `ERROR DE CONTENIDO de ${itemDAE.code} a ${codeCurrentFile}`,
+              descripcion: `El Archivo ${itemDAE.code} (${itemDAE.file}) esta vacío o sin información por lo tanto el archivo ${codeCurrentFile} (${item.archivo}) tambien debe estar vacío o sin información`,
+              valor: `VACIO`,
+              columna: "",
+              fila: -1,
+            });
+          }
+        });
+      }
       if (codeCurrentFile === "444" && arrayDataObject?.length === 0) {
         map(dependenciesArray, (itemDP, indexDP) => {
           if (itemDP.column === "nro_pago" && itemDP.code === "441") {
