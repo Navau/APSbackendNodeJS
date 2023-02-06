@@ -9,8 +9,11 @@ const {
   filter,
   split,
   isUndefined,
+  isArray,
 } = require("lodash");
 const pool = require("../database");
+
+//TO DO: Rehacer las consultas y verificar que cosas se usan y cuales no, para simplificar y hacer el codigo mas legible, por ejemplo en el ListarUtil
 
 function ObtenerRolUtil(table, data, idPK) {
   let query = "";
@@ -278,12 +281,16 @@ function ListarUtil(table, params) {
       " WHERE id_clasificador_comun_grupo = " +
       params.idClasificadorComunGrupo;
     if (params?.activo !== null) {
-      query = query + " AND activo IN (true, false)";
+      if (isArray(params?.activo))
+        query = query + ` AND activo IN (${params.activo})`;
+      else query = query + ` AND activo IN (true, false)`;
     }
   } else {
     query = `SELECT * FROM public."${table}" `;
     if (params?.activo !== null) {
-      query = query + " AND activo IN (true, false)";
+      if (isArray(params?.activo))
+        query = query + ` AND activo IN (${params.activo})`;
+      else query = query + ` AND activo IN (true, false)`;
     }
     if (params?.idKey && params?.idValue) {
       query = query + ` WHERE ${params.idKey} = ${params.idValue}`;

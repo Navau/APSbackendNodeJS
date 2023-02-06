@@ -27,6 +27,7 @@ async function Listar(req, res) {
     clasificador: true,
     idClasificadorComunGrupo,
     valueId,
+    activo: [true],
   };
   const query = ListarUtil(nameTable, params);
   await pool

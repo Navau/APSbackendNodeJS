@@ -72,6 +72,8 @@ var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
 var dependenciesArrayEmptys = [];
 var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
 
+//TO DO: Re hacer todo esto de subida de archivos, para hacerlo mas legible y simplificado
+
 function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
   const verificarArchivos = new Promise((resolve, reject) => {
     const arrayNameFilesToUpperCase = (array, property) => {
