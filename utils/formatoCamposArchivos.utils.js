@@ -5575,7 +5575,6 @@ async function obtenerValidaciones(typeFile) {
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
-        notValidate: true,
         function: [],
       },
       {
@@ -6553,7 +6552,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    // console.log("CABECERAS", codeCurrentFile, headers);
+    console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;

@@ -1045,6 +1045,10 @@ async function validarArchivosIteraciones(params) {
                         });
                       })
                       .finally(async () => {
+                        console.log({
+                          codeCurrentFile,
+                          err: arrayDataObject?.err,
+                        });
                         // console.log("arrayDataObject", arrayDataObject);
                         if (!arrayDataObject?.err) {
                           // console.log("DENTRO DE IF");
@@ -4307,6 +4311,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         indexMainFiles === size(isAllFiles.currentFiles) - 1 &&
         size(dependenciesArrayEmptys) !== 0
       ) {
+        // console.log(dependenciesArrayEmptys);
         const auxEmpty = {
           TD: find(
             dependenciesArrayEmptys,
@@ -4328,7 +4333,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         forEach(dependenciesArrayEmptys, (itemDAE) => {
           const errorAux = (code1, file1, code2, file2) => {
             errors.push({
-              archivo: item.archivo,
+              archivo: file2,
               tipo_error: `ERROR DE CONTENIDO de ${code1} a ${code2}`,
               descripcion: `El Archivo ${code1} (${file1}) esta vacío o sin información por lo tanto el archivo ${code2} (${file2}) tambien debe estar vacío o sin información`,
               valor: `VACIO`,
@@ -4758,6 +4763,7 @@ exports.subirArchivo = async (req, res, next) => {
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   dependenciesArray = [];
+  dependenciesArrayEmptys = [];
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
