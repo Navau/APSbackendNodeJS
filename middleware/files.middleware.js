@@ -1045,10 +1045,10 @@ async function validarArchivosIteraciones(params) {
                         });
                       })
                       .finally(async () => {
-                        console.log({
-                          codeCurrentFile,
-                          err: arrayDataObject?.err,
-                        });
+                        // console.log({
+                        //   codeCurrentFile,
+                        //   err: arrayDataObject?.err,
+                        // });
                         // console.log("arrayDataObject", arrayDataObject);
                         if (!arrayDataObject?.err) {
                           // console.log("DENTRO DE IF");

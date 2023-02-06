@@ -6552,7 +6552,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    console.log("CABECERAS", codeCurrentFile, headers);
+    // console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;

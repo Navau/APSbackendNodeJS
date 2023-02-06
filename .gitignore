@@ -6,8 +6,8 @@
 # /reports/cartera/*.xlsx
 # /reports/custodio/*.xlsx
 # /reports/estadisticos/*.xlsx
-*.xlsx
-**.xlsx
+# *.xlsx
+# **.xlsx
 
 ######################
 # Node

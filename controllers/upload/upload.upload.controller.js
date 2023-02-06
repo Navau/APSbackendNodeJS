@@ -23,6 +23,8 @@ const {
   ValorMaximoDeCampoMultiplesTablasUtil,
   EscogerInternoUtil,
   AlterarSequenciaUtil,
+  EjecutarFuncionSQL,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -78,6 +80,7 @@ async function CargarArchivo(req, res) {
       table: null,
       tableErrors: null,
     };
+
     map(filesSort, (item, index) => {
       if (
         item.originalname.toUpperCase().substring(0, 3) === "108" &&
@@ -666,6 +669,28 @@ async function CargarArchivo(req, res) {
         });
     };
 
+    const funcionesInversiones = async (fechaI, id_rolI) => {
+      const params = {
+        body: {
+          fechaI,
+          id_rolI,
+        },
+      };
+      const querys = [
+        EjecutarFuncionSQL("aps_ins_renta_fija_td", params),
+        EjecutarFuncionSQL("aps_ins_renta_fija_cupon_ud", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos_to", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos_cupon_co", params),
+        EjecutarFuncionSQL("aps_ins_renta_variable_tv", params),
+      ];
+
+      const results = await EjecutarVariosQuerys(querys);
+      if (results.ok === null) return { ok: null, result: results.result };
+      if (results.ok === false) return { ok: false, result: results.errors };
+
+      return { ok: true, result: results.result };
+    };
+
     const eliminarInformacionDuplicada = async (
       table,
       where,
@@ -899,10 +924,25 @@ async function CargarArchivo(req, res) {
               fecha_operacion: fechaInicialOperacion,
             });
           });
-          actualizarCampoCargado(
-            respResultadoCorrectoObjeto200(res, finalRespArray),
-            true
-          );
+          if (infoTables.code === "02") {
+            const funcionesInversionesAux = await funcionesInversiones(
+              fechaInicialOperacion,
+              req.user.id_rol
+            );
+            if (funcionesInversionesAux.ok !== true) {
+              throw funcionesInversionesAux.result;
+            } else {
+              actualizarCampoCargado(
+                respResultadoCorrectoObjeto200(res, finalRespArray),
+                true
+              );
+            }
+          } else {
+            actualizarCampoCargado(
+              respResultadoCorrectoObjeto200(res, finalRespArray),
+              true
+            );
+          }
         }
       })
       .catch(async (err) => {
