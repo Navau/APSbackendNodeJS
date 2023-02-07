@@ -5644,7 +5644,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "moneda",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z]{1,1}$/,
         function: ["moneda"],
       },
       {
