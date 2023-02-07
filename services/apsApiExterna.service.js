@@ -1,15 +1,23 @@
 const { IP_SERVER_API_EXTERNA } = require("../config");
+const axios = require("axios");
 
 //TO DO: Instalar AXIOS, para reemplazar fetch
 exports.obtenerJwtEstadoApi = async function () {
   try {
     const url = `${IP_SERVER_API_EXTERNA}/jwt/estado/`;
-    const params = {
-      method: "GET",
-    };
-    const response = await fetch(url, params);
-    const result = await response.json();
-    return { ok: true, result };
+    // const params = {
+    //   method: "GET",
+    // };
+    return axios
+      .get(url)
+      .then(async (response) => {
+        // const response = await fetch(url, params);
+        const result = await response.json();
+        return { ok: true, result };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
   } catch (err) {
     return { ok: null, err };
   }

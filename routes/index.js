@@ -121,6 +121,7 @@ const cTipoReporteRoute = require("./clasificador/cTipoReporte.clasificador.rout
 const obtenerCabecerasRoute = require("./obtenerCabeceras.route");
 const selectComunRoute = require("./selectComun.route");
 const reportePruebaRoute = require("./reportePrueba.route");
+const testApiExterna = require("./testApiExterna.route");
 //#endregion
 
 //#region SEGURO
@@ -157,6 +158,7 @@ function routerApi(app) {
   router.use("/obtenerCabeceras", obtenerCabecerasRoute);
   router.use("/EscogerInterno", selectComunRoute);
   router.use("/ReportePrueba", reportePruebaRoute);
+  router.use("/TestApiExterna", testApiExterna);
   // router.use('/AccesoExterno', )
   router.use("/Upload", uploadRoute);
   router.use("/Descargar", downloadRoute);

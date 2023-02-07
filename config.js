@@ -1,5 +1,5 @@
 const API_VERSION = "v1";
-const IP_SERVER_API_EXTERNA = "https://testsau.aps.gob.bo/";
+const IP_SERVER_API_EXTERNA = "https://testsau.aps.gob.bo";
 const IP_SERVER_API = "localhost";
 const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
