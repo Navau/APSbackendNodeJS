@@ -511,6 +511,13 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_moneda",
           params: {
             select: ["sigla"],
+            where: [
+              {
+                key: "id_moneda",
+                valuesWhereIn: [1, 2, 3, 4],
+                whereIn: true,
+              },
+            ],
           },
         };
         PARAMS.paramsTipoAmortizacion = {
@@ -662,6 +669,13 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_moneda",
           params: {
             select: ["codigo_otros_activos"],
+            where: [
+              {
+                key: "id_moneda",
+                valuesWhereIn: [1, 3],
+                whereIn: true,
+              },
+            ],
           },
         };
         PARAMS.paramsNroPago = true;
@@ -2316,7 +2330,14 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
         PARAMS.paramsMoneda = {
           table: "APS_param_moneda",
           params: {
-            select: ["sigla"],
+            select: ["codigo_valoracion"],
+            where: [
+              {
+                key: "id_moneda",
+                valuesWhereIn: [1, 2, 3, 4],
+                whereIn: true,
+              },
+            ],
           },
         };
         PARAMS.paramsTipoAmortizacion = {
@@ -2531,6 +2552,13 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           table: "APS_param_moneda",
           params: {
             select: ["codigo_otros_activos"],
+            where: [
+              {
+                key: "id_moneda",
+                valuesWhereIn: [1, 3],
+                whereIn: true,
+              },
+            ],
           },
         };
         PARAMS.paramsNroPago = true;
@@ -6552,7 +6580,7 @@ async function formatearDatosEInsertarCabeceras(
         }
       }
     ); // ELIMINAR ID CARGA ARCHIVOS, CODIGO INSTITUCION, FECHA INFORMACION
-    // console.log("CABECERAS", codeCurrentFile, headers);
+    console.log("CABECERAS", codeCurrentFile, headers);
 
     const formatFile = () => {
       const numberCommas = headers?.length - 1;
