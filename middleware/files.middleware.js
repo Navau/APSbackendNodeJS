@@ -3922,7 +3922,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   if (item2.nro_pago !== "1") {
                     _nroPago.ok = false;
                     _nroPago.message =
-                      "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 0";
+                      "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 1";
                   }
                 }
               }
