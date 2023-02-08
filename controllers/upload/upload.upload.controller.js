@@ -927,7 +927,7 @@ async function CargarArchivo(req, res) {
           if (infoTables.code === "02") {
             const funcionesInversionesAux = await funcionesInversiones(
               fechaInicialOperacion,
-              req.user.id_rol
+              req.user.id_usuario
             );
             if (funcionesInversionesAux.ok !== true) {
               throw funcionesInversionesAux.result;
