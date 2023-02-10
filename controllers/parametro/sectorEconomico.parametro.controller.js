@@ -59,7 +59,7 @@ async function ListarCompleto(req, res) {
 }
 //FUNCION PARA OBTENER TODOS LOS SECTOR ECONOMICO DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable, { activo: [true] });
+  const query = ListarUtil(nameTable);
   await pool
     .query(query)
     .then((result) => {

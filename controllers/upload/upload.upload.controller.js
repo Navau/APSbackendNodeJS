@@ -257,6 +257,9 @@ async function CargarArchivo(req, res) {
           } else if (item.originalname.includes("UA")) {
             codeFile = "UA";
             tableFile = "APS_pensiones_archivo_UA";
+          } else if (item.originalname.includes("UE")) {
+            codeFile = "UE";
+            tableFile = "APS_pensiones_archivo_UE";
           } else if (item.originalname.includes("TD")) {
             codeFile = "TD";
             tableFile = "APS_pensiones_archivo_TD";

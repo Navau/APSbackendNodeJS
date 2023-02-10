@@ -2291,6 +2291,30 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+      } else if (nameFile.includes("UE")) {
+        console.log(
+          `ARCHIVO CORRECTO : UE.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
+          nameFile
+        );
+        PARAMS.codeCurrentFile = "UE";
+        PARAMS.nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+
+        PARAMS.paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_tipo_mercado",
+                value: 200,
+              },
+              {
+                key: "id_tipo_renta",
+                value: 138,
+              },
+            ],
+          },
+        };
       } else if (nameFile.includes("TD")) {
         console.log(
           `ARCHIVO CORRECTO : TD.${nameFile?.slice(nameFile.indexOf(".") + 1)}`,
@@ -3495,6 +3519,9 @@ async function formatoArchivo(type) {
     },
     UA: {
       table: "APS_pensiones_archivo_UA",
+    },
+    UE: {
+      table: "APS_pensiones_archivo_UE",
     },
     TD: {
       table: "APS_pensiones_archivo_TD",
@@ -5598,6 +5625,35 @@ async function obtenerValidaciones(typeFile) {
       },
     ],
     UA: [
+      {
+        columnName: "fecha_vencimiento",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        date: true,
+        function: [],
+      },
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        function: ["tipoInstrumento"],
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        function: [],
+      },
+      {
+        columnName: "precio_cupon_mo",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: [],
+      },
+      {
+        columnName: "precio_cupon_bs",
+        pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
+        function: [],
+      },
+    ],
+    UE: [
       {
         columnName: "fecha_vencimiento",
         pattern:
