@@ -1,5 +1,6 @@
 const { IP_SERVER_API_EXTERNA } = require("../config");
 const axios = require("axios");
+const util = require("util");
 
 exports.obtenerJwtEstadoApi = async function () {
   try {
@@ -13,7 +14,13 @@ exports.obtenerJwtEstadoApi = async function () {
       .then((response) => {
         // const response = await fetch(url, params);
         // const result = await response.json();
-        return { ok: true, response };
+        return {
+          ok: true,
+          response: {
+            jsonAux: JSON.stringify(response),
+            inspect: util.inspect(response),
+          },
+        };
       })
       .catch((err) => {
         return { ok: null, err };
