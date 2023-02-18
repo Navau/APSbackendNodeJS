@@ -33,6 +33,7 @@ const {
 const nameTable = "APS_aud_valora_archivos_pensiones_seguros";
 const nameTableErrors = "APS_aud_errores_valora_archivos_pensiones_seguros";
 
+//TO DO: Cambiar validacionCartera por valoraArchivosPensionesSeguros
 async function Validar(req, res) {
   const { fecha } = req.body;
   const { id_rol } = req.user;

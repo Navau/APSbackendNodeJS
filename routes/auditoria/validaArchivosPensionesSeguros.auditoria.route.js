@@ -23,6 +23,11 @@ api.post(
   controller.Validar
 );
 api.post(
+  "/ValidacionInversiones",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ValidacionInversiones
+);
+api.post(
   "/Reporte",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Reporte

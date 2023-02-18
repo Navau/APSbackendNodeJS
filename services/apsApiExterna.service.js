@@ -16,10 +16,10 @@ exports.obtenerJwtEstadoApi = async function () {
         // const result = await response.json();
         return {
           ok: true,
-          response: {
-            jsonAux: JSON.stringify(response),
-            inspect: util.inspect(response),
-          },
+          // response: {
+          //   jsonAux: JSON.stringify(response),
+          //   inspect: util.inspect(response),
+          // },
         };
       })
       .catch((err) => {

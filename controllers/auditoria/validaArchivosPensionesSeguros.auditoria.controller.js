@@ -47,6 +47,8 @@ const dayjs = require("dayjs");
 const nameTable = "APS_aud_valida_archivos_pensiones_seguros";
 const nameTableErrors = "APS_aud_errores_valida_archivos_pensiones_seguros";
 
+//TO DO:  AUMENTAR VALIDA ARCHIVOS A CRUD
+
 async function ValorMaximo(req, res) {
   const { max, periodicidad } = req.body;
   const { id_rol, id_usuario } = req.user;
@@ -1068,6 +1070,27 @@ async function Validar(req, res) {
   }
 }
 
+async function ValidacionInversiones(req, res) {
+  try {
+    const { fecha } = req.body;
+    const query = EjecutarFuncionSQL("aps_valida_pensiones_inversiones", {
+      body: {
+        fecha,
+      },
+    });
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 async function Reporte(req, res) {
   try {
     const { fecha, id_rol, id_rol_cargas, cargado, estado } = req.body;
@@ -1379,4 +1402,5 @@ module.exports = {
   Validar,
   Reporte,
   ReporteExito,
+  ValidacionInversiones,
 };
