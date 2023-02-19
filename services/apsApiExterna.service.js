@@ -8,8 +8,10 @@ exports.obtenerJwtEstadoApi = async function () {
       .get(url)
       .then((response) => {
         const result = response.data;
+        const status = response?.status;
         return {
-          ok: true,
+          ok: status === 200 ? true : false,
+          status,
           result,
         };
       })
@@ -27,20 +29,15 @@ exports.obtenerTokenApi = async function (data) {
     const options = {
       headers: { "Content-Type": "application/json" },
     };
-    // const params = {
-    //   method: "POST",
-    //   headers:
-    //   body: JSON.stringify(data),
-    // };
-
-    console.log({ url, data, options });
+    const body = JSON.stringify(data);
 
     return await axios
-      .post(url, data, options)
+      .post(url, body, options)
       .then((response) => {
         const result = response.data;
+        const status = response?.status;
         return {
-          ok: true,
+          ok: status === 200 ? true : false,
           result,
         };
       })
@@ -56,17 +53,27 @@ exports.obtenerInfoUsuarioApi = async function (token, data) {
   try {
     const { username, appGuId } = data;
     const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${username}/app/${appGuId}`;
-    const params = {
-      method: "POST",
+    const options = {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
     };
-    const response = await fetch(url, params);
-    const result = await response.json();
-    return { ok: true, result };
+    const body = JSON.stringify(data);
+
+    return await axios
+      .post(url, body, options)
+      .then((response) => {
+        const result = response.data;
+        const status = response?.status;
+        return {
+          ok: status === 200 ? true : false,
+          result,
+        };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
   } catch (err) {
     return { ok: null, err };
   }
@@ -76,17 +83,27 @@ exports.actualizarContraseñaUsuarioApi = async function (token, data) {
   try {
     const { username } = data;
     const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${username}/updatePassword`;
-    const params = {
-      method: "POST",
+    const options = {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
     };
-    const response = await fetch(url, params);
-    const result = await response.json();
-    return { ok: true, result };
+    const body = JSON.stringify(data);
+
+    return await axios
+      .post(url, body, options)
+      .then((response) => {
+        const result = response.data;
+        const status = response?.status;
+        return {
+          ok: status === 200 ? true : false,
+          result,
+        };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
   } catch (err) {
     return { ok: null, err };
   }
