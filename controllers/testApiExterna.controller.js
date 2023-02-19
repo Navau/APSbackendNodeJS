@@ -1,4 +1,7 @@
-const { obtenerJwtEstadoApi } = require("../services/apsApiExterna.service");
+const {
+  obtenerJwtEstadoApi,
+  obtenerTokenApi,
+} = require("../services/apsApiExterna.service");
 const {
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
@@ -6,7 +9,9 @@ const {
 
 async function TestEstadoJWT(req, res) {
   try {
-    const result = await obtenerJwtEstadoApi();
+    // const data = { usuario: "username", password: "password", app: "app-guid" };
+    const data = { usuario: "username", password: "password", app: "app-guid" };
+    const result = await obtenerTokenApi(data);
     if (result.ok === null) throw result.err;
     respResultadoCorrectoObjeto200(res, result);
   } catch (err) {

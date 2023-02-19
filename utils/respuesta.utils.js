@@ -60,18 +60,33 @@ function respErrorServidor500END(res, err, msg, datos = null) {
       respResultadoIncorrectoObjeto200(res, err, [], messageFinal);
     }
   } else {
-    const errMessage = err?.message ? err?.message : "";
-    res
-      .status(500)
-      .send({
-        resultado: 0,
-        datos,
-        mensaje: msg
-          ? msg + errMessage
-          : "Error del servidor. ERROR:" + errMessage,
-        err,
-      })
-      .end();
+    const data = err?.response?.data;
+
+    if (isUndefined(data)) {
+      const errMessage = err?.message ? err?.message : "";
+      res
+        .status(500)
+        .send({
+          resultado: 0,
+          datos,
+          mensaje: msg
+            ? msg + errMessage
+            : "Error del servidor. ERROR:" + errMessage,
+          err,
+        })
+        .end();
+    } else {
+      const errMessage = data?.message ? data.message : "";
+      res
+        .status(500)
+        .send({
+          resultado: 0,
+          datos,
+          mensaje: msg ? msg + errMessage : errMessage,
+          err: err.message,
+        })
+        .end();
+    }
   }
 }
 

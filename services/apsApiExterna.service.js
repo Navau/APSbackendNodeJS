@@ -1,25 +1,16 @@
 const { IP_SERVER_API_EXTERNA } = require("../config");
 const axios = require("axios");
-const util = require("util");
 
 exports.obtenerJwtEstadoApi = async function () {
   try {
     const url = `${IP_SERVER_API_EXTERNA}/jwt/estado`;
-    // const params = {
-    //   method: "GET",
-    // };
-    // console.log(url);
     return await axios
       .get(url)
       .then((response) => {
-        // const response = await fetch(url, params);
-        // const result = await response.json();
+        const result = response.data;
         return {
           ok: true,
-          // response: {
-          //   jsonAux: JSON.stringify(response),
-          //   inspect: util.inspect(response),
-          // },
+          result,
         };
       })
       .catch((err) => {
@@ -32,17 +23,30 @@ exports.obtenerJwtEstadoApi = async function () {
 
 exports.obtenerTokenApi = async function (data) {
   try {
-    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/token/`;
-    const params = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/token`;
+    const options = {
+      headers: { "Content-Type": "application/json" },
     };
-    const response = await fetch(url, params);
-    const result = await response.json();
-    return { ok: true, result };
+    // const params = {
+    //   method: "POST",
+    //   headers:
+    //   body: JSON.stringify(data),
+    // };
+
+    console.log({ url, data, options });
+
+    return await axios
+      .post(url, data, options)
+      .then((response) => {
+        const result = response.data;
+        return {
+          ok: true,
+          result,
+        };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
   } catch (err) {
     return { ok: null, err };
   }
