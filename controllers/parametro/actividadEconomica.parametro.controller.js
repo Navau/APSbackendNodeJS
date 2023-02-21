@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_actividad_economica";
 
-//FUNCION PARA OBTENER TODOS LOS ACTIVIDAD ECONOMICA DE SEGURIDAD
+// OBTENER TODOS LOS ACTIVIDAD ECONOMICA DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN ACTIVIDAD ECONOMICA, CON BUSQUEDA
+// OBTENER UN ACTIVIDAD ECONOMICA, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN ACTIVIDAD ECONOMICA, CON ID DEL ACTIVIDAD ECONOMICA
+// OBTENER UN ACTIVIDAD ECONOMICA, CON ID DEL ACTIVIDAD ECONOMICA
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN ACTIVIDAD ECONOMICA
+// INSERTAR UN ACTIVIDAD ECONOMICA
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN ACTIVIDAD ECONOMICA
+// ACTUALIZAR UN ACTIVIDAD ECONOMICA
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN ACTIVIDAD ECONOMICA
+// DESHABILITAR UN ACTIVIDAD ECONOMICA
 async function Deshabilitar(req, res) {
   const body = req.body;
 

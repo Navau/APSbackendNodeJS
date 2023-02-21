@@ -57,7 +57,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS EMISION PATRIMONIO DE SEGURIDAD
+// OBTENER TODOS LOS EMISION PATRIMONIO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });
   await pool
@@ -70,7 +70,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN EMISION PATRIMONIO, CON BUSQUEDA
+// OBTENER UN EMISION PATRIMONIO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -93,7 +93,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN EMISION, CON BUSQUEDA DIFERENTE
+// OBTENER UN EMISION, CON BUSQUEDA DIFERENTE
 async function BuscarDiferente(req, res) {
   const body = req.body;
 
@@ -119,7 +119,7 @@ async function BuscarDiferente(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN EMISION PATRIMONIO, CON ID DEL EMISION PATRIMONIO
+// OBTENER UN EMISION PATRIMONIO, CON ID DEL EMISION PATRIMONIO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -235,7 +235,7 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN EMISION PATRIMONIO
+// INSERTAR UN EMISION PATRIMONIO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -292,7 +292,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN EMISION PATRIMONIO
+// ACTUALIZAR UN EMISION PATRIMONIO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -331,7 +331,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN EMISION PATRIMONIO
+// DESHABILITAR UN EMISION PATRIMONIO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

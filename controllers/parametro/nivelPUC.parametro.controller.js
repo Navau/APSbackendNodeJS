@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_nivel_PUC";
 
-//FUNCION PARA OBTENER TODOS LOS NIVELPUC DE SEGURIDAD
+// OBTENER TODOS LOS NIVELPUC DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN NIVELPUC, CON BUSQUEDA
+// OBTENER UN NIVELPUC, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN NIVELPUC, CON ID DEL NIVELPUC
+// OBTENER UN NIVELPUC, CON ID DEL NIVELPUC
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN NIVELPUC
+// INSERTAR UN NIVELPUC
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN NIVELPUC
+// ACTUALIZAR UN NIVELPUC
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN NIVELPUC
+// DESHABILITAR UN NIVELPUC
 async function Deshabilitar(req, res) {
   const body = req.body;
 

@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_accion";
 
-//FUNCION PARA OBTENER TODOS LOS ACCION DE SEGURIDAD
+// OBTENER TODOS LOS ACCION DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN ACCION, CON BUSQUEDA
+// OBTENER UN ACCION, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN ACCION, CON ID DEL ACCION
+// OBTENER UN ACCION, CON ID DEL ACCION
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN ACCION
+// INSERTAR UN ACCION
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN ACCION
+// ACTUALIZAR UN ACCION
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN ACCION
+// DESHABILITAR UN ACCION
 async function Deshabilitar(req, res) {
   const body = req.body;
 

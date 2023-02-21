@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_feriado";
 
-//FUNCION PARA OBTENER TODOS LOS FERIADO DE SEGURIDAD
+// OBTENER TODOS LOS FERIADO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN FERIADO, CON BUSQUEDA
+// OBTENER UN FERIADO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN FERIADO, CON ID DEL FERIADO
+// OBTENER UN FERIADO, CON ID DEL FERIADO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN FERIADO
+// INSERTAR UN FERIADO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN FERIADO
+// ACTUALIZAR UN FERIADO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN FERIADO
+// DESHABILITAR UN FERIADO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

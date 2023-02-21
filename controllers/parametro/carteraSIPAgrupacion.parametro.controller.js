@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_carteraSIP_agrupacion";
 
-//FUNCION PARA OBTENER TODOS LOS CARTERASIP AGRUPACION DE SEGURIDAD
+// OBTENER TODOS LOS CARTERASIP AGRUPACION DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN CARTERASIP AGRUPACION, CON BUSQUEDA
+// OBTENER UN CARTERASIP AGRUPACION, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CARTERASIP AGRUPACION, CON ID DEL CARTERASIP AGRUPACION
+// OBTENER UN CARTERASIP AGRUPACION, CON ID DEL CARTERASIP AGRUPACION
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN CARTERASIP AGRUPACION
+// INSERTAR UN CARTERASIP AGRUPACION
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CARTERASIP AGRUPACION
+// ACTUALIZAR UN CARTERASIP AGRUPACION
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CARTERASIP AGRUPACION
+// DESHABILITAR UN CARTERASIP AGRUPACION
 async function Deshabilitar(req, res) {
   const body = req.body;
 

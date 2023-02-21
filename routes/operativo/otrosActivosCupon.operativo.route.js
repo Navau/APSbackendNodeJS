@@ -23,11 +23,7 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Actualizar
 );
-api.post(
-  "/Deshabilitar",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.Deshabilitar
-);
+
 api.post(
   "/Eliminar",
   [md_auth.AsegurarAutenticacionConToken],

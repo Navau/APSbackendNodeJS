@@ -22,7 +22,7 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_lugar_negociacion";
@@ -60,7 +60,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS LUGAR NEGOCIACION DE SEGURIDAD
+// OBTENER TODOS LOS LUGAR NEGOCIACION DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -73,7 +73,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN LUGAR NEGOCIACION, CON BUSQUEDA
+// OBTENER UN LUGAR NEGOCIACION, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -95,7 +95,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN LUGAR NEGOCIACION, CON ID DEL LUGAR NEGOCIACION
+// OBTENER UN LUGAR NEGOCIACION, CON ID DEL LUGAR NEGOCIACION
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -117,7 +117,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN LUGAR NEGOCIACION
+// INSERTAR UN LUGAR NEGOCIACION
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -143,7 +143,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN LUGAR NEGOCIACION
+// ACTUALIZAR UN LUGAR NEGOCIACION
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -182,7 +182,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN LUGAR NEGOCIACION
+// DESHABILITAR UN LUGAR NEGOCIACION
 async function Deshabilitar(req, res) {
   const body = req.body;
 

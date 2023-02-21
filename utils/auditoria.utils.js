@@ -8,17 +8,15 @@ const {
   InsertarVariosUtil,
   InsertarUtil,
   ValidarIDActualizarUtil,
-} = require("../utils/consulta.utils");
+} = require("./consulta.utils");
 const {
   respResultadoVacio404,
   respErrorServidor500END,
 } = require("./respuesta.utils");
 
-//TO DO: Cambiar "permiso" por "auditoria"
 async function VerificarPermisoTablaUsuarioAuditoria(params) {
   const { table, action, req, res } = params;
   const { id_usuario } = req.user;
-  let resultFinal = null;
 
   const paramsQuery = {
     where: [
@@ -36,21 +34,20 @@ async function VerificarPermisoTablaUsuarioAuditoria(params) {
       },
     ],
   };
-  query = VerificarPermisoUtil("APS_seg_view_permiso_usuario", paramsQuery);
-  await pool
+  const query = VerificarPermisoUtil(
+    "APS_seg_view_permiso_usuario",
+    paramsQuery
+  );
+  return await pool
     .query(query)
     .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        resultFinal = { result, ok: false };
-      } else {
-        resultFinal = { result, ok: true };
-      }
+      if (result.rowCount > 0) return { ok: true, result };
+      else return { ok: false, result };
     })
     .catch((err) => {
       console.log(err);
-      resultFinal = { err, ok: false };
+      return { ok: null, err };
     });
-  return resultFinal;
 }
 
 async function ObtenerDatosCriticosAuditoria(params) {

@@ -20,7 +20,7 @@ const {
   respIDNoRecibido400,
 } = require("../utils/respuesta.utils");
 
-//FUNCION PARA OBTENER TODOS LOS LOGDET DE SEGURIDAD
+// OBTENER TODOS LOS LOGDET DE SEGURIDAD
 function Escogerinterno(req, res) {
   const { table, select, where, innerjoin, orderby } = req.body;
   let query = EscogerInternoUtil(table, { select, innerjoin, where, orderby });

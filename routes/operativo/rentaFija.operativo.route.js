@@ -33,10 +33,5 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.ActualizarPlazoDias
 );
-api.post(
-  "/Deshabilitar",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.Deshabilitar
-);
 
 module.exports = api;

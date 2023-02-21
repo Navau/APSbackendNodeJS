@@ -20,12 +20,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_moneda";
 
-//FUNCION PARA OBTENER TODOS LOS MONEDA DE SEGURIDAD
+// OBTENER TODOS LOS MONEDA DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -38,7 +38,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN MONEDA, CON BUSQUEDA
+// OBTENER UN MONEDA, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -60,7 +60,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN MONEDA, CON ID DEL MONEDA
+// OBTENER UN MONEDA, CON ID DEL MONEDA
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -104,7 +104,7 @@ function EscogerInterno(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN MONEDA
+// INSERTAR UN MONEDA
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -130,7 +130,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN MONEDA
+// ACTUALIZAR UN MONEDA
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -169,7 +169,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN MONEDA
+// DESHABILITAR UN MONEDA
 async function Deshabilitar(req, res) {
   const body = req.body;
 

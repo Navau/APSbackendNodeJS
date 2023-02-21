@@ -49,7 +49,7 @@ async function TipoReporte(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER TODOS LOS REPORTES DE PARAMETRO
+// OBTENER TODOS LOS REPORTES DE PARAMETRO
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -62,7 +62,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN REPORTES, CON BUSQUEDA
+// OBTENER UN REPORTES, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -84,7 +84,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN REPORTES, CON ID DEL REPORTES
+// OBTENER UN REPORTES, CON ID DEL REPORTES
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -106,7 +106,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN REPORTES
+// INSERTAR UN REPORTES
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -133,7 +133,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN REPORTES
+// ACTUALIZAR UN REPORTES
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -172,7 +172,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN REPORTES
+// DESHABILITAR UN REPORTES
 async function Deshabilitar(req, res) {
   const body = req.body;
 

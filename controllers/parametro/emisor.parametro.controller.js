@@ -31,7 +31,7 @@ const nameTableFK2 = "APS_param_clasificador_comun";
 const nameTableFK3 = "APS_param_clasificador_comun";
 const nameTableFK4 = "APS_param_sector_economico";
 
-//FUNCION PARA OBTENER TODOS LOS EMISOR DE SEGURIDAD
+// OBTENER TODOS LOS EMISOR DE SEGURIDAD
 async function ListarCompleto(req, res) {
   // TO DO OPTIMIZAR LOS QUERYS DE LAS TABLAS APS_param_clasificador_comun, haciendo que la asignacion de IDs sea automatico y asi realizar solo 1 peticion
   try {
@@ -82,7 +82,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS EMISOR DE SEGURIDAD
+// OBTENER TODOS LOS EMISOR DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -95,7 +95,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN EMISOR, CON BUSQUEDA
+// OBTENER UN EMISOR, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -117,7 +117,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN EMISOR, CON BUSQUEDA DIFERENTE
+// OBTENER UN EMISOR, CON BUSQUEDA DIFERENTE
 async function BuscarDiferente(req, res) {
   const body = req.body;
 
@@ -142,7 +142,7 @@ async function BuscarDiferente(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN EMISOR, CON ID DEL EMISOR
+// OBTENER UN EMISOR, CON ID DEL EMISOR
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -164,7 +164,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN EMISOR
+// INSERTAR UN EMISOR
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -190,7 +190,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN EMISOR
+// ACTUALIZAR UN EMISOR
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -229,7 +229,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN EMISOR
+// DESHABILITAR UN EMISOR
 async function Deshabilitar(req, res) {
   const body = req.body;
 

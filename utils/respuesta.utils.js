@@ -203,7 +203,7 @@ function respDatosNoRecibidos200END(res, msg) {
     .end();
 }
 
-function respUsuarioNoAutorizado(res, msg) {
+function respUsuarioNoAutorizado200END(res, msg) {
   res
     .status(200)
     .send({
@@ -286,6 +286,6 @@ module.exports = {
   respResultadoVacioObject200,
   respResultadoIncorrectoObjeto200,
   respDescargarArchivos200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
   respDatosNoRecibidos200END,
 };

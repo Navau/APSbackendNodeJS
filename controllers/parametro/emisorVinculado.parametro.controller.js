@@ -23,7 +23,7 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_emisor_vinculado";
@@ -64,7 +64,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS EMISOR VINCULADO DE SEGURIDAD
+// OBTENER TODOS LOS EMISOR VINCULADO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -77,7 +77,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN EMISOR VINCULADO, CON BUSQUEDA
+// OBTENER UN EMISOR VINCULADO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -99,7 +99,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN EMISOR VINCULADO, CON ID DEL EMISOR VINCULADO
+// OBTENER UN EMISOR VINCULADO, CON ID DEL EMISOR VINCULADO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -121,7 +121,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN EMISOR VINCULADO
+// INSERTAR UN EMISOR VINCULADO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -147,7 +147,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN EMISOR VINCULADO
+// ACTUALIZAR UN EMISOR VINCULADO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -186,7 +186,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN EMISOR VINCULADO
+// DESHABILITAR UN EMISOR VINCULADO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

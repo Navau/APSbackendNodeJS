@@ -450,7 +450,11 @@ function EscogerUtil(table, params) {
     query = query + " AND activo = true;";
   } else {
     params.body && (query = query + `SELECT * FROM public."${table}" `);
-    if (params?.activo !== null) {
+    if (
+      params?.activo !== null &&
+      params?.body?.activo !== true &&
+      params?.body?.activo !== false
+    ) {
       query = query + " AND activo IN (true, false)";
     }
 

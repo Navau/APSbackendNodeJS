@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_carteraSIP";
 
-//FUNCION PARA OBTENER TODOS LOS CARTERASIP DE SEGURIDAD
+// OBTENER TODOS LOS CARTERASIP DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN CARTERASIP, CON BUSQUEDA
+// OBTENER UN CARTERASIP, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CARTERASIP, CON ID DEL CARTERASIP
+// OBTENER UN CARTERASIP, CON ID DEL CARTERASIP
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN CARTERASIP
+// INSERTAR UN CARTERASIP
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CARTERASIP
+// ACTUALIZAR UN CARTERASIP
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CARTERASIP
+// DESHABILITAR UN CARTERASIP
 async function Deshabilitar(req, res) {
   const body = req.body;
 

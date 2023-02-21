@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_archivo_k";
 
-//FUNCION PARA OBTENER TODOS LOS ARCHIVOK DE SEGURIDAD
+// OBTENER TODOS LOS ARCHIVOK DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN ARCHIVOK, CON BUSQUEDA
+// OBTENER UN ARCHIVOK, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN ARCHIVOK, CON ID DEL ARCHIVOK
+// OBTENER UN ARCHIVOK, CON ID DEL ARCHIVOK
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN ARCHIVOK
+// INSERTAR UN ARCHIVOK
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN ARCHIVOK
+// ACTUALIZAR UN ARCHIVOK
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN ARCHIVOK
+// DESHABILITAR UN ARCHIVOK
 async function Deshabilitar(req, res) {
   const body = req.body;
 

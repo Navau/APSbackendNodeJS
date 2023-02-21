@@ -192,7 +192,7 @@ async function LimitesSeguros(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS TIPO CAMBIO DE SEGURIDAD
+// OBTENER TODOS LOS TIPO CAMBIO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -205,7 +205,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN TIPO CAMBIO, CON BUSQUEDA
+// OBTENER UN TIPO CAMBIO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -227,7 +227,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN TIPO CAMBIO, CON ID DEL TIPO CAMBIO
+// OBTENER UN TIPO CAMBIO, CON ID DEL TIPO CAMBIO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -249,7 +249,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN TIPO CAMBIO
+// INSERTAR UN TIPO CAMBIO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -275,7 +275,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN TIPO CAMBIO
+// ACTUALIZAR UN TIPO CAMBIO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -314,7 +314,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN TIPO CAMBIO
+// DESHABILITAR UN TIPO CAMBIO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

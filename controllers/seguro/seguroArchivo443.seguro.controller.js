@@ -24,7 +24,7 @@ const {
 
 const nameTable = "APS_seguro_archivo_443";
 
-//FUNCION PARA OBTENER TODOS LOS CRITICO DE SEGURIDAD
+// OBTENER TODOS LOS CRITICO DE SEGURIDAD
 function Emisor(req, res) {
   const { fecha_informacion } = req.body;
   let query = `SELECT emisor FROM public."${nameTable}" WHERE fecha_informacion='${fecha_informacion}' AND emisor NOT IN (SELECT codigo_rmv FROM public."APS_param_emisor");`;
@@ -84,7 +84,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN CRITICO, CON BUSQUEDA
+// OBTENER UN CRITICO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -106,7 +106,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CRITICO, CON ID DEL CRITICO
+// OBTENER UN CRITICO, CON ID DEL CRITICO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -128,7 +128,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN CRITICO
+// INSERTAR UN CRITICO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -154,7 +154,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CRITICO
+// ACTUALIZAR UN CRITICO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -193,7 +193,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CRITICO
+// DESHABILITAR UN CRITICO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

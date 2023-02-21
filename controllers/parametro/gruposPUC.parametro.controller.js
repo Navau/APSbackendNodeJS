@@ -19,13 +19,13 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_grupos_PUC";
 const newID = "id_grupo";
 
-//FUNCION PARA OBTENER TODOS LOS GRUPOSPUC DE SEGURIDAD
+// OBTENER TODOS LOS GRUPOSPUC DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -38,7 +38,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN GRUPOSPUC, CON BUSQUEDA
+// OBTENER UN GRUPOSPUC, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -60,7 +60,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN GRUPOSPUC, CON ID DEL GRUPOSPUC
+// OBTENER UN GRUPOSPUC, CON ID DEL GRUPOSPUC
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -82,7 +82,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN GRUPOSPUC
+// INSERTAR UN GRUPOSPUC
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -108,7 +108,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN GRUPOSPUC
+// ACTUALIZAR UN GRUPOSPUC
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -143,7 +143,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN GRUPOSPUC
+// DESHABILITAR UN GRUPOSPUC
 async function Deshabilitar(req, res) {
   const body = req.body;
 

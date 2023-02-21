@@ -77,7 +77,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS TIPO INSTRUMENTO DE SEGURIDAD
+// OBTENER TODOS LOS TIPO INSTRUMENTO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -90,7 +90,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN TIPO INSTRUMENTO, CON BUSQUEDA
+// OBTENER UN TIPO INSTRUMENTO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -112,7 +112,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN TIPO INSTRUMENTO, CON ID DEL TIPO INSTRUMENTO
+// OBTENER UN TIPO INSTRUMENTO, CON ID DEL TIPO INSTRUMENTO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -221,7 +221,7 @@ async function TipoInstrumentoDetalle(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN TIPO INSTRUMENTO
+// INSERTAR UN TIPO INSTRUMENTO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -247,7 +247,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN TIPO INSTRUMENTO
+// ACTUALIZAR UN TIPO INSTRUMENTO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -286,7 +286,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN TIPO INSTRUMENTO
+// DESHABILITAR UN TIPO INSTRUMENTO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

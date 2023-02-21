@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_archivo_p";
 
-//FUNCION PARA OBTENER TODOS LOS ARCHIVOP DE SEGURIDAD
+// OBTENER TODOS LOS ARCHIVOP DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN ARCHIVOP, CON BUSQUEDA
+// OBTENER UN ARCHIVOP, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN ARCHIVOP, CON ID DEL ARCHIVOP
+// OBTENER UN ARCHIVOP, CON ID DEL ARCHIVOP
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN ARCHIVOP
+// INSERTAR UN ARCHIVOP
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN ARCHIVOP
+// ACTUALIZAR UN ARCHIVOP
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN ARCHIVOP
+// DESHABILITAR UN ARCHIVOP
 async function Deshabilitar(req, res) {
   const body = req.body;
 

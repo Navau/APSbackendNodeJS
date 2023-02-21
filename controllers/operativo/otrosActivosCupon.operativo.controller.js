@@ -20,13 +20,13 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_otros_activos_cupon";
 const newID = "id_cupon";
 
-//FUNCION PARA OBTENER TODOS LOS OTROS ACTIVOS CUPON DE SEGURIDAD
+// OBTENER TODOS LOS OTROS ACTIVOS CUPON DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -39,7 +39,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN OTROS ACTIVOS CUPON, CON BUSQUEDA
+// OBTENER UN OTROS ACTIVOS CUPON, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -61,7 +61,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN OTROS ACTIVOS CUPON, CON ID DEL OTROS ACTIVOS CUPON
+// OBTENER UN OTROS ACTIVOS CUPON, CON ID DEL OTROS ACTIVOS CUPON
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -83,7 +83,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN OTROS ACTIVOS CUPON
+// INSERTAR UN OTROS ACTIVOS CUPON
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -109,7 +109,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN OTROS ACTIVOS CUPON
+// ACTUALIZAR UN OTROS ACTIVOS CUPON
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -144,7 +144,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN OTROS ACTIVOS CUPON
+// DESHABILITAR UN OTROS ACTIVOS CUPON
 async function Deshabilitar(req, res) {
   const body = req.body;
 

@@ -20,13 +20,13 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_renta_fija_cupon";
 const newID = "id_cupon";
 
-//FUNCION PARA OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
+// OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -39,7 +39,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN RENTA FIJA CUPON, CON BUSQUEDA
+// OBTENER UN RENTA FIJA CUPON, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -61,7 +61,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN RENTA FIJA CUPON, CON ID DEL RENTA FIJA CUPON
+// OBTENER UN RENTA FIJA CUPON, CON ID DEL RENTA FIJA CUPON
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -83,7 +83,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN RENTA FIJA CUPON
+// INSERTAR UN RENTA FIJA CUPON
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -109,7 +109,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN RENTA FIJA CUPON
+// ACTUALIZAR UN RENTA FIJA CUPON
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -141,7 +141,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN RENTA FIJA CUPON
+// DESHABILITAR UN RENTA FIJA CUPON
 async function Deshabilitar(req, res) {
   const body = req.body;
 
@@ -173,7 +173,7 @@ async function Deshabilitar(req, res) {
   }
 }
 
-//FUNCION PARA ELIMINAR UN RENTA FIJA CUPON
+// ELIMINAR UN RENTA FIJA CUPON
 function Eliminar(req, res) {
   const body = req.body;
 

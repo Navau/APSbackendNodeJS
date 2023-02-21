@@ -21,7 +21,7 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_composicion_serie";
@@ -47,7 +47,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS COMPOSICION SERIE DE SEGURIDAD
+// OBTENER TODOS LOS COMPOSICION SERIE DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -60,7 +60,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN COMPOSICION SERIE, CON BUSQUEDA
+// OBTENER UN COMPOSICION SERIE, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -82,7 +82,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN COMPOSICION SERIE, CON ID DEL COMPOSICION SERIE
+// OBTENER UN COMPOSICION SERIE, CON ID DEL COMPOSICION SERIE
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -104,7 +104,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN COMPOSICION SERIE
+// INSERTAR UN COMPOSICION SERIE
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -130,7 +130,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN COMPOSICION SERIE
+// ACTUALIZAR UN COMPOSICION SERIE
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -169,7 +169,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN COMPOSICION SERIE
+// DESHABILITAR UN COMPOSICION SERIE
 async function Deshabilitar(req, res) {
   const body = req.body;
 

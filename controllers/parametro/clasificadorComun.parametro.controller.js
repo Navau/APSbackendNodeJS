@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_clasificador_comun";
 
-//FUNCION PARA OBTENER TODOS LOS CLASIFICADOR COMUN DE SEGURIDAD
+// OBTENER TODOS LOS CLASIFICADOR COMUN DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN CLASIFICADOR COMUN, CON BUSQUEDA
+// OBTENER UN CLASIFICADOR COMUN, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CLASIFICADOR COMUN, CON ID DEL CLASIFICADOR COMUN
+// OBTENER UN CLASIFICADOR COMUN, CON ID DEL CLASIFICADOR COMUN
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN CLASIFICADOR COMUN
+// INSERTAR UN CLASIFICADOR COMUN
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CLASIFICADOR COMUN
+// ACTUALIZAR UN CLASIFICADOR COMUN
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CLASIFICADOR COMUN
+// DESHABILITAR UN CLASIFICADOR COMUN
 async function Deshabilitar(req, res) {
   const body = req.body;
 

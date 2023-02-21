@@ -74,7 +74,7 @@ function ValorMaximo(req, res) {
   });
 }
 
-//FUNCION PARA OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
+// OBTENER TODOS LOS CARGA ARCHIVO PENSIONES SEGURO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });
   await pool
@@ -87,7 +87,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON BUSQUEDA
+// OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -109,7 +109,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON ID DEL CARGA ARCHIVO PENSIONES SEGURO
+// OBTENER UN CARGA ARCHIVO PENSIONES SEGURO, CON ID DEL CARGA ARCHIVO PENSIONES SEGURO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -205,7 +205,7 @@ async function Reporte(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
+// INSERTAR UN CARGA ARCHIVO PENSIONES SEGURO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -231,7 +231,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CARGA ARCHIVO PENSIONES SEGURO
+// ACTUALIZAR UN CARGA ARCHIVO PENSIONES SEGURO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -270,7 +270,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CARGA ARCHIVO PENSIONES SEGURO
+// DESHABILITAR UN CARGA ARCHIVO PENSIONES SEGURO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

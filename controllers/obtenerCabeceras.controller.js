@@ -19,7 +19,7 @@ const {
   respIDNoRecibido400,
 } = require("../utils/respuesta.utils");
 
-//FUNCION PARA OBTENER TODOS LOS LOGDET DE SEGURIDAD
+// OBTENER TODOS LOS LOGDET DE SEGURIDAD
 function CabecerasTabla(req, res) {
   const { table, select } = req.body;
   let query = ObtenerColumnasDeTablaUtil(table, { select });

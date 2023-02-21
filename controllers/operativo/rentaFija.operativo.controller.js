@@ -135,7 +135,7 @@ async function ListarCompleto(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER TODOS LOS RENTA FIJA DE SEGURIDAD
+// OBTENER TODOS LOS RENTA FIJA DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });
   await pool
@@ -196,7 +196,7 @@ async function EmisorPorTipoInstrumento(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN RENTA FIJA, CON BUSQUEDA
+// OBTENER UN RENTA FIJA, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -218,7 +218,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN RENTA FIJA, CON ID DEL RENTA FIJA
+// OBTENER UN RENTA FIJA, CON ID DEL RENTA FIJA
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -240,7 +240,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN RENTA FIJA
+// INSERTAR UN RENTA FIJA
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -266,7 +266,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN RENTA FIJA
+// ACTUALIZAR UN RENTA FIJA
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -322,7 +322,7 @@ async function ActualizarPlazoDias(req, res) {
     });
 }
 
-//FUNCION PARA DESHABILITAR UN RENTA FIJA
+// DESHABILITAR UN RENTA FIJA
 async function Deshabilitar(req, res) {
   const body = req.body;
 

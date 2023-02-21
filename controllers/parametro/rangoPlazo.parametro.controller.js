@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_rango_plazo";
 
-//FUNCION PARA OBTENER TODOS LOS RANGO PLAZO DE SEGURIDAD
+// OBTENER TODOS LOS RANGO PLAZO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN RANGO PLAZO, CON BUSQUEDA
+// OBTENER UN RANGO PLAZO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN RANGO PLAZO, CON ID DEL RANGO PLAZO
+// OBTENER UN RANGO PLAZO, CON ID DEL RANGO PLAZO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN RANGO PLAZO
+// INSERTAR UN RANGO PLAZO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN RANGO PLAZO
+// ACTUALIZAR UN RANGO PLAZO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN RANGO PLAZO
+// DESHABILITAR UN RANGO PLAZO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_plan_cuentas";
 
-//FUNCION PARA OBTENER TODOS LOS PLAN CUENTAS DE SEGURIDAD
+// OBTENER TODOS LOS PLAN CUENTAS DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN PLAN CUENTAS, CON BUSQUEDA
+// OBTENER UN PLAN CUENTAS, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -59,7 +59,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN PLAN CUENTAS, CON ID DEL PLAN CUENTAS
+// OBTENER UN PLAN CUENTAS, CON ID DEL PLAN CUENTAS
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -81,7 +81,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN PLAN CUENTAS
+// INSERTAR UN PLAN CUENTAS
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -107,7 +107,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN PLAN CUENTAS
+// ACTUALIZAR UN PLAN CUENTAS
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -146,7 +146,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN PLAN CUENTAS
+// DESHABILITAR UN PLAN CUENTAS
 async function Deshabilitar(req, res) {
   const body = req.body;
 

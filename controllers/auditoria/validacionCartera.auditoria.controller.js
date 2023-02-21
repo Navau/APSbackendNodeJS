@@ -455,7 +455,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN CARGA ARCHIVO BOLSA, CON BUSQUEDA
+// OBTENER UN CARGA ARCHIVO BOLSA, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -478,7 +478,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN CARGA ARCHIVO BOLSA, CON ID DEL CARGA ARCHIVO BOLSA
+// OBTENER UN CARGA ARCHIVO BOLSA, CON ID DEL CARGA ARCHIVO BOLSA
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -531,7 +531,7 @@ async function ReporteExito(req, res) {
     });
 }
 
-//FUNCION PARA INSERTAR UN CARGA ARCHIVO BOLSA
+// INSERTAR UN CARGA ARCHIVO BOLSA
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -557,7 +557,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN CARGA ARCHIVO BOLSA
+// ACTUALIZAR UN CARGA ARCHIVO BOLSA
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -596,7 +596,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN CARGA ARCHIVO BOLSA
+// DESHABILITAR UN CARGA ARCHIVO BOLSA
 async function Deshabilitar(req, res) {
   const body = req.body;
 

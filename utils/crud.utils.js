@@ -14,12 +14,14 @@ const {
   ObtenerInformacionAnteriorAuditoria,
   LogAuditoria,
   LogDetAuditoria,
-} = require("./permiso.utils");
+  VerificarPermisoTablaUsuarioAuditoria,
+} = require("./auditoria.utils");
 const {
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
   respDatosNoRecibidos200END,
   respResultadoVacio404END,
+  respUsuarioNoAutorizado200END,
 } = require("./respuesta.utils");
 
 async function CampoActivoAux(nameTable) {
@@ -41,7 +43,18 @@ async function CampoActivoAux(nameTable) {
 async function ListarCRUD(paramsF) {
   const { req, res, nameTable } = paramsF;
   try {
-    const query = isUndefined(CampoActivoAux(nameTable))
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action: "Listar",
+      req,
+      res,
+    });
+    if (permiso.ok === null) throw permiso.err;
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res);
+      return;
+    }
+    const query = isUndefined(await CampoActivoAux(nameTable))
       ? ListarUtil(nameTable, { activo: null })
       : ListarUtil(nameTable);
 

@@ -1,9 +1,9 @@
 const { split } = require("lodash");
 const {
   VerificarPermisoTablaUsuarioAuditoria,
-} = require("../utils/permiso.utils");
+} = require("../utils/auditoria.utils");
 const {
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
 } = require("../utils/respuesta.utils");
@@ -19,7 +19,7 @@ exports.permisoUsuario = async (req, res, next, section) => {
       section
     );
     if (responseTable === null) {
-      respUsuarioNoAutorizado(res);
+      respUsuarioNoAutorizado200END(res);
       return;
     }
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
@@ -34,7 +34,7 @@ exports.permisoUsuario = async (req, res, next, section) => {
       return;
     }
     if (permiso?.ok === false) {
-      respUsuarioNoAutorizado(res);
+      respUsuarioNoAutorizado200END(res);
       return;
     }
 

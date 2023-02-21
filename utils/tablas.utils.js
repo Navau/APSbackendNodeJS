@@ -6,7 +6,7 @@ const {
   respErrorServidor500END,
   respResultadoIncorrectoObjeto200,
   respResultadoCorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("./respuesta.utils");
 
 async function obtenerTablaPorRutaPrincipal(res, mainRoute, section) {

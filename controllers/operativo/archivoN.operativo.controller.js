@@ -19,12 +19,12 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_archivo_n";
 
-//FUNCION PARA OBTENER TODOS LOS ARCHIVON DE SEGURIDAD
+// OBTENER TODOS LOS ARCHIVON DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable, { activo: null });
   await pool
@@ -37,7 +37,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN ARCHIVON, CON BUSQUEDA
+// OBTENER UN ARCHIVON, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -60,7 +60,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN ARCHIVON, CON ID DEL ARCHIVON
+// OBTENER UN ARCHIVON, CON ID DEL ARCHIVON
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -83,7 +83,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN ARCHIVON
+// INSERTAR UN ARCHIVON
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -109,7 +109,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN ARCHIVON
+// ACTUALIZAR UN ARCHIVON
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -148,7 +148,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN ARCHIVON
+// DESHABILITAR UN ARCHIVON
 async function Deshabilitar(req, res) {
   const body = req.body;
 

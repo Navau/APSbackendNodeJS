@@ -22,7 +22,7 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado,
+  respUsuarioNoAutorizado200END,
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_sector_economico";
@@ -57,7 +57,7 @@ async function ListarCompleto(req, res) {
     respErrorServidor500END(res, err);
   }
 }
-//FUNCION PARA OBTENER TODOS LOS SECTOR ECONOMICO DE SEGURIDAD
+// OBTENER TODOS LOS SECTOR ECONOMICO DE SEGURIDAD
 async function Listar(req, res) {
   const query = ListarUtil(nameTable);
   await pool
@@ -70,7 +70,7 @@ async function Listar(req, res) {
     });
 }
 
-//FUNCION PARA OBTENER UN SECTOR ECONOMICO, CON BUSQUEDA
+// OBTENER UN SECTOR ECONOMICO, CON BUSQUEDA
 async function Buscar(req, res) {
   const body = req.body;
 
@@ -92,7 +92,7 @@ async function Buscar(req, res) {
   }
 }
 
-//FUNCION PARA OBTENER UN SECTOR ECONOMICO, CON ID DEL SECTOR ECONOMICO
+// OBTENER UN SECTOR ECONOMICO, CON ID DEL SECTOR ECONOMICO
 async function Escoger(req, res) {
   const body = req.body;
 
@@ -114,7 +114,7 @@ async function Escoger(req, res) {
   }
 }
 
-//FUNCION PARA INSERTAR UN SECTOR ECONOMICO
+// INSERTAR UN SECTOR ECONOMICO
 async function Insertar(req, res) {
   const body = req.body;
 
@@ -140,7 +140,7 @@ async function Insertar(req, res) {
   }
 }
 
-//FUNCION PARA ACTUALIZAR UN SECTOR ECONOMICO
+// ACTUALIZAR UN SECTOR ECONOMICO
 async function Actualizar(req, res) {
   const body = req.body;
 
@@ -179,7 +179,7 @@ async function Actualizar(req, res) {
   }
 }
 
-//FUNCION PARA DESHABILITAR UN SECTOR ECONOMICO
+// DESHABILITAR UN SECTOR ECONOMICO
 async function Deshabilitar(req, res) {
   const body = req.body;
 

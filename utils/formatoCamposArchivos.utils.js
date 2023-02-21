@@ -32,7 +32,6 @@ const {
   respIDNoRecibido400,
   respResultadoCorrectoObjeto200,
 } = require("../utils/respuesta.utils");
-const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
 async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
   // console.log("nameFile", nameFile);
