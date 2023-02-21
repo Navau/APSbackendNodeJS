@@ -36,7 +36,6 @@ async function InstitucionConIDUsuario(req, res) {
       `"APS_seg_institucion".codigo`,
       `"APS_param_clasificador_comun".descripcion`,
     ],
-    from: [`"APS_seg_usuario"`],
     innerjoin: [
       {
         table: "APS_seg_institucion",
@@ -68,7 +67,7 @@ async function InstitucionConIDUsuario(req, res) {
     where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
   };
 
-  const query = EscogerInternoUtil(params);
+  const query = EscogerInternoUtil(nameTable, params);
   await pool
     .query(query)
     .then((result) => {
