@@ -254,13 +254,15 @@ async function UltimaCarga2(req, res) {
     WHERE cust.fecha_operacion = '${fecha_operacion}') as max_id
     LEFT JOIN "APS_aud_carga_archivos_custodio" as datos 
     ON max_id.maxid = datos.id_carga_archivos
+    WHERE datos.id_rol = ${id_rol};
   `;
 
   console.log("TEST ULTIMA CARGA", query);
   await pool
     .query(query)
     .then((result) => {
-      respResultadoVacioObject200(res, result.rows[0]);
+      const resultFinal = result.rows?.[0] ? result.rows[0] : null;
+      respResultadoVacioObject200(res, resultFinal);
     })
     .catch((err) => {
       console.log(err);

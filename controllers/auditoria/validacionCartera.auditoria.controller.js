@@ -370,13 +370,9 @@ async function ObtenerInformacion(req, res) {
 
     // `SELECT COUNT(*) FROM public."APS_aud_valora_archivos_pensiones_seguros" WHERE fecha_operacion='${fecha}' AND valorado=true AND id_usuario IN (CAST((SELECT DISTINCT cod_institucion FROM public."APS_aud_carga_archivos_pensiones_seguros" WHERE cargado = true AND fecha_operacion = '${fecha}' AND id_rol IN (${id_rol_cargas.join()})) AS INTEGER))`,
     id_rol === 10
-      ? querys.push(
-          `SELECT COUNT(*) FROM public."APS_view_existe_valores_seguros";`
-        )
+      ? querys.push(`SELECT * FROM public."APS_view_existe_valores_seguros";`)
       : id_rol === 7
-      ? querys.push(
-          `SELECT COUNT(*) FROM public."APS_view_existe_valores_pensiones"`
-        )
+      ? querys.push(`SELECT * FROM public."APS_view_existe_valores_pensiones"`)
       : null;
 
     querys.push(ListarUtil("APS_seg_usuario"));
@@ -391,6 +387,7 @@ async function ObtenerInformacion(req, res) {
     }
 
     const messages = [];
+    let dataFinalAux = null;
 
     if (size(results.result[1].data) === 0) {
       messages.push("No existe Tipo de Cambio para la Fecha seleccionada");
@@ -402,8 +399,9 @@ async function ObtenerInformacion(req, res) {
     if (counterRegistros > 0) {
       messages.push("La información ya fue valorada");
     }
-    const counterVistas = results.result?.[4]?.data?.[0]?.count;
-    if (counterVistas > 0) {
+    const counterVistas = results.result?.[4]?.data;
+    if (size(counterVistas) > 0) {
+      dataFinalAux = counterVistas;
       messages.push(
         "No existen características para los siguientes valores, favor registrar"
       );
@@ -413,7 +411,7 @@ async function ObtenerInformacion(req, res) {
     }
 
     if (size(messages) > 0) {
-      respResultadoIncorrectoObjeto200(res, null, [], messages);
+      respResultadoIncorrectoObjeto200(res, null, dataFinalAux || [], messages);
       return;
     }
 

@@ -144,38 +144,37 @@ async function obtenerListaArchivos(params) {
   let periodicidad = [154]; //VALOR POR DEFECTO
   let typeFileAux = null;
 
-  if (typeFiles[0].originalname.toUpperCase().includes(".CC")) {
+  const x = typeFiles[0].originalname;
+
+  if (x.toUpperCase().includes(".CC") || x[2] + x[3] === "CC") {
     typeFileAux = "CUSTODIO";
   } else {
     typeFileAux = "PENSIONES O BOLSA";
-    if (
-      typeFiles[0].originalname.toUpperCase().substring(0, 1) === "M" &&
-      tipo_periodo === "D"
-    ) {
+    if (x.toUpperCase().substring(0, 1) === "M" && tipo_periodo === "D") {
       if (typeFiles.length >= 2) {
         periodicidad = [154, 219];
       } else {
         periodicidad = [154];
       }
     } else if (
-      typeFiles[0].originalname.toUpperCase().substring(0, 3) === "108" &&
+      x.toUpperCase().substring(0, 3) === "108" &&
       tipo_periodo === "D"
     ) {
       periodicidad = [154];
     } else if (
-      typeFiles[0].originalname.toUpperCase().substring(0, 3) === "108" &&
+      x.toUpperCase().substring(0, 3) === "108" &&
       tipo_periodo === "M"
     ) {
       periodicidad = [155];
     } else if (
-      (typeFiles[0].originalname.toUpperCase().substring(0, 2) === "01" ||
-        typeFiles[0].originalname.toUpperCase().substring(0, 2) === "02") &&
+      (x.toUpperCase().substring(0, 2) === "01" ||
+        x.toUpperCase().substring(0, 2) === "02") &&
       tipo_periodo === "D"
     ) {
       periodicidad = [154];
     } else if (
-      (typeFiles[0].originalname.toUpperCase().substring(0, 2) === "01" ||
-        typeFiles[0].originalname.toUpperCase().substring(0, 2) === "02") &&
+      (x.toUpperCase().substring(0, 2) === "01" ||
+        x.toUpperCase().substring(0, 2) === "02") &&
       tipo_periodo === "M"
     ) {
       periodicidad = [155];
@@ -247,7 +246,8 @@ async function seleccionarTablas(params) {
   map(params.files, (item, index) => {
     if (
       item.originalname.toUpperCase().substring(0, 3) === "108" &&
-      !item.originalname.toUpperCase().includes(".CC")
+      (!item.originalname.toUpperCase().includes(".CC") ||
+        !item.originalname[2] + item.originalname[3] === "CC")
     ) {
       result = {
         code: "108",
@@ -268,14 +268,18 @@ async function seleccionarTablas(params) {
       };
     } else if (
       item.originalname.toUpperCase().substring(0, 2) === "02" &&
-      !item.originalname.toUpperCase().includes(".CC")
+      (!item.originalname.toUpperCase().includes(".CC") ||
+        !item.originalname[2] + item.originalname[3] === "CC")
     ) {
       result = {
         code: "02",
         table: "APS_aud_carga_archivos_pensiones_seguros",
         tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
-    } else if (item.originalname.toUpperCase().includes(".CC")) {
+    } else if (
+      item.originalname.toUpperCase().includes(".CC") ||
+      item.originalname[2] + item.originalname[3] === "CC"
+    ) {
       result = {
         code: "CC",
         table: "APS_aud_carga_archivos_custodio",

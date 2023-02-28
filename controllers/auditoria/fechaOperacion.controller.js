@@ -232,6 +232,10 @@ async function obtenerFechaOperacion(req, res) {
     } else if (tipo_archivo === "CUSTODIO") {
       whereMax = [
         {
+          key: "id_rol",
+          value: id_rol,
+        },
+        {
           key: "cargado",
           value: true,
         },

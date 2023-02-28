@@ -3340,7 +3340,10 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
-      } else if (nameFile.includes(".CC")) {
+      } else if (
+        nameFile.includes(".CC") ||
+        nameFile[2] + nameFile[3] === "CC"
+      ) {
         console.log("ARCHIVO CORRECTO : CC", nameFile);
         PARAMS.codeCurrentFile = "CC";
         PARAMS.nameTable = "APS_aud_carga_archivos_custodio";
