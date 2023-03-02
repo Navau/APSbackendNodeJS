@@ -610,9 +610,14 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     //PENSIONES
     if (iid_reporte === 31) {
       //CARTERA VALORADA
-      const query = EjecutarFuncionSQL("aps_fun_reporte_cartera_valorada", {
-        body: { fecha },
-      });
+      const query = EjecutarFuncionSQL(
+        id_rol === 10
+          ? "aps_fun_reporte_cartera_valorada"
+          : "aps_fun_reporte_cartera_valorada_pensiones",
+        {
+          body: { fecha },
+        }
+      );
       querys.push(query);
     } else if (iid_reporte === 30) {
       //CUSTODIO
