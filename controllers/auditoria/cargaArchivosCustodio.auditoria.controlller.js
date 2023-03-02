@@ -104,6 +104,10 @@ async function ValorMaximo(req, res) {
       key: "cargado",
       value: true,
     },
+    {
+      key: "id_rol",
+      value: id_rol,
+    },
   ];
   const params = {
     fieldMax,
@@ -261,7 +265,9 @@ async function UltimaCarga2(req, res) {
   await pool
     .query(query)
     .then((result) => {
-      const resultFinal = result.rows?.[0] ? result.rows[0] : null;
+      const resultFinal = result.rows?.[0]
+        ? result.rows[0]
+        : { nrocarga: 0, cargado: false };
       respResultadoVacioObject200(res, resultFinal);
     })
     .catch((err) => {
