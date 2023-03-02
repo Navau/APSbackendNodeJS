@@ -506,7 +506,8 @@ async function Modalidades(req, res) {
 
 async function ReporteControlEnvioPorTipoReporte(req, res) {
   try {
-    const { fecha, id_rol, iid_reporte, periodo, modalidades } = req.body;
+    const { fecha, id_rol, iid_reporte, periodo, modalidades, id_rol_cargas } =
+      req.body;
     const querys = [];
     const queryInstituciones = ListarUtil(
       id_rol === 10
@@ -669,6 +670,13 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
       const aux = map(instituciones.result, (item) => {
         return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
           body: { fecha, cod_institucion: item.codigo, periodo: periodo },
+          where: id_rol_cargas && [
+            {
+              key: "id_rol",
+              valuesWhereIn: id_rol_cargas,
+              whereIn: true,
+            },
+          ],
         });
       });
       forEach(aux, (item) => querys.push(item));
@@ -787,8 +795,10 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           Diferencia_Cantidad: item.diferencia_cantidad,
         };
       } else if (iid_reporte === 27) {
+        //VALIDACION PRELIMINAR PENSIONES
         return {
           id: item.id_carga_archivos,
+          tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
           descripcion: item.descripcion,
           estado: item.resultado,
           cod_institucion: item.cod_institucion,
@@ -904,7 +914,8 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
 
 async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
   try {
-    const { fecha, id_rol, iid_reporte, periodo, modalidades } = req.body;
+    const { fecha, id_rol, iid_reporte, periodo, modalidades, id_rol_cargas } =
+      req.body;
     const querys = [];
     const queryInstituciones = ListarUtil(
       id_rol === 10
@@ -920,7 +931,10 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
       .catch((err) => {
         return { ok: null, err };
       });
+
     if (instituciones.ok === null) throw instituciones.err;
+
+    //SEGUROS
     if (iid_reporte === 6) {
       if (!periodo) {
         respDatosNoRecibidos400(res, "No se envio la periodicidad");
@@ -934,6 +948,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
       });
       forEach(aux, (item) => querys.push(item));
     } else if (iid_reporte === 7) {
+      //VALIDACION
       const query = EscogerInternoUtil(
         "APS_aud_valida_archivos_pensiones_seguros",
         {
@@ -953,7 +968,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
       );
       querys.push(query);
     } else if (iid_reporte === 8) {
-      //VALORACION
+      //VALORACION CARTERA
       const query = EscogerInternoUtil(
         "APS_aud_valora_archivos_pensiones_seguros",
         {
@@ -995,6 +1010,26 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
       }
     } else if (iid_reporte === 26) {
       //CARTERA VALORADA
+      const query = EjecutarFuncionSQL("aps_fun_reporte_cartera_valorada", {
+        body: { fecha },
+      });
+      querys.push(query);
+    }
+
+    //PENSIONES
+    if (iid_reporte === 31) {
+      //CARTERA VALORADA
+      const query = EjecutarFuncionSQL(
+        id_rol === 10
+          ? "aps_fun_reporte_cartera_valorada"
+          : "aps_fun_reporte_cartera_valorada_pensiones",
+        {
+          body: { fecha },
+        }
+      );
+      querys.push(query);
+    } else if (iid_reporte === 30) {
+      //CUSTODIO
       const codigos = [];
       forEach(modalidades, (item) =>
         filter(item.modalidades, (modalidad) => {
@@ -1011,24 +1046,77 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
           { key: "cod_institucion", valuesWhereIn: codigos, whereIn: true },
         ];
 
-        const query = EjecutarFuncionSQL(
-          "aps_fun_reporte_cartera_valorada",
-          paramsAux
-        );
+        const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", paramsAux);
         querys.push(query);
       }
+    } else if (iid_reporte === 28) {
+      //VALIDACION
+      const query = EscogerInternoUtil(
+        "APS_aud_valida_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
+            },
+          ],
+        }
+      );
+      querys.push(query);
+    } else if (iid_reporte === 27) {
+      if (!periodo) {
+        respDatosNoRecibidos400(res, "No se envio la periodicidad");
+        return;
+      }
+      // VALIDACION PRELIMINAR
+      const aux = map(instituciones.result, (item) => {
+        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
+          body: { fecha, cod_institucion: item.codigo, periodo: periodo },
+          where: id_rol_cargas && [
+            {
+              key: "id_rol",
+              valuesWhereIn: id_rol_cargas,
+              whereIn: true,
+            },
+          ],
+        });
+      });
+      forEach(aux, (item) => querys.push(item));
+    } else if (iid_reporte === 29) {
+      //VALORACION CARTERA
+      const query = EscogerInternoUtil(
+        "APS_aud_valora_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
+            },
+          ],
+        }
+      );
+      querys.push(query);
     }
 
     querys.push(ListarUtil("APS_seg_usuario"));
 
     const results = await EjecutarVariosQuerys(querys);
 
-    if (results.ok === null) {
-      throw results.result;
-    }
-    if (results.ok === false) {
-      throw results.errors;
-    }
+    if (results.ok === null) throw results.result;
+
+    if (results.ok === false) throw results.errors;
 
     let resultAux = [];
 
@@ -1114,9 +1202,89 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
           Cantidad_APS: item.cantidad_aps,
           Diferencia_Cantidad: item.diferencia_cantidad,
         };
+      } else if (iid_reporte === 27) {
+        //VALIDACION PRELIMINAR PENSIONES
+        return {
+          id: item.id_carga_archivos,
+          tipo_informacion: id_rol === 4 ? "Inversiones" : "Contables",
+          descripcion: item.descripcion,
+          estado: item.resultado,
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: item.usuario,
+          id_carga_archivos: item.id_carga_archivos,
+          id_rol: item.id_rol,
+        };
+      } else if (iid_reporte === 28) {
+        return {
+          id: item.id_valida_archivos,
+          estado: item.validado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valida_archivos: item.id_valida_archivos,
+          id_rol: item.id_rol,
+          validado: item.validado,
+        };
+      } else if (iid_reporte === 29) {
+        //VALORACION CARTERA PENSIONES
+        return {
+          id: item.id_valora_archivos,
+          estado: item.valorado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valora_archivos: item.id_valora_archivos,
+          id_rol: item.id_rol,
+          valorado: item.valorado,
+        };
+      } else if (iid_reporte === 30) {
+        //CUSTODIO PENSIONES
+        return {
+          Código: item.cod_institucion,
+          Fecha: item.fecha_informacion,
+          Instrumento: item.tipo_instrumento,
+          Serie: item.serie,
+          Total_MO_EDV: item.total_mo_edv,
+          Total_MO_APS: item.total_mo_aps,
+          Diferencia_Total: item.diferencia_total,
+          Cantidad_EDV: item.cantidad_edv,
+          Cantidad_APS: item.cantidad_aps,
+          Diferencia_Cantidad: item.diferencia_cantidad,
+        };
+      } else if (iid_reporte === 31) {
+        return {
+          Código: item.cod_institucion,
+          Fecha: item.fecha_informacion,
+          Instrumento: item.tipo_instrumento,
+          Serie: item.serie,
+          Total_MO: item.total_mo,
+          Total_APS: item.total_aps,
+          Diferencia_Total: item.diferencia_total,
+          Cantidad: item.cantidad,
+          Cantidad_APS: item.cantidad_aps,
+          Diferencia_Cantidad: item.diferencia_cantidad,
+        };
       }
     });
-    if (iid_reporte === 25 || iid_reporte === 26) {
+    if (
+      iid_reporte === 25 ||
+      iid_reporte === 26 ||
+      iid_reporte === 31 ||
+      iid_reporte === 30
+    ) {
       if (size(resultFinal) > 0) {
         const wb = new xl.Workbook(defaultOptionsReportExcel());
         const keysResult = keys(resultFinal?.[0]);
@@ -1259,6 +1427,73 @@ async function ReporteExito(req, res) {
     .catch((err) => {
       respErrorServidor500END(res, err);
     });
+}
+
+async function ReporteInversionesContables(req, res) {
+  try {
+    const { fecha, periodo, id_rol_cargas, cargado } = req.body;
+    const whereAux = [];
+    if (size(periodo) > 0)
+      whereAux.push({
+        key: "id_periodo",
+        valuesWhereIn: periodo,
+        whereIn: true,
+      });
+    if (size(id_rol_cargas) > 0)
+      whereAux.push({
+        key: "id_rol",
+        valuesWhereIn: id_rol_cargas,
+        whereIn: true,
+      });
+    if (size(cargado) > 0)
+      whereAux.push({ key: "cargado", valuesWhereIn: cargado, whereIn: true });
+    whereAux.push({ key: "fecha_operacion", value: fecha });
+    const query = EscogerInternoUtil(nameTable, {
+      select: ["*"],
+      where: whereAux,
+    });
+    const queryUsuarios = ListarUtil("APS_seg_usuario");
+    const usuarios = await pool
+      .query(queryUsuarios)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (usuarios.ok === null) throw usuarios.err;
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(
+          res,
+          map(result.rows, (item) => {
+            return {
+              id: item.id_carga_archivos,
+              tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
+              descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
+              estado: item.cargado ? "Con Éxito" : "Con Error",
+              cod_institucion: item.cod_institucion,
+              fecha_operacion: item.fecha_operacion,
+              nro_carga: item.nro_carga,
+              fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+              usuario: find(
+                usuarios.result,
+                (itemF) => item.id_usuario === itemF.id_usuario
+              )?.usuario,
+              id_carga_archivos: item.id_carga_archivos,
+              id_rol: item.id_rol,
+              cargado: item.cargado,
+            };
+          })
+        );
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 function TipoReporte(id) {
@@ -1533,4 +1768,5 @@ module.exports = {
   ReporteControlEnvioPorTipoReporteDescargas,
   ReporteExito,
   ReporteReproceso,
+  ReporteInversionesContables,
 };

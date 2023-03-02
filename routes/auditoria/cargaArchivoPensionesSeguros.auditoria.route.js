@@ -64,6 +64,11 @@ api.post(
   controller.HabilitarReproceso
 );
 api.post(
+  "/ReporteInversionesContables",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ReporteInversionesContables
+);
+api.post(
   "/Escoger",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Escoger
