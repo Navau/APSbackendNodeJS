@@ -9,6 +9,7 @@ const {
   uniq,
   isUndefined,
   find,
+  split,
 } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
@@ -678,14 +679,24 @@ async function ObtenerErrores(fecha, codes) {
   }
 }
 
-async function ObtenerErroresDiariosMensual(fecha) {
+async function ObtenerErroresDiariosMensual(
+  fecha,
+  id_rol_valida,
+  id_rol_archivos
+) {
   const errorsFinalArray = [];
-  //#region APS_VALIDA
-  const queryValida = EjecutarFuncionSQL("aps_valida", {
+  //#region APS_VALIDA errores
+  const nameTableErrors =
+    id_rol_archivos === 7
+      ? id_rol_valida === 4
+        ? "aps_valida_pensiones_inversiones"
+        : "aps_valida_pensiones_contables"
+      : "aps_valida";
+  const queryErrores = EjecutarFuncionSQL(nameTableErrors, {
     body: { fecha },
   });
-  const valida = await pool
-    .query(queryValida)
+  const errores = await pool
+    .query(queryErrores)
     .then((result) => {
       return { ok: true, result: result.rows };
     })
@@ -693,10 +704,10 @@ async function ObtenerErroresDiariosMensual(fecha) {
       return { ok: null, err };
     });
   //#endregion
-  if (valida.ok === null) {
+  if (errores.ok === null) {
     errorsFinalArray.push({
-      err: valida.err,
-      message: `Error al obtener los errores de aps_valida ERROR: ${valida.err.message}`,
+      err: errores.err,
+      message: `Error al obtener los errores de aps_valida ERROR: ${errores.err.message}`,
     });
   }
   if (errorsFinalArray.length > 0) {
@@ -707,15 +718,16 @@ async function ObtenerErroresDiariosMensual(fecha) {
   } else {
     return {
       ok: true,
-      result: [...valida.result],
+      result: [...errores.result],
     };
   }
 }
 
 async function Validar(req, res) {
   try {
-    const { fecha, id_rol_archivos } = req.body;
+    const { fecha, id_rol_valida, id_rol_archivos } = req.body;
     const { id_rol, id_usuario } = req.user;
+
     //#region SELECCIONANDO ARCHIVOS REQUERIDOS
     const idRolFinal = id_rol_archivos ? id_rol_archivos : req.user.id_rol;
     const params = {
@@ -777,8 +789,11 @@ async function Validar(req, res) {
       return result;
     };
 
-    const errores = await ObtenerErroresDiariosMensual(fecha);
-
+    const errores = await ObtenerErroresDiariosMensual(
+      fecha,
+      id_rol_valida,
+      id_rol_archivos
+    );
     if (!errores.ok) {
       respErrorServidor500END(res, errores.result);
       return null;
@@ -1070,18 +1085,97 @@ async function Validar(req, res) {
   }
 }
 
-async function ValidacionInversiones(req, res) {
+async function ValidacionInversionesContables(req, res) {
   try {
-    const { fecha } = req.body;
-    const query = EjecutarFuncionSQL("aps_valida_pensiones_inversiones", {
-      body: {
-        fecha,
-      },
-    });
+    const { fecha, id_rol_valida } = req.body;
+    const query = EjecutarFuncionSQL(
+      id_rol_valida === 4
+        ? "aps_valida_pensiones_inversiones"
+        : "aps_valida_pensiones_contables",
+      {
+        body: {
+          fecha,
+        },
+      }
+    );
+
     await pool
       .query(query)
       .then((result) => {
         respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+async function ReporteInversionesContables(req, res) {
+  try {
+    const { fecha, periodo, id_rol_cargas, cargado } = req.body;
+    const whereAux = [];
+    if (periodo)
+      whereAux.push({
+        key: "id_periodo",
+        valuesWhereIn: map(
+          filter(split(periodo, ","), (item) => size(item) > 0 && item),
+          (item) => `'${item}'`
+        ),
+        whereIn: true,
+      });
+    if (size(id_rol_cargas) > 0)
+      whereAux.push({
+        key: "id_rol",
+        valuesWhereIn: id_rol_cargas,
+        whereIn: true,
+      });
+    if (size(cargado) > 0)
+      whereAux.push({ key: "cargado", valuesWhereIn: cargado, whereIn: true });
+    whereAux.push({ key: "fecha_operacion", value: fecha });
+    const query = EscogerInternoUtil(
+      "APS_aud_carga_archivos_pensiones_seguros",
+      {
+        select: ["*"],
+        where: whereAux,
+      }
+    );
+    const queryUsuarios = ListarUtil("APS_seg_usuario");
+    const usuarios = await pool
+      .query(queryUsuarios)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (usuarios.ok === null) throw usuarios.err;
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(
+          res,
+          map(result.rows, (item) => {
+            return {
+              id: item.id_carga_archivos,
+              tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
+              descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
+              estado: item.cargado ? "Con Éxito" : "Con Error",
+              cod_institucion: item.cod_institucion,
+              fecha_operacion: item.fecha_operacion,
+              nro_carga: item.nro_carga,
+              fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+              usuario: find(
+                usuarios.result,
+                (itemF) => item.id_usuario === itemF.id_usuario
+              )?.usuario,
+              id_carga_archivos: item.id_carga_archivos,
+              id_rol: item.id_rol,
+              cargado: item.cargado,
+            };
+          })
+        );
       })
       .catch((err) => {
         respErrorServidor500END(res, err);
@@ -1402,5 +1496,6 @@ module.exports = {
   Validar,
   Reporte,
   ReporteExito,
-  ValidacionInversiones,
+  ValidacionInversionesContables,
+  ReporteInversionesContables,
 };

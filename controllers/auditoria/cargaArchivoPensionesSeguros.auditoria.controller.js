@@ -657,6 +657,11 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
               ),
               whereIn: true,
             },
+            {
+              key: "id_rol",
+              valuesWhereIn: id_rol_cargas,
+              whereIn: true,
+            },
           ],
         }
       );
@@ -810,8 +815,10 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_rol: item.id_rol,
         };
       } else if (iid_reporte === 28) {
+        //VALIDACION PENSIONES
         return {
           id: item.id_valida_archivos,
+          tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
           estado: item.validado ? "Con Éxito" : "Con Error",
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,
@@ -1429,73 +1436,6 @@ async function ReporteExito(req, res) {
     });
 }
 
-async function ReporteInversionesContables(req, res) {
-  try {
-    const { fecha, periodo, id_rol_cargas, cargado } = req.body;
-    const whereAux = [];
-    if (size(periodo) > 0)
-      whereAux.push({
-        key: "id_periodo",
-        valuesWhereIn: periodo,
-        whereIn: true,
-      });
-    if (size(id_rol_cargas) > 0)
-      whereAux.push({
-        key: "id_rol",
-        valuesWhereIn: id_rol_cargas,
-        whereIn: true,
-      });
-    if (size(cargado) > 0)
-      whereAux.push({ key: "cargado", valuesWhereIn: cargado, whereIn: true });
-    whereAux.push({ key: "fecha_operacion", value: fecha });
-    const query = EscogerInternoUtil(nameTable, {
-      select: ["*"],
-      where: whereAux,
-    });
-    const queryUsuarios = ListarUtil("APS_seg_usuario");
-    const usuarios = await pool
-      .query(queryUsuarios)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-    if (usuarios.ok === null) throw usuarios.err;
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(
-          res,
-          map(result.rows, (item) => {
-            return {
-              id: item.id_carga_archivos,
-              tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
-              descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
-              estado: item.cargado ? "Con Éxito" : "Con Error",
-              cod_institucion: item.cod_institucion,
-              fecha_operacion: item.fecha_operacion,
-              nro_carga: item.nro_carga,
-              fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-              usuario: find(
-                usuarios.result,
-                (itemF) => item.id_usuario === itemF.id_usuario
-              )?.usuario,
-              id_carga_archivos: item.id_carga_archivos,
-              id_rol: item.id_rol,
-              cargado: item.cargado,
-            };
-          })
-        );
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
-}
-
 function TipoReporte(id) {
   const ID_REPORTES = {
     25: {
@@ -1768,5 +1708,4 @@ module.exports = {
   ReporteControlEnvioPorTipoReporteDescargas,
   ReporteExito,
   ReporteReproceso,
-  ReporteInversionesContables,
 };
