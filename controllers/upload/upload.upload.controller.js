@@ -1,4 +1,13 @@
-const { map, partial, split, forEach, uniq, size, replace } = require("lodash");
+const {
+  map,
+  partial,
+  split,
+  forEach,
+  uniq,
+  size,
+  replace,
+  indexOf,
+} = require("lodash");
 const pool = require("../../database");
 const fs = require("fs");
 
@@ -321,10 +330,18 @@ async function CargarArchivo(req, res) {
             id: idTable,
           };
           const splitFecha = split(fechaInicialOperacion, "-").join("");
+          const fileSplitFecha = item.originalname
+            .toUpperCase()
+            .substring(0, indexOf(item.originalname.toUpperCase(), splitFecha));
+          const codFinal = (stringAux) => {
+            const splitString = stringAux.split("CC");
+            return splitString[1] === "" ? splitString[0] : splitString[1];
+          };
           const codInstitucionAux =
             infoTables.cod_institution === "CC"
-              ? split(item.originalname.toUpperCase(), splitFecha)[0]
+              ? codFinal(fileSplitFecha)
               : infoTables.cod_institution;
+          console.log({ codInstitucionAux });
           //#endregion
 
           headers?.splice(0, 1); // ELIMINAR ID DE TABLA
