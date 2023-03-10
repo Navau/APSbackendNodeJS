@@ -3,6 +3,7 @@ const axios = require("axios");
 
 exports.obtenerJwtEstadoApi = async function () {
   try {
+    //GET
     const url = `${IP_SERVER_API_EXTERNA}/jwt/estado`;
     return await axios
       .get(url)
@@ -25,6 +26,7 @@ exports.obtenerJwtEstadoApi = async function () {
 
 exports.obtenerTokenApi = async function (data) {
   try {
+    //POST
     const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/token`;
     const options = {
       headers: { "Content-Type": "application/json" },
@@ -51,18 +53,21 @@ exports.obtenerTokenApi = async function (data) {
 
 exports.obtenerInfoUsuarioApi = async function (token, data) {
   try {
-    const { username, appGuId } = data;
-    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${username}/app/${appGuId}`;
+    //GET
+    const { username, app } = data;
+    const { token_value, token_type } = token;
+    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${username}/app/${app}`;
     const options = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token_type} ${token_value}`,
         "Content-Type": "application/json",
       },
     };
+    console.log(data);
     const body = JSON.stringify(data);
 
     return await axios
-      .post(url, body, options)
+      .get(url, options, body)
       .then((response) => {
         const result = response.data;
         const status = response?.status;
@@ -81,18 +86,20 @@ exports.obtenerInfoUsuarioApi = async function (token, data) {
 
 exports.actualizarContraseñaUsuarioApi = async function (token, data) {
   try {
-    const { username } = data;
-    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${username}/updatePassword`;
+    //PUT
+    const { usuario } = data;
+    const { token_value, token_type } = token;
+    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${usuario}/updatePassword`;
     const options = {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token_type} ${token_value}`,
         "Content-Type": "application/json",
       },
     };
     const body = JSON.stringify(data);
 
     return await axios
-      .post(url, body, options)
+      .put(url, body, options)
       .then((response) => {
         const result = response.data;
         const status = response?.status;
