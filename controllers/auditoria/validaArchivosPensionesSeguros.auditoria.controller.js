@@ -1343,6 +1343,16 @@ async function Reporte(req, res) {
       return;
     }
 
+    const counterInformacion = results.result?.[0]?.data;
+    if (size(counterInformacion) === 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        counterInformacion,
+        "No existe ningún registro cargado para la fecha seleccionada"
+      );
+      return;
+    }
     respResultadoCorrectoObjeto200(
       res,
       map(results.result[0].data, (item) => {
