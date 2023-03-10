@@ -11,13 +11,11 @@ const {
   size,
   set,
   includes,
-  indexOf,
   filter,
   isArray,
   replace,
   find,
   split,
-  lastIndexOf,
   sum,
   sumBy,
 } = require("lodash");
@@ -522,7 +520,7 @@ function PrepararReportes(reportes, instituciones) {
           delete itemData.fecha;
         });
         const indexFieldAux = item.fun.substring(
-          lastIndexOf(item.fun, "_"),
+          item.fun?.lastIndexOf("_"),
           size(item.fun)
         );
         item.fields[

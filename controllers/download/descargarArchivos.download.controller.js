@@ -1,12 +1,24 @@
 const fs = require("fs");
 const pool = require("../../database");
-const { map, filter, forEach, split, join, includes, size } = require("lodash");
+const {
+  map,
+  filter,
+  forEach,
+  split,
+  join,
+  includes,
+  size,
+  replace,
+  find,
+  isUndefined,
+} = require("lodash");
 const archiver = require("archiver");
 const {
   respDescargarArchivos200,
   respErrorServidor500END,
   respResultadoVacioObject200,
   respResultadoCorrectoObjeto200,
+  respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 const {
   EscogerInternoUtil,
@@ -17,6 +29,7 @@ const pensionesArray = (date) => {
   return [
     `DM${date}`,
     `DR${date}`,
+    `UE${date}`,
     `UA${date}`,
     `TD${date}`,
     `UD${date}`,
@@ -243,6 +256,15 @@ async function DescargarArchivos(req, res) {
 
 async function DescargarArchivos2(req, res) {
   const { archivos } = req.body;
+  if (size(archivos) <= 0) {
+    respResultadoIncorrectoObjeto200(
+      res,
+      null,
+      archivos,
+      "No existen archivos para descargar"
+    );
+    return;
+  }
   const filter = split(archivos?.[0], ".")[0];
   const nameExportZip = `./downloads/archivos_${filter}.zip`;
   const fileZipPromise = new Promise(async (resolve, reject) => {
@@ -297,8 +319,34 @@ async function DescargarArchivos2(req, res) {
 
 async function ListarArchivos2(req, res) {
   try {
-    const { modalidades } = req.body;
+    const { modalidades, tipo_archivos } = req.body;
     const codigos = [];
+    const nameTableTipoArchivos =
+      tipo_archivos === "pensiones"
+        ? "APS_pensiones_archivo_"
+        : "APS_seguro_archivo_";
+    const queryArchivos = EscogerInternoUtil("INFORMATION_SCHEMA.TABLES", {
+      select: ["*"],
+      where: [
+        { key: "table_schema", value: "public" },
+        { key: "table_type", value: "BASE TABLE" },
+        { key: "table_name", value: nameTableTipoArchivos, like: true },
+      ],
+    });
+    const codigosArchivos = await pool
+      .query(queryArchivos)
+      .then((result) => {
+        return {
+          result: map(result.rows, (item) =>
+            replace(item.table_name, nameTableTipoArchivos, "")
+          ),
+        };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (codigosArchivos.ok === null) throw codigosArchivos.err;
+
     forEach(modalidades, (item) =>
       filter(item.modalidades, (modalidad) => {
         if (modalidad.esCompleto === true) {
@@ -312,13 +360,18 @@ async function ListarArchivos2(req, res) {
     const files = fs.readdirSync("./uploads/tmp");
     const resultFinal = [];
     forEach(codigos, (item) => {
-      const aux = filter(
-        files,
-        (file) =>
-          includes(file, item.codigo) === true &&
-          includes(file, item.fecha) === true &&
-          !includes(file, ".CC")
-      );
+      const aux = filter(files, (file) => {
+        const splitFecha = split(item.fecha, "-").join("");
+        const fileSplitFecha = file
+          .toUpperCase()
+          .substring(0, file.indexOf(splitFecha));
+        const auxResultFind = find(codigosArchivos.result, (codArchivo) => {
+          if (fileSplitFecha.indexOf("CC") === -1)
+            return includes(file, codArchivo);
+          return false;
+        });
+        return isUndefined(auxResultFind) ? false : true;
+      });
       resultFinal.push(...aux);
     });
     respResultadoCorrectoObjeto200(res, resultFinal);
@@ -330,11 +383,17 @@ async function ListarArchivos2(req, res) {
 async function Modalidades(req, res) {
   try {
     const { fecha, id_tipo_modalidad } = req.body;
+    const { id_rol } = req.user;
     const querys = [
-      EscogerInternoUtil("aps_view_modalidad_seguros", {
-        select: ["*"],
-        where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
-      }),
+      EscogerInternoUtil(
+        id_rol === 10
+          ? "aps_view_modalidad_seguros"
+          : "aps_view_modalidad_pensiones",
+        {
+          select: ["*"],
+          where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+        }
+      ),
     ];
     const results = await EjecutarVariosQuerys(querys);
     if (results.ok === null) {

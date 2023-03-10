@@ -7,7 +7,6 @@ const {
   uniqBy,
   uniq,
   findIndex,
-  indexOf,
   size,
   filter,
   isObject,

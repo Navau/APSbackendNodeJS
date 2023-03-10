@@ -1114,7 +1114,8 @@ async function ValidacionInversionesContables(req, res) {
 
 async function ReporteInversionesContables(req, res) {
   try {
-    const { fecha, periodo, id_rol_cargas, cargado } = req.body;
+    const { fecha, periodo, id_rol_cargas, cargado, id_rol } = req.body;
+    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const whereAux = [];
     if (periodo)
       whereAux.push({
@@ -1134,52 +1135,108 @@ async function ReporteInversionesContables(req, res) {
     if (size(cargado) > 0)
       whereAux.push({ key: "cargado", valuesWhereIn: cargado, whereIn: true });
     whereAux.push({ key: "fecha_operacion", value: fecha });
-    const query = EscogerInternoUtil(
-      "APS_aud_carga_archivos_pensiones_seguros",
-      {
+    const queryValida = `SELECT COUNT(*) 
+      FROM public."APS_aud_valida_archivos_pensiones_seguros" 
+      WHERE fecha_operacion='${fecha}' 
+      AND validado=true 
+      AND cod_institucion IN (
+        SELECT DISTINCT cod_institucion 
+        FROM public."APS_aud_carga_archivos_pensiones_seguros" 
+        WHERE cargado = true 
+        AND fecha_operacion = '${fecha}' 
+        AND id_rol IN (${id_rol_cargas.join()}))`;
+    console.log(queryValida);
+    const querys = [
+      EscogerInternoUtil("APS_aud_carga_archivos_pensiones_seguros", {
         select: ["*"],
         where: whereAux,
-      }
+      }),
+      EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [
+          { key: "fecha_operacion", value: fecha },
+          { key: "validado", value: true },
+          { key: "id_rol", value: idRolFinal },
+        ],
+      }),
+      queryValida,
+      ListarUtil("APS_seg_usuario"),
+    ];
+
+    const results = await EjecutarVariosQuerys(querys);
+
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+
+    const usuarios = find(
+      results.result,
+      (item) => item.table === "APS_seg_usuario"
     );
-    const queryUsuarios = ListarUtil("APS_seg_usuario");
-    const usuarios = await pool
-      .query(queryUsuarios)
-      .then((result) => {
-        return { ok: true, result: result.rows };
+
+    const counterRegistros = results.result?.[2]?.data?.[0]?.count;
+    if (counterRegistros > 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        map(results.result[1].data, (item) => {
+          return {
+            id: item.id_valida_archivos,
+            descripcion: "Diaria",
+            estado: item.validado ? "Con Éxito" : "Con Error",
+            cod_institucion: item.cod_institucion,
+            fecha_operacion: item.fecha_operacion,
+            nro_carga: item.nro_carga,
+            fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+            usuario: find(
+              usuarios.data,
+              (itemF) => item.id_usuario === itemF.id_usuario
+            )?.usuario,
+            id_valida_archivos: item.id_valida_archivos,
+            id_rol: item.id_rol,
+            validado: item.validado,
+          };
+        }),
+        "La información ya fue validada"
+      );
+      return;
+    }
+    const counterInformacion = results.result?.[0]?.data;
+    if (size(counterInformacion) === 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        counterInformacion,
+        "No existe ningún registro cargado para la fecha seleccionada"
+      );
+      return;
+    }
+
+    respResultadoCorrectoObjeto200(
+      res,
+      map(results.result[0].data, (item) => {
+        return {
+          id: item.id_carga_archivos,
+          tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
+          descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
+          estado: item.cargado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.result,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_carga_archivos: item.id_carga_archivos,
+          id_rol: item.id_rol,
+          cargado: item.cargado,
+        };
       })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-    if (usuarios.ok === null) throw usuarios.err;
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(
-          res,
-          map(result.rows, (item) => {
-            return {
-              id: item.id_carga_archivos,
-              tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
-              descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
-              estado: item.cargado ? "Con Éxito" : "Con Error",
-              cod_institucion: item.cod_institucion,
-              fecha_operacion: item.fecha_operacion,
-              nro_carga: item.nro_carga,
-              fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-              usuario: find(
-                usuarios.result,
-                (itemF) => item.id_usuario === itemF.id_usuario
-              )?.usuario,
-              id_carga_archivos: item.id_carga_archivos,
-              id_rol: item.id_rol,
-              cargado: item.cargado,
-            };
-          })
-        );
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }

@@ -1,4 +1,4 @@
-const { indexOf, size, isUndefined, split } = require("lodash");
+const { size, isUndefined, split } = require("lodash");
 const pool = require("../../database");
 
 const {

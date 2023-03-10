@@ -1,13 +1,11 @@
 const {
   isUndefined,
   split,
-  indexOf,
   forEach,
   size,
   trim,
   includes,
   join,
-  lastIndexOf,
   replace,
   set,
   forEachRight,
@@ -33,12 +31,12 @@ function respErrorServidor500END(res, err, msg, datos = null) {
       const fieldsAux = arrayDetail[0];
       const valuesAux = arrayDetail[1];
       const fields = fieldsAux.substring(
-        indexOf(fieldsAux, "(") + 1,
-        indexOf(fieldsAux, ")")
+        fieldsAux.indexOf("(") + 1,
+        fieldsAux.indexOf(")")
       );
       const values = valuesAux.substring(
-        indexOf(valuesAux, "(") + 1,
-        indexOf(valuesAux, ")")
+        valuesAux.indexOf("(") + 1,
+        valuesAux.indexOf(")")
       );
       const fieldsSplit = split(fields, ",");
       const valuesSplit = split(values, ",");

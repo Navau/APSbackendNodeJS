@@ -1,13 +1,4 @@
-const {
-  map,
-  partial,
-  split,
-  forEach,
-  uniq,
-  size,
-  replace,
-  indexOf,
-} = require("lodash");
+const { map, partial, split, forEach, uniq, size, replace } = require("lodash");
 const pool = require("../../database");
 const fs = require("fs");
 
@@ -332,7 +323,7 @@ async function CargarArchivo(req, res) {
           const splitFecha = split(fechaInicialOperacion, "-").join("");
           const fileSplitFecha = item.originalname
             .toUpperCase()
-            .substring(0, indexOf(item.originalname.toUpperCase(), splitFecha));
+            .substring(0, item.originalname.toUpperCase().indexOf(splitFecha));
           const codFinal = (stringAux) => {
             const splitString = stringAux.split("CC");
             return splitString[1] === "" ? splitString[0] : splitString[1];
