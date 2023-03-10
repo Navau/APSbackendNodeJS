@@ -15,7 +15,7 @@ async function Listar(req, res) {
 }
 
 async function ListarRol(req, res) {
-  const params = { req, res, nameTable: nameView };
+  const params = { req, res, nameTable, nameView };
   await ListarCRUD(params);
 }
 

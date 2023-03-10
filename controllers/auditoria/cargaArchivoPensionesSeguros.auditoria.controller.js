@@ -641,8 +641,8 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", paramsAux);
         querys.push(query);
       }
-    } else if (iid_reporte === 28) {
-      //VALIDACION
+    } else if (iid_reporte === 32) {
+      //VALIDACION CONTABLE
       const query = EscogerInternoUtil(
         "APS_aud_valida_archivos_pensiones_seguros",
         {
@@ -658,7 +658,32 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
               whereIn: true,
             },
             {
-              key: "id_rol",
+              key: "id_rol_carga",
+              valuesWhereIn: id_rol_cargas,
+              whereIn: true,
+            },
+          ],
+        }
+      );
+      querys.push(query);
+    } else if (iid_reporte === 28) {
+      //VALIDACION INVERSIONES
+      const query = EscogerInternoUtil(
+        "APS_aud_valida_archivos_pensiones_seguros",
+        {
+          select: ["*"],
+          where: [
+            { key: "fecha_operacion", value: fecha },
+            {
+              key: "cod_institucion",
+              valuesWhereIn: map(
+                instituciones.result,
+                (item) => `'${item.codigo}'`
+              ),
+              whereIn: true,
+            },
+            {
+              key: "id_rol_carga",
               valuesWhereIn: id_rol_cargas,
               whereIn: true,
             },
@@ -815,7 +840,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_rol: item.id_rol,
         };
       } else if (iid_reporte === 28) {
-        //VALIDACION PENSIONES
+        //VALIDACION INVERSIONES PENSIONES
         return {
           id: item.id_valida_archivos,
           tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
@@ -875,6 +900,24 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           Cantidad: item.cantidad,
           Cantidad_APS: item.cantidad_aps,
           Diferencia_Cantidad: item.diferencia_cantidad,
+        };
+      } else if (iid_reporte === 32) {
+        //VALIDACION CONTABLES PENSIONES
+        return {
+          id: item.id_valida_archivos,
+          tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
+          estado: item.validado ? "Con Éxito" : "Con Error",
+          cod_institucion: item.cod_institucion,
+          fecha_operacion: item.fecha_operacion,
+          nro_carga: item.nro_carga,
+          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+          usuario: find(
+            usuarios.data,
+            (itemF) => item.id_usuario === itemF.id_usuario
+          )?.usuario,
+          id_valida_archivos: item.id_valida_archivos,
+          id_rol: item.id_rol,
+          validado: item.validado,
         };
       }
     });
@@ -942,59 +985,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
     if (instituciones.ok === null) throw instituciones.err;
 
     //SEGUROS
-    if (iid_reporte === 6) {
-      if (!periodo) {
-        respDatosNoRecibidos400(res, "No se envio la periodicidad");
-        return;
-      }
-      // VALIDACION PRELIMINAR
-      const aux = map(instituciones.result, (item) => {
-        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
-          body: { fecha, cod_institucion: item.codigo, periodo: periodo },
-        });
-      });
-      forEach(aux, (item) => querys.push(item));
-    } else if (iid_reporte === 7) {
-      //VALIDACION
-      const query = EscogerInternoUtil(
-        "APS_aud_valida_archivos_pensiones_seguros",
-        {
-          select: ["*"],
-          where: [
-            { key: "fecha_operacion", value: fecha },
-            {
-              key: "cod_institucion",
-              valuesWhereIn: map(
-                instituciones.result,
-                (item) => `'${item.codigo}'`
-              ),
-              whereIn: true,
-            },
-          ],
-        }
-      );
-      querys.push(query);
-    } else if (iid_reporte === 8) {
-      //VALORACION CARTERA
-      const query = EscogerInternoUtil(
-        "APS_aud_valora_archivos_pensiones_seguros",
-        {
-          select: ["*"],
-          where: [
-            { key: "fecha_operacion", value: fecha },
-            {
-              key: "cod_institucion",
-              valuesWhereIn: map(
-                instituciones.result,
-                (item) => `'${item.codigo}'`
-              ),
-              whereIn: true,
-            },
-          ],
-        }
-      );
-      querys.push(query);
-    } else if (iid_reporte === 25) {
+    if (iid_reporte === 25) {
       //CUSTODIO
       const codigos = [];
       forEach(modalidades, (item) =>
@@ -1056,65 +1047,6 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
         const query = EjecutarFuncionSQL("aps_fun_reporte_custodio", paramsAux);
         querys.push(query);
       }
-    } else if (iid_reporte === 28) {
-      //VALIDACION
-      const query = EscogerInternoUtil(
-        "APS_aud_valida_archivos_pensiones_seguros",
-        {
-          select: ["*"],
-          where: [
-            { key: "fecha_operacion", value: fecha },
-            {
-              key: "cod_institucion",
-              valuesWhereIn: map(
-                instituciones.result,
-                (item) => `'${item.codigo}'`
-              ),
-              whereIn: true,
-            },
-          ],
-        }
-      );
-      querys.push(query);
-    } else if (iid_reporte === 27) {
-      if (!periodo) {
-        respDatosNoRecibidos400(res, "No se envio la periodicidad");
-        return;
-      }
-      // VALIDACION PRELIMINAR
-      const aux = map(instituciones.result, (item) => {
-        return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
-          body: { fecha, cod_institucion: item.codigo, periodo: periodo },
-          where: id_rol_cargas && [
-            {
-              key: "id_rol",
-              valuesWhereIn: id_rol_cargas,
-              whereIn: true,
-            },
-          ],
-        });
-      });
-      forEach(aux, (item) => querys.push(item));
-    } else if (iid_reporte === 29) {
-      //VALORACION CARTERA
-      const query = EscogerInternoUtil(
-        "APS_aud_valora_archivos_pensiones_seguros",
-        {
-          select: ["*"],
-          where: [
-            { key: "fecha_operacion", value: fecha },
-            {
-              key: "cod_institucion",
-              valuesWhereIn: map(
-                instituciones.result,
-                (item) => `'${item.codigo}'`
-              ),
-              whereIn: true,
-            },
-          ],
-        }
-      );
-      querys.push(query);
     }
 
     querys.push(ListarUtil("APS_seg_usuario"));
@@ -1138,52 +1070,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
     );
 
     const resultFinal = map(resultAux, (item) => {
-      if (iid_reporte === 6) {
-        return {
-          id: item.id_carga_archivos,
-          descripcion: item.descripcion,
-          estado: item.resultado,
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: item.usuario,
-          id_carga_archivos: item.id_carga_archivos,
-          id_rol: item.id_rol,
-        };
-      } else if (iid_reporte === 7) {
-        return {
-          id: item.id_valida_archivos,
-          estado: item.validado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valida_archivos: item.id_valida_archivos,
-          id_rol: item.id_rol,
-          validado: item.validado,
-        };
-      } else if (iid_reporte === 8) {
-        return {
-          id: item.id_valora_archivos,
-          estado: item.valorado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valora_archivos: item.id_valora_archivos,
-          id_rol: item.id_rol,
-          valorado: item.valorado,
-        };
-      } else if (iid_reporte === 25) {
+      if (iid_reporte === 25) {
         return {
           Código: item.cod_institucion,
           Fecha: item.fecha_informacion,
@@ -1208,54 +1095,6 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
           Cantidad: item.cantidad,
           Cantidad_APS: item.cantidad_aps,
           Diferencia_Cantidad: item.diferencia_cantidad,
-        };
-      } else if (iid_reporte === 27) {
-        //VALIDACION PRELIMINAR PENSIONES
-        return {
-          id: item.id_carga_archivos,
-          tipo_informacion: id_rol === 4 ? "Inversiones" : "Contables",
-          descripcion: item.descripcion,
-          estado: item.resultado,
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: item.usuario,
-          id_carga_archivos: item.id_carga_archivos,
-          id_rol: item.id_rol,
-        };
-      } else if (iid_reporte === 28) {
-        return {
-          id: item.id_valida_archivos,
-          estado: item.validado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valida_archivos: item.id_valida_archivos,
-          id_rol: item.id_rol,
-          validado: item.validado,
-        };
-      } else if (iid_reporte === 29) {
-        //VALORACION CARTERA PENSIONES
-        return {
-          id: item.id_valora_archivos,
-          estado: item.valorado ? "Con Éxito" : "Con Error",
-          cod_institucion: item.cod_institucion,
-          fecha_operacion: item.fecha_operacion,
-          nro_carga: item.nro_carga,
-          fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
-          usuario: find(
-            usuarios.data,
-            (itemF) => item.id_usuario === itemF.id_usuario
-          )?.usuario,
-          id_valora_archivos: item.id_valora_archivos,
-          id_rol: item.id_rol,
-          valorado: item.valorado,
         };
       } else if (iid_reporte === 30) {
         //CUSTODIO PENSIONES

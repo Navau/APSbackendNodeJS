@@ -41,7 +41,7 @@ async function CampoActivoAux(nameTable) {
 
 // TO DO: Cambiar el nombre de Util por Consulta, por ejemplo de ListarUtil, cambiar a ListarConsulta o ListarQuery
 async function ListarCRUD(paramsF) {
-  const { req, res, nameTable } = paramsF;
+  const { req, res, nameTable, nameView } = paramsF;
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
@@ -55,8 +55,8 @@ async function ListarCRUD(paramsF) {
       return;
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
-      ? ListarUtil(nameTable, { activo: null })
-      : ListarUtil(nameTable);
+      ? ListarUtil(nameView || nameTable, { activo: null })
+      : ListarUtil(nameView || nameTable);
 
     await pool
       .query(query)
