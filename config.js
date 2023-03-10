@@ -19,7 +19,7 @@ const PORT_SERVER = process.env.PORT || 3977; // 3977 || 5290
 const PARAMS_CONNECTION = {
   host: IP_SERVER_DB,
   user: process.env.DATABASE_USER || "postgres",
-  password: process.env.DATABASE_PASS || "apsadmin2022", //apsadmin2022
+  password: process.env.DATABASE_PASS || "navau", //apsadmin2022
   database: process.env.DATABASE_NAME || "APS",
   port: PORT_DB,
 };
