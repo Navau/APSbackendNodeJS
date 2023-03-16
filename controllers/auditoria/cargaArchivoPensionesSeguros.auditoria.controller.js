@@ -118,7 +118,7 @@ async function ValorMaximo(req, res) {
   const { max, periodicidad } = req.body;
   const { id_rol, id_usuario } = req.user;
   const institucion = async () => {
-    let queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
+    const queryInstitucion = EscogerInternoUtil("APS_seg_usuario", {
       select: [`"APS_seg_institucion".codigo`],
       innerjoin: [
         {
@@ -336,8 +336,8 @@ async function UltimaCarga(req, res) {
 }
 
 async function UltimaCarga2(req, res) {
-  const { fecha_operacion, periodicidad } = req.body;
-  const { id_rol, id_usuario } = req.user;
+  const { fecha_operacion, periodicidad, id_rol } = req.body;
+  const { id_usuario } = req.user;
 
   let query = `
   SELECT CASE 
@@ -359,7 +359,9 @@ async function UltimaCarga2(req, res) {
     ON usuario.id_institucion = int.id_institucion 
     WHERE usuario.id_usuario=${id_usuario} 
     AND pen.id_periodo=${periodicidad} 
-    AND pen.fecha_operacion = '${fecha_operacion}') AS max_id 
+    AND pen.fecha_operacion = '${fecha_operacion}'${
+    id_rol ? ` AND pen.id_rol = ${id_rol}` : ""
+  }) AS max_id 
     LEFT JOIN "APS_aud_carga_archivos_pensiones_seguros" AS datos 
     ON max_id.maxid = datos.id_carga_archivos
   `;
@@ -1335,21 +1337,39 @@ async function Entidades(req, res) {
 
 async function HabilitarReproceso(req, res) {
   try {
-    const { fecha, periodicidad, codigo_entidad } = req.body;
-    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
-      "YYYY-MM-DD HH:mm:ss.SSS"
-    )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND id_periodo = ${periodicidad} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
-    console.log(queryUpdate);
-    const querys = [
-      queryUpdate,
-      periodicidad === "154"
-        ? EjecutarFuncionSQL("aps_fun_borra_tablas_diarias_seguro", {
-            body: { fecha, codigo_entidad },
-          })
-        : EjecutarFuncionSQL("aps_fun_borra_tablas_mensuales_seguro", {
-            body: { fecha, codigo_entidad },
-          }),
-    ];
+    const { fecha, periodicidad, codigo_entidad, tipo_informacion } = req.body;
+    const querys = [];
+    if (tipo_informacion) {
+      const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
+        "YYYY-MM-DD HH:mm:ss.SSS"
+      )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND id_rol = ${tipo_informacion} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
+      console.log(queryUpdate);
+      querys.push(queryUpdate);
+      querys.push(
+        tipo_informacion === 4
+          ? EjecutarFuncionSQL("aps_fun_borra_tablas_inversiones_pensiones", {
+              body: { fecha, codigo_entidad },
+            })
+          : EjecutarFuncionSQL("aps_fun_borra_tablas_contable_pensiones", {
+              body: { fecha, codigo_entidad },
+            })
+      );
+    } else {
+      const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
+        "YYYY-MM-DD HH:mm:ss.SSS"
+      )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND id_periodo = ${periodicidad} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
+      console.log(queryUpdate);
+      querys.push(queryUpdate);
+      querys.push(
+        periodicidad === "154"
+          ? EjecutarFuncionSQL("aps_fun_borra_tablas_diarias_seguro", {
+              body: { fecha, codigo_entidad },
+            })
+          : EjecutarFuncionSQL("aps_fun_borra_tablas_mensuales_seguro", {
+              body: { fecha, codigo_entidad },
+            })
+      );
+    }
     const results = await EjecutarVariosQuerys(querys);
     if (results.ok === null) {
       throw results.result;
