@@ -4167,11 +4167,12 @@ function SimpleReport(params) {
   const { headers, values } = data;
   const ws = wb.addWorksheet(nameSheet);
   const styleDefault = defaultStyleReportExcel(wb, "body");
-  let posXInitial = 6;
+  let posXInitial = 7;
   let posXIteration = posXInitial;
   let posYInitial = 1;
   let posYIteration = posYInitial;
-  addLogoAPS(ws, { max_X: size(headers), initialY: posYInitial });
+  // addLogoAPS(ws, { max_X: size(headers), initialY: posYInitial });
+  addLogoAPSAbsolute(ws); //LOGO
   forEach(values, (itemValue, indexValue) => {
     posYIteration = posYInitial;
     if (indexValue === 0) {

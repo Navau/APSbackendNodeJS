@@ -770,6 +770,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_carga_archivos: item.id_carga_archivos,
           id_rol: item.id_rol,
           reproceso: item.reproceso,
+          cargado: item.cargado,
         };
       } else if (iid_reporte === 7) {
         // VALIDACION SEGUROS
@@ -846,6 +847,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_carga_archivos: item.id_carga_archivos,
           id_rol: item.id_rol,
           reproceso: item.reproceso,
+          cargado: item.cargado,
         };
       } else if (iid_reporte === 28) {
         //VALIDACION INVERSIONES PENSIONES
@@ -1177,6 +1179,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
 
 async function ReporteReproceso(req, res) {
   try {
+    //TO DO: Preguntar que id_rol debe tener cada reporte
     const { fecha, id_rol, periodo, reproceso } = req.body;
     const queryInstituciones = ListarUtil(
       id_rol === 10
@@ -1234,6 +1237,7 @@ async function ReporteReproceso(req, res) {
           id: item.id_carga_archivos,
           descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
           estado: item.cargado ? "Con Éxito" : "Con Error",
+          resultado: item.cargado ? "Con Éxito" : "Con Error",
           reproceso: item.reproceso,
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,
