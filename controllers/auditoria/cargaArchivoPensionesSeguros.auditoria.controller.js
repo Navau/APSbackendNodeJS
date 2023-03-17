@@ -9,6 +9,7 @@ const {
   filter,
   keys,
   sortBy,
+  split,
 } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
@@ -863,6 +864,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           id_valida_archivos: item.id_valida_archivos,
           id_rol: item.id_rol,
           validado: item.validado,
+          reproces: item.reproceso,
         };
       } else if (iid_reporte === 29) {
         //VALORACION CARTERA PENSIONES
@@ -1200,7 +1202,7 @@ async function ReporteReproceso(req, res) {
       EscogerInternoUtil(nameTable, {
         select: ["*"],
         where: [
-          { key: "id_periodo", valuesWhereIn: periodo, whereIn: true },
+          { key: "id_periodo", valuesWhereIn: split(periodo), whereIn: true },
           { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
           {
             key: "cod_institucion",
