@@ -17,6 +17,7 @@ const {
   EjecutarFuncionSQL,
   ObtenerUsuario,
   ObtenerUsuariosPorRol,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -139,42 +140,70 @@ async function Escoger(req, res) {
 }
 
 async function EscogerValidacionPreliminar(req, res) {
-  const { id_carga_archivos, fecha_carga, reproceso, cargado } = req.body;
+  try {
+    const { id_carga_archivos } = req.body;
+    const querys = [
+      EscogerInternoUtil("APS_aud_carga_archivos_pensiones_seguros", {
+        select: ["*"],
+        where: [{ key: "id_carga_archivos", value: id_carga_archivos }],
+      }),
+      EscogerUtil(nameTable, {
+        activo: null,
+        body: {
+          id_carga_archivos,
+        },
+      }),
+    ];
+    const results = await EjecutarVariosQuerys(querys);
 
-  const params = {
-    activo: null,
-    body: {
-      id_carga_archivos,
-    },
-  };
-  const query = EscogerUtil(nameTable, params);
-  if (cargado === true && reproceso === false) {
-    respResultadoIncorrectoObjeto200(
-      res,
-      null,
-      [],
-      "La Validación Preliminar fue exitosa"
-    );
-    return;
-  } else if (cargado === true && reproceso === true) {
-    respResultadoIncorrectoObjeto200(
-      res,
-      null,
-      [],
-      `Hubo Autorización de Reproceso ${dayjs(fecha_carga)
-        .locale("es")
-        .format("[el día] DD [de] MMMM [de] YYYY [a las] HH:mm")}`
-    );
-    return;
+    if (results.ok === null) throw results.result;
+
+    if (results.ok === false) throw results.errors;
+
+    const carga = results.result[0].data?.[0];
+    if (!carga) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        [],
+        `No existe ningún registro con el ID: ${id_carga_archivos}`
+      );
+      return;
+    }
+
+    if (carga.cargado === true && carga.reproceso === false) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        [],
+        "La Validación Preliminar fue exitosa"
+      );
+      return;
+    } else if (carga.cargado === false && carga.reproceso === true) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        [],
+        `Hubo Autorización de Reproceso ${dayjs(carga.fecha_carga)
+          .locale("es")
+          .format("[el día] DD [de] MMMM [de] YYYY [a las] HH:mm")}`
+      );
+      return;
+    }
+
+    const erroresDeCarga = results.result[1].data;
+    if (size(erroresDeCarga) > 0)
+      respResultadoCorrectoObjeto200(res, erroresDeCarga);
+    else
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        erroresDeCarga,
+        "No existe información disponible de los errores"
+      );
+  } catch (err) {
+    respErrorServidor500END(res, err);
   }
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
 }
 
 async function Reporte(req, res) {

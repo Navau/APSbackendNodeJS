@@ -1180,7 +1180,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
 async function ReporteReproceso(req, res) {
   try {
     //TO DO: Preguntar que id_rol debe tener cada reporte
-    const { fecha, id_rol, periodo, reproceso } = req.body;
+    const { fecha, id_rol, periodo, reproceso, id_rol_cargas } = req.body;
     const queryInstituciones = ListarUtil(
       id_rol === 10
         ? "aps_view_modalidad_seguros"
@@ -1216,6 +1216,11 @@ async function ReporteReproceso(req, res) {
             whereIn: true,
           },
           { key: "fecha_operacion", value: fecha },
+          size(id_rol_cargas) > 0 && {
+            key: "id_rol",
+            valuesWhereIn: id_rol_cargas,
+            whereIn: true,
+          },
         ],
       }),
       ListarUtil("APS_seg_usuario"),
@@ -1237,7 +1242,12 @@ async function ReporteReproceso(req, res) {
           id: item.id_carga_archivos,
           descripcion: item.id_periodo === 154 ? "Diaria" : "Mensual",
           estado: item.cargado ? "Con Éxito" : "Con Error",
-          resultado: item.cargado ? "Con Éxito" : "Con Error",
+          resultado:
+            item.reproceso === true && item.cargado === false
+              ? "Reproceso"
+              : item.cargado
+              ? "Con Éxito"
+              : "Con Error",
           reproceso: item.reproceso,
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,
