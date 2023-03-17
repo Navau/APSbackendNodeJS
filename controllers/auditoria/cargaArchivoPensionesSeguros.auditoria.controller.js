@@ -756,6 +756,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
 
     const resultFinal = map(resultAux, (item) => {
       if (iid_reporte === 6) {
+        // VALIDACION PRELIMINAR SEGUROS
         return {
           id: item.id_carga_archivos,
           descripcion: item.descripcion,
@@ -767,8 +768,10 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           usuario: item.usuario,
           id_carga_archivos: item.id_carga_archivos,
           id_rol: item.id_rol,
+          reproceso: item.reproceso,
         };
       } else if (iid_reporte === 7) {
+        // VALIDACION SEGUROS
         return {
           id: item.id_valida_archivos,
           estado: item.validado ? "Con Éxito" : "Con Error",
@@ -785,6 +788,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           validado: item.validado,
         };
       } else if (iid_reporte === 8) {
+        //VALORACION CARTERA
         return {
           id: item.id_valora_archivos,
           estado: item.valorado ? "Con Éxito" : "Con Error",
@@ -840,6 +844,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
           usuario: item.usuario,
           id_carga_archivos: item.id_carga_archivos,
           id_rol: item.id_rol,
+          reproceso: item.reproceso,
         };
       } else if (iid_reporte === 28) {
         //VALIDACION INVERSIONES PENSIONES
