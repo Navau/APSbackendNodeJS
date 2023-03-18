@@ -40,6 +40,7 @@ exports.obtenerTokenApi = async function (data) {
         const status = response?.status;
         return {
           ok: status === 200 ? true : false,
+          status,
           result,
         };
       })
@@ -54,9 +55,9 @@ exports.obtenerTokenApi = async function (data) {
 exports.obtenerInfoUsuarioApi = async function (token, data) {
   try {
     //GET
-    const { username, app } = data;
+    const { usuario, app } = data;
     const { token_value, token_type } = token;
-    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${username}/app/${app}`;
+    const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${usuario}/app/${app}`;
     const options = {
       headers: {
         Authorization: `${token_type} ${token_value}`,
@@ -73,6 +74,7 @@ exports.obtenerInfoUsuarioApi = async function (token, data) {
         const status = response?.status;
         return {
           ok: status === 200 ? true : false,
+          status,
           result,
         };
       })
@@ -104,7 +106,8 @@ exports.actualizarContraseñaUsuarioApi = async function (token, data) {
         const result = response.data;
         const status = response?.status;
         return {
-          ok: status === 200 ? true : false,
+          ok: status === 200 || status === 201 ? true : false,
+          status,
           result,
         };
       })

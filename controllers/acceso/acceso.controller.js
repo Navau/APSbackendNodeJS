@@ -1,6 +1,16 @@
 const jwt = require("../../services/jwt.services");
 const moment = require("moment");
 const pool = require("../../database");
+const {
+  estadoJWT,
+  obtenerToken,
+  obtenerInfoUsuario,
+} = require("../../api/autenticacion.api");
+const {
+  respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
+} = require("../../utils/respuesta.utils");
+const { APP_GUID } = require("../../config");
 
 function willExpiredToken(token) {
   const { exp } = jwt.decodedToken(token);
@@ -66,7 +76,6 @@ function refreshAccessToken(req, res) {
 }
 
 function Login(req, res) {
-  // #swagger.description = "Description here..."
   const body = req.body;
   const user = body.usuario.toLowerCase();
   const password = body.password;
@@ -177,8 +186,32 @@ function TokenConRol(req, res) {
   }
 }
 
+async function LoginApiExterna(req, res) {
+  try {
+    const body = req.body;
+    const user = body.usuario.toLowerCase();
+    const password = body.password;
+    estadoJWT(res); //VERIFICAR ESTADO DE SERVICIO
+    const data = {
+      usuario: user,
+      password,
+      app: APP_GUID,
+    };
+    const tokenInfo = await obtenerToken(data, res); //OBTENER TOKEN
+    const token = {
+      token_value: tokenInfo.access_token,
+      token_type: tokenInfo.token_type,
+    };
+    const usuario = await obtenerInfoUsuario(token, data, res); // OBTIENE INFO DE USUARIO
+    respResultadoCorrectoObjeto200(res, usuario); //RESPUESTA
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 module.exports = {
   refreshAccessToken,
   Login,
+  LoginApiExterna,
   TokenConRol,
 };
