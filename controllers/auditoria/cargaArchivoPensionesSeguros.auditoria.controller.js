@@ -1201,27 +1201,26 @@ async function ReporteReproceso(req, res) {
       respDatosNoRecibidos400(res, "No se envio la periodicidad");
       return;
     }
+    const whereAux = [
+      { key: "id_periodo", valuesWhereIn: split(periodo), whereIn: true },
+      { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
+      {
+        key: "cod_institucion",
+        valuesWhereIn: map(instituciones.result, (item) => `'${item.codigo}'`),
+        whereIn: true,
+      },
+      { key: "fecha_operacion", value: fecha },
+    ];
+    if (size(id_rol_cargas) > 0)
+      whereAux.push({
+        key: "id_rol",
+        valuesWhereIn: id_rol_cargas,
+        whereIn: true,
+      });
     const querys = [
       EscogerInternoUtil(nameTable, {
         select: ["*"],
-        where: [
-          { key: "id_periodo", valuesWhereIn: split(periodo), whereIn: true },
-          { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
-          {
-            key: "cod_institucion",
-            valuesWhereIn: map(
-              instituciones.result,
-              (item) => `'${item.codigo}'`
-            ),
-            whereIn: true,
-          },
-          { key: "fecha_operacion", value: fecha },
-          size(id_rol_cargas) > 0 && {
-            key: "id_rol",
-            valuesWhereIn: id_rol_cargas,
-            whereIn: true,
-          },
-        ],
+        where: whereAux,
       }),
       ListarUtil("APS_seg_usuario"),
     ];
