@@ -161,6 +161,7 @@ async function EscogerValidacionPreliminar(req, res) {
     if (results.ok === false) throw results.errors;
 
     const carga = results.result[0].data?.[0];
+    console.log();
     if (!carga) {
       respResultadoIncorrectoObjeto200(
         res,
@@ -183,7 +184,14 @@ async function EscogerValidacionPreliminar(req, res) {
       respResultadoIncorrectoObjeto200(
         res,
         null,
-        [],
+        [
+          {
+            id: carga.id_carga_archivos,
+            cod_institucion: carga.cod_institucion,
+            descripcion: "Hubo Autorización de Reproceso",
+            fecha_carga: carga.fecha_carga,
+          },
+        ],
         `Hubo Autorización de Reproceso ${dayjs(carga.fecha_carga)
           .locale("es")
           .format("[el día] DD [de] MMMM [de] YYYY [a las] HH:mm")}`

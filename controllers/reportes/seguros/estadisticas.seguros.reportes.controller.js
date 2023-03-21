@@ -694,7 +694,7 @@ async function EstadisticasInversiones(req, res) {
       optionsReport.push(
         map(infoReporte.fun, (item, indexFun) => {
           const paramsAux = [];
-          forEach(infoReporte.params[indexFun], (param) => {
+          forEach(infoReporte.params?.[indexFun], (param) => {
             paramsAux.push(param);
           });
           return {
