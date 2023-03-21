@@ -1180,7 +1180,8 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
 async function ReporteReproceso(req, res) {
   try {
     //TO DO: Preguntar que id_rol debe tener cada reporte
-    const { fecha, id_rol, periodo, reproceso, id_rol_cargas } = req.body;
+    const { fecha, id_rol, periodo, reproceso } = req.body;
+    const id_rol_final = req.user.id_rol;
     const queryInstituciones = ListarUtil(
       id_rol === 10
         ? "aps_view_modalidad_seguros"
@@ -1211,11 +1212,10 @@ async function ReporteReproceso(req, res) {
       },
       { key: "fecha_operacion", value: fecha },
     ];
-    if (size(id_rol_cargas) > 0)
+    if (id_rol_final === 4 || id_rol_final === 5)
       whereAux.push({
         key: "id_rol",
-        valuesWhereIn: id_rol_cargas,
-        whereIn: true,
+        value: id_rol_final,
       });
     const querys = [
       EscogerInternoUtil(nameTable, {
@@ -1334,9 +1334,13 @@ function NombreReporte(req, res) {
 
 async function Entidades(req, res) {
   try {
-    const { id_tipo_modalidad } = req.body;
+    const { id_tipo_modalidad, id_rol } = req.body;
+    const viewModalidad =
+      id_rol === 7
+        ? "aps_view_modalidad_pensiones"
+        : "aps_view_modalidad_seguros";
     const querys = [
-      EscogerInternoUtil("aps_view_modalidad_seguros", {
+      EscogerInternoUtil(viewModalidad, {
         select: ["*"],
         where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
       }),
