@@ -836,7 +836,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         //VALIDACION PRELIMINAR PENSIONES
         return {
           id: item.id_carga_archivos,
-          tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contables",
+          tipo_informacion: item.id_rol === 4 ? "Inversiones" : "Contable",
           descripcion: item.descripcion,
           estado: item.resultado,
           cod_institucion: item.cod_institucion,
@@ -854,7 +854,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         return {
           id: item.id_valida_archivos,
           tipo_informacion:
-            item.id_rol_carga === 4 ? "Inversiones" : "Contables",
+            item.id_rol_carga === 4 ? "Inversiones" : "Contable",
           estado: item.validado ? "Con Éxito" : "Con Error",
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,
@@ -919,7 +919,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
         return {
           id: item.id_valida_archivos,
           tipo_informacion:
-            item.id_rol_carga === 4 ? "Inversiones" : "Contables",
+            item.id_rol_carga === 4 ? "Inversiones" : "Contable",
           estado: item.validado ? "Con Éxito" : "Con Error",
           cod_institucion: item.cod_institucion,
           fecha_operacion: item.fecha_operacion,
