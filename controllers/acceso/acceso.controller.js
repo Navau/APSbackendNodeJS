@@ -1,6 +1,9 @@
 const jwt = require("../../services/jwt.services");
 const moment = require("moment");
 const pool = require("../../database");
+const format = require("pg-format");
+const validator = require("validator");
+
 const {
   estadoJWT,
   obtenerToken,
@@ -9,6 +12,8 @@ const {
 const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
+  respResultadoVacio404END,
+  respLoginResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 const { APP_GUID } = require("../../config");
 
@@ -75,91 +80,74 @@ function refreshAccessToken(req, res) {
   }
 }
 
-function Login(req, res) {
-  const body = req.body;
-  const user = body.usuario.toLowerCase();
-  const password = body.password;
+async function Login(req, res) {
+  try {
+    const body = req.body;
+    const user = body.usuario.toLowerCase();
+    const password = body.password;
+    const values = [user, password];
+    const queryUsuario = format(
+      'SELECT * FROM public."APS_seg_usuario" WHERE usuario = %L AND password is NOT NULL AND password = crypt(%L, password);',
+      ...values
+    );
+    console.log(queryUsuario);
+    await pool
+      .query(queryUsuario)
+      .then(async (result) => {
+        if (result.rowCount > 0) {
+          const valuesRol = [result.rows[0].id_usuario, true];
+          const queryRol = format(
+            `SELECT id_rol FROM public."APS_seg_usuario_rol" WHERE id_usuario = %L and activo = %L;`,
+            ...valuesRol
+          );
+          console.log(queryRol);
 
-  let query = `SELECT * 
-  FROM public."APS_seg_usuario" 
-  WHERE usuario = '${user}' 
-  AND password is NOT NULL 
-  AND password = crypt('${password}', password);`;
-
-  // console.log(query);
-
-  pool.query(query, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send({
-        resultado: 0,
-        datos: null,
-        mensaje: "Error del servidor",
-        err,
-      });
-    } else {
-      if (!result.rowCount || result.rowCount < 1) {
-        res.status(404).send({
-          resultado: 0,
-          datos: null,
-          mensaje: "Usuario y/o Contraseña incorrecto",
-        });
-      } else {
-        let queryRol = `SELECT id_rol 
-        FROM public."APS_seg_usuario_rol" 
-        WHERE id_usuario = ${result.rows[0].id_usuario} and activo = true;`;
-
-        console.log(queryRol);
-
-        pool.query(queryRol, (err, result2) => {
-          if (err) {
-            res.status(500).send({
-              resultado: 0,
-              datos: null,
-              mensaje: "Error del servidor",
-              err,
+          await pool
+            .query(queryRol)
+            .then((result2) => {
+              if (result2.rowCount > 0) {
+                const resultFinal = {
+                  id_usuario: result.rows[0].id_usuario,
+                  id_rol: result2.rows[0].id_rol,
+                };
+                if (result2.rowCount >= 2) {
+                  respLoginResultadoCorrectoObjeto200(
+                    res,
+                    jwt.createAccessTokenWithRol(resultFinal),
+                    { rol: result2.rows, usuario: result.rows },
+                    "Usuario correcto. (Mas de 1 Rol)"
+                  );
+                } else if (result2.rowCount === 1) {
+                  respLoginResultadoCorrectoObjeto200(
+                    res,
+                    jwt.createAccessTokenWithRol(resultFinal),
+                    { rol: result2.rows, usuario: result.rows },
+                    "Usuario correcto. (Solo 1 Rol)"
+                  );
+                } else {
+                  respErrorServidor500END(
+                    res,
+                    "Hubo un error al crear el token de autenticación"
+                  );
+                }
+              } else
+                respResultadoVacio404END(
+                  res,
+                  "Este usuario no cuenta con un Rol"
+                );
+            })
+            .catch((err) => {
+              respErrorServidor500END(res, err);
             });
-          } else {
-            if (!result2.rowCount || result2.rowCount < 1) {
-              res.status(404).send({
-                resultado: 0,
-                datos: null,
-                mensaje: "Este usuario no cuenta con un Rol",
-              });
-            } else {
-              let resultAux = {
-                id_usuario: result.rows[0].id_usuario,
-                id_rol: result2.rows[0].id_rol,
-              };
-              if (result2.rowCount >= 2) {
-                res.status(200).send({
-                  resultado: 1,
-                  datos: jwt.createAccessTokenWithRol(resultAux),
-                  mensaje: "Usuario correcto. (Mas de 1 Rol)",
-                  result2: result2.rows,
-                  result: result.rows,
-                });
-              } else if (result2.rowCount === 1) {
-                res.status(200).send({
-                  resultado: 1,
-                  datos: jwt.createAccessTokenWithRol(resultAux),
-                  mensaje: "Usuario correcto. (Solo 1 Rol)",
-                  result2: result2.rows,
-                  result: result.rows,
-                });
-              } else {
-                res.status(400).send({
-                  resultado: 0,
-                  datos: null,
-                  mensaje: "Hubo un error al crear el token de autenticación",
-                });
-              }
-            }
-          }
-        });
-      }
-    }
-  });
+        } else
+          respResultadoVacio404END(res, "Usuario y/o Contraseña incorrecto");
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 function TokenConRol(req, res) {
@@ -168,21 +156,17 @@ function TokenConRol(req, res) {
   const { id_usuario } = jwt.decodedToken(req.headers.authorization);
 
   if (!id_usuario || !id_rol) {
-    res.status(404).send({
-      resultado: 0,
-      datos: null,
-      mensaje: "No se recibió la información suficiente",
-    });
+    respResultadoVacio404END(res, "No se recibió la información suficiente");
   } else {
-    let user = {
+    const user = {
       id_usuario,
       id_rol,
     };
-    res.status(200).send({
-      resultado: 1,
-      datos: jwt.createAccessTokenWithRol(user),
-      mensaje: "Token con Rol creado correctamente",
-    });
+    respResultadoCorrectoObjeto200(
+      res,
+      jwt.createAccessTokenWithRol(user),
+      "Token con Rol creado correctamente"
+    );
   }
 }
 

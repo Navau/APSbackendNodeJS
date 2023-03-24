@@ -190,6 +190,18 @@ function respResultadoCorrectoObjeto200(res, data, msg) {
     .end();
 }
 
+function respLoginResultadoCorrectoObjeto200(res, data, results, msg) {
+  res
+    .status(200)
+    .send({
+      resultado: 1,
+      datos: data,
+      resultados: results,
+      mensaje: msg ? msg : "La petición fue realizada correctamente",
+    })
+    .end();
+}
+
 function respDatosNoRecibidos200END(res, msg) {
   res
     .status(200)
@@ -286,4 +298,5 @@ module.exports = {
   respDescargarArchivos200,
   respUsuarioNoAutorizado200END,
   respDatosNoRecibidos200END,
+  respLoginResultadoCorrectoObjeto200,
 };
