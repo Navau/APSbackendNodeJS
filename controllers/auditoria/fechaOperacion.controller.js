@@ -190,6 +190,14 @@ async function obtenerFechaOperacion(req, res) {
           key: "cargado",
           value: true,
         },
+        {
+          key: "reproceso",
+          value: true,
+        },
+        {
+          key: "reprocesado",
+          value: false,
+        },
       ];
     } else if (tipo_archivo === "PENSIONES") {
       whereMax = [

@@ -27,6 +27,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.ReporteExito
 );
+api.post(
+  "/HabilitarReproceso",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.HabilitarReproceso
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

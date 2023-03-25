@@ -13,6 +13,8 @@ const {
   EscogerInternoUtil,
   ObtenerUltimoRegistro,
   ValorMaximoDeCampoUtil,
+  EjecutarFuncionSQL,
+  EjecutarVariosQuerys,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -183,6 +185,38 @@ async function UltimaCarga2(req, res) {
       console.log(err);
       respErrorServidor500(res, err);
     });
+}
+
+//TO DO: Arreglar todo lo referente a SQL inyection
+async function HabilitarReproceso(req, res) {
+  try {
+    const { fecha } = req.body;
+    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
+      "YYYY-MM-DD HH:mm:ss.SSS"
+    )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND cargado = true RETURNING *;`;
+    console.log(queryUpdate);
+    const querys = [
+      queryUpdate,
+      EjecutarFuncionSQL("aps_fun_borra_tablas_bolsa", {
+        body: { fecha },
+      }),
+    ];
+
+    const results = await EjecutarVariosQuerys(querys);
+    if (results.ok === null) {
+      throw results.result;
+    }
+    if (results.ok === false) {
+      throw results.errors;
+    }
+
+    respResultadoCorrectoObjeto200(res, {
+      actualizacion: results.result[0].data,
+      eliminacion: results.result[1].data,
+    });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 // OBTENER TODOS LOS CARGA ARCHIVO BOLSA DE SEGURIDAD
@@ -420,4 +454,5 @@ module.exports = {
   UltimaCarga,
   UltimaCarga2,
   ReporteExito,
+  HabilitarReproceso,
 };

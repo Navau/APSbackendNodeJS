@@ -52,6 +52,23 @@ async function CargarArchivo(req, res) {
     const previousErrors = req.errors;
     const returnsValues = req.returnsValues;
     const idCargaArchivos = returnsValues[0].id_carga_archivos;
+    const cargaBolsaActual = await pool
+      .query(
+        EscogerInternoUtil(nameTable, {
+          select: ["*"],
+          where: [{ key: "id_carga_archivos", value: idCargaArchivos }],
+        })
+      )
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result: result.rows?.[0] };
+        else return { ok: false, result: result.rows?.[0] };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    if (cargaBolsaActual.ok === null) throw cargaBolsaActual.err;
+    if (cargaBolsaActual.ok === false)
+      throw new Error(`No existe el registro con el id ${idCargaArchivos}`);
     const resultFinal = [];
     const tablesFilesArray = [];
     const sequencesTablesFilesArray = [];
@@ -659,11 +676,24 @@ async function CargarArchivo(req, res) {
       }
     });
 
-    const actualizarCampoCargado = async (resp, state) => {
+    const actualizarCampoCargado = async (
+      resp,
+      state,
+      codInst,
+      reprocesado = false
+    ) => {
+      const bodyAux = {
+        cargado: state,
+      };
+      if (
+        codInst === "bolsa" &&
+        cargaBolsaActual.result.reproceso === true &&
+        cargaBolsaActual.result.reprocesado === false
+      ) {
+        bodyAux.reprocesado = reprocesado;
+      }
       const queryUpdateForError = ActualizarUtil(infoTables.table, {
-        body: {
-          cargado: state,
-        },
+        body: bodyAux,
         idKey: "id_carga_archivos",
         idValue: idCargaArchivos,
       });
@@ -922,6 +952,8 @@ async function CargarArchivo(req, res) {
               resultDelete,
               idCargaArchivos,
             }),
+            false,
+            infoTables.cod_institution,
             false
           );
         } else {
@@ -945,12 +977,16 @@ async function CargarArchivo(req, res) {
             } else {
               actualizarCampoCargado(
                 respResultadoCorrectoObjeto200(res, finalRespArray),
+                true,
+                infoTables.cod_institution,
                 true
               );
             }
           } else {
             actualizarCampoCargado(
               respResultadoCorrectoObjeto200(res, finalRespArray),
+              true,
+              infoTables.cod_institution,
               true
             );
           }
@@ -974,6 +1010,8 @@ async function CargarArchivo(req, res) {
               idCargaArchivos: idCargaArchivos,
             },
             `Ocurrió un error inesperado. ERROR: ${err.message}`,
+            false,
+            infoTables.cod_institution,
             false
           )
         );
