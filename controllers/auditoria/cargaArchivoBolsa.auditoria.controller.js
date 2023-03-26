@@ -191,9 +191,9 @@ async function UltimaCarga2(req, res) {
 async function HabilitarReproceso(req, res) {
   try {
     const { fecha } = req.body;
-    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
+    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_bolsa" SET cargado = false, fecha_carga = '${moment().format(
       "YYYY-MM-DD HH:mm:ss.SSS"
-    )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND cargado = true RETURNING *;`;
+    )}', reproceso = true WHERE fecha_operacion = '${fecha}' AND cargado = true RETURNING *;`;
     console.log(queryUpdate);
     const querys = [
       queryUpdate,
