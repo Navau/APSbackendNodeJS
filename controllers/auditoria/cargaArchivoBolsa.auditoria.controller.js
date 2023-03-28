@@ -28,6 +28,7 @@ const {
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
+const dayjs = require("dayjs");
 
 const nameTable = "APS_aud_carga_archivos_bolsa";
 
@@ -191,9 +192,9 @@ async function UltimaCarga2(req, res) {
 async function HabilitarReproceso(req, res) {
   try {
     const { fecha } = req.body;
-    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_bolsa" SET cargado = false, fecha_carga = '${moment().format(
-      "YYYY-MM-DD HH:mm:ss.SSS"
-    )}', reproceso = true WHERE fecha_operacion = '${fecha}' AND cargado = true RETURNING *;`;
+    const queryUpdate = `UPDATE public."APS_aud_carga_archivos_bolsa" SET cargado = false, fecha_carga = now(), reproceso = true WHERE fecha_operacion = '${dayjs(
+      fecha
+    ).format("YYYY-MM-DD")}' AND cargado = true RETURNING *;`;
     console.log(queryUpdate);
     const querys = [
       queryUpdate,
