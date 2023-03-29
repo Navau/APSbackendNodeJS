@@ -17,6 +17,7 @@ async function estadoJWT(res) {
   } catch (err) {
     if (err.ok === false) respResultadoIncorrectoObjeto200(res, err, []);
     else respErrorServidor500END(res, err);
+    return null;
   }
 }
 
@@ -29,6 +30,7 @@ async function obtenerToken(data, res) {
   } catch (err) {
     if (err.ok === false) respResultadoIncorrectoObjeto200(res, err, []);
     else respErrorServidor500END(res, err);
+    return null;
   }
 }
 
@@ -41,6 +43,7 @@ async function obtenerInfoUsuario(token, data, res) {
   } catch (err) {
     if (err.ok === false) respResultadoIncorrectoObjeto200(res, err, []);
     else respErrorServidor500END(res, err);
+    return null;
   }
 }
 

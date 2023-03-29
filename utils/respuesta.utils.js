@@ -179,12 +179,23 @@ function respResultadoIncorrectoObjeto200(res, err, data, msg) {
     .end();
 }
 
-function respResultadoCorrectoObjeto200(res, data, msg) {
+function respDemasiadasSolicitudes429(res, data, msg) {
+  res
+    .status(200)
+    .send({
+      resultado: 0,
+      datos: data,
+      mensaje: msg ? msg : "Se realizaron muchas peticiones",
+    })
+    .end();
+}
+
+function respResultadoCorrectoObjeto200(res, msg) {
   res
     .status(200)
     .send({
       resultado: 1,
-      datos: data,
+      datos: null,
       mensaje: msg ? msg : "La petición fue realizada correctamente",
     })
     .end();
@@ -299,4 +310,5 @@ module.exports = {
   respUsuarioNoAutorizado200END,
   respDatosNoRecibidos200END,
   respLoginResultadoCorrectoObjeto200,
+  respDemasiadasSolicitudes429,
 };

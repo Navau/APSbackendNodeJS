@@ -64,7 +64,6 @@ exports.obtenerInfoUsuarioApi = async function (token, data) {
         "Content-Type": "application/json",
       },
     };
-    console.log(data);
     const body = JSON.stringify(data);
 
     return await axios
