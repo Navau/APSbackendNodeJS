@@ -685,10 +685,12 @@ async function CargarArchivo(req, res) {
       const bodyAux = {
         cargado: state,
       };
+      console.log(req.body);
       if (
         codInst === "bolsa" &&
         cargaBolsaActual.result.reproceso === true &&
-        cargaBolsaActual.result.reprocesado === false
+        cargaBolsaActual.result.reprocesado === false &&
+        req.body?.reproceso === true
       ) {
         bodyAux.reprocesado = reprocesado;
       }

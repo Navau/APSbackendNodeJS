@@ -27,6 +27,7 @@ const {
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
+  respResultadoVacio404END,
 } = require("../../utils/respuesta.utils");
 const dayjs = require("dayjs");
 
@@ -81,29 +82,33 @@ async function tipoDeCambio(req, res) {
 
 //Obtiene la ultima fecha de operacion siempre que cargado = true
 async function ValorMaximo(req, res) {
-  const { max } = req.body;
+  const { max, reproceso } = req.body;
   const { id_rol, id_usuario } = req.user;
-  let fieldMax = max ? max : "fecha_operacion";
-  let whereFinal = [
+  const fieldMax = max ? max : "fecha_operacion";
+  const wherePushAux =
+    reproceso === true
+      ? [
+          { key: "reproceso", value: true },
+          { key: "reprocesado", value: false },
+        ]
+      : [{ key: "cargado", value: true }];
+  const whereFinal = [
     {
       key: "id_rol",
       value: id_rol,
     },
-    {
-      key: "cargado",
-      value: true,
-    },
+    ...wherePushAux,
   ];
   const params = {
     fieldMax,
     where: whereFinal,
   };
-  let query = ValorMaximoDeCampoUtil(nameTable, params);
+  const query = ValorMaximoDeCampoUtil(nameTable, params);
   await pool
     .query(query)
     .then((result) => {
       if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404(res);
+        respResultadoVacio404END(res);
       } else {
         if (result.rows[0].max === null) {
           result = {
@@ -115,12 +120,11 @@ async function ValorMaximo(req, res) {
             ],
           };
         }
-        respResultadoCorrecto200(res, result);
+        respResultadoCorrectoObjeto200(res, result.rows);
       }
     })
     .catch((err) => {
-      console.log(err);
-      respErrorServidor500(res, err);
+      respErrorServidor500END(res, err);
     });
 }
 
@@ -159,7 +163,7 @@ async function UltimaCarga2(req, res) {
   const { fecha_operacion } = req.body;
   const { id_rol, id_usuario } = req.user;
 
-  let query = `SELECT CASE 
+  const query = `SELECT CASE 
   WHEN maxid > 0 
       THEN nro_carga 
       ELSE 0 
@@ -180,7 +184,7 @@ async function UltimaCarga2(req, res) {
   await pool
     .query(query)
     .then((result) => {
-      respResultadoVacioObject200(res, result.rows[0]);
+      respResultadoCorrectoObjeto200(res, result.rows[0]);
     })
     .catch((err) => {
       console.log(err);

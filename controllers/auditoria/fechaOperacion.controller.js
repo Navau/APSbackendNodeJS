@@ -27,8 +27,8 @@ async function obtenerFechaOperacion(req, res) {
     };
 
     const fechaOperacionDiaria = () => {
-      console.log("lastDateFinal", lastDateFinal);
-      console.log("tipoArchivoFinal", tipoArchivoFinal);
+      // console.log("lastDateFinal", lastDateFinal);
+      // console.log("tipoArchivoFinal", tipoArchivoFinal);
       if (tipoArchivoFinal === "PENSIONES") {
         const fechaOperacion = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
         return fechaOperacion;
@@ -37,16 +37,16 @@ async function obtenerFechaOperacion(req, res) {
         const fechaOperacion = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
         return fechaOperacion;
       } else if (tipoArchivoFinal === "BOLSA") {
-        console.log(tipoArchivoFinal);
+        // console.log(tipoArchivoFinal);
         const checkDate = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
-        console.log(checkDate);
+        // console.log(checkDate);
         let fechaOperacion = null;
         fechaOperacion = checkDate;
         return fechaOperacion;
       } else if (tipoArchivoFinal === "CUSTODIO") {
-        console.log(tipoArchivoFinal);
+        // console.log(tipoArchivoFinal);
         const checkDate = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
-        console.log(checkDate);
+        // console.log(checkDate);
         let fechaOperacion = null;
         fechaOperacion = checkDate;
         return fechaOperacion;
@@ -82,12 +82,13 @@ async function obtenerFechaOperacion(req, res) {
       );
     }
 
-    const { tipo_periodo, tipo_archivo } = req.body; //tipo_archivo = PENSIONES O BOLSA
+    const { tipo_periodo, tipo_archivo, reproceso } = req.body; //tipo_archivo = PENSIONES O BOLSA
     tipoArchivoFinal = tipo_archivo;
     const { id_rol, id_usuario } = req.user;
     console.log("TIPO PERIODO Y TIPO ARCHIVO", {
       tipo_periodo,
       tipo_archivo,
+      reproceso,
     });
     const tableQuery =
       tipo_archivo === "PENSIONES" || tipo_archivo === "SEGUROS"
@@ -186,11 +187,23 @@ async function obtenerFechaOperacion(req, res) {
           key: "id_rol",
           value: id_rol,
         },
-        {
+      ];
+      if (reproceso === true)
+        whereMax.push(
+          {
+            key: "reproceso",
+            value: true,
+          },
+          {
+            key: "reprocesado",
+            value: false,
+          }
+        );
+      else
+        whereMax.push({
           key: "cargado",
           value: true,
-        },
-      ];
+        });
     } else if (tipo_archivo === "PENSIONES") {
       whereMax = [
         {
@@ -246,12 +259,11 @@ async function obtenerFechaOperacion(req, res) {
       fieldMax: "fecha_operacion",
       where: whereMax,
     });
-    console.log("queryMax", queryMax);
 
     const maxFechaOperacion = await pool
       .query(queryMax)
       .then((result) => {
-        console.log("RESULTADO DE MAX FECHA OPERACION", result.rows);
+        // console.log("RESULTADO DE MAX FECHA OPERACION", result.rows);
         if (!result.rowCount || result.rowCount < 1) {
           return formatDate(new Date());
         } else if (result?.rows[0]?.max === null) {
@@ -276,11 +288,11 @@ async function obtenerFechaOperacion(req, res) {
     };
 
     lastDateFinal = new Date(maxFechaOperacion);
-    console.log("lastDate", lastDateFinal);
+    // console.log("lastDate", lastDateFinal);
 
     const result = FECHA_OPERACION[tipo_periodo]();
 
-    console.log(result);
+    // console.log(result);
 
     if (isNaN(Date.parse(result))) {
       respErrorServidor500END(res, {
