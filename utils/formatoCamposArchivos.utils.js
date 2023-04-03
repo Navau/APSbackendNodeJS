@@ -12,7 +12,6 @@ const {
   EscogerInternoUtil,
   InsertarUtil,
   ActualizarUtil,
-  DeshabilitarUtil,
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
   CargarArchivoABaseDeDatosUtil,

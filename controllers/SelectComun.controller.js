@@ -6,7 +6,6 @@ const {
   EscogerUtil,
   InsertarUtil,
   ActualizarUtil,
-  DeshabilitarUtil,
   ValidarIDActualizarUtil,
   ObtenerColumnasDeTablaUtil,
   EscogerInternoUtil,

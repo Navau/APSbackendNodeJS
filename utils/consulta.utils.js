@@ -10,8 +10,10 @@ const {
   split,
   isUndefined,
   isArray,
+  truncate,
 } = require("lodash");
 const pool = require("../database");
+const format = require("pg-format");
 
 //TO DO: Rehacer las consultas y verificar que cosas se usan y cuales no, para simplificar y hacer el codigo mas legible, por ejemplo en el ListarUtil
 
@@ -319,6 +321,7 @@ function ListarUtil(table, params) {
 
 function BuscarUtil(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   params.body && (query = query + `SELECT * FROM public."${table}" `);
   if (params?.activo !== null) {
     query = query + " AND activo IN (true, false)";
@@ -333,14 +336,15 @@ function BuscarUtil(table, params) {
       if (item !== null && typeof item !== "undefined") {
         if (typeof item === "string") {
           index &&
-            (query =
-              query +
-              ` AND lower(${index}::TEXT) like lower('${item}%'::TEXT)`);
+            (query = query + ` AND lower(${index}::TEXT) like lower(%L::TEXT)`);
+          valuesWhereAuxArray.push(item + "%");
         } else if (typeof item === "number") {
           index && (query = query + ` AND ${index} = ${item}`);
         } else if (typeof item === "boolean") {
           index && (query = query + ` AND ${index} = ${item}`);
         }
+        query = format(query, ...valuesWhereAuxArray);
+        valuesWhereAuxArray = [];
       }
     });
   params.body && (query = query = query + ";");
@@ -432,6 +436,7 @@ function EscogerLlaveClasificadorUtil(table, params) {
 
 function EscogerUtil(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   if (params?.clasificador) {
     let indexId = table.indexOf("_", 5);
     let idTable = "id" + table.substring(indexId, table.length);
@@ -471,35 +476,30 @@ function EscogerUtil(table, params) {
               query + ` AND ${params.whereIn.key} in (${valuesAux.join()})`;
           } else {
             if (item instanceof Date) {
-              index &&
-                (query =
-                  query +
-                  ` AND ${index} = '${moment(item).format(
-                    "YYYY-MM-DD HH:mm:ss.SSS"
-                  )}'`);
+              index && (query = query + ` AND ${index} = %L`);
+              valuesWhereAuxArray.push(
+                moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+              );
             } else if (Array.isArray(item)) {
-              index && (query = query + ` AND ${index} IN (${item.join()})`);
+              index && (query = query + ` AND ${index} IN (%L)`);
+              valuesWhereAuxArray.push(item.join());
             } else if (typeof item === "string") {
               if (index === "password") {
                 index &&
-                  (query =
-                    query + ` AND ${index} = crypt('${item}',gen_salt('bf'))`);
-              } else if (index === "fecha_activo") {
-                index &&
-                  (query =
-                    query +
-                    ` AND ${index} = '${moment(item).format(
-                      "YYYY-MM-DD HH:mm:ss.SSS"
-                    )}'`);
+                  (query = query + ` AND ${index} = crypt(%L,gen_salt('bf'))`);
               } else {
-                index && (query = query + ` AND ${index} = '${item}'`);
+                index && (query = query + ` AND ${index} = %L`);
               }
+              valuesWhereAuxArray.push(item);
             } else if (typeof item === "number") {
               index && (query = query + ` AND ${index} = ${item}`);
+              valuesWhereAuxArray.push(item);
             } else if (typeof item === "boolean") {
               index && (query = query + ` AND ${index} = ${item}`);
             }
           }
+          query = format(query, ...valuesWhereAuxArray);
+          valuesWhereAuxArray = [];
         }
       });
 
@@ -521,6 +521,7 @@ function EscogerUtil(table, params) {
 
 function EscogerInternoUtil(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   let blockAux = false;
   const whereFunction = (item, block) => {
     const operatorSQL = item?.operatorSQL ? item.operatorSQL : "AND";
@@ -532,7 +533,8 @@ function EscogerInternoUtil(table, params) {
       query = query + ` ${operatorSQL}`;
     }
     if (item?.like === true) {
-      query = query + ` ${item.key} like '${item.value}%'`;
+      query = query + ` ${item.key} LIKE %L`;
+      valuesWhereAuxArray.push(item.value + "%");
     } else if (item?.whereIn === true) {
       const searchCriteriaWhereIn = item?.searchCriteriaWhereIn
         ? item.searchCriteriaWhereIn
@@ -541,26 +543,23 @@ function EscogerInternoUtil(table, params) {
       map(item.valuesWhereIn, (itemV, indexV) => {
         valuesAux.push(itemV);
       });
-      query =
-        query +
-        ` ${item.key} ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
+      query = query + ` ${item.key} ${searchCriteriaWhereIn} (%L)`;
+      valuesWhereAuxArray.push(valuesAux);
     } else {
       if (typeof item.value === "string") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} '${
-            item.value
-          }'`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       } else if (typeof item.value === "number") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       } else if (typeof item.value === "boolean") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       }
+      valuesWhereAuxArray.push(item.value);
     }
+    query = format(query, ...valuesWhereAuxArray);
+    valuesWhereAuxArray = [];
   };
   query = `SELECT ${params?.select ? params.select.join(", ") : "*"} FROM ${
     table !== "INFORMATION_SCHEMA.COLUMNS" &&
@@ -618,7 +617,8 @@ function EjecutarFuncionSQL(functionName, params) {
       query = query + ` ${operatorSQL}`;
     }
     if (item?.like === true) {
-      query = query + ` ${item.key} like '${item.value}%'`;
+      query = query + ` ${item.key} LIKE %L`;
+      valuesWhereAuxArray.push(item.value + "%");
     } else if (item?.whereIn === true) {
       const searchCriteriaWhereIn = item?.searchCriteriaWhereIn
         ? item.searchCriteriaWhereIn
@@ -627,26 +627,23 @@ function EjecutarFuncionSQL(functionName, params) {
       map(item.valuesWhereIn, (itemV, indexV) => {
         valuesAux.push(itemV);
       });
-      query =
-        query +
-        ` ${item.key} ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
+      query = query + ` ${item.key} ${searchCriteriaWhereIn} (%L)`;
+      valuesWhereAuxArray.push(valuesAux);
     } else {
       if (typeof item.value === "string") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} '${
-            item.value
-          }'`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       } else if (typeof item.value === "number") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       } else if (typeof item.value === "boolean") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       }
+      valuesWhereAuxArray.push(item.value);
     }
+    query = format(query, ...valuesWhereAuxArray);
+    valuesWhereAuxArray = [];
   };
 
   map(params.body, (item, index) => {
@@ -713,7 +710,8 @@ function EjecutarProcedimientoSQL(procedureName, params) {
       query = query + ` ${operatorSQL}`;
     }
     if (item?.like === true) {
-      query = query + ` ${item.key} like '${item.value}%'`;
+      query = query + ` ${item.key} LIKE %L`;
+      valuesWhereAuxArray.push(item.value + "%");
     } else if (item?.whereIn === true) {
       const searchCriteriaWhereIn = item?.searchCriteriaWhereIn
         ? item.searchCriteriaWhereIn
@@ -722,26 +720,23 @@ function EjecutarProcedimientoSQL(procedureName, params) {
       map(item.valuesWhereIn, (itemV, indexV) => {
         valuesAux.push(itemV);
       });
-      query =
-        query +
-        ` ${item.key} ${searchCriteriaWhereIn} (${valuesAux.join(", ")})`;
+      query = query + ` ${item.key} ${searchCriteriaWhereIn} (%L)`;
+      valuesWhereAuxArray.push(valuesAux);
     } else {
       if (typeof item.value === "string") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} '${
-            item.value
-          }'`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       } else if (typeof item.value === "number") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       } else if (typeof item.value === "boolean") {
         query =
-          query +
-          ` ${item.key} ${item?.operator ? item.operator : "="} ${item.value}`;
+          query + ` ${item.key} ${item?.operator ? item.operator : "="} %L`;
       }
+      valuesWhereAuxArray.push(item.value);
     }
+    query = format(query, ...valuesWhereAuxArray);
+    valuesWhereAuxArray = [];
   };
 
   map(params.body, (item, index) => {
@@ -797,6 +792,8 @@ function EjecutarProcedimientoSQL(procedureName, params) {
 
 function InsertarUtil(table, params) {
   let query = "";
+  let indexInsertAuxArray = [];
+  let valuesInsertAuxArray = [];
   params.body && (query = query + `INSERT INTO public."${table}"`);
   query && (query = query + " (");
 
@@ -806,9 +803,11 @@ function InsertarUtil(table, params) {
     map(params.body, (item, index) => {
       if (idAux.idKey !== index) {
         index = ponerComillasACamposConMayuscula(index);
-        index && (query = query + `${index}, `);
+        index && (query = query + `%I, `);
+        indexInsertAuxArray.push(index);
       }
     });
+  query = format(query, ...indexInsertAuxArray);
 
   query && (query = query.substring(0, query.length - 2));
   query && (query = query + ") VALUES (");
@@ -816,43 +815,52 @@ function InsertarUtil(table, params) {
   map(params.body, (item, index) => {
     if (idAux.idKey !== index) {
       if (item instanceof Date) {
-        index &&
-          (query =
-            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+        index && (query = query + `%L, `);
+        valuesInsertAuxArray.push(
+          moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+        );
       } else {
         if (typeof item === "string") {
           if (index === "password") {
-            index && (query = query + `crypt('${item}', gen_salt('bf')), `);
+            index && (query = query + `crypt(%L, gen_salt('bf')), `);
+            valuesInsertAuxArray.push(item);
           } else if (
             index === "fecha_activo" ||
             index === "fecha_emision" ||
             index === "fecha_vencimiento" ||
             index === "vencimiento_1er_cupon"
           ) {
-            index &&
-              (query =
-                query +
-                `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(
+              moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+            );
           } else {
-            index && (query = query + `'${item}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(item);
           }
         } else if (typeof item === "number") {
-          index && (query = query + `${item}, `);
+          index && (query = query + `%L, `);
+          valuesInsertAuxArray.push(item);
         } else if (typeof item === "boolean") {
-          index && (query = query + `${item}, `);
+          index && (query = query + `%L, `);
+          valuesInsertAuxArray.push(item);
         } else if (typeof item === "object" && item === null) {
-          index && (query = query + `${item}, `);
+          index && (query = query + `%L, `);
+          valuesInsertAuxArray.push(item);
         } else {
           if (index === "fecha_activo") {
-            index &&
-              (query =
-                query +
-                `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(
+              moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+            );
           } else {
-            index && (query = query + `'${item}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(item);
           }
         }
       }
+      query = format(query, ...valuesInsertAuxArray);
+      valuesInsertAuxArray = [];
     }
   });
 
@@ -953,7 +961,8 @@ function InsertarVariosUtil(table, params) {
 
 function ActualizarUtil(table, params) {
   let query = "";
-
+  let valuesAndIndexUpdateAuxArray = [];
+  let valuesWhereAuxArray = [];
   delete params.body[params.idKey];
 
   params.body && (query = query + `UPDATE public."${table}" SET`);
@@ -961,53 +970,67 @@ function ActualizarUtil(table, params) {
     map(params.body, (item, index) => {
       index = ponerComillasACamposConMayuscula(index);
       if (item instanceof Date) {
-        index &&
-          (query =
-            query +
-            ` ${index} = '${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}',`);
+        index && (query = query + ` %I = %L,`);
+        valuesAndIndexUpdateAuxArray.push(index);
+        valuesAndIndexUpdateAuxArray.push(
+          moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+        );
       } else if (typeof item === "string") {
         if (index === "password") {
-          index &&
-            (query = query + ` ${index} = crypt('${item}',gen_salt('bf')),`);
+          index && (query = query + ` %I = crypt(%L,gen_salt('bf')),`);
+          valuesAndIndexUpdateAuxArray.push(index);
+          valuesAndIndexUpdateAuxArray.push(item);
         } else if (
           index === "fecha_activo" ||
           index === "fecha_emision" ||
           index === "fecha_vencimiento" ||
           index === "vencimiento_1er_cupon"
         ) {
-          index &&
-            (query =
-              query +
-              ` ${index} = '${moment(item).format(
-                "YYYY-MM-DD HH:mm:ss.SSS"
-              )}',`);
+          index && (query = query + ` %I = %L,`);
+          valuesAndIndexUpdateAuxArray.push(index);
+          valuesAndIndexUpdateAuxArray.push(
+            moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+          );
         } else {
-          index && (query = query + ` ${index} = '${item}',`);
+          index && (query = query + ` %I = %L,`);
+          valuesAndIndexUpdateAuxArray.push(index);
+          valuesAndIndexUpdateAuxArray.push(item);
         }
       } else if (typeof item === "number") {
-        index && (query = query + ` ${index} = ${item},`);
+        index && (query = query + ` %I = %L,`);
+        valuesAndIndexUpdateAuxArray.push(index);
+        valuesAndIndexUpdateAuxArray.push(item);
       } else if (typeof item === "boolean") {
-        index && (query = query + ` ${index} = ${item},`);
+        index && (query = query + ` %I = %L,`);
+        valuesAndIndexUpdateAuxArray.push(index);
+        valuesAndIndexUpdateAuxArray.push(item);
       } else if (typeof item === "object" && item === null) {
-        index && (query = query + ` ${index} = ${item},`);
+        index && (query = query + ` %I = %L,`);
+        valuesAndIndexUpdateAuxArray.push(index);
+        valuesAndIndexUpdateAuxArray.push(item);
       } else {
         if (index === "fecha_activo") {
-          index &&
-            (query =
-              query +
-              ` ${index} = '${moment(item).format(
-                "YYYY-MM-DD HH:mm:ss.SSS"
-              )}',`);
+          index && (query = query + ` %I = %L,`);
+          valuesAndIndexUpdateAuxArray.push(index);
+          valuesAndIndexUpdateAuxArray.push(
+            moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+          );
         } else {
-          index && (query = query + ` ${index} = '${item}',`);
+          index && (query = query + ` %I = %L,`);
+          valuesAndIndexUpdateAuxArray.push(index);
+          valuesAndIndexUpdateAuxArray.push(item);
         }
       }
+      query = format(query, ...valuesAndIndexUpdateAuxArray);
+      valuesAndIndexUpdateAuxArray = [];
     });
 
   query = query.substring(0, query.length - 1);
 
-  params.idKey &&
-    (query = query + ` WHERE ${params.idKey} = '${params.idValue}'`);
+  valuesWhereAuxArray = [params.idKey, params.idValue];
+  params.idKey && (query = query + ` WHERE %I = %L`);
+  query = format(query, ...valuesWhereAuxArray);
+  valuesWhereAuxArray = [];
 
   params?.returnValue && (query = query = query + ` RETURNING `);
 
@@ -1023,73 +1046,24 @@ function ActualizarUtil(table, params) {
   return query;
 }
 
-function DeshabilitarUtil(table, params) {
-  let query = "";
-
-  delete params.body[params.idKey];
-
-  params.body && (query = query + `UPDATE public."${table}" SET`);
-  query &&
-    map(params.body, (item, index) => {
-      index = ponerComillasACamposConMayuscula(index);
-      if (typeof item === "string") {
-        if (index === "password") {
-          index &&
-            (query = query + ` ${index} = crypt('${item}',gen_salt('bf')),`);
-        } else if (index === "fecha_activo") {
-          index &&
-            (query =
-              query +
-              ` ${index} = '${moment(item).format(
-                "YYYY-MM-DD HH:mm:ss.SSS"
-              )}',`);
-        } else {
-          index && (query = query + ` ${index} = '${item}',`);
-        }
-      } else if (typeof item === "number") {
-        index && (query = query + ` ${index} = ${item},`);
-      } else if (typeof item === "boolean") {
-        index && (query = query + ` ${index} = ${item},`);
-      } else if (typeof item === "object" && item === null) {
-        index && (query = query + ` ${index} = ${item},`);
-      } else {
-        if (index === "fecha_activo") {
-          index &&
-            (query =
-              query +
-              ` ${index} = '${moment(item).format(
-                "YYYY-MM-DD HH:mm:ss.SSS"
-              )}',`);
-        } else {
-          index && (query = query + ` ${index} = '${item}',`);
-        }
-      }
-    });
-
-  query = query.substring(0, query.length - 1);
-
-  params.idKey &&
-    (query = query + ` WHERE ${params.idKey} = '${params.idValue}';`);
-
-  console.log(query);
-
-  return query;
-}
-
 function EliminarUtil(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   params?.where && (query = query + `DELETE FROM public."${table}"`);
 
   if (params?.where) {
     map(params.where, (item, index) => {
       if (typeof item === "string") {
-        query = query + ` AND ${index} = '${item}'`;
+        query = query + ` AND ${index} = %L`;
       } else if (typeof item === "number") {
-        query = query + ` AND ${index} = ${item}`;
+        query = query + ` AND ${index} = %L`;
       } else if (typeof item === "boolean") {
-        query = query + ` AND ${index} = ${item}`;
+        query = query + ` AND ${index} = %L`;
       }
+      valuesWhereAuxArray.push(item);
     });
+    query = format(query, ...valuesWhereAuxArray);
+    valuesWhereAuxArray = [];
   }
   if (!query.includes("WHERE")) {
     let queryAux = query.split("");
@@ -1633,7 +1607,6 @@ module.exports = {
   InsertarUtil,
   InsertarVariosUtil,
   ActualizarUtil,
-  DeshabilitarUtil,
   EliminarUtil,
   ValidarIDActualizarUtil,
   ObtenerRolUtil,

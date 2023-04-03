@@ -16,6 +16,7 @@ const {
   respLoginResultadoCorrectoObjeto200,
   respResultadoIncorrectoObjeto200,
   respDemasiadasSolicitudes429,
+  respResultadoDinamicoEND,
 } = require("../../utils/respuesta.utils");
 
 const {
@@ -23,6 +24,7 @@ const {
   EjecutarVariosQuerys,
   EscogerInternoUtil,
   InsertarVariosUtil,
+  InsertarUtil,
 } = require("../../utils/consulta.utils");
 const { APP_GUID } = require("../../config");
 const {
@@ -32,6 +34,8 @@ const {
   map,
   difference,
   differenceBy,
+  maxBy,
+  isUndefined,
 } = require("lodash");
 
 function willExpiredToken(token) {
@@ -187,13 +191,17 @@ function TokenConRol(req, res) {
   }
 }
 
-const numeroDeIntentos = async (user, ip) => {
+const numeroDeIntentos = async (res, user, ip) => {
   try {
+    //#region CONSULTAS
     const usuario = await pool
       .query(
         EscogerInternoUtil("APS_seg_usuario", {
           select: ["*"],
-          where: [{ key: "usuario", value: user }],
+          where: [
+            { key: "usuario", value: user },
+            { key: "activo", value: true },
+          ],
         })
       )
       .then((result) => {
@@ -204,8 +212,23 @@ const numeroDeIntentos = async (user, ip) => {
         return { ok: null, err };
       });
 
-    if (usuario.ok === null) return { ok: null, err: usuario.err };
-    if (usuario.ok === false) return { ok: false };
+    if (usuario.ok === null) return usuario;
+    if (usuario.ok === false)
+      return {
+        ok: false,
+        resp: () => {
+          if (size(usuario.result) > 1)
+            respResultadoDinamicoEND(
+              res,
+              409,
+              0,
+              [],
+              "Existen uno o mas usuarios con el mismo nombre, porfavor comuniquese con el administrador"
+            );
+          else if (size(usuario.result) === 0)
+            respResultadoVacio404END(res, "El usuario no existe");
+        },
+      };
 
     const intentosActuales = await pool
       .query(
@@ -218,16 +241,53 @@ const numeroDeIntentos = async (user, ip) => {
         })
       )
       .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows };
-        else return { ok: false, result: result.rows };
+        return { ok: true, result: result.rows };
       })
       .catch((err) => {
         return { ok: null, err };
       });
 
-    if (intentosActuales.ok === null)
-      return { ok: null, err: intentosActuales.err };
-    if (intentosActuales.ok === false) return { ok: false };
+    if (intentosActuales.ok === null) return intentosActuales;
+    //#endregion
+    //#region OBTENIENDO EL ULTIMO INTENTO, UTILIZANDO EL MAXIMO
+    const maxIntentoAux = maxBy(
+      intentosActuales.result,
+      (item) => item.num_intento
+    );
+    const maxIntento = isUndefined(maxIntentoAux)
+      ? 0
+      : maxIntentoAux.num_intento;
+    //#endregion
+    //#region INSERTANDO INTENTO EN APS_seg_intentos_log
+    const queryInsert = InsertarUtil("APS_seg_intentos_log", {
+      body: {
+        id_usuario: usuario.result.id_usuario,
+        ip,
+        num_intento: maxIntento + 1,
+      },
+      returnValue: "*",
+    });
+    const ultimoIntentoInsertado = await pool
+      .query(queryInsert)
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+    //#endregion
+    if (ultimoIntentoInsertado.ok === null) return ultimoIntentoInsertado;
+    if (ultimoIntentoInsertado.result[0].num_intento > 3) {
+      return {
+        ok: false,
+        resp: () =>
+          respDemasiadasSolicitudes429(
+            res,
+            "Cuenta bloqueda debido a sobrepasar el límite de inicio de sesión, comuniquese con el administrador"
+          ),
+      };
+    }
+    return { ok: true, result: ultimoIntentoInsertado.result };
   } catch (err) {
     return { ok: null, err };
   }
@@ -235,19 +295,23 @@ const numeroDeIntentos = async (user, ip) => {
 
 async function LoginApiExterna(req, res) {
   try {
-    //TO DO: Preguntar como registrar si por algun caso existe dos usuarios con el mismo nombre
     const body = req.body;
     const user = body.usuario.toLowerCase();
     const password = body.password;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    // if (numeroDeIntentos(user, ip, ultimoIntento) === null) {
-    //   respDemasiadasSolicitudes429(
-    //     res,
-    //     "Cuenta bloqueda debido a sobrepasar el límite de inicio de sesión, comuniquese con el administrador"
-    //   );
-    // }
+    //#region NUMERO DE INTENTOS
+    const intento = async () => {
+      const aux = await numeroDeIntentos(res, user, ip);
+      if (aux.ok === null) throw aux.err;
+      if (aux.ok === false) {
+        aux.resp();
+      }
+    };
+    //#endregion
     const estado = estadoJWT(res); //VERIFICAR ESTADO DE SERVICIO
-    if (estado === null) return;
+    if (estado === null) {
+      return;
+    }
     const data = {
       usuario: user,
       password,
@@ -255,7 +319,6 @@ async function LoginApiExterna(req, res) {
     };
     const tokenInfo = await obtenerToken(data, res); //OBTENER TOKEN
     if (tokenInfo === null) {
-      //REGISTRAR INTENTOS
       return;
     }
     const token = {

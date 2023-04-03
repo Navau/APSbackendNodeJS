@@ -6,7 +6,6 @@ const {
   EscogerUtil,
   InsertarUtil,
   ActualizarUtil,
-  DeshabilitarUtil,
   ValidarIDActualizarUtil,
 } = require("../../utils/consulta.utils");
 
@@ -143,43 +142,10 @@ async function Actualizar(req, res) {
   }
 }
 
-// DESHABILITAR UN GRUPOSPUC
-async function Deshabilitar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-      };
-      query = DeshabilitarUtil(nameTable, params);
-      pool.query(query, (err, result) => {
-        if (err) {
-          respErrorServidor500(res, err);
-        } else {
-          if (!result.rowCount || result.rowCount < 1) {
-            respResultadoVacio404(res);
-          } else {
-            respResultadoCorrecto200(res, result);
-          }
-        }
-      });
-    }
-  }
-}
-
 module.exports = {
   Listar,
   Buscar,
   Escoger,
   Insertar,
   Actualizar,
-  Deshabilitar,
 };

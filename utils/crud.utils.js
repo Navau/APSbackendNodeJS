@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   ValidarIDActualizarUtil,
   EliminarUtil,
+  EscogerUtil,
 } = require("./consulta.utils");
 const {
   ObtenerDatosCriticosAuditoria,
@@ -105,7 +106,7 @@ async function EscogerCRUD(paramsF) {
     }
     const params = { body };
     if (isUndefined(CampoActivoAux(nameTable))) params.activo = null;
-    const query = BuscarUtil(nameTable, params);
+    const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
       .then((result) => {

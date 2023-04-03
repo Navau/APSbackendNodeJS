@@ -144,6 +144,17 @@ function respResultadoVacio404END(res, msg) {
     .end();
 }
 
+function respResultadoDinamicoEND(res, code, result, data, msg) {
+  res
+    .status(code)
+    .send({
+      resultado: result,
+      datos: data,
+      mensaje: msg ? msg : "La petición tuvo algún error",
+    })
+    .end();
+}
+
 function respResultadoVacioObject200(res, data, msg) {
   res
     .status(200)
@@ -311,4 +322,5 @@ module.exports = {
   respDatosNoRecibidos200END,
   respLoginResultadoCorrectoObjeto200,
   respDemasiadasSolicitudes429,
+  respResultadoDinamicoEND,
 };
