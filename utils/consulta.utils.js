@@ -482,7 +482,8 @@ function EscogerUtil(table, params) {
               );
             } else if (Array.isArray(item)) {
               index && (query = query + ` AND ${index} IN (%L)`);
-              valuesWhereAuxArray.push(item.join());
+              console.log({ item, query, join: item.join() });
+              valuesWhereAuxArray.push(item);
             } else if (typeof item === "string") {
               if (index === "password") {
                 index &&
@@ -499,6 +500,7 @@ function EscogerUtil(table, params) {
             }
           }
           query = format(query, ...valuesWhereAuxArray);
+          console.log({ item, query, join: item.join(), valuesWhereAuxArray });
           valuesWhereAuxArray = [];
         }
       });
