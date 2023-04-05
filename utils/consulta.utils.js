@@ -493,7 +493,6 @@ function EscogerUtil(table, params) {
               valuesWhereAuxArray.push(item);
             } else if (typeof item === "number") {
               index && (query = query + ` AND ${index} = ${item}`);
-              valuesWhereAuxArray.push(item);
             } else if (typeof item === "boolean") {
               index && (query = query + ` AND ${index} = ${item}`);
             }
