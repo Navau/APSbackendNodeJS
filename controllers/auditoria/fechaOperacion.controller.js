@@ -13,8 +13,16 @@ const moment = require("moment");
 
 async function obtenerFechaOperacion(req, res) {
   try {
+    const { tipo_periodo, tipo_archivo, reproceso } = req.body; //tipo_archivo = PENSIONES O BOLSA
     let lastDateFinal;
     let tipoArchivoFinal;
+    tipoArchivoFinal = tipo_archivo;
+    const { id_rol, id_usuario } = req.user;
+    console.log("TIPO PERIODO Y TIPO ARCHIVO", {
+      tipo_periodo,
+      tipo_archivo,
+      reproceso,
+    });
     const fechaOperacionMensual = () => {
       const year = lastDateFinal.getFullYear(); //2022
       const month = lastDateFinal.getMonth(); //06
@@ -38,7 +46,8 @@ async function obtenerFechaOperacion(req, res) {
         return fechaOperacion;
       } else if (tipoArchivoFinal === "BOLSA") {
         // console.log(tipoArchivoFinal);
-        const checkDate = addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
+        const checkDate =
+          reproceso === true ? lastDateFinal : addValues(lastDateFinal, 1); //VIERNES + 1 = SABADO
         // console.log(checkDate);
         let fechaOperacion = null;
         fechaOperacion = checkDate;
@@ -81,15 +90,6 @@ async function obtenerFechaOperacion(req, res) {
         [padTo2Digits(date.getMilliseconds())].join()
       );
     }
-
-    const { tipo_periodo, tipo_archivo, reproceso } = req.body; //tipo_archivo = PENSIONES O BOLSA
-    tipoArchivoFinal = tipo_archivo;
-    const { id_rol, id_usuario } = req.user;
-    console.log("TIPO PERIODO Y TIPO ARCHIVO", {
-      tipo_periodo,
-      tipo_archivo,
-      reproceso,
-    });
     const tableQuery =
       tipo_archivo === "PENSIONES" || tipo_archivo === "SEGUROS"
         ? "APS_aud_carga_archivos_pensiones_seguros"
@@ -197,6 +197,10 @@ async function obtenerFechaOperacion(req, res) {
           {
             key: "reprocesado",
             value: false,
+          },
+          {
+            key: "cargado",
+            value: false,
           }
         );
       else
@@ -255,28 +259,51 @@ async function obtenerFechaOperacion(req, res) {
       ];
     }
 
-    const queryMax = ValorMaximoDeCampoUtil(tableQuery, {
-      fieldMax: "fecha_operacion",
-      where: whereMax,
-    });
-
-    const maxFechaOperacion = await pool
-      .query(queryMax)
-      .then((result) => {
-        // console.log("RESULTADO DE MAX FECHA OPERACION", result.rows);
-        if (!result.rowCount || result.rowCount < 1) {
-          return formatDate(new Date());
-        } else if (result?.rows[0]?.max === null) {
-          return formatDate(new Date());
-        } else {
-          return result.rows[0].max;
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-        return null;
+    let queryMax;
+    let maxFechaOperacion;
+    if (tipo_archivo === "BOLSA" && reproceso === true) {
+      queryMax = EscogerInternoUtil(tableQuery, {
+        select: ["fecha_operacion"],
+        where: whereMax,
       });
+      maxFechaOperacion = await pool
+        .query(queryMax)
+        .then((result) => {
+          // console.log(
+          //   "RESULTADO DE MAX FECHA OPERACION REPROCESO",
+          //   result.rows
+          // );
+          if (result.rowCount > 0) return result.rows[0].fecha_operacion;
+          else return formatDate(new Date());
+        })
+        .catch((err) => {
+          console.log(err);
+          respErrorServidor500END(res, err);
+          return null;
+        });
+    } else {
+      queryMax = ValorMaximoDeCampoUtil(tableQuery, {
+        fieldMax: "fecha_operacion",
+        where: whereMax,
+      });
+      maxFechaOperacion = await pool
+        .query(queryMax)
+        .then((result) => {
+          // console.log("RESULTADO DE MAX FECHA OPERACION", result.rows);
+          if (!result.rowCount || result.rowCount < 1) {
+            return formatDate(new Date());
+          } else if (result?.rows[0]?.max === null) {
+            return formatDate(new Date());
+          } else {
+            return result.rows[0].max;
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          respErrorServidor500END(res, err);
+          return null;
+        });
+    }
 
     const addValues = (date, days) => {
       date.setDate(date.getDate() + days);
