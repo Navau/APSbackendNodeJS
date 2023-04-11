@@ -195,19 +195,106 @@ function tipoReporte(id, fecha) {
     },
     4: {
       id: 4,
-      fun: ["aps_fun_seguros_cartera_valorada"],
+      fun: [
+        "aps_fun_inversiones_por_tipo_instrumento_vn",
+        "aps_fun_inversiones_por_tipo_instrumento_vn",
+        "aps_fun_inversiones_por_tipo_instrumento_vn",
+        "aps_fun_inversiones_por_tipo_instrumento_vn",
+        "aps_fun_inversiones_por_entidad_vn",
+        "aps_fun_inversiones_por_entidad_vn",
+        "aps_fun_inversiones_por_entidad_vn",
+        "aps_fun_inversiones_por_entidad_vn",
+      ],
+      params: [
+        [fecha, 179],
+        [fecha, 189],
+        [fecha, 215],
+        [fecha, 220],
+        [fecha, 179],
+        [fecha, 189],
+        [fecha, 215],
+        [fecha, 220],
+      ],
       mainValues: [0],
       header: {
         name: "REP INST (VN)",
         nameExcel: "Tipo Instrumento Valor Nominal.xlsx",
         tables: [
           {
-            title1: `INVERSIONES SEGUROS AL ${dayjs(fecha)
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "TOTAL SEGUROS DE PERSONAS",
+            title3: "Valor de Mercado de Cartera",
+            title4: `AL ${dayjs(fecha)
               .locale("es")
               .format("DD [DE] MMMM [DE] YYYY")
               .toUpperCase()}`,
-            title2: "CARTERA VALORADA A PRECIOS DE  MERCADO",
-            title3: "Expresado en Bolivianos",
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "TOTAL SEGUROS GENERALES",
+            title3: "Valor de Mercado de Cartera",
+            title4: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "TOTAL SEGUROS PREPAGO",
+            title3: "Valor de Mercado de Cartera",
+            title4: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "TOTAL SEGUROS PREVISIONALES",
+            title3: "Valor de Mercado de Cartera",
+            title4: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES -\n TAMAÑO DEL PORTAFOLIO A VALOR NOMINAL",
+            title2: "CARTERA SEGUROS PERSONALES",
+            title3: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "CARTERA SEGUROS GENERALES",
+            title3: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "CARTERA SEGUROS PREPAGO",
+            title3: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
+          },
+          {
+            title1:
+              "RESUMEN: INVERSIONES POR TIPO DE INSTRUMENTO A VALOR NOMINAL",
+            title2: "CARTERA SEGUROS PREVISIONALES",
+            title3: `AL ${dayjs(fecha)
+              .locale("es")
+              .format("DD [DE] MMMM [DE] YYYY")
+              .toUpperCase()}`,
           },
         ],
         source:
@@ -533,6 +620,69 @@ function PrepararReportes(reportes, instituciones) {
         //#endregion
       });
     },
+    4: (reporte) => {
+      const FIELDS_AUX = {
+        0: {
+          instrumento: "instrumento",
+          seguros_de_personas: [
+            "monto_valorado_$us",
+            "Plazo Promedio (vcto)",
+            "Tasa Promedio (emisión)",
+            "porcentaje_(%)",
+          ],
+        },
+        1: {
+          instrumento: "instrumento",
+          seguros_generales: [
+            "monto_valorado_$us",
+            "Plazo Promedio (vcto)",
+            "Tasa Promedio (emisión)",
+            "porcentaje_(%)",
+          ],
+        },
+        2: {
+          instrumento: "instrumento",
+          seguros_prepago: [
+            "monto_valorado_$us",
+            "Plazo Promedio (vcto)",
+            "Tasa Promedio (emisión)",
+            "porcentaje_(%)",
+          ],
+        },
+        3: {
+          instrumento: "instrumento",
+          seguros_previsionales: [
+            "monto_valorado_$us",
+            "Plazo Promedio (vcto)",
+            "Tasa Promedio (emisión)",
+            "porcentaje_(%)",
+          ],
+        },
+        4: {
+          compania: "compañia",
+          cartera: "cartera",
+        },
+        5: {
+          compania: "compañia",
+          cartera: "cartera",
+        },
+        6: {
+          compania: "compañia",
+          cartera: "cartera",
+        },
+        7: {
+          compania: "compañia",
+          cartera: "cartera",
+        },
+      };
+      forEach(reporte, (item, index) => {
+        item.fields = FIELDS_AUX[index] || item.fields;
+        forEach(item.data, (itemData) => {
+          delete itemData.descripcion;
+          delete itemData.fecha_informacion;
+        });
+      });
+    },
     5: (reporte) => {
       const formatFields = {
         codigo: "codigo",
@@ -709,13 +859,6 @@ async function EstadisticasInversiones(req, res) {
         })
       );
     });
-    if (size(filter(reportes, (item) => item === 4)) > 0) {
-      const nameExcelFinal = ExcelExport.count > 0 ? nameAux : ExcelExport.name;
-      const pathExcel = path.join("reports/temp", nameExcelFinal);
-
-      respDescargarArchivos200(res, pathExcel, nameExcelFinal);
-      return;
-    }
 
     const results = await EjecutarQuerysReportes(optionsReport, "ESTADISTICOS");
     if (results.ok === null) throw results.result;

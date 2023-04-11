@@ -1,5 +1,5 @@
 const pool = require("../../database");
-const { map } = require("lodash");
+const { map, minBy, maxBy, isUndefined } = require("lodash");
 const moment = require("moment");
 
 const {
@@ -81,50 +81,48 @@ async function tipoDeCambio(req, res) {
 
 //Obtiene la ultima fecha de operacion siempre que cargado = true
 async function ValorMaximo(req, res) {
-  const { max, reproceso } = req.body;
-  const { id_rol, id_usuario } = req.user;
-  const fieldMax = max ? max : "fecha_operacion";
-  const wherePushAux =
-    reproceso === true
-      ? [
-          { key: "reproceso", value: true },
-          { key: "reprocesado", value: false },
-        ]
-      : [{ key: "cargado", value: true }];
-  const whereFinal = [
-    {
-      key: "id_rol",
-      value: id_rol,
-    },
-    ...wherePushAux,
-  ];
-  const params = {
-    fieldMax,
-    where: whereFinal,
-  };
-  const query = ValorMaximoDeCampoUtil(nameTable, params);
-  await pool
-    .query(query)
-    .then((result) => {
-      if (!result.rowCount || result.rowCount < 1) {
-        respResultadoVacio404END(res);
-      } else {
-        if (result.rows[0].max === null) {
-          result = {
-            ...result,
-            rows: [
-              {
-                max: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
-              },
-            ],
-          };
+  try {
+    const { max, reproceso } = req.body;
+    const { id_rol, id_usuario } = req.user;
+    const wherePushAux =
+      reproceso === true
+        ? [
+            { key: "reproceso", value: true },
+            { key: "reprocesado", value: false },
+          ]
+        : [{ key: "cargado", value: true }];
+    const whereFinal = [
+      {
+        key: "id_rol",
+        value: id_rol,
+      },
+      ...wherePushAux,
+    ];
+    const params = {
+      select: ["*"],
+      where: whereFinal,
+    };
+    const query = EscogerInternoUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          const value =
+            reproceso === true
+              ? minBy(result.rows, "fecha_operacion")
+              : maxBy(result.rows, "fecha_operacion");
+          if (isUndefined(value)) throw new Error("No existe una fecha válida");
+          respResultadoCorrectoObjeto200(res, [{ max: value.fecha_operacion }]);
+        } else {
+          respResultadoVacio404END(res);
         }
-        respResultadoCorrectoObjeto200(res, result.rows);
-      }
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 }
 
 //Obtiene la ultima carga mediante el parametro cargado

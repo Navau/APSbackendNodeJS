@@ -5,6 +5,9 @@ const SECRET_KEY =
   "EstoEsUnaClaveSecretaParaQueElTokenFuncioneYTengaAutenticidad-PuedeTomarCualquierValor-PeroDebeSerSeguro";
 
 exports.AsegurarAutenticacionConToken = (req, res, next) => {
+  var Moment = require("moment-timezone");
+  Moment().tz("America/La_Paz").format();
+
   if (!req.headers.authorization) {
     //VERIFICAMOS SI LA PETICION TIENE UNA AUTORIZACION, PARA TENER SEGURIDAD DE QUE NO SE ESTA ENVIANDO DESDE CUALQUIER LUGAR QUE NO SEA EL FRONTEND
     return res.status(403).send({

@@ -4,8 +4,10 @@ const RouterApi = require("./routes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-process.env.TZ = "America/La_Paz";
+const timeZone = "America/La_Paz";
+process.env.TZ = timeZone;
 app.set("trust proxy", true);
+app.set("timezone", timeZone);
 //Configure Header HTTP
 app.use((req, res, next) => {
   //CONFIGURACION DE HEADERS PARA YA NO USAR LA EXTENCION MOESIF CORS, Y NO DE EL ERROR DE CORS
