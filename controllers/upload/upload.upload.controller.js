@@ -66,8 +66,9 @@ async function CargarArchivo(req, res) {
         return { ok: null, err };
       });
     if (cargaBolsaActual.ok === null) throw cargaBolsaActual.err;
-    if (cargaBolsaActual.ok === false)
-      throw new Error(`No existe el registro con el id ${idCargaArchivos}`);
+    //TO DO: EXTREMO ES NECESARIO ARREGLAR DE LA BOLSA
+    // if (cargaBolsaActual.ok === false)
+    //   throw new Error(`No existe el registro con el id ${idCargaArchivos}`);
     const resultFinal = [];
     const tablesFilesArray = [];
     const sequencesTablesFilesArray = [];
@@ -97,10 +98,11 @@ async function CargarArchivo(req, res) {
       tableErrors: null,
     };
 
+    //TO DO: EXTREMO ARREGLAR LOS FILTROS DE ARCHIVOS
     map(filesSort, (item, index) => {
       if (
         item.originalname.toUpperCase().substring(0, 3) === "108" &&
-        !item.originalname.toUpperCase().includes(".CC")
+        !item.originalname.toUpperCase().includes("CC")
       ) {
         infoTables = {
           code: "108",
@@ -109,8 +111,9 @@ async function CargarArchivo(req, res) {
           tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
         };
       } else if (
-        item.originalname.toUpperCase().substring(0, 2) === "02" &&
-        !item.originalname.toUpperCase().includes(".CC")
+        (item.originalname.toUpperCase().substring(0, 2) === "02" ||
+          item.originalname.toUpperCase().substring(0, 2) === "01") &&
+        !item.originalname.toUpperCase().includes("CC")
       ) {
         infoTables = {
           code: "02",
@@ -131,10 +134,18 @@ async function CargarArchivo(req, res) {
           table: "APS_aud_carga_archivos_bolsa",
           tableErrors: "APS_aud_errores_carga_archivos_bolsa",
         };
-      } else if (item.originalname.toUpperCase().includes(".CC")) {
+      } else if (item.originalname.toUpperCase().includes("CC")) {
+        const splitFecha = split(fechaInicialOperacion, "-").join("");
+        const fileSplitFecha = item.originalname
+          .toUpperCase()
+          .substring(0, item.originalname.toUpperCase().indexOf(splitFecha));
+        const codFinal = (stringAux) => {
+          const splitString = stringAux.split("CC");
+          return splitString[1] === "" ? splitString[0] : splitString[1];
+        };
         infoTables = {
           code: "CC",
-          cod_institution: "CC",
+          cod_institution: codFinal(fileSplitFecha),
           table: "APS_aud_carga_archivos_custodio",
           tableErrors: "APS_aud_errores_carga_archivos_custodio",
         };
@@ -169,6 +180,7 @@ async function CargarArchivo(req, res) {
               arrayDataObject.push(resultObject);
             }
           });
+          // console.log({ arrayDataObject, file: filesReaded[index] });
           //#endregion
 
           let headers = null;
@@ -321,7 +333,10 @@ async function CargarArchivo(req, res) {
           } else if (item.originalname.includes("TR")) {
             codeFile = "TR";
             tableFile = "APS_pensiones_archivo_TR";
-          } else if (item.originalname.includes(".CC")) {
+          } else if (
+            item.originalname.includes("CC") &&
+            infoTables.code === "CC"
+          ) {
             codeFile = "CC";
             tableFile = "APS_oper_archivo_Custodio";
           } else if (item.originalname.includes("FC")) {
@@ -336,19 +351,9 @@ async function CargarArchivo(req, res) {
             table: tableFile,
             id: idTable,
           };
-          const splitFecha = split(fechaInicialOperacion, "-").join("");
-          const fileSplitFecha = item.originalname
-            .toUpperCase()
-            .substring(0, item.originalname.toUpperCase().indexOf(splitFecha));
-          const codFinal = (stringAux) => {
-            const splitString = stringAux.split("CC");
-            return splitString[1] === "" ? splitString[0] : splitString[1];
-          };
-          const codInstitucionAux =
-            infoTables.cod_institution === "CC"
-              ? codFinal(fileSplitFecha)
-              : infoTables.cod_institution;
-          console.log({ codInstitucionAux });
+
+          const codInstitucionAux = infoTables.cod_institution;
+          // console.log({ codInstitucionAux });
           //#endregion
 
           headers?.splice(0, 1); // ELIMINAR ID DE TABLA
@@ -361,15 +366,15 @@ async function CargarArchivo(req, res) {
           idTablesFilesArray.push(idTable);
 
           const valuesWhereInAux = [
-            `'fecha_operacion'`,
-            `'fecha'`,
-            `'fecha_informacion'`,
-            `'cod_institucion'`,
+            `fecha_operacion`,
+            `fecha`,
+            `fecha_informacion`,
+            `cod_institucion`,
           ];
 
           if (infoTables.cod_institution === "CC") {
-            valuesWhereInAux.push(`'tipo_instrumento'`);
-            valuesWhereInAux.push(`'serie'`);
+            valuesWhereInAux.push(`tipo_instrumento`);
+            valuesWhereInAux.push(`serie`);
           }
 
           const queryInfoSchema = EscogerInternoUtil(
@@ -551,7 +556,12 @@ async function CargarArchivo(req, res) {
 
           let stringFinalFile = "";
           let arrayHeadersAux = [];
-          // console.log(headers);
+          // console.log({
+          //   headers,
+          //   idCargaArchivos,
+          //   codInstitucionAux,
+          //   fechaInicialOperacion,
+          // });
           if (headers.includes("id_carga_archivos")) {
             stringFinalFile += `"${idCargaArchivos}"`;
             arrayHeadersAux.push("id_carga_archivos");
@@ -590,28 +600,24 @@ async function CargarArchivo(req, res) {
           const filePathWrite = `./uploads/tmp/${item.originalname}`;
           fs.writeFileSync(filePathWrite, dataFile);
           //#endregion
-          // console.log(headers);
-          // console.log(codeFile);
-          // console.log(dataFile);
-          // console.log(headers);
-          // console.log(item.originalname);
+          // console.log({ headers, codeFile, item: item.originalname });
 
           //#region Formateando informacion de archivo para insertar por medio de un INSERT QUERY
           let finalData = [];
           let partialData = [];
-          // console.log(newArrayDataObject);
+          // console.log({ newArrayDataObject });
           map(newArrayDataObject, (itemV1, indexV1) => {
             let dataObject = Object.assign({}, itemV1);
             partialData.push(dataObject);
           });
           // if (codeFile === "491") {
-          //   console.log(partialData, partialData.length);
+          // console.log({ partialData, length: partialData.length });
           //   console.log(headers, headers.length);
           // }
           let partialHeaders = headers;
-          map(partialData, (itemV1, indexV1) => {
+          forEach(partialData, (itemV1, indexV1) => {
             let x = {};
-            map(itemV1, (itemV2, indexV2) => {
+            forEach(itemV1, (itemV2, indexV2) => {
               let valueAux = itemV2;
               x = {
                 ...x,
@@ -623,7 +629,7 @@ async function CargarArchivo(req, res) {
             finalData.push(x);
           });
           //#endregion
-          // console.log(finalData);
+          // console.log({ finalData, headers });
 
           map([finalData], (itemBPQ, indexBPQ) => {
             bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
@@ -641,6 +647,7 @@ async function CargarArchivo(req, res) {
               ],
             });
           }
+          // console.log(queryFiles);
 
           bodyFinalQuery = [];
 

@@ -365,23 +365,17 @@ async function SeleccionarArchivosCustodio2(req, res) {
       respDatosNoRecibidos400(res);
       return;
     }
-    console.log(fecha_operacion);
     const params = {
       body: {
         fecha_operacion,
       },
     };
-    // const query = EjecutarFuncionSQL(
-    //   tipo === "seguros"
-    //     ? "aps_fun_archivos_custodio_seguros"
-    //     : "aps_fun_archivos_custodio_pensiones",
-    //   params
-    // );
-    const query =
+    const query = EjecutarFuncionSQL(
       tipo === "seguros"
-        ? `SELECT * FROM public.aps_fun_archivos_custodio_seguros('${fecha_operacion}');`
-        : `SELECT * FROM public.aps_fun_archivos_custodio_pensiones('${fecha_operacion}');`;
-
+        ? "aps_fun_archivos_custodio_seguros"
+        : "aps_fun_archivos_custodio_pensiones",
+      params
+    );
     await pool
       .query(query)
       .then((result) => {
