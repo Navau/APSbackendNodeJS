@@ -134,11 +134,24 @@ async function CargarArchivo(req, res) {
           table: "APS_aud_carga_archivos_bolsa",
           tableErrors: "APS_aud_errores_carga_archivos_bolsa",
         };
+      } else if (item.originalname.toUpperCase().includes(".CC")) {
+        const stringAux = item.originalname.toUpperCase();
+        const fechaAux = split(fechaInicialOperacion, "-").join("");
+        const codFinal = (string, split) => {
+          const splitString = string.split(split);
+          return splitString[0];
+        };
+        infoTables = {
+          code: "CC",
+          cod_institution: codFinal(stringAux, fechaAux),
+          table: "APS_aud_carga_archivos_custodio",
+          tableErrors: "APS_aud_errores_carga_archivos_custodio",
+        };
       } else if (item.originalname.toUpperCase().includes("CC")) {
-        const splitFecha = split(fechaInicialOperacion, "-").join("");
+        const fechaAux = split(fechaInicialOperacion, "-").join("");
         const fileSplitFecha = item.originalname
           .toUpperCase()
-          .substring(0, item.originalname.toUpperCase().indexOf(splitFecha));
+          .substring(0, item.originalname.toUpperCase().indexOf(fechaAux));
         const codFinal = (stringAux) => {
           const splitString = stringAux.split("CC");
           return splitString[1] === "" ? splitString[0] : splitString[1];
