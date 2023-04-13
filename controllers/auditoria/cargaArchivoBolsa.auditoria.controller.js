@@ -111,7 +111,16 @@ async function ValorMaximo(req, res) {
             reproceso === true
               ? minBy(result.rows, "fecha_operacion")
               : maxBy(result.rows, "fecha_operacion");
+
           if (isUndefined(value)) throw new Error("No existe una fecha válida");
+          let valueR;
+          if (reproceso === true) {
+            let dayOfMonth = value.fecha_operacion?.getDate();
+            console.log({ dayOfMonth, value: value.fecha_operacion });
+            dayOfMonth--;
+            value.fecha_operacion.setDate(dayOfMonth);
+            console.log({ dayOfMonth, value: value.fecha_operacion });
+          }
           respResultadoCorrectoObjeto200(res, [{ max: value.fecha_operacion }]);
         } else {
           respResultadoVacio404END(res);
