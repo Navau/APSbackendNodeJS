@@ -1,3 +1,4 @@
+const { isUndefined, minBy } = require("lodash");
 const pool = require("../../database");
 const {
   ValorMaximoDeCampoUtil,
@@ -269,12 +270,12 @@ async function obtenerFechaOperacion(req, res) {
       maxFechaOperacion = await pool
         .query(queryMax)
         .then((result) => {
-          // console.log(
-          //   "RESULTADO DE MAX FECHA OPERACION REPROCESO",
-          //   result.rows
-          // );
-          if (result.rowCount > 0) return result.rows[0].fecha_operacion;
-          else return formatDate(new Date());
+          if (result.rowCount > 0) {
+            const value = minBy(result.rows, "fecha_operacion");
+            if (isUndefined(value))
+              throw new Error("No existe una fecha válida");
+            return value.fecha_operacion;
+          } else return formatDate(new Date());
         })
         .catch((err) => {
           console.log(err);

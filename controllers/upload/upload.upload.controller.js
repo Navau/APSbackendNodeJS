@@ -1,4 +1,14 @@
-const { map, partial, split, forEach, uniq, size, replace } = require("lodash");
+const {
+  map,
+  partial,
+  split,
+  forEach,
+  uniq,
+  size,
+  replace,
+  isUndefined,
+  minBy,
+} = require("lodash");
 const pool = require("../../database");
 const fs = require("fs");
 
@@ -38,6 +48,7 @@ const {
   respArchivoErroneo200,
 } = require("../../utils/respuesta.utils");
 const { log } = require("console");
+const dayjs = require("dayjs");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
 
@@ -722,10 +733,57 @@ async function CargarArchivo(req, res) {
 
       await pool
         .query(queryUpdateForError)
-        .then((response) => {
-          // console.log(response);
+        .then(async (resultUpdate) => {
+          if (
+            codInst === "bolsa" &&
+            (req.body?.reproceso === true || req.body?.reproceso === "true")
+          ) {
+            const ultimaCargaAux = await pool
+              .query(
+                EscogerInternoUtil(infoTables.table, {
+                  select: ["*"],
+                  where: [
+                    { key: "id_rol", value: req.user.id_rol },
+                    { key: "reproceso", value: true },
+                    { key: "reprocesado", value: false },
+                  ],
+                })
+              )
+              .then((result) => {
+                const value = minBy(result.rows, "fecha_operacion");
+
+                if (isUndefined(value))
+                  throw new Error("No existe una fecha válida");
+                let dayOfMonth = value.fecha_operacion?.getDate();
+                dayOfMonth--;
+                value.fecha_operacion.setDate(dayOfMonth);
+                return value;
+              })
+              .catch((err) => {
+                throw err;
+              });
+            if (
+              fechaInicialOperacion !==
+              dayjs(ultimaCargaAux.fecha_operacion).format("YYYY-MM-DD")
+            ) {
+              const updateUltimaCargaReprocesado = await pool
+                .query(
+                  ActualizarUtil(infoTables.table, {
+                    body: { reprocesado: true },
+                    idKey: "id_carga_archivos",
+                    idValue: ultimaCargaAux.id_carga_archivos,
+                  })
+                )
+                .then((result) => {})
+                .catch((err) => {
+                  throw err;
+                });
+            }
+          }
         })
-        .catch((err) => {})
+        .catch((err) => {
+          throw err;
+        })
         .finally(() => {
           resp;
         });
