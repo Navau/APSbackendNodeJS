@@ -704,12 +704,12 @@ async function CargarArchivo(req, res) {
       const bodyAux = {
         cargado: state,
       };
-      console.log(req.body);
+      // console.log({ body: req.body, cargaBolsaActual });
       if (
         codInst === "bolsa" &&
+        cargaBolsaActual.result.cargado === false &&
         cargaBolsaActual.result.reproceso === true &&
-        cargaBolsaActual.result.reprocesado === false &&
-        req.body?.reproceso === true
+        (req.body?.reproceso === true || req.body?.reproceso === "true")
       ) {
         bodyAux.reprocesado = reprocesado;
       }
@@ -718,7 +718,7 @@ async function CargarArchivo(req, res) {
         idKey: "id_carga_archivos",
         idValue: idCargaArchivos,
       });
-      console.log("queryUpdateForError", queryUpdateForError);
+      // console.log("actualizarCampoCargado", { queryUpdateForError });
 
       await pool
         .query(queryUpdateForError)

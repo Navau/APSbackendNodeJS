@@ -4585,6 +4585,11 @@ exports.validarArchivo = async (req, res, next) => {
               fecha_carga: new Date(),
               id_usuario,
               cargado: false,
+              reproceso:
+                req.body.reproceso === true || req.body.reproceso === "true"
+                  ? true
+                  : false,
+              reprocesado: false,
             });
             if (fecha_entrega) {
               bodyQuery[0].fecha_entrega = fecha_entrega;
