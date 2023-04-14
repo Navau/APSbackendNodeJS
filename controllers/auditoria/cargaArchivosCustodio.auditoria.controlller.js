@@ -278,12 +278,13 @@ async function UltimaCarga2(req, res) {
 async function Reporte(req, res) {
   try {
     const { fecha, id_rol } = req.body;
+    const idRolFinal = id_rol ? id_rol : req.user.id_rol;
     const querys = [];
     const query = EscogerInternoUtil(nameTable, {
       select: ["*"],
       where: [
         { key: "fecha_operacion", value: fecha },
-        { key: "id_rol", value: id_rol },
+        { key: "id_rol", value: idRolFinal },
       ],
     });
     querys.push(query);
