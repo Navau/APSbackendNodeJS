@@ -19,6 +19,11 @@ const {
   split,
   find,
   isInteger,
+  range,
+  every,
+  groupBy,
+  sumBy,
+  difference,
 } = require("lodash");
 const fs = require("fs");
 const path = require("path");
@@ -3943,10 +3948,15 @@ function StatisticalReport(params) {
       initialY: 1,
       iterationX: 7,
       iterationY: 1,
+      finalY: 0,
+      finalX: 0,
       columnCounter: 0,
       sizeSubTitleY: 0,
       max_X: 0,
     };
+    const VALUES_ARRAY = [];
+    const WIDTH_SIZE_COLUMNS_ARRAY = [];
+    let SIZE_WIDTH_AUX_ARRAY = [];
     const styleDefaultTitle = defaultStyleReport("ESTADISTICO", "header", wb);
     const styleDefaultSubtitle = defaultStyleReport(
       "ESTADISTICO",
@@ -3988,6 +3998,13 @@ function StatisticalReport(params) {
       if (indexReporte === 0) addLogoAPSAbsolute(ws, CONF_POSITIONS); //LOGO
 
       forEach(table, (title) => {
+        VALUES_ARRAY.push({
+          x: CONF_POSITIONS.iterationX,
+          y: CONF_POSITIONS.iterationY,
+          max_X: CONF_POSITIONS.max_X,
+          sizeRow: 30,
+          text: title,
+        });
         ws.cell(
           CONF_POSITIONS.iterationX,
           CONF_POSITIONS.iterationY,
@@ -3996,7 +4013,12 @@ function StatisticalReport(params) {
           true
         )
           .string(title)
-          .style(styleDefaultTitle);
+          .style(styleDefaultTitle)
+          .style({
+            alignment: {
+              wrapText: true, // Establecer wrapText como true para ajustar el texto
+            },
+          });
         CONF_POSITIONS.iterationX += 1;
       });
 
@@ -4032,6 +4054,10 @@ function StatisticalReport(params) {
             ws.column(CONF_POSITIONS.iterationY).setWidth(
               sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn
             );
+            WIDTH_SIZE_COLUMNS_ARRAY.push({
+              row: CONF_POSITIONS.iterationX,
+              size: sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn,
+            });
             ws.cell(
               CONF_POSITIONS.iterationX + aux,
               CONF_POSITIONS.iterationY,
@@ -4062,6 +4088,10 @@ function StatisticalReport(params) {
           ws.column(CONF_POSITIONS.iterationY).setWidth(
             sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn
           );
+          WIDTH_SIZE_COLUMNS_ARRAY.push({
+            row: CONF_POSITIONS.iterationX,
+            size: sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn,
+          });
           ws.cell(
             CONF_POSITIONS.iterationX,
             CONF_POSITIONS.iterationY,
@@ -4098,6 +4128,10 @@ function StatisticalReport(params) {
             ws.column(CONF_POSITIONS.iterationY).setWidth(
               sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn
             );
+            WIDTH_SIZE_COLUMNS_ARRAY.push({
+              row: CONF_POSITIONS.iterationX,
+              size: sizeColumnsAux[CONF_POSITIONS.iterationY].sizeColumn,
+            });
           }
           showCellStatisticalReport({
             ws,
@@ -4119,6 +4153,10 @@ function StatisticalReport(params) {
         CONF_POSITIONS.iterationX += 1;
         // console.log(sizeColumnsAux);
       });
+      CONF_POSITIONS.finalY =
+        CONF_POSITIONS.iterationY > CONF_POSITIONS.finalY
+          ? CONF_POSITIONS.iterationY
+          : CONF_POSITIONS.finalY;
       CONF_POSITIONS.iterationY = CONF_POSITIONS.initialY;
       if (header.source) {
         var complexString = [
@@ -4138,21 +4176,67 @@ function StatisticalReport(params) {
         );
       }
       CONF_POSITIONS.iterationX += 3;
+      CONF_POSITIONS.finalX =
+        CONF_POSITIONS.iterationX > CONF_POSITIONS.finalX
+          ? CONF_POSITIONS.iterationX
+          : CONF_POSITIONS.finalX;
+      if (indexReporte === size(reporte) - 1) {
+      }
+    });
+    const rangeX = range(1, CONF_POSITIONS.finalX + 1);
+    const rangeY = range(1, CONF_POSITIONS.finalY + 1);
+    // const sizeTableAux = size(table);
+    SIZE_WIDTH_AUX_ARRAY = map(
+      groupBy(WIDTH_SIZE_COLUMNS_ARRAY, "row"),
+      (values, key) => {
+        return {
+          row: parseInt(key),
+          size: sumBy(values, "size"),
+        };
+      }
+    );
+    forEach(SIZE_WIDTH_AUX_ARRAY, (item, index) => {
+      const itemTable = reporte[index];
+      if (!isUndefined(itemTable)) item.row = item.row - size(itemTable.table);
+    });
 
-      // if (indexReporte === size(reporte) - 1)
-      //   ws.cell(
-      //     CONF_POSITIONS.iterationX + 1,
-      //     CONF_POSITIONS.max_X,
-      //     CONF_POSITIONS.iterationX + 2,
-      //     CONF_POSITIONS.max_X,
-      //     true
-      //   )
-      //     .string(
-      //       dayjs()
-      //         .locale("es")
-      //         .format("[EMITIDO EL] DD [DE] MMMM [DE] YYYY [a las] HH:mm:ss")
-      //     )
-      //     .style(styleDefaultTitle);
+    forEach(rangeX, (itemX) => {
+      forEach(rangeY, (itemY) => {
+        const cellAux = find(
+          VALUES_ARRAY,
+          (itemF) => itemF.x === itemX && itemF.y === itemY
+        );
+        const widthRowAux = find(
+          SIZE_WIDTH_AUX_ARRAY,
+          (itemF) => itemF.row === itemX
+        );
+        const calcularAlturaCelda = (params) => {
+          const { texto, anchoCelda, fontSize, lineHeight, numColumnas } =
+            params;
+
+          const palabras = texto.split(" ");
+          const numPalabras = palabras.length;
+          const anchoPalabra = anchoCelda / numColumnas;
+          const alturaLinea = fontSize * lineHeight;
+          const numLineas = Math.ceil(numPalabras / numColumnas);
+          const alturaCelda = numLineas * alturaLinea;
+
+          return alturaCelda;
+        };
+
+        if (!isUndefined(cellAux?.text) && !isUndefined(widthRowAux?.size)) {
+          const params = {
+            texto: cellAux.text,
+            anchoCelda: widthRowAux.size,
+            fontSize: 12,
+            lineHeight: 1.5,
+            numColumnas: cellAux.max_X,
+          };
+          const heightAux = calcularAlturaCelda(params);
+          ws.row(itemX).setHeight(heightAux);
+          // console.log({ cellAux, widthRowAux, params, heightAux });
+        }
+      });
     });
 
     //TO DO: AUMENTAR EL setHeight cuando una cabecera sobrepase el limite de las celdas combinadas
