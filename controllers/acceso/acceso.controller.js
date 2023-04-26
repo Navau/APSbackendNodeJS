@@ -104,7 +104,7 @@ function refreshAccessToken(req, res) {
 async function Login(req, res) {
   try {
     const body = req.body;
-    const user = body.usuario.toLowerCase();
+    const user = body.usuario?.toLowerCase();
     const password = body.password;
     const values = [user, password];
     const queryUsuario = format(

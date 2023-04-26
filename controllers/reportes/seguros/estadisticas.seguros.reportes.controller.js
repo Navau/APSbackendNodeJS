@@ -582,8 +582,8 @@ function PrepararReportes(reportes, instituciones) {
           const institucionAux = find(instituciones, (itemInstitucion) => {
             return field.substring(1, size(field)) === itemInstitucion.codigo;
           });
-          if (institucionAux?.institucion)
-            set(item.fields, indexField, institucionAux.institucion);
+          if (institucionAux?.nombre_reporte)
+            set(item.fields, indexField, institucionAux.nombre_reporte);
           else if (field === "titulo")
             set(item.fields, indexField, "instrumento");
           else if (field === "total" || field === "ctotal")

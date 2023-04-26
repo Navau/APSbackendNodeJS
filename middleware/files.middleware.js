@@ -1294,6 +1294,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         singleGroup,
         endSingleGroup,
         grouping,
+        messageError,
         typeError,
         item2,
         index2,
@@ -2437,7 +2438,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  descripcion: isUndefined(messageError)
+                    ? `El campo no corresponde a ninguno de los autorizados por el RMV`
+                    : messageError,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -4427,6 +4430,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             item3?.endSingleGroup === true ? item3.endSingleGroup : null;
 
           let grouping = item3?.grouping === true ? item3.grouping : null;
+          let messageError = isUndefined(messageError)
+            ? undefined
+            : messageError;
           if (!value && (mayBeEmpty === false || mayBeEmpty === null)) {
             errors.push({
               archivo: item.archivo,
@@ -4455,6 +4461,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               singleGroup,
               endSingleGroup,
               grouping,
+              messageError,
               typeError,
               item2,
               index2,

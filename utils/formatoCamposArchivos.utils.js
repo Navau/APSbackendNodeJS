@@ -3938,6 +3938,8 @@ async function obtenerValidaciones(typeFile) {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         function: ["moneda"],
+        messageError:
+          "El campo no corresponde a ninguno de los autorizados por el Manual de Envío",
       },
       {
         columnName: "fecha_vencimiento",
