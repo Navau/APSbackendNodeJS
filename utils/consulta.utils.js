@@ -605,6 +605,7 @@ function EscogerInternoUtil(table, params) {
 
 function EjecutarFuncionSQL(functionName, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   query += `SELECT * FROM public.${functionName}(`;
   const whereFunction = (item, block) => {
     const operatorSQL = item?.operatorSQL ? item.operatorSQL : "AND";

@@ -12,6 +12,8 @@ const {
   forEach,
   size,
   find,
+  max,
+  isUndefined,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -51,6 +53,7 @@ const {
   ValorMaximoDeCampoUtil,
   InsertarVariosUtil,
   EjecutarFuncionSQL,
+  EscogerInternoUtil,
 } = require("../utils/consulta.utils");
 
 const {
@@ -245,7 +248,8 @@ async function seleccionarTablas(params) {
   };
   map(params.files, (item, index) => {
     if (
-      item.originalname.toUpperCase().substring(0, 3) === "108" &&
+      (item.originalname.toUpperCase().substring(0, 3) === "108" ||
+        item.originalname.toUpperCase().substring(0, 3) === "102") &&
       (!item.originalname.toUpperCase().includes(".CC") ||
         !item.originalname[2] + item.originalname[3] === "CC")
     ) {
@@ -4522,23 +4526,15 @@ exports.validarArchivo = async (req, res, next) => {
             value: tipo_periodo === "M" ? 155 : 154,
           });
         }
-        queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
-          fieldMax: "nro_carga",
+        queryNroCarga = EscogerInternoUtil(nameTable, {
+          select: ["*"],
           where: whereAux,
         });
 
         await pool
           .query(queryNroCarga)
           .then((resultNroCarga) => {
-            if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
-              nroCarga = 1;
-            } else {
-              nroCarga =
-                resultNroCarga.rows[0]?.max !== null
-                  ? resultNroCarga.rows[0]?.max
-                  : null;
-            }
-            result = nroCarga;
+            result = max(resultNroCarga, "nro_carga") || 0;
           })
           .catch((err) => {
             reject(err);
@@ -4558,7 +4554,7 @@ exports.validarArchivo = async (req, res, next) => {
             message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla "${nameTable}" del usuario con ID: "${req.user.id_usuario}". ERROR: ${err.message}`,
             err,
           });
-          return 1;
+          return undefined;
         });
 
       await validarArchivosIteraciones({
@@ -4578,19 +4574,23 @@ exports.validarArchivo = async (req, res, next) => {
               currentFiles.push(item.originalname);
             });
             process.env.TZ = "America/La_Paz";
-            bodyQuery.push({
+            const whereBodyQuery = {
               id_rol,
               fecha_operacion: fechaInicialOperacion,
-              nro_carga: nroCarga === null ? 1 : nroCarga + 1,
+              nro_carga: isUndefined(nroCarga) ? 1 : nroCarga + 1,
               fecha_carga: new Date(),
               id_usuario,
               cargado: false,
-              reproceso:
+            };
+            if (nroCarga?.reprocesado) whereBodyQuery["reprocesado"] = false;
+
+            if (nroCarga?.reproceso)
+              whereBodyQuery["reproceso"] =
                 req.body.reproceso === true || req.body.reproceso === "true"
                   ? true
-                  : false,
-              reprocesado: false,
-            });
+                  : false;
+
+            bodyQuery.push(whereBodyQuery);
             if (fecha_entrega) {
               bodyQuery[0].fecha_entrega = fecha_entrega;
             }
