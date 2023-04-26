@@ -254,7 +254,7 @@ async function seleccionarTablas(params) {
         !item.originalname[2] + item.originalname[3] === "CC")
     ) {
       result = {
-        code: "108",
+        code: item.originalname.toUpperCase().substring(0, 3),
         table: "APS_aud_carga_archivos_pensiones_seguros",
         tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
