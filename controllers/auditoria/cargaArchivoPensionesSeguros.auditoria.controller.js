@@ -1186,7 +1186,7 @@ async function ReporteReproceso(req, res) {
     const { fecha, id_rol, periodo, reproceso } = req.body;
     const id_rol_final = req.user.id_rol;
     const queryInstituciones = ListarUtil(
-      id_rol === 10
+      id_rol === 10 || id_rol === 8
         ? "aps_view_modalidad_seguros"
         : "aps_view_modalidad_pensiones",
       { activo: null }
