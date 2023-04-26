@@ -1206,11 +1206,11 @@ async function ReporteReproceso(req, res) {
       return;
     }
     const whereAux = [
-      { key: "id_periodo", valuesWhereIn: split(periodo), whereIn: true },
+      { key: "id_periodo", valuesWhereIn: split(periodo, ","), whereIn: true },
       { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
       {
         key: "cod_institucion",
-        valuesWhereIn: map(instituciones.result, (item) => `'${item.codigo}'`),
+        valuesWhereIn: map(instituciones.result, (item) => `${item.codigo}`),
         whereIn: true,
       },
       { key: "fecha_operacion", value: fecha },
