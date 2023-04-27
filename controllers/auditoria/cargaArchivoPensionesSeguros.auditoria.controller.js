@@ -1185,32 +1185,56 @@ async function ReporteReproceso(req, res) {
     //TO DO: Preguntar que id_rol debe tener cada reporte
     const { fecha, id_rol, periodo, reproceso } = req.body;
     const id_rol_final = req.user.id_rol;
-    const queryInstituciones = ListarUtil(
-      id_rol === 10 || id_rol === 8
-        ? "aps_view_modalidad_seguros"
-        : "aps_view_modalidad_pensiones",
-      { activo: null }
-    );
-    const instituciones = await pool
-      .query(queryInstituciones)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
+    const id_usuario_token = req.user.id_usuario;
 
-    if (instituciones.ok === null) throw instituciones.err;
+    const instituciones = await EjecutarVariosQuerys([
+      EscogerInternoUtil("aps_view_modalidad_seguros", {
+        select: ["*"],
+        where: [
+          { key: "id_usuario", value: id_usuario_token },
+          { key: "id_rol", value: id_rol_final },
+        ],
+      }),
+      EscogerInternoUtil("aps_view_modalidad_pensiones", {
+        select: ["*"],
+        where: [
+          { key: "id_usuario", value: id_usuario_token },
+          { key: "id_rol", value: id_rol_final },
+        ],
+      }),
+    ]);
+
+    if (instituciones.ok === null) throw instituciones.result;
+    if (instituciones.ok === false) throw instituciones.errors;
+
     if (!periodo) {
       respDatosNoRecibidos400(res, "No se envio la periodicidad");
       return;
     }
+
+    const institucionesSeguros = instituciones.result[0].data;
+    const institucionesPensiones = instituciones.result[1].data;
+    const institucionesFinal =
+      size(institucionesSeguros) > 0
+        ? institucionesSeguros
+        : institucionesPensiones;
+
+    if (size(institucionesFinal) <= 0) {
+      respResultadoIncorrectoObjeto200(
+        res,
+        null,
+        institucionesFinal,
+        "No existe información registrada para esta fecha"
+      );
+      return;
+    }
+
     const whereAux = [
       { key: "id_periodo", valuesWhereIn: split(periodo, ","), whereIn: true },
       { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
       {
         key: "cod_institucion",
-        valuesWhereIn: map(instituciones.result, (item) => `${item.codigo}`),
+        valuesWhereIn: map(institucionesFinal, (item) => `${item.codigo}`),
         whereIn: true,
       },
       { key: "fecha_operacion", value: fecha },
@@ -1230,7 +1254,6 @@ async function ReporteReproceso(req, res) {
     const results = await EjecutarVariosQuerys(querys);
 
     if (results.ok === null) throw results.result;
-
     if (results.ok === false) throw results.errors;
 
     const usuarios = find(
