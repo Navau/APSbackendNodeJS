@@ -10,6 +10,7 @@ const {
   keys,
   sortBy,
   split,
+  uniqBy,
 } = require("lodash");
 const pool = require("../../database");
 const moment = require("moment");
@@ -53,6 +54,7 @@ const {
   SimpleReport,
 } = require("../../utils/opcionesReportes");
 const path = require("path");
+const format = require("pg-format");
 
 const nameTable = "APS_aud_carga_archivos_pensiones_seguros";
 
@@ -479,6 +481,7 @@ async function Modalidades(req, res) {
     if (results.ok === false) {
       throw results.errors;
     }
+    results.result[0].data = uniqBy(results.result[0].data, "codigo");
     const modalidadesArray = map(results.result, (item, index) => {
       return {
         id_modalidad: index + 1,
@@ -520,14 +523,13 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     const instituciones = await pool
       .query(queryInstituciones)
       .then((result) => {
-        return { ok: true, result: result.rows };
+        return { ok: true, result: uniqBy(result.rows, "codigo") };
       })
       .catch((err) => {
         return { ok: null, err };
       });
 
     if (instituciones.ok === null) throw instituciones.err;
-
     //SEGUROS
     if (iid_reporte === 6) {
       if (!periodo) {
@@ -990,7 +992,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
     const instituciones = await pool
       .query(queryInstituciones)
       .then((result) => {
-        return { ok: true, result: result.rows };
+        return { ok: true, result: uniqBy(result.rows, "codigo") };
       })
       .catch((err) => {
         return { ok: null, err };
@@ -1378,6 +1380,7 @@ async function Entidades(req, res) {
     if (results.ok === false) {
       throw results.errors;
     }
+    results.result[0].data = uniqBy(results.result[0].data, "codigo");
 
     respResultadoCorrectoObjeto200(res, results.result[0].data);
   } catch (err) {
@@ -1390,9 +1393,11 @@ async function HabilitarReproceso(req, res) {
     const { fecha, periodicidad, codigo_entidad, tipo_informacion } = req.body;
     const querys = [];
     if (tipo_informacion) {
-      const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
-        "YYYY-MM-DD HH:mm:ss.SSS"
-      )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND id_rol = ${tipo_informacion} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
+      const values = [fecha, tipo_informacion, codigo_entidad];
+      const queryUpdate = format(
+        `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = now(), reproceso = true WHERE fecha_operacion = %L AND id_rol = %L AND cod_institucion = %L AND cargado = true RETURNING *;`,
+        ...values
+      );
       console.log(queryUpdate);
       querys.push(queryUpdate);
       querys.push(
@@ -1405,9 +1410,11 @@ async function HabilitarReproceso(req, res) {
             })
       );
     } else {
-      const queryUpdate = `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = '${moment().format(
-        "YYYY-MM-DD HH:mm:ss.SSS"
-      )}}', reproceso = true WHERE fecha_operacion = '${fecha}' AND id_periodo = ${periodicidad} AND cod_institucion = '${codigo_entidad}' AND cargado = true RETURNING *;`;
+      const values = [fecha, periodicidad, codigo_entidad];
+      const queryUpdate = format(
+        `UPDATE public."APS_aud_carga_archivos_pensiones_seguros" SET cargado = false, fecha_carga = , reproceso = true WHERE fecha_operacion = %L AND id_periodo = %L AND cod_institucion = %L AND cargado = true RETURNING *;`,
+        ...values
+      );
       console.log(queryUpdate);
       querys.push(queryUpdate);
       querys.push(
