@@ -1,9 +1,11 @@
 const express = require("express");
+const helmet = require("helmet");
 const app = express();
 const RouterApi = require("./routes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(helmet());
 const timeZone = "America/La_Paz";
 process.env.TZ = timeZone;
 app.set("trust proxy", true);

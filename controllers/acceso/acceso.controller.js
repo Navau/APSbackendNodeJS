@@ -3,6 +3,17 @@ const moment = require("moment");
 const pool = require("../../database");
 const format = require("pg-format");
 const validator = require("validator");
+const yup = require("yup");
+const { setLocale } = require("yup");
+
+setLocale({
+  mixed: {
+    required: "El campo ${path} es requerido",
+  },
+  string: {
+    max: "El campo ${path} no puede tener más de ${max} caracteres",
+  },
+});
 
 const {
   estadoJWT,
@@ -105,17 +116,47 @@ async function Login(req, res) {
   try {
     const body = req.body;
     const user = body.usuario?.toLowerCase();
+    const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
     const password = body.password;
+
+    const userInputSchema = yup.object().shape({
+      usuario: yup.string().max(50).required(),
+      contraseña: yup.string().max(80).required(),
+    });
+    const userInput = {
+      usuario: user,
+      contraseña: password,
+    };
+    const resultInput = await userInputSchema
+      .validate(userInput)
+      .then((validUserInput) => {
+        return { ok: true, result: validUserInput };
+      })
+      .catch((err) => {
+        return { ok: false, err };
+      });
+    if (resultInput.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], resultInput.err.message);
+      return;
+    }
+
     const values = [user, password];
     const queryUsuario = format(
       'SELECT * FROM public."APS_seg_usuario" WHERE usuario = %L AND password is NOT NULL AND password = crypt(%L, password);',
       ...values
     );
+
     console.log(queryUsuario);
     await pool
       .query(queryUsuario)
       .then(async (result) => {
         if (result.rowCount > 0) {
+          const auxVerifica = await verificaCuentaBloqueada(res, ip);
+          if (auxVerifica.ok === null) throw auxVerifica.err;
+          if (auxVerifica.ok === false) {
+            auxVerifica.resp();
+            return;
+          }
           const valuesRol = [result.rows[0].id_usuario, true];
           const queryRol = format(
             `SELECT id_rol FROM public."APS_seg_usuario_rol" WHERE id_usuario = %L and activo = %L;`,
@@ -125,7 +166,7 @@ async function Login(req, res) {
 
           await pool
             .query(queryRol)
-            .then((result2) => {
+            .then(async (result2) => {
               if (result2.rowCount > 0) {
                 const resultFinal = {
                   id_usuario: result.rows[0].id_usuario,
@@ -151,17 +192,31 @@ async function Login(req, res) {
                     "Hubo un error al crear el token de autenticación"
                   );
                 }
-              } else
+              } else {
+                // const aux = await numeroDeIntentos(res, user, ip);
+                // if (aux.ok === null) throw aux.err;
+                // if (aux.ok === false) {
+                //   aux.resp();
+                //   return;
+                // }
                 respResultadoVacio404END(
                   res,
                   "Este usuario no cuenta con un Rol"
                 );
+              }
             })
             .catch((err) => {
               respErrorServidor500END(res, err);
             });
-        } else
+        } else {
+          const aux = await numeroDeIntentos(res, user, password, ip);
+          if (aux.ok === null) throw aux.err;
+          if (aux.ok === false) {
+            aux.resp();
+            return;
+          }
           respResultadoVacio404END(res, "Usuario y/o Contraseña incorrecto");
+        }
       })
       .catch((err) => {
         respErrorServidor500END(res, err);
@@ -191,7 +246,7 @@ function TokenConRol(req, res) {
   }
 }
 
-const numeroDeIntentos = async (res, user, ip) => {
+const numeroDeIntentos = async (res, user, pass, ip) => {
   try {
     //#region CONSULTAS
     const usuario = await pool
@@ -213,29 +268,29 @@ const numeroDeIntentos = async (res, user, ip) => {
       });
 
     if (usuario.ok === null) return usuario;
-    if (usuario.ok === false)
-      return {
-        ok: false,
-        resp: () => {
-          if (size(usuario.result) > 1)
-            respResultadoDinamicoEND(
-              res,
-              409,
-              0,
-              [],
-              "Existen uno o mas usuarios con el mismo nombre, porfavor comuniquese con el administrador"
-            );
-          else if (size(usuario.result) === 0)
-            respResultadoVacio404END(res, "El usuario no existe");
-        },
-      };
+    // if (usuario.ok === false)
+    //   return {
+    //     ok: false,
+    //     resp: () => {
+    //       if (size(usuario.result) > 1)
+    //         respResultadoDinamicoEND(
+    //           res,
+    //           409,
+    //           0,
+    //           [],
+    //           "Existen uno o mas usuarios con el mismo nombre, porfavor comuniquese con el administrador"
+    //         );
+    //       else if (size(usuario.result) === 0)
+    //         respResultadoVacio404END(res, "El usuario no existe");
+    //     },
+    //   };
 
     const intentosActuales = await pool
       .query(
         EscogerInternoUtil("APS_seg_intentos_log", {
           select: ["*"],
           where: [
-            { key: "id_usuario", value: usuario.result.id_usuario },
+            { key: "ip", value: ip },
             { key: "activo", value: true },
           ],
         })
@@ -261,12 +316,15 @@ const numeroDeIntentos = async (res, user, ip) => {
     //#region INSERTANDO INTENTO EN APS_seg_intentos_log
     const queryInsert = InsertarUtil("APS_seg_intentos_log", {
       body: {
-        id_usuario: usuario.result.id_usuario,
+        id_usuario: usuario.result?.id_usuario || -1,
+        usuario: user,
+        password: pass,
         ip,
         num_intento: maxIntento + 1,
       },
       returnValue: "*",
     });
+
     const ultimoIntentoInsertado = await pool
       .query(queryInsert)
       .then((result) => {
@@ -283,11 +341,55 @@ const numeroDeIntentos = async (res, user, ip) => {
         resp: () =>
           respDemasiadasSolicitudes429(
             res,
-            "Cuenta bloqueda debido a sobrepasar el límite de inicio de sesión, comuniquese con el administrador"
+            "Se realizó demasiados intentos de inicio de sesión, comuniquese con el administrador"
           ),
       };
     }
     return { ok: true, result: ultimoIntentoInsertado.result };
+  } catch (err) {
+    return { ok: null, err };
+  }
+};
+
+const verificaCuentaBloqueada = async (res, ip) => {
+  try {
+    //#region CONSULTAS
+    const intentosActuales = await pool
+      .query(
+        EscogerInternoUtil("APS_seg_intentos_log", {
+          select: ["*"],
+          where: [
+            { key: "ip", value: ip },
+            { key: "activo", value: true },
+          ],
+        })
+      )
+      .then((result) => {
+        return { ok: true, result: result.rows };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+
+    if (intentosActuales.ok === null) return intentosActuales;
+    //#endregion
+    //#region OBTENIENDO EL ULTIMO INTENTO, UTILIZANDO EL MAXIMO
+    const maxIntentoAux = maxBy(
+      intentosActuales.result,
+      (item) => item.num_intento
+    );
+    const maxIntento = isUndefined(maxIntentoAux)
+      ? 0
+      : maxIntentoAux.num_intento;
+    //#endregion
+    return {
+      ok: maxIntento > 3 ? false : true,
+      resp: () =>
+        respDemasiadasSolicitudes429(
+          res,
+          "Se realizó demasiados intentos de inicio de sesión, comuniquese con el administrador"
+        ),
+    };
   } catch (err) {
     return { ok: null, err };
   }
