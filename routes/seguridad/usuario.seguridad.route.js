@@ -11,6 +11,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.InstitucionConIDUsuario
 );
+api.post(
+  "/Desbloquear",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.Desbloquear
+);
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(

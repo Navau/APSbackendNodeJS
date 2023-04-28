@@ -36,6 +36,8 @@ const {
   EscogerInternoUtil,
   InsertarVariosUtil,
   InsertarUtil,
+  ActualizarUtil,
+  EliminarUtil,
 } = require("../../utils/consulta.utils");
 const { APP_GUID } = require("../../config");
 const {
@@ -140,6 +142,13 @@ async function Login(req, res) {
       return;
     }
 
+    const auxVerifica = await verificaCuentaBloqueada(res, user);
+    if (auxVerifica.ok === null) throw auxVerifica.err;
+    if (auxVerifica.ok === false) {
+      auxVerifica.resp();
+      return;
+    }
+
     const values = [user, password];
     const queryUsuario = format(
       'SELECT * FROM public."APS_seg_usuario" WHERE usuario = %L AND password is NOT NULL AND password = crypt(%L, password);',
@@ -151,12 +160,7 @@ async function Login(req, res) {
       .query(queryUsuario)
       .then(async (result) => {
         if (result.rowCount > 0) {
-          const auxVerifica = await verificaCuentaBloqueada(res, ip);
-          if (auxVerifica.ok === null) throw auxVerifica.err;
-          if (auxVerifica.ok === false) {
-            auxVerifica.resp();
-            return;
-          }
+          await reiniciarIntentosFallidos(result.rows[0].id_usuario);
           const valuesRol = [result.rows[0].id_usuario, true];
           const queryRol = format(
             `SELECT id_rol FROM public."APS_seg_usuario_rol" WHERE id_usuario = %L and activo = %L;`,
@@ -268,29 +272,18 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
       });
 
     if (usuario.ok === null) return usuario;
-    // if (usuario.ok === false)
-    //   return {
-    //     ok: false,
-    //     resp: () => {
-    //       if (size(usuario.result) > 1)
-    //         respResultadoDinamicoEND(
-    //           res,
-    //           409,
-    //           0,
-    //           [],
-    //           "Existen uno o mas usuarios con el mismo nombre, porfavor comuniquese con el administrador"
-    //         );
-    //       else if (size(usuario.result) === 0)
-    //         respResultadoVacio404END(res, "El usuario no existe");
-    //     },
-    //   };
+    if (usuario.ok === false)
+      return {
+        ok: false,
+        resp: () => respResultadoVacio404END(res, "El usuario no existe"),
+      };
 
     const intentosActuales = await pool
       .query(
         EscogerInternoUtil("APS_seg_intentos_log", {
           select: ["*"],
           where: [
-            { key: "ip", value: ip },
+            { key: "id_usuario", value: usuario.result?.id_usuario },
             { key: "activo", value: true },
           ],
         })
@@ -314,34 +307,40 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
       : maxIntentoAux.num_intento;
     //#endregion
     //#region INSERTANDO INTENTO EN APS_seg_intentos_log
-    const queryInsert = InsertarUtil("APS_seg_intentos_log", {
-      body: {
-        id_usuario: usuario.result?.id_usuario || -1,
-        usuario: user,
-        password: pass,
-        ip,
-        num_intento: maxIntento + 1,
-      },
-      returnValue: "*",
-    });
-
-    const ultimoIntentoInsertado = await pool
-      .query(queryInsert)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
+    let ultimoIntentoInsertado;
+    if (maxIntento < 3) {
+      const queryInsert = InsertarUtil("APS_seg_intentos_log", {
+        body: {
+          id_usuario: usuario.result?.id_usuario || -1,
+          usuario: user,
+          password: pass,
+          ip,
+          num_intento: maxIntento + 1,
+        },
+        returnValue: "*",
       });
+
+      ultimoIntentoInsertado = await pool
+        .query(queryInsert)
+        .then((result) => {
+          return { ok: true, result: result.rows };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (ultimoIntentoInsertado.ok === null) return ultimoIntentoInsertado;
+    } else ultimoIntentoInsertado = { result: [{ num_intento: maxIntento }] };
     //#endregion
-    if (ultimoIntentoInsertado.ok === null) return ultimoIntentoInsertado;
-    if (ultimoIntentoInsertado.result[0].num_intento > 3) {
+
+    if (ultimoIntentoInsertado.result[0].num_intento >= 3) {
+      await ActualizarUsuarioBloqueado(true, usuario.result?.id_usuario);
+
       return {
         ok: false,
         resp: () =>
           respDemasiadasSolicitudes429(
             res,
-            "Se realizó demasiados intentos de inicio de sesión, comuniquese con el administrador"
+            "Usuario Bloqueado, contáctese con el Administrador del Sistema"
           ),
       };
     }
@@ -351,45 +350,122 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
   }
 };
 
-const verificaCuentaBloqueada = async (res, ip) => {
+const verificaCuentaBloqueada = async (res, usuario) => {
   try {
     //#region CONSULTAS
-    const intentosActuales = await pool
+    const usuarioInfo = await pool
       .query(
-        EscogerInternoUtil("APS_seg_intentos_log", {
+        EscogerInternoUtil("APS_seg_usuario", {
           select: ["*"],
           where: [
-            { key: "ip", value: ip },
+            { key: "usuario", value: usuario },
             { key: "activo", value: true },
           ],
         })
       )
+      .then((result) => {
+        return { ok: true, result: result.rows?.[0] || {} };
+      })
+      .catch((err) => {
+        return { ok: null, err };
+      });
+
+    if (usuarioInfo.ok === null) return usuarioInfo;
+    let intentosInfo = { ok: false, result: [] };
+    if (usuarioInfo.result?.id_usuario) {
+      intentosInfo = await pool
+        .query(
+          EscogerInternoUtil("APS_seg_intentos_log", {
+            select: ["*"],
+            where: [
+              { key: "id_usuario", value: usuarioInfo.result?.id_usuario },
+              { key: "activo", value: true },
+            ],
+          })
+        )
+        .then((result) => {
+          return { ok: true, result: result.rows };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+
+      if (usuarioInfo.ok === null) return usuarioInfo;
+    }
+    //#endregion
+
+    //#region VERIRIFICACION DE INTENTOS LOG, ESTO ES POR SI EN USUARIOS ESTA EN TRUE, PERO TIENE LOS INTENTOS EN MAS DE 3 EN LA TABLA DE APS_INTENTOS_LOG
+    if (size(intentosInfo.result) > 0) {
+      const maxIntentoAux = maxBy(intentosInfo.result, "num_intento");
+      const maxIntentoFinal = isUndefined(maxIntentoAux)
+        ? 0
+        : maxIntentoAux.num_intento;
+      if (maxIntentoFinal >= 3) {
+        if (usuarioInfo.result.bloqueado === false) {
+          await ActualizarUsuarioBloqueado(true, usuarioInfo.result.id_usuario);
+        }
+        return {
+          ok: false,
+          resp: () =>
+            respDemasiadasSolicitudes429(
+              res,
+              "Usuario Bloqueado, contáctese con el Administrador del Sistema"
+            ),
+        };
+      }
+    }
+    //#endregion
+
+    return {
+      ok: usuarioInfo.result.bloqueado === true ? false : true,
+      resp: () =>
+        respDemasiadasSolicitudes429(
+          res,
+          "Usuario Bloqueado, contáctese con el Administrador del Sistema"
+        ),
+    };
+  } catch (err) {
+    return { ok: null, err };
+  }
+};
+
+const reiniciarIntentosFallidos = async (id_usuario) => {
+  try {
+    const queryReinicio = EliminarUtil("APS_seg_intentos_log", {
+      where: {
+        id_usuario: id_usuario,
+      },
+    });
+    await pool
+      .query(queryReinicio)
+      .then(async (result) => {
+        await ActualizarUsuarioBloqueado(false, id_usuario);
+      })
+      .catch((err) => {
+        throw err;
+      });
+  } catch (err) {
+    return { ok: null, err };
+  }
+};
+
+const ActualizarUsuarioBloqueado = async (bloqueado, id_usuario) => {
+  try {
+    const queryBloqueaUsuario = ActualizarUtil("APS_seg_usuario", {
+      body: { bloqueado },
+      idKey: "id_usuario",
+      idValue: id_usuario,
+      returnValue: ["*"],
+    });
+    const usuarioBloqueado = await pool
+      .query(queryBloqueaUsuario)
       .then((result) => {
         return { ok: true, result: result.rows };
       })
       .catch((err) => {
         return { ok: null, err };
       });
-
-    if (intentosActuales.ok === null) return intentosActuales;
-    //#endregion
-    //#region OBTENIENDO EL ULTIMO INTENTO, UTILIZANDO EL MAXIMO
-    const maxIntentoAux = maxBy(
-      intentosActuales.result,
-      (item) => item.num_intento
-    );
-    const maxIntento = isUndefined(maxIntentoAux)
-      ? 0
-      : maxIntentoAux.num_intento;
-    //#endregion
-    return {
-      ok: maxIntento > 3 ? false : true,
-      resp: () =>
-        respDemasiadasSolicitudes429(
-          res,
-          "Se realizó demasiados intentos de inicio de sesión, comuniquese con el administrador"
-        ),
-    };
+    if (usuarioBloqueado.ok === null) throw usuarioBloqueado.err;
   } catch (err) {
     return { ok: null, err };
   }
@@ -398,7 +474,7 @@ const verificaCuentaBloqueada = async (res, ip) => {
 async function LoginApiExterna(req, res) {
   try {
     const body = req.body;
-    const user = body.usuario.toLowerCase();
+    const user = body.usuario;
     const password = body.password;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
     //#region NUMERO DE INTENTOS

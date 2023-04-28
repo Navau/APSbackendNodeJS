@@ -1,6 +1,10 @@
 const pool = require("../../database");
 
-const { EscogerInternoUtil } = require("../../utils/consulta.utils");
+const {
+  EscogerInternoUtil,
+  ActualizarUtil,
+  EliminarUtil,
+} = require("../../utils/consulta.utils");
 
 const {
   ListarCRUD,
@@ -108,6 +112,46 @@ async function Actualizar(req, res) {
   await ActualizarCRUD(params);
 }
 
+async function Desbloquear(req, res) {
+  try {
+    const { id_usuario } = req.body;
+    const queryReinicio = EliminarUtil("APS_seg_intentos_log", {
+      where: {
+        id_usuario: id_usuario,
+      },
+    });
+    await pool
+      .query(queryReinicio)
+      .then(async (result) => {
+        const queryBloqueaUsuario = ActualizarUtil("APS_seg_usuario", {
+          body: { bloqueado: false },
+          idKey: "id_usuario",
+          idValue: id_usuario,
+          returnValue: ["*"],
+        });
+        const usuarioBloqueado = await pool
+          .query(queryBloqueaUsuario)
+          .then((result) => {
+            return { ok: true, result: result.rows };
+          })
+          .catch((err) => {
+            return { ok: null, err };
+          });
+        if (usuarioBloqueado.ok === null) throw usuarioBloqueado.err;
+        respResultadoCorrectoObjeto200(
+          res,
+          [],
+          "Usuario desbloqueado con éxito"
+        );
+      })
+      .catch((err) => {
+        throw err;
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 module.exports = {
   Listar,
   Buscar,
@@ -115,4 +159,5 @@ module.exports = {
   Insertar,
   Actualizar,
   InstitucionConIDUsuario,
+  Desbloquear,
 };
