@@ -115,10 +115,11 @@ async function Actualizar(req, res) {
 async function Desbloquear(req, res) {
   try {
     const { id_usuario } = req.body;
-    const queryReinicio = EliminarUtil("APS_seg_intentos_log", {
-      where: {
-        id_usuario: id_usuario,
-      },
+    const queryReinicio = ActualizarUtil("APS_seg_intentos_log", {
+      body: { activo: false },
+      idKey: "id_usuario",
+      idValue: id_usuario,
+      returnValue: ["*"],
     });
     await pool
       .query(queryReinicio)
