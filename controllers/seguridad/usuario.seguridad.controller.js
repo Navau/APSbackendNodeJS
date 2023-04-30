@@ -114,7 +114,7 @@ async function Actualizar(req, res) {
 
 async function Desbloquear(req, res) {
   try {
-    const { id_usuario } = req.body;
+    const { id_usuario, bloqueado } = req.body;
     const queryReinicio = ActualizarUtil("APS_seg_intentos_log", {
       body: { activo: false },
       idKey: "id_usuario",
@@ -125,7 +125,7 @@ async function Desbloquear(req, res) {
       .query(queryReinicio)
       .then(async (result) => {
         const queryBloqueaUsuario = ActualizarUtil("APS_seg_usuario", {
-          body: { bloqueado: false },
+          body: { bloqueado: bloqueado },
           idKey: "id_usuario",
           idValue: id_usuario,
           returnValue: ["*"],
