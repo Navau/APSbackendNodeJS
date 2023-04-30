@@ -142,7 +142,7 @@ async function Desbloquear(req, res) {
         respResultadoCorrectoObjeto200(
           res,
           [],
-          "Usuario desbloqueado con éxito"
+          `Usuario ${bloqueado ? "bloqueado" : "desbloqueado"} con éxito`
         );
       })
       .catch((err) => {
