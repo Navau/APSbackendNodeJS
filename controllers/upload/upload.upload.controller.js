@@ -8,6 +8,7 @@ const {
   replace,
   isUndefined,
   minBy,
+  find,
 } = require("lodash");
 const pool = require("../../database");
 const fs = require("fs");
@@ -55,6 +56,21 @@ var nameTable = "APS_aud_carga_archivos_bolsa";
 async function CargarArchivo(req, res) {
   try {
     const fechaInicialOperacion = req?.body?.fecha_operacion;
+    const id_rol = req.user.id_rol;
+    const id_usuario = req.user.id_usuario;
+    const paramsQueryAux = {
+      select: ["codigo, sigla, id_rol, id_usuario"],
+      where: [
+        { key: "id_usuario", value: id_usuario },
+        { key: "id_rol", value: id_rol },
+      ],
+    };
+    const codigosSeguros = await EjecutarQuery(
+      EscogerInternoUtil("aps_view_modalidad_seguros", paramsQueryAux)
+    );
+    const codigosPensiones = await EjecutarQuery(
+      EscogerInternoUtil("aps_view_modalidad_pensiones", paramsQueryAux)
+    );
     const filesReaded = req.filesReaded;
     // console.log(filesReaded);
     // const filesUploadedBD = req.filesUploadedBD;
@@ -62,24 +78,7 @@ async function CargarArchivo(req, res) {
     const previousErrors = req.errors;
     const returnsValues = req.returnsValues;
     const idCargaArchivos = returnsValues[0].id_carga_archivos;
-    const cargaBolsaActual = await pool
-      .query(
-        EscogerInternoUtil(nameTable, {
-          select: ["*"],
-          where: [{ key: "id_carga_archivos", value: idCargaArchivos }],
-        })
-      )
-      .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows?.[0] };
-        else return { ok: false, result: result.rows?.[0] };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-    if (cargaBolsaActual.ok === null) throw cargaBolsaActual.err;
-    //TO DO: EXTREMO ES NECESARIO ARREGLAR DE LA BOLSA
-    // if (cargaBolsaActual.ok === false)
-    //   throw new Error(`No existe el registro con el id ${idCargaArchivos}`);
+    let cargaBolsaActual = null;
     const resultFinal = [];
     const tablesFilesArray = [];
     const sequencesTablesFilesArray = [];
@@ -109,35 +108,42 @@ async function CargarArchivo(req, res) {
       tableErrors: null,
     };
 
-    //TO DO: EXTREMO ARREGLAR LOS FILTROS DE ARCHIVOS
-    map(filesSort, (item, index) => {
+    forEach(filesSort, (item, index) => {
+      const nameFile = item.originalname.toUpperCase();
+      const codSeguros = nameFile.substring(0, 3);
+      const codPensiones = nameFile.substring(0, 2);
+      const codPensionesSeguros =
+        size(codigosSeguros) > 0
+          ? codSeguros
+          : size(codigosPensiones) > 0
+          ? codPensiones
+          : null;
+      if (codPensionesSeguros === null) return result;
+      const findSeguros = find(
+        codigosSeguros,
+        (itemF) => codSeguros === itemF.codigo
+      );
+      const findPensiones = find(
+        codigosPensiones,
+        (itemF) => codPensiones === itemF.codigo
+      );
       if (
-        item.originalname.toUpperCase().substring(0, 3) === "108" &&
-        !item.originalname.toUpperCase().includes("CC")
+        (!isUndefined(findSeguros) || !isUndefined(findPensiones)) &&
+        (!nameFile.includes(".CC") ||
+          !item.originalname[2] + item.originalname[3] === "CC")
       ) {
         infoTables = {
-          code: "108",
-          cod_institution: "108",
+          code: codPensionesSeguros,
+          cod_institution: codPensionesSeguros,
           table: "APS_aud_carga_archivos_pensiones_seguros",
           tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
         };
       } else if (
-        (item.originalname.toUpperCase().substring(0, 2) === "02" ||
-          item.originalname.toUpperCase().substring(0, 2) === "01") &&
-        !item.originalname.toUpperCase().includes("CC")
-      ) {
-        infoTables = {
-          code: "02",
-          cod_institution: "02",
-          table: "APS_aud_carga_archivos_pensiones_seguros",
-          tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
-        };
-      } else if (
-        item.originalname.substring(0, 1) === "M" &&
-        (item.originalname.includes("K.") ||
-          item.originalname.includes("L.") ||
-          item.originalname.includes("N.") ||
-          item.originalname.includes("P."))
+        nameFile.substring(0, 1) === "M" &&
+        (nameFile.includes("K.") ||
+          nameFile.includes("L.") ||
+          nameFile.includes("N.") ||
+          nameFile.includes("P."))
       ) {
         infoTables = {
           code: "M",
@@ -145,7 +151,7 @@ async function CargarArchivo(req, res) {
           table: "APS_aud_carga_archivos_bolsa",
           tableErrors: "APS_aud_errores_carga_archivos_bolsa",
         };
-      } else if (item.originalname.toUpperCase().includes(".CC")) {
+      } else if (nameFile.includes(".CC")) {
         const stringAux = item.originalname.toUpperCase();
         const fechaAux = split(fechaInicialOperacion, "-").join("");
         const codFinal = (string, split) => {
@@ -158,7 +164,7 @@ async function CargarArchivo(req, res) {
           table: "APS_aud_carga_archivos_custodio",
           tableErrors: "APS_aud_errores_carga_archivos_custodio",
         };
-      } else if (item.originalname.toUpperCase().includes("CC")) {
+      } else if (nameFile.includes("CC")) {
         const fechaAux = split(fechaInicialOperacion, "-").join("");
         const fileSplitFecha = item.originalname
           .toUpperCase()
@@ -175,6 +181,27 @@ async function CargarArchivo(req, res) {
         };
       }
     });
+
+    if (infoTables.cod_institution === "bolsa") {
+      cargaBolsaActual = await pool
+        .query(
+          EscogerInternoUtil(nameTable, {
+            select: ["*"],
+            where: [{ key: "id_carga_archivos", value: idCargaArchivos }],
+          })
+        )
+        .then((result) => {
+          if (result.rowCount > 0)
+            return { ok: true, result: result.rows?.[0] };
+          else return { ok: false, result: result.rows?.[0] };
+        })
+        .catch((err) => {
+          return { ok: null, err };
+        });
+      if (cargaBolsaActual.ok === null) throw cargaBolsaActual.err;
+      if (cargaBolsaActual.ok === false)
+        throw new Error(`No existe el registro con el id ${idCargaArchivos}`);
+    }
 
     const uploadPromise = new Promise(async (resolve, reject) => {
       let errors = [];

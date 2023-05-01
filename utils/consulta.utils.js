@@ -1432,6 +1432,21 @@ async function ObtenerUsuariosPorRol(user) {
   return resultFinal;
 }
 
+async function EjecutarQuery(query) {
+  try {
+    return await pool
+      .query(query)
+      .then((result) => {
+        return result.rows;
+      })
+      .catch((err) => {
+        throw new Error(err);
+      });
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
 async function EjecutarVariosQuerys(querys = [], newID, newTable) {
   if (size(querys) < 0) return null;
   const resultFinal = [];
@@ -1630,4 +1645,5 @@ module.exports = {
   EjecutarVariosQuerys,
   AsignarInformacionCompletaPorUnaClave,
   EjecutarQuerysReportes,
+  EjecutarQuery,
 };

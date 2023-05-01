@@ -54,6 +54,7 @@ const {
   InsertarVariosUtil,
   EjecutarFuncionSQL,
   EscogerInternoUtil,
+  EjecutarQuery,
 } = require("../utils/consulta.utils");
 
 const {
@@ -242,28 +243,47 @@ async function obtenerListaArchivos(params) {
 }
 
 async function seleccionarTablas(params) {
+  const { files, codigosSeguros, codigosPensiones } = params;
+
   let result = {
     code: null,
     table: null,
   };
-  map(params.files, (item, index) => {
+  forEach(files, (item, index) => {
+    const nameFile = item.originalname.toUpperCase();
+    const codSeguros = nameFile.substring(0, 3);
+    const codPensiones = nameFile.substring(0, 2);
+    const codPensionesSeguros =
+      size(codigosSeguros) > 0
+        ? codSeguros
+        : size(codigosPensiones) > 0
+        ? codPensiones
+        : null;
+    if (codPensionesSeguros === null) return result;
+    const findSeguros = find(
+      codigosSeguros,
+      (itemF) => codSeguros === itemF.codigo
+    );
+    const findPensiones = find(
+      codigosPensiones,
+      (itemF) => codPensiones === itemF.codigo
+    );
     if (
-      (item.originalname.toUpperCase().substring(0, 3) === "108" ||
-        item.originalname.toUpperCase().substring(0, 3) === "102") &&
-      (!item.originalname.toUpperCase().includes(".CC") ||
+      (!isUndefined(findSeguros) || !isUndefined(findPensiones)) &&
+      (!nameFile.includes(".CC") ||
         !item.originalname[2] + item.originalname[3] === "CC")
     ) {
       result = {
-        code: item.originalname.toUpperCase().substring(0, 3),
+        code: codPensionesSeguros,
         table: "APS_aud_carga_archivos_pensiones_seguros",
         tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
       };
     } else if (
-      item.originalname.toUpperCase().substring(0, 1) === "M" &&
-      (item.originalname.toUpperCase().includes("K.") ||
-        item.originalname.toUpperCase().includes("L.") ||
-        item.originalname.toUpperCase().includes("N.") ||
-        item.originalname.toUpperCase().includes("P."))
+      nameFile.substring(0, 1) === "M" &&
+      (nameFile.includes("K.") ||
+        nameFile.includes("L.") ||
+        nameFile.includes("N.") ||
+        nameFile.includes("P."))
     ) {
       result = {
         code: "M",
@@ -271,17 +291,7 @@ async function seleccionarTablas(params) {
         tableErrors: "APS_aud_errores_carga_archivos_bolsa",
       };
     } else if (
-      item.originalname.toUpperCase().substring(0, 2) === "02" &&
-      (!item.originalname.toUpperCase().includes(".CC") ||
-        !item.originalname[2] + item.originalname[3] === "CC")
-    ) {
-      result = {
-        code: "02",
-        table: "APS_aud_carga_archivos_pensiones_seguros",
-        tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
-      };
-    } else if (
-      item.originalname.toUpperCase().includes(".CC") ||
+      nameFile.includes(".CC") ||
       item.originalname[2] + item.originalname[3] === "CC"
     ) {
       result = {
@@ -4430,7 +4440,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             item3?.endSingleGroup === true ? item3.endSingleGroup : null;
 
           let grouping = item3?.grouping === true ? item3.grouping : null;
-          let messageError = isUndefined(messageError)
+          let messageError = isUndefined(item3?.messageError)
             ? undefined
             : messageError;
           if (!value && (mayBeEmpty === false || mayBeEmpty === null)) {
@@ -4494,9 +4504,24 @@ exports.validarArchivo = async (req, res, next) => {
       : moment().format("YYYYMMDD");
 
     console.log(fechaInicialOperacion);
+    const paramsQueryAux = {
+      select: ["codigo, sigla, id_rol, id_usuario"],
+      where: [
+        { key: "id_usuario", value: id_usuario },
+        { key: "id_rol", value: id_rol },
+      ],
+    };
+    const codigosSeguros = await EjecutarQuery(
+      EscogerInternoUtil("aps_view_modalidad_seguros", paramsQueryAux)
+    );
+    const codigosPensiones = await EjecutarQuery(
+      EscogerInternoUtil("aps_view_modalidad_pensiones", paramsQueryAux)
+    );
 
     let infoTables = await seleccionarTablas({
       files: req.files,
+      codigosSeguros,
+      codigosPensiones,
     });
 
     if (infoTables.code === null && infoTables.table === null) {
@@ -4505,270 +4530,265 @@ exports.validarArchivo = async (req, res, next) => {
         message: `Hubo un error al obtener los nombres de la tablas en las que el servidor trabajará, usuario con ID: "${id_usuario}" y ID_ROL: ${id_rol}`,
       });
       return;
-    } else {
-      nameTable = infoTables.table;
-      nameTableErrors = infoTables.tableErrors;
-      codeCurrentFile = infoTables.code;
+    }
 
-      const nroCargaPromise = new Promise(async (resolve, reject) => {
-        let result = 1;
-        let nroCarga = 1;
-        const whereAux = [
-          {
-            key: "id_rol",
-            value: id_rol,
-          },
-          {
-            key: "fecha_operacion",
-            value: fechaInicialOperacion,
-          },
-          {
-            key: "id_usuario",
-            value: id_usuario,
-          },
-        ];
-        if (nameTable === "APS_aud_carga_archivos_pensiones_seguros") {
-          whereAux.push({
-            key: "id_periodo",
-            value: tipo_periodo === "M" ? 155 : 154,
-          });
-        }
-        queryNroCarga = EscogerInternoUtil(nameTable, {
-          select: ["*"],
-          where: whereAux,
+    nameTable = infoTables.table;
+    nameTableErrors = infoTables.tableErrors;
+    codeCurrentFile = infoTables.code;
+
+    const nroCargaPromise = new Promise(async (resolve, reject) => {
+      let result = 1;
+      let nroCarga = 1;
+      const whereAux = [
+        {
+          key: "id_rol",
+          value: id_rol,
+        },
+        {
+          key: "fecha_operacion",
+          value: fechaInicialOperacion,
+        },
+        {
+          key: "id_usuario",
+          value: id_usuario,
+        },
+      ];
+      if (nameTable === "APS_aud_carga_archivos_pensiones_seguros") {
+        whereAux.push({
+          key: "id_periodo",
+          value: tipo_periodo === "M" ? 155 : 154,
         });
-
-        await pool
-          .query(queryNroCarga)
-          .then((resultNroCarga) => {
-            result = max(resultNroCarga, "nro_carga") || 0;
-          })
-          .catch((err) => {
-            reject(err);
-          })
-          .finally(() => {
-            resolve(result);
-          });
+      }
+      queryNroCarga = EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: whereAux,
       });
 
-      const nroCarga = await nroCargaPromise
-        .then((response) => {
-          return response;
+      await pool
+        .query(queryNroCarga)
+        .then((resultNroCarga) => {
+          result = max(resultNroCarga, "nro_carga") || 0;
         })
         .catch((err) => {
-          errorsCode.push({
-            type: "QUERY SQL ERROR",
-            message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla "${nameTable}" del usuario con ID: "${req.user.id_usuario}". ERROR: ${err.message}`,
-            err,
-          });
-          return undefined;
+          reject(err);
+        })
+        .finally(() => {
+          resolve(result);
         });
+    });
 
-      await validarArchivosIteraciones({
-        req,
-        res,
-        fechaOperacion,
-        fechaInicialOperacion,
+    const nroCarga = await nroCargaPromise
+      .then((response) => {
+        return response;
       })
-        .then(async (response) => {
-          const filesReaded = response.filesReaded;
-          const insertFilesPromise = new Promise(async (resolve, reject) => {
-            let queryFiles = "";
-            let bodyQuery = [];
-            let currentFiles = [];
-            let resultsPromise = [];
-            map(req.files, (item, index) => {
-              currentFiles.push(item.originalname);
-            });
-            process.env.TZ = "America/La_Paz";
-            const whereBodyQuery = {
-              id_rol,
-              fecha_operacion: fechaInicialOperacion,
-              nro_carga: isUndefined(nroCarga) ? 1 : nroCarga + 1,
-              fecha_carga: new Date(),
-              id_usuario,
-              cargado: false,
-            };
-            if (nroCarga?.reprocesado) whereBodyQuery["reprocesado"] = false;
+      .catch((err) => {
+        errorsCode.push({
+          type: "QUERY SQL ERROR",
+          message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla "${nameTable}" del usuario con ID: "${req.user.id_usuario}". ERROR: ${err.message}`,
+          err,
+        });
+        return undefined;
+      });
 
-            if (nroCarga?.reproceso)
-              whereBodyQuery["reproceso"] =
-                req.body.reproceso === true || req.body.reproceso === "true"
-                  ? true
-                  : false;
-
-            bodyQuery.push(whereBodyQuery);
-            if (fecha_entrega) {
-              bodyQuery[0].fecha_entrega = fecha_entrega;
-            }
-            if (
-              infoTables.code === "108" ||
-              infoTables.code === "01" ||
-              infoTables.code === "02"
-            ) {
-              bodyQuery[0].cod_institucion = infoTables.code;
-              if (tipo_periodo === "D") {
-                bodyQuery[0].id_periodo = 154;
-              } else if (tipo_periodo === "M") {
-                bodyQuery[0].id_periodo = 155;
-              }
-            }
-            // console.log(bodyQuery);
-            queryFiles = InsertarVariosUtil(nameTable, {
-              body: bodyQuery,
-              returnValue: ["id_carga_archivos"],
-            });
-            // console.log(queryFiles);
-            await pool
-              .query(queryFiles)
-              .then(async (resultFiles) => {
-                resultsPromise.push({
-                  files: currentFiles,
-                  message:
-                    resultFiles.rowCount >= 1
-                      ? `Los archivos fueron insertado correctamente a la tabla '${nameTable}'`
-                      : `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
-                  result: {
-                    rowsUpdate: resultFiles.rows,
-                    rowCount: resultFiles.rowCount,
-                  },
-                });
-              })
-              .catch((err) => {
-                console.log("ERR CARGA", err);
-                errorsCode.push({
-                  files: currentFiles,
-                  type: "QUERY SQL ERROR",
-                  message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                  err,
-                });
-              })
-              .finally(() => {
-                resolve({ resultsPromise, bodyQuery });
-              });
+    await validarArchivosIteraciones({
+      req,
+      res,
+      fechaOperacion,
+      fechaInicialOperacion,
+    })
+      .then(async (response) => {
+        const filesReaded = response.filesReaded;
+        const insertFilesPromise = new Promise(async (resolve, reject) => {
+          let queryFiles = "";
+          let bodyQuery = [];
+          let currentFiles = [];
+          let resultsPromise = [];
+          map(req.files, (item, index) => {
+            currentFiles.push(item.originalname);
           });
+          process.env.TZ = "America/La_Paz";
+          const whereBodyQuery = {
+            id_rol,
+            fecha_operacion: fechaInicialOperacion,
+            nro_carga: isUndefined(nroCarga) ? 1 : nroCarga + 1,
+            fecha_carga: new Date(),
+            id_usuario,
+            cargado: false,
+          };
+          if (nroCarga?.reprocesado) whereBodyQuery["reprocesado"] = false;
 
-          await insertFilesPromise
-            .then(async (response) => {
-              if (errors.length >= 1 || errorsCode.length >= 1) {
-                const insertErrorsPromise = new Promise(
-                  async (resolve, reject) => {
-                    let queryFiles = "";
-                    let bodyQuery = [];
-                    let currentFiles = [];
-                    let resultsPromise = [];
-                    map(errors, (item, index) => {
-                      bodyQuery.push({
-                        id_carga_archivos:
-                          response.resultsPromise[0]?.result?.rowsUpdate[0]
-                            .id_carga_archivos,
-                        archivo: item.archivo,
-                        tipo_error: item.tipo_error,
-                        descripcion: item.descripcion,
-                        valor:
-                          item.valor === ""
-                            ? "VACIO"
-                            : item.hasOwnProperty("valor")
-                            ? includes(item?.valor, "'")
-                              ? replace(item.valor, /\'/g, "''")
-                              : item.valor
-                            : "",
-                        fila: item.hasOwnProperty("fila")
-                          ? parseInt(item.fila) + 1
-                          : 0,
-                        columna: item.hasOwnProperty("columna")
-                          ? item.columna
-                          : 0,
-                      });
-                    });
-                    // console.log(errors);
+          if (nroCarga?.reproceso)
+            whereBodyQuery["reproceso"] =
+              req.body.reproceso === true || req.body.reproceso === "true"
+                ? true
+                : false;
 
-                    // console.log(nameTableErrors);
-
-                    queryFiles = InsertarVariosUtil(nameTableErrors, {
-                      body: bodyQuery,
-                      returnValue: ["id_error_archivo"],
-                    });
-                    // console.log("queryFiles", queryFiles);
-
-                    await pool
-                      .query(queryFiles)
-                      .then(async (resultFiles) => {
-                        resultsPromise.push({
-                          files: currentFiles,
-                          message:
-                            resultFiles.rowCount >= 1
-                              ? `Los archivos fueron insertado correctamente a la tabla '${nameTable}'`
-                              : `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
-                          result: {
-                            rowsUpdate: resultFiles.rows,
-                            rowCount: resultFiles.rowCount,
-                          },
-                        });
-                      })
-                      .catch((err) => {
-                        console.log("ERR CARGA ERRORES", err);
-                        errorsCode.push({
-                          files: currentFiles,
-                          type: "QUERY SQL ERROR",
-                          message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                          err,
-                        });
-                        reject(err);
-                      })
-                      .finally(() => {
-                        resolve({ resultsPromise, bodyQuery });
-                      });
-                  }
-                );
-
-                await insertErrorsPromise
-                  .then((response) => {
-                    // console.log(response);
-                  })
-                  .catch((err) => {
-                    console.log("ERR", err);
-                    respErrorServidor500END(
-                      res,
-                      err,
-                      "Ocurrió un error inesperado."
-                    );
-                  })
-                  .finally(() => {
-                    respArchivoErroneo200(res, errors, response.resultsPromise);
-                  });
-              } else {
-                // console.log("PASE");
-                req.errors = errors;
-                req.errorsCode = errorsCode;
-                req.results = response.resultsPromise;
-                req.returnsValues =
-                  response.resultsPromise[0]?.result?.rowsUpdate;
-                req.filesReaded = filesReaded;
-                req.filesUploadedBD = response.bodyQuery;
-                req.codeCurrentFile = codeCurrentFile;
-                req.nameTableAud = nameTable;
-                req.tipo_periodo = tipo_periodo;
-                // respResultadoCorrectoObjeto200(res, {
-                //   results: response.resultsPromise,
-                //   errors,
-                // });
-                next();
-              }
+          bodyQuery.push(whereBodyQuery);
+          if (fecha_entrega) {
+            bodyQuery[0].fecha_entrega = fecha_entrega;
+          }
+          if (size(codigosPensiones) > 0 || size(codigosSeguros) > 0) {
+            bodyQuery[0].cod_institucion = infoTables.code;
+            if (tipo_periodo === "D") {
+              bodyQuery[0].id_periodo = 154;
+            } else if (tipo_periodo === "M") {
+              bodyQuery[0].id_periodo = 155;
+            }
+          }
+          // console.log(bodyQuery);
+          queryFiles = InsertarVariosUtil(nameTable, {
+            body: bodyQuery,
+            returnValue: ["id_carga_archivos"],
+          });
+          // console.log(queryFiles);
+          await pool
+            .query(queryFiles)
+            .then(async (resultFiles) => {
+              resultsPromise.push({
+                files: currentFiles,
+                message:
+                  resultFiles.rowCount >= 1
+                    ? `Los archivos fueron insertado correctamente a la tabla '${nameTable}'`
+                    : `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
+                result: {
+                  rowsUpdate: resultFiles.rows,
+                  rowCount: resultFiles.rowCount,
+                },
+              });
             })
             .catch((err) => {
-              console.log({ err, errorsCode });
-              respErrorServidor500END(res, errorsCode);
-              return;
+              console.log("ERR CARGA", err);
+              errorsCode.push({
+                files: currentFiles,
+                type: "QUERY SQL ERROR",
+                message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
+                err,
+              });
+            })
+            .finally(() => {
+              resolve({ resultsPromise, bodyQuery });
             });
-        })
-        .catch((err) => {
-          console.log("ERR1", err);
-          respErrorServidor500END(res, { err, errorsCode });
         });
-    }
+
+        await insertFilesPromise
+          .then(async (response) => {
+            if (errors.length >= 1 || errorsCode.length >= 1) {
+              const insertErrorsPromise = new Promise(
+                async (resolve, reject) => {
+                  let queryFiles = "";
+                  let bodyQuery = [];
+                  let currentFiles = [];
+                  let resultsPromise = [];
+                  map(errors, (item, index) => {
+                    bodyQuery.push({
+                      id_carga_archivos:
+                        response.resultsPromise[0]?.result?.rowsUpdate[0]
+                          .id_carga_archivos,
+                      archivo: item.archivo,
+                      tipo_error: item.tipo_error,
+                      descripcion: item.descripcion,
+                      valor:
+                        item.valor === ""
+                          ? "VACIO"
+                          : item.hasOwnProperty("valor")
+                          ? includes(item?.valor, "'")
+                            ? replace(item.valor, /\'/g, "''")
+                            : item.valor
+                          : "",
+                      fila: item.hasOwnProperty("fila")
+                        ? parseInt(item.fila) + 1
+                        : 0,
+                      columna: item.hasOwnProperty("columna")
+                        ? item.columna
+                        : 0,
+                    });
+                  });
+                  // console.log(errors);
+
+                  // console.log(nameTableErrors);
+
+                  queryFiles = InsertarVariosUtil(nameTableErrors, {
+                    body: bodyQuery,
+                    returnValue: ["id_error_archivo"],
+                  });
+                  // console.log("queryFiles", queryFiles);
+
+                  await pool
+                    .query(queryFiles)
+                    .then(async (resultFiles) => {
+                      resultsPromise.push({
+                        files: currentFiles,
+                        message:
+                          resultFiles.rowCount >= 1
+                            ? `Los archivos fueron insertado correctamente a la tabla '${nameTable}'`
+                            : `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
+                        result: {
+                          rowsUpdate: resultFiles.rows,
+                          rowCount: resultFiles.rowCount,
+                        },
+                      });
+                    })
+                    .catch((err) => {
+                      console.log("ERR CARGA ERRORES", err);
+                      errorsCode.push({
+                        files: currentFiles,
+                        type: "QUERY SQL ERROR",
+                        message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
+                        err,
+                      });
+                      reject(err);
+                    })
+                    .finally(() => {
+                      resolve({ resultsPromise, bodyQuery });
+                    });
+                }
+              );
+
+              await insertErrorsPromise
+                .then((response) => {
+                  // console.log(response);
+                })
+                .catch((err) => {
+                  console.log("ERR", err);
+                  respErrorServidor500END(
+                    res,
+                    err,
+                    "Ocurrió un error inesperado."
+                  );
+                })
+                .finally(() => {
+                  respArchivoErroneo200(res, errors, response.resultsPromise);
+                });
+            } else {
+              // console.log("PASE");
+              req.errors = errors;
+              req.errorsCode = errorsCode;
+              req.results = response.resultsPromise;
+              req.returnsValues =
+                response.resultsPromise[0]?.result?.rowsUpdate;
+              req.filesReaded = filesReaded;
+              req.filesUploadedBD = response.bodyQuery;
+              req.codeCurrentFile = codeCurrentFile;
+              req.nameTableAud = nameTable;
+              req.tipo_periodo = tipo_periodo;
+              // respResultadoCorrectoObjeto200(res, {
+              //   results: response.resultsPromise,
+              //   errors,
+              // });
+              next();
+            }
+          })
+          .catch((err) => {
+            console.log({ err, errorsCode });
+            respErrorServidor500END(res, errorsCode);
+            return;
+          });
+      })
+      .catch((err) => {
+        console.log("ERR1", err);
+        respErrorServidor500END(res, { err, errorsCode });
+      });
   } catch (err) {
-    console.log("ERR2", err);
     respErrorServidor500END(res, { err, errorsCode });
   }
 };
