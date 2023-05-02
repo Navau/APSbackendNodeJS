@@ -125,6 +125,8 @@ function ObtenerColumnasDeTablaUtil(table, params) {
   WHERE table_schema = 'public' 
   AND table_name  = '${table}'`;
 
+  console.log(query);
+
   return query;
 }
 

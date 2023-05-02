@@ -23,7 +23,9 @@ const {
   respDatosNoRecibidos200END,
   respResultadoVacio404END,
   respUsuarioNoAutorizado200END,
+  respResultadoIncorrectoObjeto200,
 } = require("./respuesta.utils");
+const { ValidarDatosValidacion } = require("./validacion.utils");
 
 async function CampoActivoAux(nameTable) {
   const fields = await pool
@@ -128,6 +130,15 @@ async function InsertarCRUD(paramsF) {
       respDatosNoRecibidos200END(res);
       return;
     }
+    const validateData = await ValidarDatosValidacion({
+      nameTable,
+      data: body,
+      action: "Insertar",
+    });
+    if (validateData.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
+      return;
+    }
     const params = { body };
     const query = InsertarUtil(nameTable, params);
     await pool
@@ -153,6 +164,15 @@ async function ActualizarCRUD(paramsF) {
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
+      return;
+    }
+    const validateData = await ValidarDatosValidacion({
+      nameTable,
+      data: body,
+      action: "Actualizar",
+    });
+    if (validateData.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
       return;
     }
     const idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
