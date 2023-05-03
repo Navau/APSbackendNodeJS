@@ -1,4 +1,4 @@
-const { forEach, isUndefined } = require("lodash");
+const { forEach, isUndefined, map, values, keys } = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
@@ -165,7 +165,11 @@ async function ValidarDatosValidacion(params) {
         return { ok: true, result };
       })
       .catch((err) => {
-        return { ok: false, errors: err.errors };
+        const errors = err.errors;
+        return {
+          ok: false,
+          errors,
+        };
       });
   } catch (err) {
     throw new Error(err);
