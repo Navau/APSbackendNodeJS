@@ -25,6 +25,7 @@ const {
   respResultadoCorrectoObjeto200,
   respResultadoVacioObject200,
 } = require("../../utils/respuesta.utils");
+const { ActualizarCRUD } = require("../../utils/crud.utils");
 
 const nameTable = "APS_oper_emision";
 const nameTableFK1 = "APS_param_emisor";
@@ -293,41 +294,8 @@ async function Insertar(req, res) {
 
 // ACTUALIZAR UN EMISION PATRIMONIO
 async function Actualizar(req, res) {
-  const body = req.body;
-
-  let query = "";
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-      };
-      query = ActualizarUtil(nameTable, params);
-
-      pool.query(query, (err, result) => {
-        if (err) {
-          respErrorServidor500(res, err);
-        } else {
-          if (!result.rowCount || result.rowCount < 1) {
-            respResultadoVacio404(res);
-          } else {
-            respResultadoCorrecto200(
-              res,
-              result,
-              "Información actualizada correctamente"
-            );
-          }
-        }
-      });
-    }
-  }
+  const params = { req, res, nameTable };
+  await ActualizarCRUD(params);
 }
 
 module.exports = {

@@ -1,4 +1,11 @@
-const { forEach, isUndefined, map, values, keys } = require("lodash");
+const {
+  forEach,
+  isUndefined,
+  map,
+  values,
+  keys,
+  isInteger,
+} = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
@@ -8,7 +15,6 @@ const Yup = require("yup");
 const mainValidationSchema = (paramsV) => {
   const {
     dataType,
-    validationSchema,
     textValidation,
     integerValidation,
     numericValidation,
@@ -16,28 +22,28 @@ const mainValidationSchema = (paramsV) => {
     datetimeValidation,
   } = paramsV;
   const dataTypes = {
-    "character varying": textValidation(validationSchema),
-    integer: integerValidation(validationSchema),
-    "timestamp without time zone": datetimeValidation(validationSchema),
+    "character varying": textValidation(),
+    integer: integerValidation(),
+    "timestamp without time zone": datetimeValidation(),
     ARRAY: (innerType) =>
       Yup.array().of(innerType).typeError("Ingrese una matriz válida"),
-    character: textValidation(validationSchema),
-    varchar: textValidation(validationSchema),
-    text: textValidation(validationSchema),
-    citext: textValidation(validationSchema),
-    smallint: numericValidation(validationSchema),
-    int: integerValidation(validationSchema),
-    bigint: integerValidation(validationSchema),
-    numeric: numericValidation(validationSchema),
-    real: numericValidation(validationSchema),
-    double: numericValidation(validationSchema),
-    decimal: numericValidation(validationSchema),
-    boolean: booleanValidation(validationSchema),
-    date: datetimeValidation(validationSchema),
-    time: datetimeValidation(validationSchema),
-    timestamp: datetimeValidation(validationSchema),
-    timestamptz: datetimeValidation(validationSchema),
-    interval: datetimeValidation(validationSchema),
+    character: textValidation(),
+    varchar: textValidation(),
+    text: textValidation(),
+    citext: textValidation(),
+    smallint: numericValidation(),
+    int: integerValidation(),
+    bigint: integerValidation(),
+    numeric: numericValidation(),
+    real: numericValidation(),
+    double: numericValidation(),
+    decimal: numericValidation(),
+    boolean: booleanValidation(),
+    date: datetimeValidation(),
+    time: datetimeValidation(),
+    timestamp: datetimeValidation(),
+    timestamptz: datetimeValidation(),
+    interval: datetimeValidation(),
     json: Yup.object(),
     jsonb: Yup.object(),
     uuid: Yup.string().uuid().typeError("Ingrese un UUID válido"),
@@ -57,8 +63,8 @@ const mainValidationSchema = (paramsV) => {
     macaddr8: Yup.string().matches(/^([0-9a-fA-F]{2}:){7}[0-9a-fA-F]{2}$/),
     bit: Yup.string(),
     varbit: Yup.string(),
-    money: numericValidation(validationSchema),
-    oid: numericValidation(validationSchema),
+    money: numericValidation(),
+    oid: numericValidation(),
     refcursor: Yup.string(),
     regprocedure: Yup.string(),
     regoper: Yup.string(),
@@ -88,57 +94,84 @@ async function ValidarDatosValidacion(params) {
       const scale = item.numeric_scale;
       const isNullable = item.is_nullable === "YES";
       const columnDefault = item.column_default;
-      const ordinal_position = item.ordinal_position;
+      const ordinalPosition = item.ordinal_position;
       const value = data[columnName];
-      const defaultMessage = `El valor de '${columnName}: ${value}' no es válido`;
+      const defaultMessage = `El valor de '${columnName}' no es válido`;
       const requiredMessage = `El valor de '${columnName}' es obligatorio`;
       const nullMessage = `El valor de '${columnName}' debe ser nulo`;
       const idMessage = `El valor de '${columnName}' debe ser un número`;
+      const textMessage = `El valor de '${columnName}' debe ser un texto`;
+      const intMessage = `El valor de '${columnName}' debe ser un número entero`;
+      const decimalMessage = `El valor de '${columnName}' no cumple con el formato decimal (${precision}, ${scale})`;
 
       let validationSchema = Yup;
       const paramsV = {
         dataType,
-        validationSchema,
-        textValidation: (validationSchema) => {
-          validationSchema = validationSchema.string();
-
+        textValidation: () => {
+          let schemaAux = Yup.string();
           if (maxLength) {
-            validationSchema = validationSchema.max(maxLength);
+            schemaAux = schemaAux.max(maxLength);
           }
-          validationSchema = validationSchema.typeError(defaultMessage);
-          return validationSchema;
+          schemaAux = schemaAux.test(
+            "Es texto",
+            textMessage,
+            (val, options) => {
+              const { originalValue } = options;
+              if (val !== undefined) {
+                return typeof originalValue === "string";
+              }
+              return true;
+            }
+          );
+          schemaAux = schemaAux.typeError(defaultMessage);
+          return schemaAux;
         },
-        integerValidation: (validationSchema) =>
-          (validationSchema = validationSchema.number().integer()),
-        numericValidation: (validationSchema) => {
-          validationSchema = validationSchema.number();
+        integerValidation: () => {
+          return Yup.number().integer().typeError(intMessage);
+        },
+        numericValidation: () => {
+          let schemaAux = Yup.number();
           if (precision && scale) {
-            validationSchema = validationSchema
-              .max(Number("9".repeat(precision - scale)) / Math.pow(10, scale))
-              .min(
-                -Number("9".repeat(precision - scale)) / Math.pow(10, scale)
-              );
+            schemaAux = schemaAux.test(
+              "Es decimal",
+              decimalMessage,
+              (val, options) => {
+                const { originalValue } = options;
+                if (val !== undefined) {
+                  const intAux = "(0|[1-9][0-9]{0," + (precision - 1) + "})";
+                  const decimalAux = "(\\.\\d{1," + scale + "})";
+                  let textExpReg = `^${intAux}`;
+                  textExpReg =
+                    originalValue % 1 ? textExpReg + decimalAux : textExpReg;
+                  textExpReg += "{1,1}$";
+                  const ExpReg = new RegExp(textExpReg);
+                  return ExpReg.test(val);
+                }
+                return true;
+              }
+            );
           }
-          validationSchema = validationSchema.typeError(defaultMessage);
-          return validationSchema;
+          schemaAux = schemaAux.typeError(defaultMessage);
+          return schemaAux;
         },
-        booleanValidation: (validationSchema) =>
-          validationSchema.boolean().typeError(defaultMessage),
-        datetimeValidation: (validationSchema) =>
-          validationSchema.date().typeError(defaultMessage),
+        booleanValidation: () => {
+          return Yup.boolean().typeError(defaultMessage);
+        },
+        datetimeValidation: () => {
+          return Yup.date().typeError(defaultMessage);
+        },
       };
-
-      if (ordinal_position === 1 && action === "Insertar") {
+      if (ordinalPosition === 1 && action === "Insertar") {
         validationSchema = validationSchema
           .mixed()
           .nullable()
           .test("is-null", nullMessage, (value) => value === null);
-      } else if (ordinal_position === 1 && action === "Actualizar") {
+      } else if (ordinalPosition === 1 && action === "Actualizar") {
         validationSchema = validationSchema
           .number()
           .required(requiredMessage)
           .typeError(idMessage);
-      } else if (ordinal_position === 1 && action === "Eliminar") {
+      } else if (ordinalPosition === 1 && action === "Eliminar") {
         validationSchema = validationSchema
           .number()
           .required(requiredMessage)
@@ -146,10 +179,10 @@ async function ValidarDatosValidacion(params) {
       } else {
         validationSchema = mainValidationSchema(paramsV);
         if (!isNullable && columnDefault === null && action === "Insertar") {
-          validationSchema = validationSchema.required();
-          validationSchema = isUndefined(value)
-            ? validationSchema.typeError(requiredMessage)
-            : validationSchema;
+          validationSchema = validationSchema.required(requiredMessage);
+          // validationSchema = isUndefined(value)
+          //   ? validationSchema.typeError(requiredMessage)
+          //   : validationSchema;
         }
       }
 
