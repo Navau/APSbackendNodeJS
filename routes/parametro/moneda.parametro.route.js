@@ -14,11 +14,6 @@ api.post(
   controller.Escoger
 );
 api.post(
-  "/EscogerInterno",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.EscogerInterno
-);
-api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Insertar

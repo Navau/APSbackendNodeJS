@@ -1,168 +1,49 @@
-const pool = require("../../database");
-
 const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  ValidarIDActualizarUtil,
-  EliminarUtil,
-} = require("../../utils/consulta.utils");
-
-const {
-  respErrorServidor500,
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respErrorServidor500END,
-  respResultadoCorrectoObjeto200,
-  respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado200END,
-} = require("../../utils/respuesta.utils");
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+  EliminarCRUD,
+} = require("../../utils/crud.utils");
 
 const nameTable = "APS_oper_renta_fija_cupon";
 const newID = "id_cupon";
 
 // OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  const params = { req, res, nameTable };
+  await ListarCRUD(params);
 }
 
 // OBTENER UN RENTA FIJA CUPON, CON BUSQUEDA
 async function Buscar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = BuscarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await BuscarCRUD(params);
 }
 
 // OBTENER UN RENTA FIJA CUPON, CON ID DEL RENTA FIJA CUPON
 async function Escoger(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = EscogerUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await EscogerCRUD(params);
 }
 
 // INSERTAR UN RENTA FIJA CUPON
 async function Insertar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body: body,
-      newID,
-    };
-    let query = InsertarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
-  }
+  const params = { req, res, nameTable, newID };
+  await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN RENTA FIJA CUPON
 async function Actualizar(req, res) {
-  const body = req.body;
-
-  let query = "";
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-      };
-      const query = ActualizarUtil(nameTable, params);
-
-      await pool
-        .query(query)
-        .then((result) => {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        })
-        .catch((err) => {
-          respErrorServidor500END(res, err);
-        });
-    }
-  }
+  const params = { req, res, nameTable, newID };
+  await ActualizarCRUD(params);
 }
 
 // ELIMINAR UN RENTA FIJA CUPON
-function Eliminar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      where: body,
-    };
-    query = EliminarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
-  }
+async function Eliminar(req, res) {
+  const params = { req, res, nameTable };
+  await EliminarCRUD(params);
 }
 
 module.exports = {

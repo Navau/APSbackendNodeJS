@@ -1,4 +1,12 @@
 const { size, isUndefined, split } = require("lodash");
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 
 const {
@@ -96,114 +104,32 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS RENTA VARIABLE  DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  const params = { req, res, nameTable };
+  await ListarCRUD(params);
 }
 
 // OBTENER UN RENTA VARIABLE , CON BUSQUEDA
 async function Buscar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = BuscarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await BuscarCRUD(params);
 }
 
 // OBTENER UN RENTA VARIABLE , CON ID DEL RENTA VARIABLE
 async function Escoger(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = EscogerUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await EscogerCRUD(params);
 }
 
 // INSERTAR UN RENTA VARIABLE
 async function Insertar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = InsertarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(
-          res,
-          result.rows,
-          "Información guardada correctamente"
-        );
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN RENTA VARIABLE
 async function Actualizar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const idInfo = ValidarIDActualizarUtil(nameTable, body);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-      };
-      const query = ActualizarUtil(nameTable, params);
-      await pool
-        .query(query)
-        .then((result) => {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        })
-        .catch((err) => {
-          respErrorServidor500END(res, err);
-        });
-    }
-  }
+  const params = { req, res, nameTable };
+  await ActualizarCRUD(params);
 }
 
 module.exports = {

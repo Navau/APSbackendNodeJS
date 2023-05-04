@@ -1,4 +1,12 @@
 const { split, isUndefined } = require("lodash");
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 
 const {
@@ -136,162 +144,32 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS RENTA FIJA DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable, { activo: null });
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
-}
-
-async function EmisorPorTipoInstrumento(req, res) {
-  // SELECT id_emision, EM.id_emisor, denominacion, id_moneda, monto_emision, EM.id_tipo_instrumento, cantidad_series
-  // FROM public."APS_oper_emision" EM
-  // INNER jOIN public."APS_param_emisor" E ON EM.id_emisor = E.id_emisor
-  // INNER jOIN public."APS_param_tipo_instrumento" TI ON TI.id_tipo_instrumento = EM.id_tipo_instrumento
-  const query = EscogerInternoUtil(nameTable, {
-    select: [
-      "id_emision, EM.id_emisor, denominacion, id_moneda, monto_emision, EM.id_tipo_instrumento, cantidad_series",
-    ],
-    innerjoin: [
-      {
-        table: "APS_param_emisor",
-        on: [
-          {
-            table: nameTable,
-            key: "id_emisor",
-          },
-          {
-            table: "APS_param_emisor",
-            key: "id_emisor",
-          },
-        ],
-      },
-      {
-        table: "APS_param_tipo_instrumento",
-        on: [
-          {
-            table: nameTable,
-            key: "id_tipo_instrumento",
-          },
-          {
-            table: "APS_param_tipo_instrumento",
-            key: "id_tipo_instrumento",
-          },
-        ],
-      },
-    ],
-  });
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  const params = { req, res, nameTable };
+  await ListarCRUD(params);
 }
 
 // OBTENER UN RENTA FIJA, CON BUSQUEDA
 async function Buscar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = BuscarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await BuscarCRUD(params);
 }
 
 // OBTENER UN RENTA FIJA, CON ID DEL RENTA FIJA
 async function Escoger(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = EscogerUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await EscogerCRUD(params);
 }
 
 // INSERTAR UN RENTA FIJA
 async function Insertar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = InsertarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(
-          res,
-          result.rows,
-          "Información guardada correctamente"
-        );
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN RENTA FIJA
 async function Actualizar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const idInfo = ValidarIDActualizarUtil(nameTable, body);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-      };
-      const query = ActualizarUtil(nameTable, params);
-      await pool
-        .query(query)
-        .then((result) => {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        })
-        .catch((err) => {
-          respErrorServidor500END(res, err);
-        });
-    }
-  }
+  const params = { req, res, nameTable };
+  await ActualizarCRUD(params);
 }
 
 async function ActualizarPlazoDias(req, res) {

@@ -1,3 +1,11 @@
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 
 const {
@@ -12,14 +20,6 @@ const {
 } = require("lodash");
 
 const {
-  ListarCRUD,
-  BuscarCRUD,
-  EscogerCRUD,
-  InsertarCRUD,
-  ActualizarCRUD,
-} = require("../../utils/crud.utils");
-
-const {
   ActualizarUtil,
   EscogerInternoUtil,
   InsertarVariosUtil,
@@ -32,6 +32,8 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_permiso";
+
+//TO DO: CRUD EXTREMO
 
 async function CambiarPermisos(req, res) {
   try {

@@ -9,6 +9,7 @@ const {
   ValidarIDActualizarUtil,
   EliminarUtil,
   EscogerUtil,
+  BuscarDiferenteUtil,
 } = require("./consulta.utils");
 const {
   ObtenerDatosCriticosAuditoria,
@@ -98,6 +99,30 @@ async function BuscarCRUD(paramsF) {
   }
 }
 
+async function BuscarDiferenteCRUD(paramsF) {
+  const { req, res, nameTable } = paramsF;
+  try {
+    const body = req.body;
+    if (size(body) === 0) {
+      respDatosNoRecibidos200END(res);
+      return;
+    }
+    const params = { body };
+    if (isUndefined(CampoActivoAux(nameTable))) params.activo = null;
+    const query = BuscarDiferenteUtil(nameTable, params);
+    await pool
+      .query(query)
+      .then((result) => {
+        respResultadoCorrectoObjeto200(res, result.rows);
+      })
+      .catch((err) => {
+        respErrorServidor500END(res, err);
+      });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
 async function EscogerCRUD(paramsF) {
   const { req, res, nameTable } = paramsF;
   try {
@@ -123,7 +148,7 @@ async function EscogerCRUD(paramsF) {
 }
 
 async function InsertarCRUD(paramsF) {
-  const { req, res, nameTable } = paramsF;
+  const { req, res, nameTable, newID = undefined } = paramsF;
   try {
     const body = req.body;
     if (size(body) === 0) {
@@ -139,7 +164,7 @@ async function InsertarCRUD(paramsF) {
       respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
       return;
     }
-    const params = { body };
+    const params = { body, newID };
     const query = InsertarUtil(nameTable, params);
     await pool
       .query(query)
@@ -312,7 +337,11 @@ async function ActualizarCRUD(paramsF) {
       console.log("=====FIN AUDITORIA====");
     }
     //#endregion
-    respResultadoCorrectoObjeto200(res, actualizacion.result);
+    respResultadoCorrectoObjeto200(
+      res,
+      actualizacion.result,
+      "Información actualizada correctamente"
+    );
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -348,6 +377,7 @@ async function EliminarCRUD(paramsF) {
 module.exports = {
   ListarCRUD,
   BuscarCRUD,
+  BuscarDiferenteCRUD,
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,

@@ -1,4 +1,12 @@
 const { isUndefined, minBy } = require("lodash");
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 const {
   ValorMaximoDeCampoUtil,

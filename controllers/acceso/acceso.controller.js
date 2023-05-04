@@ -1,5 +1,13 @@
 const jwt = require("../../services/jwt.services");
 const moment = require("moment");
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 const format = require("pg-format");
 const validator = require("validator");

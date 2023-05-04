@@ -1,11 +1,3 @@
-const pool = require("../../database");
-
-const {
-  EscogerInternoUtil,
-  ActualizarUtil,
-  EliminarUtil,
-} = require("../../utils/consulta.utils");
-
 const {
   ListarCRUD,
   BuscarCRUD,
@@ -13,6 +5,14 @@ const {
   InsertarCRUD,
   ActualizarCRUD,
 } = require("../../utils/crud.utils");
+
+const pool = require("../../database");
+
+const {
+  EscogerInternoUtil,
+  ActualizarUtil,
+  EliminarUtil,
+} = require("../../utils/consulta.utils");
 
 const {
   respDatosNoRecibidos400,

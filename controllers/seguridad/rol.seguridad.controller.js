@@ -1,6 +1,3 @@
-const pool = require("../../database");
-const jwt = require("../../services/jwt.services");
-
 const {
   ListarCRUD,
   BuscarCRUD,
@@ -8,6 +5,9 @@ const {
   InsertarCRUD,
   ActualizarCRUD,
 } = require("../../utils/crud.utils");
+
+const pool = require("../../database");
+const jwt = require("../../services/jwt.services");
 
 const {
   ObtenerRolUtil,
@@ -25,7 +25,7 @@ const {
 
 const nameTable = "APS_seg_rol";
 
-//TO DO: CAMBIAR TODOS LOS: respErrorServidor500END que esta en el catch y esta en una funcion flecha con llaves, es decir quitar las llaves para que no se ocupen tantas lineas de codigo
+//TO DO: CRUD EXTREMO
 
 // OBTENER EL ROL CON TOKEN
 async function ObtenerRol(req, res) {

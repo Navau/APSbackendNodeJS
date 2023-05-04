@@ -1,4 +1,13 @@
 const { size, forEach, map } = require("lodash");
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+  BuscarDiferenteCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 
 const {
@@ -25,7 +34,6 @@ const {
   respResultadoCorrectoObjeto200,
   respResultadoVacioObject200,
 } = require("../../utils/respuesta.utils");
-const { ActualizarCRUD } = require("../../utils/crud.utils");
 
 const nameTable = "APS_oper_emision";
 const nameTableFK1 = "APS_param_emisor";
@@ -59,87 +67,26 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS EMISION PATRIMONIO DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable, { activo: null });
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  const params = { req, res, nameTable };
+  await ListarCRUD(params);
 }
 
 // OBTENER UN EMISION PATRIMONIO, CON BUSQUEDA
 async function Buscar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-      activo: null,
-    };
-    const query = BuscarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await BuscarCRUD(params);
 }
 
 // OBTENER UN EMISION, CON BUSQUEDA DIFERENTE
 async function BuscarDiferente(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-      activo: null,
-    };
-    let query = BuscarDiferenteUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rows || result.rows < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
-  }
+  const params = { req, res, nameTable };
+  await BuscarDiferenteCRUD(params);
 }
 
 // OBTENER UN EMISION PATRIMONIO, CON ID DEL EMISION PATRIMONIO
 async function Escoger(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-      activo: null,
-    };
-    const query = EscogerUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await EscogerCRUD(params);
 }
 
 async function EscogerPorTipoInstrumentoDetalle(req, res) {

@@ -22,7 +22,7 @@ const nameTable = "APS_seg_institucion";
 const nameTableFK1 = "APS_param_clasificador_comun";
 const nameTableFK2 = "APS_param_clasificador_comun";
 
-//TO DO: A los Listar
+//TO DO: CRUD EXTREMO
 async function ListarCompleto(req, res) {
   try {
     const querys = [

@@ -1,3 +1,11 @@
+const {
+  ListarCRUD,
+  BuscarCRUD,
+  EscogerCRUD,
+  InsertarCRUD,
+  ActualizarCRUD,
+} = require("../../utils/crud.utils");
+
 const pool = require("../../database");
 
 const {
@@ -27,85 +35,26 @@ const newID = "id_cupon";
 
 // OBTENER TODOS LOS OTROS ACTIVOS CUPON DE SEGURIDAD
 async function Listar(req, res) {
-  const query = ListarUtil(nameTable);
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  const params = { req, res, nameTable };
+  await ListarCRUD(params);
 }
 
 // OBTENER UN OTROS ACTIVOS CUPON, CON BUSQUEDA
 async function Buscar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = BuscarUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await BuscarCRUD(params);
 }
 
 // OBTENER UN OTROS ACTIVOS CUPON, CON ID DEL OTROS ACTIVOS CUPON
 async function Escoger(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = EscogerUtil(nameTable, params);
-    await pool
-      .query(query)
-      .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      })
-      .catch((err) => {
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = { req, res, nameTable };
+  await EscogerCRUD(params);
 }
 
 // INSERTAR UN OTROS ACTIVOS CUPON
 async function Insertar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body: body,
-      newID,
-    };
-    let query = InsertarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
-  }
+  const params = { req, res, nameTable, newID };
+  await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN OTROS ACTIVOS CUPON
