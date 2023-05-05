@@ -1,11 +1,4 @@
-const {
-  forEach,
-  isUndefined,
-  map,
-  values,
-  keys,
-  isInteger,
-} = require("lodash");
+const { forEach } = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
@@ -165,7 +158,7 @@ async function ValidarDatosValidacion(params) {
         validationSchema = validationSchema
           .mixed()
           .nullable()
-          .test("is-null", nullMessage, (value) => value === null);
+          .test("es nulo", nullMessage, (value) => value === null);
       } else if (ordinalPosition === 1 && action === "Actualizar") {
         validationSchema = validationSchema
           .number()
@@ -184,6 +177,55 @@ async function ValidarDatosValidacion(params) {
           //   ? validationSchema.typeError(requiredMessage)
           //   : validationSchema;
         }
+      }
+
+      if (columnName === "password") {
+        const passwordValidation = (
+          schema = Yup,
+          minLength,
+          minChars,
+          minNumbers,
+          minSpecialChars
+        ) => {
+          return schema
+            .min(
+              minLength,
+              `El campo contraseña debe tener al menos ${minLength} caracteres de longitud`
+            )
+            .test(
+              "tiene letras",
+              `El campo contraseña debe tener al menos ${minChars} ${
+                minChars > 1 ? "letras" : "letra"
+              }`,
+              (value) => {
+                const regex = new RegExp(`^(.*?[A-Za-z]){${minChars}}.*$`);
+                return regex.test(value);
+              }
+            )
+            .test(
+              "tiene numeros",
+              `El campo contraseña debe tener al menos ${minNumbers} ${
+                minChars > 1 ? "números" : "número"
+              }`,
+              (value) => {
+                const regex = new RegExp(`^(.*?[0-9]){${minNumbers}}.*$`);
+                return regex.test(value);
+              }
+            )
+            .test(
+              "tiene caracteres especiales",
+              `El campo contraseña debe tener al menos ${minSpecialChars} ${
+                minChars > 1 ? "caracteres especiales" : "caracter especial"
+              }`,
+              (value) => {
+                const regex = new RegExp(
+                  `^(.*?[!@#$%^&*()_+\\-=[\\]{};':"\\|,.<>\\/?]){${minSpecialChars}}.*$`
+                );
+                return regex.test(value);
+              }
+            );
+        };
+        validationSchema = passwordValidation(validationSchema, 8, 1, 1, 1);
       }
 
       schema[columnName] = validationSchema;
@@ -205,7 +247,7 @@ async function ValidarDatosValidacion(params) {
         };
       });
   } catch (err) {
-    throw new Error(err);
+    throw err;
   }
 }
 
