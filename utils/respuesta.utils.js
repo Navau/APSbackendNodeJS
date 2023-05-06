@@ -10,18 +10,21 @@ const {
   set,
   forEachRight,
   isArray,
+  map,
 } = require("lodash");
 
-function respErrorServidor500(res, err, msg) {
-  console.log(err);
-  const errMessage = err?.message ? err?.message : "";
-  res.status(500).send({
-    resultado: 0,
-    datos: null,
-    mensaje: msg ? msg + errMessage : "Error del servidor. ERROR:" + errMessage,
-    err,
-  });
-}
+const msgFinal = (msg, msgDefault) => {
+  if (isArray(msg)) return size(msg) > 0 ? msg : [msgDefault];
+  else return [msg];
+};
+
+const msgFinalError = (msg, msgDefault, errMessage) => {
+  if (isArray(msg))
+    return size(msg) > 0
+      ? map(msg, (item) => item + errMessage)
+      : [msgDefault + errMessage];
+  else return [(msg ? msg : msgDefault) + errMessage];
+};
 
 function respErrorServidor500END(res, err, msg, datos = null) {
   console.log(err);
@@ -68,9 +71,7 @@ function respErrorServidor500END(res, err, msg, datos = null) {
         .send({
           resultado: 0,
           datos,
-          mensaje: msg
-            ? msg + errMessage
-            : "Error del servidor. ERROR:" + errMessage,
+          mensaje: msgFinalError(msg, "Error del servidor. ", errMessage),
           err,
         })
         .end();
@@ -81,7 +82,7 @@ function respErrorServidor500END(res, err, msg, datos = null) {
         .send({
           resultado: 0,
           datos,
-          mensaje: msg ? msg + errMessage : errMessage,
+          mensaje: msgFinalError(msg, "", errMessage),
           err: err.message,
         })
         .end();
@@ -97,10 +98,11 @@ function respErrorMulter500(res, err, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg
-        ? msg + errMessage
-        : "Se ha producido un error de Multer al cargar el archivo. ERROR:" +
-          errMessage,
+      mensaje: msgFinalError(
+        msg,
+        "Se ha producido un error de Multer al cargar el archivo. ERROR:",
+        errMessage
+      ),
       err,
     })
     .end();
@@ -114,9 +116,11 @@ function respErrorExtensionError403(res, err, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg
-        ? msg + errMessage
-        : "Error desconocido al cargar el archivo. ERROR:" + errMessage,
+      mensaje: msgFinalError(
+        msg,
+        "Error desconocido al cargar el archivo. ERROR:",
+        errMessage
+      ),
       err,
     })
     .end();
@@ -126,9 +130,10 @@ function respResultadoVacio404(res, msg) {
   res.status(404).send({
     resultado: 0,
     datos: null,
-    mensaje: msg
-      ? msg
-      : "No se logró realizar correctamente la petición, debido a que la información no existe",
+    mensaje: msgFinal(
+      msg,
+      "No se logró realizar correctamente la petición, debido a que la información no existe"
+    ),
   });
 }
 
@@ -138,9 +143,10 @@ function respResultadoVacio404END(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg
-        ? msg
-        : "No se logró realizar correctamente la petición, debido a que la información no existe",
+      mensaje: msgFinal(
+        msg,
+        "No se logró realizar correctamente la petición, debido a que la información no existe"
+      ),
     })
     .end();
 }
@@ -151,7 +157,7 @@ function respResultadoDinamicoEND(res, code, result, data, msg) {
     .send({
       resultado: result,
       datos: data,
-      mensaje: msg ? msg : "La petición tuvo algún error",
+      mensaje: msgFinal(msg, "La petición tuvo algún error"),
     })
     .end();
 }
@@ -162,7 +168,7 @@ function respResultadoVacioObject200(res, data, msg) {
     .send({
       resultado: 1,
       datos: data,
-      mensaje: msg ? msg : "La petición fue realizada correctamente",
+      mensaje: msgFinal(msg, "La petición fue realizada correctamente"),
     })
     .end();
 }
@@ -173,23 +179,18 @@ function respResultadoCorrecto200(res, result, msg) {
     .send({
       resultado: 1,
       datos: result.rows,
-      mensaje: msg ? msg : "La petición fue realizada correctamente",
+      mensaje: msgFinal(msg, "La petición fue realizada correctamente"),
     })
     .end();
 }
 
 function respResultadoIncorrectoObjeto200(res, err, data, msg) {
-  let msgFinal;
-  if (isArray(msg)) {
-    msgFinal =
-      size(msg) > 0 ? msg : ["La petición no fue realizada correctamente"];
-  } else msgFinal = [msg];
   res
     .status(200)
     .send({
       resultado: 0,
       datos: data,
-      mensaje: msgFinal,
+      mensaje: msgFinal(msg, "La petición no fue realizada correctamente"),
       mensaje_error: err?.message,
       err,
     })
@@ -202,7 +203,7 @@ function respDemasiadasSolicitudes429(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg ? msg : "Se realizaron muchas peticiones",
+      mensaje: msgFinal(msg, "Se realizaron muchas peticiones"),
     })
     .end();
 }
@@ -213,7 +214,7 @@ function respResultadoCorrectoObjeto200(res, data, msg) {
     .send({
       resultado: 1,
       datos: data,
-      mensaje: msg ? msg : "La petición fue realizada correctamente",
+      mensaje: msgFinal(msg, "La petición fue realizada correctamente"),
     })
     .end();
 }
@@ -225,7 +226,7 @@ function respLoginResultadoCorrectoObjeto200(res, data, results, msg) {
       resultado: 1,
       datos: data,
       resultados: results,
-      mensaje: msg ? msg : "La petición fue realizada correctamente",
+      mensaje: msgFinal(msg, "La petición fue realizada correctamente"),
     })
     .end();
 }
@@ -236,7 +237,10 @@ function respDatosNoRecibidos200END(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición",
+      mensaje: msgFinal(
+        msg,
+        "No se envio ningún dato o entrada para la petición"
+      ),
     })
     .end();
 }
@@ -247,7 +251,7 @@ function respUsuarioNoAutorizado200END(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg ? msg : "Usuario no autorizado",
+      mensaje: msgFinal(msg, "Usuario no autorizado"),
     })
     .end();
 }
@@ -256,7 +260,10 @@ function respDatosNoRecibidos400(res, msg) {
   res.status(400).send({
     resultado: 0,
     datos: null,
-    mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición",
+    mensaje: msgFinal(
+      msg,
+      "No se envio ningún dato o entrada para la petición"
+    ),
   });
 }
 
@@ -266,7 +273,10 @@ function respDatosNoRecibidos400END(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msg ? msg : "No se envio ningún dato o entrada para la petición",
+      mensaje: msgFinal(
+        msg,
+        "No se envio ningún dato o entrada para la petición"
+      ),
     })
     .end();
 }
@@ -275,9 +285,10 @@ function respArchivoErroneo415(res, err, msg) {
   res.status(415).send({
     resultado: 0,
     datos: null,
-    mensaje: msg
-      ? msg
-      : "El tipo de archivo que se ha recibido no cumple con el formato esperado",
+    mensaje: msgFinal(
+      msg,
+      "El tipo de archivo que se ha recibido no cumple con el formato esperado"
+    ),
     errores: err,
   });
 }
@@ -286,9 +297,10 @@ function respArchivoErroneo200(res, err, data, msg) {
   res.status(200).send({
     resultado: 0,
     datos: data,
-    mensaje: msg
-      ? msg
-      : "El tipo de archivo que se ha recibido no cumple con el formato esperado",
+    mensaje: msgFinal(
+      msg,
+      "El tipo de archivo que se ha recibido no cumple con el formato esperado"
+    ),
     errores: err,
   });
 }
@@ -297,7 +309,7 @@ function respIDNoRecibido400(res, msg) {
   res.status(400).send({
     resultado: 0,
     datos: null,
-    mensaje: msg ? msg : "No se especificó el ID",
+    mensaje: msgFinal(msg, "No se especificó el ID"),
   });
 }
 
@@ -309,7 +321,6 @@ function respDescargarArchivos200(res, file, data, msg) {
 }
 
 module.exports = {
-  respErrorServidor500,
   respErrorMulter500,
   respErrorExtensionError403,
   respDatosNoRecibidos400,
@@ -329,4 +340,5 @@ module.exports = {
   respLoginResultadoCorrectoObjeto200,
   respDemasiadasSolicitudes429,
   respResultadoDinamicoEND,
+  respDatosNoRecibidos400END,
 };

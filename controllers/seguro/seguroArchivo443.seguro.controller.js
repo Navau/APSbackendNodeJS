@@ -19,7 +19,6 @@ const {
 } = require("../../utils/consulta.utils");
 
 const {
-  respErrorServidor500,
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,
@@ -37,7 +36,7 @@ function Emisor(req, res) {
   let query = `SELECT emisor FROM public."${nameTable}" WHERE fecha_informacion='${fecha_informacion}' AND emisor NOT IN (SELECT codigo_rmv FROM public."APS_param_emisor");`;
   pool.query(query, (err, result) => {
     if (err) {
-      respErrorServidor500(res, err);
+      respErrorServidor500END(res, err);
     } else {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoIncorrectoObjeto200(res, null, result.rows, "Mensaje");

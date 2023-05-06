@@ -40,7 +40,6 @@ const {
 } = require("../../utils/consulta.utils");
 
 const {
-  respErrorServidor500,
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,
@@ -242,7 +241,7 @@ async function ValorMaximo(req, res) {
     })
     .catch((err) => {
       console.log(err);
-      respErrorServidor500(res, err);
+      respErrorServidor500END(res, err);
     });
 }
 
@@ -341,7 +340,7 @@ async function UltimaCarga(req, res) {
     })
     .catch((err) => {
       console.log(err);
-      respErrorServidor500(res, err);
+      respErrorServidor500END(res, err);
     });
 }
 
@@ -384,7 +383,7 @@ async function UltimaCarga2(req, res) {
     })
     .catch((err) => {
       console.log(err);
-      respErrorServidor500(res, err);
+      respErrorServidor500END(res, err);
     });
 }
 

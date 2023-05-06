@@ -58,7 +58,6 @@ const {
 } = require("../utils/consulta.utils");
 
 const {
-  respErrorServidor500,
   respErrorMulter500,
   respDatosNoRecibidos400,
   respErrorServidor500END,
@@ -4825,7 +4824,7 @@ exports.subirArchivo = async (req, res, next) => {
       if (err.name == "ExtensionError") {
         respErrorExtensionError403(res, err);
       } else {
-        respErrorServidor500(res, err);
+        respErrorServidor500END(res, err);
       }
     } else {
       let filesUploaded = req?.files;

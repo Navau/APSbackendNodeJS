@@ -22,7 +22,6 @@ const {
 } = require("../../utils/consulta.utils");
 
 const {
-  respErrorServidor500,
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,

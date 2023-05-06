@@ -19,7 +19,6 @@ const {
 } = require("../../utils/consulta.utils");
 
 const {
-  respErrorServidor500,
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,
@@ -79,7 +78,7 @@ async function Actualizar(req, res) {
 
       pool.query(query, (err, result) => {
         if (err) {
-          respErrorServidor500(res, err);
+          respErrorServidor500END(res, err);
         } else {
           if (!result.rowCount || result.rowCount < 1) {
             respResultadoVacio404(res);
@@ -104,7 +103,7 @@ function Eliminar(req, res) {
     query = EliminarUtil(nameTable, params);
     pool.query(query, (err, result) => {
       if (err) {
-        respErrorServidor500(res, err);
+        respErrorServidor500END(res, err);
       } else {
         if (!result.rowCount || result.rowCount < 1) {
           respResultadoVacio404(res);

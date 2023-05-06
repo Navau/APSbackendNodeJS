@@ -231,16 +231,6 @@ async function ValidarDatosValidacion(params) {
         validationSchema = passwordValidation(validationSchema, 8, 1, 1, 1);
       }
 
-      columnName === "id_tipo_amortizacion" &&
-        console.log({
-          isNullable,
-          dataType,
-          columnDefault,
-          columnName,
-          value,
-          validationSchema,
-        });
-
       schema[columnName] = validationSchema;
     });
 

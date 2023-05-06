@@ -28,7 +28,6 @@ const {
 } = require("../../utils/consulta.utils");
 
 const {
-  respErrorServidor500,
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,
@@ -67,7 +66,7 @@ function ValorMaximo(req, res) {
   let query = ValorMaximoDeCampoUtil(nameTable, params);
   pool.query(query, (err, result) => {
     if (err) {
-      respErrorServidor500(res, err);
+      respErrorServidor500END(res, err);
     } else {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(res);
