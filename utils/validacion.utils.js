@@ -1,4 +1,4 @@
-const { forEach } = require("lodash");
+const { forEach, isUndefined } = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
@@ -171,11 +171,14 @@ async function ValidarDatosValidacion(params) {
           .typeError(idMessage);
       } else {
         validationSchema = mainValidationSchema(paramsV);
+        if (isNullable) {
+          validationSchema = validationSchema.nullable();
+        }
         if (!isNullable && columnDefault === null && action === "Insertar") {
           validationSchema = validationSchema.required(requiredMessage);
-          // validationSchema = isUndefined(value)
-          //   ? validationSchema.typeError(requiredMessage)
-          //   : validationSchema;
+          validationSchema = isUndefined(value)
+            ? validationSchema.typeError(requiredMessage)
+            : validationSchema;
         }
       }
 
@@ -228,12 +231,26 @@ async function ValidarDatosValidacion(params) {
         validationSchema = passwordValidation(validationSchema, 8, 1, 1, 1);
       }
 
+      columnName === "id_tipo_amortizacion" &&
+        console.log({
+          isNullable,
+          dataType,
+          columnDefault,
+          columnName,
+          value,
+          validationSchema,
+        });
+
       schema[columnName] = validationSchema;
     });
 
     const yupSchema = Yup.object().shape(schema);
 
-    const options = { abortEarly: false };
+    const options = {
+      abortEarly: false,
+      stripUnknown: true,
+      messages: { nullable: "El valor de '${path}' no puede ser nulo" },
+    };
     return yupSchema
       .validate(data, options)
       .then((result) => {

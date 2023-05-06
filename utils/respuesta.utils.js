@@ -9,6 +9,7 @@ const {
   replace,
   set,
   forEachRight,
+  isArray,
 } = require("lodash");
 
 function respErrorServidor500(res, err, msg) {
@@ -178,12 +179,17 @@ function respResultadoCorrecto200(res, result, msg) {
 }
 
 function respResultadoIncorrectoObjeto200(res, err, data, msg) {
+  let msgFinal;
+  if (isArray(msg)) {
+    msgFinal =
+      size(msg) > 0 ? msg : ["La petición no fue realizada correctamente"];
+  } else msgFinal = [msg];
   res
     .status(200)
     .send({
       resultado: 0,
       datos: data,
-      mensaje: msg ? msg : "La petición no fue realizada correctamente",
+      mensaje: msgFinal,
       mensaje_error: err?.message,
       err,
     })

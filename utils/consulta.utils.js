@@ -334,7 +334,7 @@ function BuscarUtil(table, params) {
       // console.log(
       //   "TIPO: " + typeof item + " CLAVE:" + index + " VALOR: " + item
       // );
-      index = ponerComillasACamposConMayuscula(index);
+      // index = ponerComillasACamposConMayuscula(index);
       if (item !== null && typeof item !== "undefined") {
         if (typeof item === "string") {
           index &&
@@ -373,7 +373,7 @@ async function BuscarDiferenteUtil(table, params) {
       // console.log(
       //   "TIPO: " + typeof item + " CLAVE:" + index + " VALOR: " + item
       // );
-      index = ponerComillasACamposConMayuscula(index);
+      // index = ponerComillasACamposConMayuscula(index);
       if (item !== null && typeof item !== "undefined") {
         if (typeof item === "string") {
           index &&
@@ -467,7 +467,7 @@ function EscogerUtil(table, params) {
 
     query &&
       map(params.body, (item, index) => {
-        index = ponerComillasACamposConMayuscula(index);
+        // index = ponerComillasACamposConMayuscula(index);
         if (item !== null && typeof item !== "undefined") {
           if (params?.whereIn) {
             let valuesAux = [];
@@ -804,7 +804,7 @@ function InsertarUtil(table, params) {
   query &&
     map(params.body, (item, index) => {
       if (idAux.idKey !== index) {
-        index = ponerComillasACamposConMayuscula(index);
+        // index = ponerComillasACamposConMayuscula(index);
         index && (query = query + `%I, `);
         indexInsertAuxArray.push(index);
       }
@@ -970,7 +970,7 @@ function ActualizarUtil(table, params) {
   params.body && (query = query + `UPDATE public."${table}" SET`);
   query &&
     map(params.body, (item, index) => {
-      index = ponerComillasACamposConMayuscula(index);
+      // index = ponerComillasACamposConMayuscula(index);
       if (item instanceof Date) {
         index && (query = query + ` %I = %L,`);
         valuesAndIndexUpdateAuxArray.push(index);
@@ -1043,7 +1043,7 @@ function ActualizarUtil(table, params) {
   params?.returnValue && (query = query.substring(0, query.length - 1));
 
   params.body && (query = query = query + ";");
-  console.log(query);
+  console.log(params, query);
 
   return query;
 }
