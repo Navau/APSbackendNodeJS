@@ -140,7 +140,7 @@ async function EscogerPorTipoInstrumentoDetalle(req, res) {
     //#endregion
     const instrumentos = map(
       tipoInstrumentoDetalle.result,
-      (instrumento) => `'${instrumento.id_tipo_instrumento}'`
+      (instrumento) => instrumento.id_tipo_instrumento
     );
     const whereAuxEmision = [{ key: "id_emisor", value: id_emisor }];
     if (size(instrumentos) > 0) {

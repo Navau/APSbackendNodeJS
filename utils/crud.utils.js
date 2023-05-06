@@ -132,7 +132,9 @@ async function EscogerCRUD(paramsF) {
       return;
     }
     const params = { body };
-    if (isUndefined(CampoActivoAux(nameTable))) params.activo = null;
+    const x = await CampoActivoAux(nameTable);
+    console.log(x);
+    if (isUndefined(x)) params.activo = null;
     const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
