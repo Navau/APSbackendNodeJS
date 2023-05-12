@@ -7,7 +7,7 @@ const {
 } = require("../../utils/crud.utils");
 
 const pool = require("../../database");
-const jwt = require("../../services/jwt.services");
+const jwt = require("../../services/jwt.service");
 
 const {
   ObtenerRolUtil,

@@ -15,7 +15,7 @@ const {
 
 const msgFinal = (msg, msgDefault) => {
   if (isArray(msg)) return size(msg) > 0 ? msg : [msgDefault];
-  else return [msg];
+  else return [msg ? msg : msgDefault];
 };
 
 const msgFinalError = (msg, msgDefault, errMessage) => {
@@ -245,13 +245,16 @@ function respDatosNoRecibidos200END(res, msg) {
     .end();
 }
 
-function respUsuarioNoAutorizado200END(res, msg) {
+function respUsuarioNoAutorizado200END(res, msg, action) {
+  const messageAux = action
+    ? `Usuario no autorizado para ${action}`
+    : "Usuario no autorizado";
   res
     .status(200)
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msgFinal(msg, "Usuario no autorizado"),
+      mensaje: msgFinal(msg, messageAux),
     })
     .end();
 }

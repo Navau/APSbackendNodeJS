@@ -15,39 +15,42 @@ const {
 } = require("./respuesta.utils");
 
 async function VerificarPermisoTablaUsuarioAuditoria(params) {
-  const { table, action, req, res } = params;
-  const { id_usuario } = req.user;
+  try {
+    const { table, action, req, res } = params;
+    const { id_usuario } = req.user;
 
-  const paramsQuery = {
-    where: [
-      {
-        key: "id_usuario",
-        value: id_usuario,
-      },
-      {
-        key: "tabla",
-        value: table,
-      },
-      {
-        key: "accion",
-        value: action,
-      },
-    ],
-  };
-  const query = VerificarPermisoUtil(
-    "APS_seg_view_permiso_usuario",
-    paramsQuery
-  );
-  return await pool
-    .query(query)
-    .then((result) => {
-      if (result.rowCount > 0) return { ok: true, result };
-      else return { ok: false, result };
-    })
-    .catch((err) => {
-      console.log(err);
-      return { ok: null, err };
-    });
+    const paramsQuery = {
+      where: [
+        {
+          key: "id_usuario",
+          value: id_usuario,
+        },
+        {
+          key: "tabla",
+          value: table,
+        },
+        {
+          key: "accion",
+          value: action,
+        },
+      ],
+    };
+    const query = VerificarPermisoUtil(
+      "APS_seg_view_permiso_usuario",
+      paramsQuery
+    );
+    return await pool
+      .query(query)
+      .then((result) => {
+        if (result.rowCount > 0) return { ok: true, result };
+        else return { ok: false, result };
+      })
+      .catch((err) => {
+        throw err;
+      });
+  } catch (err) {
+    throw err;
+  }
 }
 
 async function ObtenerDatosCriticosAuditoria(params) {

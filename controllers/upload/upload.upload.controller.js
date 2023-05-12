@@ -55,7 +55,6 @@ const {
   respResultadoCorrectoObjeto200,
   respArchivoErroneo200,
 } = require("../../utils/respuesta.utils");
-const { log } = require("console");
 const dayjs = require("dayjs");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";

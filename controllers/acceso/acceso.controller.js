@@ -1,4 +1,4 @@
-const jwt = require("../../services/jwt.services");
+const jwt = require("../../services/jwt.service");
 const moment = require("moment");
 const {
   ListarCRUD,

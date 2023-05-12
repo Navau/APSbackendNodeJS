@@ -46,16 +46,16 @@ async function CampoActivoAux(nameTable) {
 // TO DO: Cambiar el nombre de Util por Consulta, por ejemplo de ListarUtil, cambiar a ListarConsulta o ListarQuery
 async function ListarCRUD(paramsF) {
   const { req, res, nameTable, nameView } = paramsF;
+  const action = "Listar";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
-      action: "Listar",
+      action,
       req,
       res,
     });
-    if (permiso.ok === null) throw permiso.err;
     if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res);
+      respUsuarioNoAutorizado200END(res, null, action);
       return;
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
@@ -77,14 +77,35 @@ async function ListarCRUD(paramsF) {
 
 async function BuscarCRUD(paramsF) {
   const { req, res, nameTable } = paramsF;
+  const action = "Buscar";
   try {
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action,
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action);
+      return;
+    }
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
     }
+    const validateData = await ValidarDatosValidacion({
+      nameTable,
+      data: body,
+      action,
+    });
+    if (validateData.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
+      return;
+    }
     const params = { body };
-    if (isUndefined(CampoActivoAux(nameTable))) params.activo = null;
+    const x = await CampoActivoAux(nameTable);
+    if (isUndefined(x)) params.activo = null;
     const query = BuscarUtil(nameTable, params);
     await pool
       .query(query)
@@ -101,15 +122,38 @@ async function BuscarCRUD(paramsF) {
 
 async function BuscarDiferenteCRUD(paramsF) {
   const { req, res, nameTable } = paramsF;
+  const action = "Buscar";
   try {
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action,
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action);
+      return;
+    }
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
     }
+    const validateData = await ValidarDatosValidacion({
+      nameTable,
+      data: body,
+      action,
+    });
+    if (validateData.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
+      return;
+    }
+
     const params = { body };
-    if (isUndefined(CampoActivoAux(nameTable))) params.activo = null;
+    const x = await CampoActivoAux(nameTable);
+    if (isUndefined(x)) params.activo = null;
     const query = BuscarDiferenteUtil(nameTable, params);
+
     await pool
       .query(query)
       .then((result) => {
@@ -125,15 +169,34 @@ async function BuscarDiferenteCRUD(paramsF) {
 
 async function EscogerCRUD(paramsF) {
   const { req, res, nameTable } = paramsF;
+  const action = "Escoger";
   try {
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action,
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action);
+      return;
+    }
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
     }
+    const validateData = await ValidarDatosValidacion({
+      nameTable,
+      data: body,
+      action,
+    });
+    if (validateData.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
+      return;
+    }
     const params = { body };
     const x = await CampoActivoAux(nameTable);
-    console.log(x);
     if (isUndefined(x)) params.activo = null;
     const query = EscogerUtil(nameTable, params);
     await pool
@@ -151,7 +214,18 @@ async function EscogerCRUD(paramsF) {
 
 async function InsertarCRUD(paramsF) {
   const { req, res, nameTable, newID = undefined } = paramsF;
+  const action = "Insertar";
   try {
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action,
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action);
+      return;
+    }
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
@@ -160,7 +234,7 @@ async function InsertarCRUD(paramsF) {
     const validateData = await ValidarDatosValidacion({
       nameTable,
       data: body,
-      action: "Insertar",
+      action,
     });
     if (validateData.ok === false) {
       respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
@@ -186,8 +260,19 @@ async function InsertarCRUD(paramsF) {
 }
 
 async function ActualizarCRUD(paramsF) {
-  const { req, res, nameTable, newID } = paramsF;
   try {
+    const { req, res, nameTable, newID } = paramsF;
+    const action = "Actualizar";
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action,
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action);
+      return;
+    }
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
@@ -196,7 +281,7 @@ async function ActualizarCRUD(paramsF) {
     const validateData = await ValidarDatosValidacion({
       nameTable,
       data: body,
-      action: "Actualizar",
+      action,
     });
     if (validateData.ok === false) {
       respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
@@ -352,9 +437,30 @@ async function ActualizarCRUD(paramsF) {
 async function EliminarCRUD(paramsF) {
   try {
     const { req, res, nameTable } = paramsF;
+    const action = "Eliminar";
+    // TO DO: EXTREMO!!! INFORMAR DE ESTO
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: nameTable,
+      action,
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action);
+      return;
+    }
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
+      return;
+    }
+    const validateData = await ValidarDatosValidacion({
+      nameTable,
+      data: body,
+      action,
+    });
+    if (validateData.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
       return;
     }
     const params = { where: body };
