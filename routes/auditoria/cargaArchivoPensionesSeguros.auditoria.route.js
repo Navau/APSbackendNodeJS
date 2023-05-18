@@ -15,7 +15,7 @@ api.post(
 api.post(
   "/UltimaCarga",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.UltimaCarga2
+  controller.UltimaCarga
 );
 api.post(
   "/ReporteEnvio",

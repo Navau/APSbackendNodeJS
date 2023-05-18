@@ -6,7 +6,6 @@ const { basename } = require("path");
 
 const api = express.Router();
 
-api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post(
   "/SeleccionarArchivos",
   [md_auth.AsegurarAutenticacionConToken],
@@ -25,8 +24,9 @@ api.post(
 api.post(
   "/SeleccionarArchivosCustodio",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.SeleccionarArchivosCustodio2
+  controller.SeleccionarArchivosCustodio
 );
+api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

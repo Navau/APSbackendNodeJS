@@ -8,16 +8,6 @@ const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post(
-  "/ValorMaximo",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.ValorMaximo
-);
-api.post(
-  "/UltimaCarga",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.UltimaCarga2
-);
-api.post(
   "/Validar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Validar
@@ -31,11 +21,6 @@ api.post(
   "/Reporte",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Reporte
-);
-api.post(
-  "/ReporteExito",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.ReporteExito
 );
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(

@@ -1,228 +1,50 @@
-const { map } = require("lodash");
 const {
   ListarCRUD,
   BuscarCRUD,
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  RealizarOperacionAvanzadaCRUD,
 } = require("../../utils/crud.utils");
-
-const pool = require("../../database");
-
-const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  ValidarIDActualizarUtil,
-  ValorMaximoDeCampoUtil,
-  ObtenerUltimoRegistro,
-  EjecutarFuncionSQL,
-} = require("../../utils/consulta.utils");
-
-const {
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respErrorServidor500END,
-  respResultadoCorrectoObjeto200,
-  respResultadoVacio404END,
-  respResultadoIncorrectoObjeto200,
-} = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_limite";
 
-async function ValorMaximo(req, res) {
-  const { body } = req;
-  const whereFinal = [];
-  map(body, (item, index) => {
-    whereFinal.push({
-      key: index,
-      value: item,
-    });
-  });
-  const query = ValorMaximoDeCampoUtil(nameTable, {
-    fieldMax: "fecha",
-    where: whereFinal,
-  });
-
-  const maxFecha = await pool
-    .query(query)
-    .then((result) => {
-      if (!result.rows?.[0].max) {
-        return { ok: false, value: result.rows[0].max };
-      } else {
-        return { ok: true, value: result.rows[0].max };
-      }
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-
-  if (maxFecha?.err) {
-    respErrorServidor500END(res, maxFecha.err);
-    return null;
-  }
-  if (maxFecha.ok === false) {
-    respResultadoVacio404END(res);
-    return null;
-  }
-
-  respResultadoCorrectoObjeto200(res, maxFecha.value);
-}
-
-async function UltimoRegistro(req, res) {
-  function padTo2Digits(num) {
-    return num.toString().padStart(2, "0");
-  }
-
-  function formatDate(date) {
-    return (
-      [
-        date.getFullYear(),
-        padTo2Digits(date.getMonth() + 1),
-        padTo2Digits(date.getDate()),
-      ].join("-") +
-      " " +
-      [
-        padTo2Digits(date.getHours()),
-        padTo2Digits(date.getMinutes()),
-        padTo2Digits(date.getSeconds()),
-      ].join(":") +
-      "." +
-      [padTo2Digits(date.getMilliseconds())].join()
-    );
-  }
-  const { id_moneda } = req.body;
-  const query = ValorMaximoDeCampoUtil(nameTable, {
-    fieldMax: "fecha",
-    where: [
-      {
-        key: "id_moneda",
-        value: id_moneda,
-      },
-    ],
-  });
-
-  const maxFecha = await pool
-    .query(query)
-    .then((result) => {
-      if (!result.rows?.[0].max) {
-        return { ok: false, value: result.rows[0].max };
-      } else {
-        return { ok: true, value: result.rows[0].max };
-      }
-    })
-    .catch((err) => {
-      return { ok: null, err };
-    });
-
-  if (maxFecha?.err) {
-    respErrorServidor500END(res, maxFecha.err);
-    return null;
-  }
-  if (maxFecha.ok === false) {
-    respResultadoVacio404END(
-      res,
-      "No se encontró ninguna fecha para esta moneda"
-    );
-    return null;
-  }
-
-  const queryLastInfo = ObtenerUltimoRegistro(nameTable, {
-    where: [
-      {
-        key: "fecha",
-        value: formatDate(maxFecha.value),
-      },
-      {
-        key: "id_moneda",
-        value: id_moneda,
-      },
-    ],
-    orderby: {
-      field: "id_tipo_cambio",
-    },
-  });
-
-  const lastInfo = await pool
-    .query(queryLastInfo)
-    .then((result) => {
-      if (result.rows.length === 0) {
-        respResultadoVacio404END(
-          res,
-          "No se encontró ninguna fecha para esta moneda"
-        );
-        return null;
-      } else {
-        return result.rows[0];
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      respErrorServidor500END(res, maxFecha.err);
-      return null;
-    });
-
-  if (lastInfo === null) return null;
-
-  respResultadoCorrectoObjeto200(res, lastInfo);
-}
-
 async function LimitesSeguros(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body,
-    };
-    const query = EjecutarFuncionSQL("aps_limites_seguros", params);
-
-    pool
-      .query(query)
-      .then((result) => {
-        if (result.rowCount > 0) {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        } else {
-          respResultadoIncorrectoObjeto200(res, null, result.rows);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = {
+    req,
+    res,
+    nameTable,
+    methodName: "LimitesSeguros_Limite",
+    // action: "Escoger",
+  };
+  await RealizarOperacionAvanzadaCRUD(params);
 }
 
-// OBTENER TODOS LOS TIPO CAMBIO DE SEGURIDAD
+// OBTENER TODOS LOS LIMITES DE PARAMETRO
 async function Listar(req, res) {
   const params = { req, res, nameTable };
   await ListarCRUD(params);
 }
 
-// OBTENER UN TIPO CAMBIO, CON BUSQUEDA
+// OBTENER UN LIMITE, CON BUSQUEDA
 async function Buscar(req, res) {
   const params = { req, res, nameTable };
   await BuscarCRUD(params);
 }
 
-// OBTENER UN TIPO CAMBIO, CON ID DEL TIPO CAMBIO
+// OBTENER UN LIMITE, CON ID DEL LIMITES
 async function Escoger(req, res) {
   const params = { req, res, nameTable };
   await EscogerCRUD(params);
 }
 
-// INSERTAR UN TIPO CAMBIO
+// INSERTAR UN LIMITE
 async function Insertar(req, res) {
   const params = { req, res, nameTable };
   await InsertarCRUD(params);
 }
 
-// ACTUALIZAR UN TIPO CAMBIO
+// ACTUALIZAR UN LIMITE
 async function Actualizar(req, res) {
   const params = { req, res, nameTable };
   await ActualizarCRUD(params);
@@ -234,7 +56,5 @@ module.exports = {
   Escoger,
   Insertar,
   Actualizar,
-  ValorMaximo,
-  UltimoRegistro,
   LimitesSeguros,
 };

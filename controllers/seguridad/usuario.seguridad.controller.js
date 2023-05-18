@@ -4,82 +4,20 @@ const {
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  RealizarOperacionAvanzadaCRUD,
 } = require("../../utils/crud.utils");
-
-const pool = require("../../database");
-
-const {
-  EscogerInternoUtil,
-  ActualizarUtil,
-  EliminarUtil,
-} = require("../../utils/consulta.utils");
-
-const {
-  respDatosNoRecibidos400,
-  respErrorServidor500END,
-  respResultadoCorrectoObjeto200,
-} = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_usuario";
 
 async function InstitucionConIDUsuario(req, res) {
-  const { id_usuario } = req.body;
-
-  if (!id_usuario) {
-    respDatosNoRecibidos400(
-      res,
-      "La información que se mando no es suficiente, falta el ID de usuario."
-    );
-    return;
-  }
   const params = {
-    select: [
-      `"APS_seg_usuario".usuario`,
-      `"APS_seg_institucion".institucion`,
-      `"APS_seg_institucion".sigla`,
-      `"APS_seg_institucion".codigo`,
-      `"APS_param_clasificador_comun".descripcion`,
-    ],
-    innerjoin: [
-      {
-        table: "APS_seg_institucion",
-        on: [
-          {
-            table: "APS_seg_usuario",
-            key: "id_institucion",
-          },
-          {
-            table: "APS_seg_institucion",
-            key: "id_institucion",
-          },
-        ],
-      },
-      {
-        table: "APS_param_clasificador_comun",
-        on: [
-          {
-            table: "APS_seg_institucion",
-            key: "id_tipo_entidad",
-          },
-          {
-            table: "APS_param_clasificador_comun",
-            key: "id_clasificador_comun",
-          },
-        ],
-      },
-    ],
-    where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
+    req,
+    res,
+    nameTable,
+    methodName: "InstitucionConIDUsuario_Usuario",
+    // action: "Escoger",
   };
-
-  const query = EscogerInternoUtil(nameTable, params);
-  await pool
-    .query(query)
-    .then((result) => {
-      respResultadoCorrectoObjeto200(res, result.rows);
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  await RealizarOperacionAvanzadaCRUD(params);
 }
 
 //LISTAR UN USUARIO
@@ -112,45 +50,16 @@ async function Actualizar(req, res) {
   await ActualizarCRUD(params);
 }
 
+//TO DO: CREAR PERMISO, CREAR LA ACCION DESBLOQUEAR
 async function Desbloquear(req, res) {
-  try {
-    const { id_usuario, bloqueado } = req.body;
-    const queryReinicio = ActualizarUtil("APS_seg_intentos_log", {
-      body: { activo: false },
-      idKey: "id_usuario",
-      idValue: id_usuario,
-      returnValue: ["*"],
-    });
-    await pool
-      .query(queryReinicio)
-      .then(async (result) => {
-        const queryBloqueaUsuario = ActualizarUtil("APS_seg_usuario", {
-          body: { bloqueado: bloqueado },
-          idKey: "id_usuario",
-          idValue: id_usuario,
-          returnValue: ["*"],
-        });
-        const usuarioBloqueado = await pool
-          .query(queryBloqueaUsuario)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        if (usuarioBloqueado.ok === null) throw usuarioBloqueado.err;
-        respResultadoCorrectoObjeto200(
-          res,
-          [],
-          `Usuario ${bloqueado ? "bloqueado" : "desbloqueado"} con éxito`
-        );
-      })
-      .catch((err) => {
-        throw err;
-      });
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
+  const params = {
+    req,
+    res,
+    nameTable,
+    methodName: "Desbloquear_Usuario",
+    // action: "Desbloquear",
+  };
+  await RealizarOperacionAvanzadaCRUD(params);
 }
 
 module.exports = {

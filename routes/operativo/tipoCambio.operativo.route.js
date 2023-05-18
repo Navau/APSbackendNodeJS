@@ -13,11 +13,6 @@ api.get(
   controller.ListarCompleto
 );
 api.post(
-  "/ValorMaximo",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.ValorMaximo
-);
-api.post(
   "/UltimoRegistro",
   [md_auth.AsegurarAutenticacionConToken],
   controller.UltimoRegistro

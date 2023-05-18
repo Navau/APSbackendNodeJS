@@ -1,16 +1,7 @@
 const jwt = require("../../services/jwt.service");
 const moment = require("moment");
-const {
-  ListarCRUD,
-  BuscarCRUD,
-  EscogerCRUD,
-  InsertarCRUD,
-  ActualizarCRUD,
-} = require("../../utils/crud.utils");
-
 const pool = require("../../database");
 const format = require("pg-format");
-const validator = require("validator");
 const yup = require("yup");
 const { setLocale } = require("yup");
 

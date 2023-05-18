@@ -21,7 +21,6 @@ const usuarioRolRoutes = require("./seguridad/usuarioRol.seguridad.route");
 //#region Rutas de Auditoria (Se llama auditoria por la division en la base de datos)
 const cargaArchivosBolsaRoute = require("./auditoria/cargaArchivoBolsa.auditoria.route");
 const cargaArchivosPensionesSegurosRoute = require("./auditoria/cargaArchivoPensionesSeguros.auditoria.route");
-const cargaArchivosPensionesRoute = require("./auditoria/cargaArchivosPensiones.auditoria.route");
 const validaArchivosPensionesSegurosRoute = require("./auditoria/validaArchivosPensionesSeguros.auditoria.route");
 const cargaArchivosCustodioRoute = require("./auditoria/cargaArchivosCustodio.auditoria.route");
 const erroresCargaArchivosBolsaRoute = require("./auditoria/erroresCargaArchivosBolsa.auditoria.route");
@@ -180,7 +179,6 @@ function routerApi(app) {
     "/CargaArchivosPensionesSeguros",
     cargaArchivosPensionesSegurosRoute
   );
-  router.use("/CargaArchivosPensiones", cargaArchivosPensionesRoute);
   router.use(
     "/ValidaArchivosPensionesSeguros",
     validaArchivosPensionesSegurosRoute

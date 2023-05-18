@@ -6,53 +6,18 @@ const {
   ActualizarCRUD,
 } = require("../../utils/crud.utils");
 
-const pool = require("../../database");
-
-const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  ValidarIDActualizarUtil,
-  EjecutarFuncionSQL,
-} = require("../../utils/consulta.utils");
-
-const {
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respResultadoCorrectoObjeto200,
-  respResultadoIncorrectoObjeto200,
-  respErrorServidor500END,
-} = require("../../utils/respuesta.utils");
-
 const nameTable = "APS_param_Reportes";
 const newID = "id_reporte";
 
 async function TipoReporte(req, res) {
-  const { id_rol } = req.body;
-  const idRolFinal = id_rol ? id_rol : req.user.id_rol;
   const params = {
-    body: {
-      idRolFinal,
-    },
+    req,
+    res,
+    nameTable,
+    methodName: "TipoReporte_Reportes",
+    // action: "Escoger",
   };
-  const query = EjecutarFuncionSQL("aps_reportes", params);
-
-  await pool
-    .query(query)
-    .then((result) => {
-      if (result.rowCount > 0) {
-        respResultadoCorrectoObjeto200(res, result.rows);
-      } else {
-        respResultadoIncorrectoObjeto200(res, null, result.rows);
-      }
-    })
-    .catch((err) => {
-      respErrorServidor500END(res, err);
-    });
+  await RealizarOperacionAvanzadaCRUD(params);
 }
 
 // OBTENER TODOS LOS REPORTES DE PARAMETRO

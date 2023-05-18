@@ -4,30 +4,8 @@ const {
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  ListarCompletoCRUD,
 } = require("../../utils/crud.utils");
-
-const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  ValidarIDActualizarUtil,
-  EscogerInternoUtil,
-  EjecutarVariosQuerys,
-  AsignarInformacionCompletaPorUnaClave,
-} = require("../../utils/consulta.utils");
-
-const {
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respErrorServidor500END,
-  respResultadoCorrectoObjeto200,
-  respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado200END,
-} = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_param_emisor_vinculado";
 const nameTableFK1 = "APS_param_emisor";
@@ -35,39 +13,33 @@ const nameTableFK2 = "APS_seg_institucion";
 const nameTableFK3 = "aps_view_modalidad_seguros";
 
 async function ListarCompleto(req, res) {
-  try {
-    const querys = [
-      ListarUtil(nameTable),
-      ListarUtil(nameTableFK1),
-      ListarUtil(nameTableFK2),
-      ListarUtil(nameTableFK3, { activo: null }),
-    ];
-    //ASEGURADORA === INSTITUCION
-    const resultQuerys = await EjecutarVariosQuerys(querys, {
-      order: 3,
-      id: "id_tipo_entidad",
-    });
-    if (resultQuerys.ok === null) {
-      throw resultQuerys.result;
-    }
-    if (resultQuerys.ok === false) {
-      throw resultQuerys.errors;
-    }
-    const resultFinal = AsignarInformacionCompletaPorUnaClave(
-      resultQuerys.result,
-      [
-        { table: nameTableFK2, key: "id_aseguradora" },
-        { table: nameTableFK3, key: "id_tipo_modalidad" },
-      ]
-    );
-
-    respResultadoCorrectoObjeto200(res, resultFinal);
-  } catch (err) {
-    respErrorServidor500END(res, err);
-  }
+  //ASEGURADORA === INSTITUCION
+  const queryOptions = [
+    { table: nameTable, select: ["*"] },
+    { table: nameTableFK1, select: ["*"] },
+    { table: nameTableFK2, select: ["*"] },
+    { table: nameTableFK3, select: ["*"] },
+  ];
+  const tableOptions = [
+    { table: nameTableFK2, key: "id_aseguradora" },
+    { table: nameTableFK3, key: "id_tipo_modalidad" },
+  ];
+  const extraExecuteQueryOptions = {
+    order: 3,
+    id: "id_tipo_entidad",
+  };
+  const params = {
+    req,
+    res,
+    nameTable,
+    queryOptions,
+    tableOptions,
+    extraExecuteQueryOptions,
+  };
+  await ListarCompletoCRUD(params);
 }
 
-// OBTENER TODOS LOS EMISOR VINCULADO DE SEGURIDAD
+// OBTENER TODOS LOS EMISOR VINCULADO DE PARAMETRO
 async function Listar(req, res) {
   const params = { req, res, nameTable };
   await ListarCRUD(params);

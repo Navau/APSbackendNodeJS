@@ -46,10 +46,6 @@ const {
 } = require("../../utils/consulta.utils");
 
 const {
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
   respArchivoErroneo415,
   respErrorServidor500END,
   respResultadoCorrectoObjeto200,

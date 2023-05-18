@@ -4,35 +4,13 @@ const {
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  EliminarCRUD,
 } = require("../../utils/crud.utils");
-
-const pool = require("../../database");
-
-const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  ValidarIDActualizarUtil,
-  EliminarUtil,
-} = require("../../utils/consulta.utils");
-
-const {
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respErrorServidor500END,
-  respResultadoCorrectoObjeto200,
-  respResultadoIncorrectoObjeto200,
-  respUsuarioNoAutorizado200END,
-} = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_otros_activos_cupon";
 const newID = "id_cupon";
 
-// OBTENER TODOS LOS OTROS ACTIVOS CUPON DE SEGURIDAD
+// OBTENER TODOS LOS OTROS ACTIVOS CUPON
 async function Listar(req, res) {
   const params = { req, res, nameTable };
   await ListarCRUD(params);
@@ -58,61 +36,13 @@ async function Insertar(req, res) {
 
 // ACTUALIZAR UN OTROS ACTIVOS CUPON
 async function Actualizar(req, res) {
-  const body = req.body;
-
-  let query = "";
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
-    } else {
-      const params = {
-        body: body,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-      };
-      query = ActualizarUtil(nameTable, params);
-
-      pool.query(query, (err, result) => {
-        if (err) {
-          respErrorServidor500END(res, err);
-        } else {
-          if (!result.rowCount || result.rowCount < 1) {
-            respResultadoVacio404(res);
-          } else {
-            respResultadoCorrecto200(res, result);
-          }
-        }
-      });
-    }
-  }
+  const params = { req, res, nameTable, newID };
+  await ActualizarCRUD(params);
 }
 
-function Eliminar(req, res) {
-  const body = req.body;
-
-  if (Object.entries(body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      where: body,
-    };
-    query = EliminarUtil(nameTable, params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        respErrorServidor500END(res, err);
-      } else {
-        if (!result.rowCount || result.rowCount < 1) {
-          respResultadoVacio404(res);
-        } else {
-          respResultadoCorrecto200(res, result);
-        }
-      }
-    });
-  }
+async function Eliminar(req, res) {
+  const params = { req, res, nameTable, newID };
+  await EliminarCRUD(params);
 }
 module.exports = {
   Listar,

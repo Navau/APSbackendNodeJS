@@ -7,11 +7,6 @@ const { basename } = require("path");
 const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
-api.post(
-  "/ValorMaximo",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.ValorMaximo
-);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

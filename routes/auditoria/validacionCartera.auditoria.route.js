@@ -10,7 +10,7 @@ api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post(
   "/Validar",
   [md_auth.AsegurarAutenticacionConToken],
-  controller.Validar2
+  controller.Validar
 );
 api.post(
   "/ObtenerInformacion",

@@ -13,6 +13,8 @@ const {
   map,
 } = require("lodash");
 
+const { nombreSeccionTabla } = require("./formatearDatos");
+
 const msgFinal = (msg, msgDefault) => {
   if (isArray(msg)) return size(msg) > 0 ? msg : [msgDefault];
   else return [msg ? msg : msgDefault];
@@ -30,36 +32,84 @@ function respErrorServidor500END(res, err, msg, datos = null) {
   console.log(err);
   if (err?.code === "23505") {
     const detail = err?.detail;
-    if (!isUndefined(detail)) {
-      const arrayDetail = split(detail, "=");
-      const fieldsAux = arrayDetail[0];
-      const valuesAux = arrayDetail[1];
-      const fields = fieldsAux.substring(
-        fieldsAux.indexOf("(") + 1,
-        fieldsAux.indexOf(")")
-      );
-      const values = valuesAux.substring(
-        valuesAux.indexOf("(") + 1,
-        valuesAux.indexOf(")")
-      );
-      const fieldsSplit = split(fields, ",");
-      const valuesSplit = split(values, ",");
-      const fieldsWithValuesArray = [];
-      forEach(fieldsSplit, (field, index) => {
-        const value = valuesSplit[index];
-        if (!includes(field, "id_"))
-          fieldsWithValuesArray.push(`${trim(field)} = ${trim(value)}`);
-      });
-      const fieldsWithValuesString = join(fieldsWithValuesArray, ", ");
+    const arrayDetail = split(detail, "=");
+    const fieldsAux = arrayDetail[0];
+    const valuesAux = arrayDetail[1];
+    const fields = fieldsAux.substring(
+      fieldsAux.indexOf("(") + 1,
+      fieldsAux.indexOf(")")
+    );
+    const values = valuesAux.substring(
+      valuesAux.indexOf("(") + 1,
+      valuesAux.indexOf(")")
+    );
+    const fieldsSplit = split(fields, ",");
+    const valuesSplit = split(values, ",");
+    const fieldsWithValuesArray = [];
+    forEach(fieldsSplit, (field, index) => {
+      const value = valuesSplit[index];
+      if (!includes(field, "id_"))
+        fieldsWithValuesArray.push(`${trim(field)} = ${trim(value)}`);
+    });
+    const fieldsWithValuesString = join(fieldsWithValuesArray, ", ");
 
-      const messageFinal = `${
-        size(fieldsWithValuesArray) > 1 ? "Los valores" : "El valor"
-      } (${fieldsWithValuesString}) ya se ${
-        size(fieldsWithValuesArray) > 1
-          ? "encuentran registrados"
-          : "encuentra registrado"
-      }`;
-      respResultadoIncorrectoObjeto200(res, err, [], messageFinal);
+    const messageFinal = `${
+      size(fieldsWithValuesArray) > 1 ? "Los valores" : "El valor"
+    } (${fieldsWithValuesString}) ya se ${
+      size(fieldsWithValuesArray) > 1
+        ? "encuentran registrados"
+        : "encuentra registrado"
+    }`;
+    respResultadoIncorrectoObjeto200(res, err, [], messageFinal);
+  } else if (isArray(err)) {
+    const messagesFinal = [];
+    forEach(err, (item) => {
+      if (item?.err?.code === "23505") {
+        const detail = item?.err?.detail;
+        const arrayDetail = split(detail, "=");
+        const fieldsAux = arrayDetail[0];
+        const valuesAux = arrayDetail[1];
+        const fields = fieldsAux.substring(
+          fieldsAux.indexOf("(") + 1,
+          fieldsAux.indexOf(")")
+        );
+        const values = valuesAux.substring(
+          valuesAux.indexOf("(") + 1,
+          valuesAux.indexOf(")")
+        );
+        const fieldsSplit = split(fields, ",");
+        const valuesSplit = split(values, ",");
+        const fieldsWithValuesArray = [];
+        forEach(fieldsSplit, (field, index) => {
+          const value = valuesSplit[index];
+          if (!includes(field, "id_"))
+            fieldsWithValuesArray.push(`${trim(field)} = ${trim(value)}`);
+        });
+        const fieldsWithValuesString = join(fieldsWithValuesArray, ", ");
+
+        const messageFinal = `${
+          size(fieldsWithValuesArray) > 1 ? "Los valores" : "El valor"
+        } (${fieldsWithValuesString}) ya se ${
+          size(fieldsWithValuesArray) > 1
+            ? "encuentran registrados"
+            : "encuentra registrado"
+        }`;
+        messagesFinal.push(messageFinal);
+      }
+    });
+    if (size(messagesFinal) > 0)
+      respResultadoIncorrectoObjeto200(res, err, [], messagesFinal);
+    else {
+      const errMessage = err?.message ? err?.message : "";
+      res
+        .status(500)
+        .send({
+          resultado: 0,
+          datos,
+          mensaje: msgFinalError(msg, "Error del servidor. ", errMessage),
+          err,
+        })
+        .end();
     }
   } else {
     const data = err?.response?.data;
@@ -143,10 +193,7 @@ function respResultadoVacio404END(res, msg) {
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msgFinal(
-        msg,
-        "No se logró realizar correctamente la petición, debido a que la información no existe"
-      ),
+      mensaje: msgFinal(msg, "Información inexistente"),
     })
     .end();
 }
@@ -245,10 +292,11 @@ function respDatosNoRecibidos200END(res, msg) {
     .end();
 }
 
-function respUsuarioNoAutorizado200END(res, msg, action) {
-  const messageAux = action
-    ? `Usuario no autorizado para ${action}`
-    : "Usuario no autorizado";
+function respUsuarioNoAutorizado200END(res, msg, action, table) {
+  const messageActionAux = table
+    ? `Usuario no autorizado para '${action} ${nombreSeccionTabla(table)}'`
+    : `Usuario no autorizado para '${action}'`;
+  const messageAux = action ? messageActionAux : "Usuario no autorizado";
   res
     .status(200)
     .send({

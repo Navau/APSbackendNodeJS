@@ -17,6 +17,12 @@ const format = require("pg-format");
 
 //TO DO: Rehacer las consultas y verificar que cosas se usan y cuales no, para simplificar y hacer el codigo mas legible, por ejemplo en el ListarUtil
 
+function formatearQuery(query, options) {
+  const result = format(query, ...options);
+  console.log(result);
+  return result;
+}
+
 function ObtenerRolUtil(table, data, idPK) {
   let query = "";
 
@@ -188,20 +194,25 @@ function CargarArchivoABaseDeDatosUtil(table, params) {
 
 function ValorMaximoDeCampoUtil(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   query = `SELECT max(${params.fieldMax}) FROM public."${table}"`;
   if (params?.where) {
-    map(params.where, (item, index) => {
+    forEach(params.where, (item, index) => {
       if (item?.like === true) {
-        query = query + ` AND ${item.key} like '${item.value}%'`;
+        query = query + ` AND ${item.key} LIKE %L'`;
+        valuesWhereAuxArray.push(item.value + "%");
       } else {
         if (typeof item.value === "string") {
-          query = query + ` AND ${item.key} = '${item.value}'`;
+          query = query + ` AND ${item.key} = %L`;
         } else if (typeof item.value === "number") {
-          query = query + ` AND ${item.key} = ${item.value}`;
+          query = query + ` AND ${item.key} = %L`;
         } else if (typeof item.value === "boolean") {
-          query = query + ` AND ${item.key} = ${item.value}`;
+          query = query + ` AND ${item.key} = %L`;
         }
+        valuesWhereAuxArray.push(item.value);
       }
+      query = format(query, ...valuesWhereAuxArray);
+      valuesWhereAuxArray = [];
     });
   }
   if (!query.includes("WHERE") && query.includes("AND")) {
@@ -218,23 +229,27 @@ function ValorMaximoDeCampoUtil(table, params) {
 
 function ObtenerUltimoRegistro(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   query = `SELECT * FROM public."${table}"`;
   if (params?.where) {
-    map(params.where, (item, index) => {
-      console.log(item);
+    forEach(params.where, (item, index) => {
       if (item?.like === true) {
-        query = query + ` AND ${item.key} like '${item.value}%'`;
+        query = query + ` AND ${item.key} LIKE %L'`;
+        valuesWhereAuxArray.push(item.value + "%");
       } else {
         if (typeof item.value === "string") {
-          query = query + ` AND ${item.key} = '${item.value}'`;
+          query = query + ` AND ${item.key} = %L`;
         } else if (typeof item.value === "number") {
-          query = query + ` AND ${item.key} = ${item.value}`;
+          query = query + ` AND ${item.key} = %L`;
         } else if (typeof item.value === "boolean") {
-          query = query + ` AND ${item.key} = ${item.value}`;
+          query = query + ` AND ${item.key} = %L`;
         } else {
-          query = query + ` AND ${item.key} = '${item.value}'`;
+          query = query + ` AND ${item.key} = %L`;
         }
+        valuesWhereAuxArray.push(item.value);
       }
+      query = format(query, ...valuesWhereAuxArray);
+      valuesWhereAuxArray = [];
     });
   }
   if (params?.orderby) {
@@ -272,23 +287,19 @@ function ListarCamposDeTablaUtil(table) {
 function ListarUtil(table, params) {
   let query = "";
   if (params?.clasificador) {
-    let indexId = table.indexOf("_", 5);
-    let idTable = "id" + table.substring(indexId, table.length);
-    console.log("ID", {
-      idTable,
-      idClasificadorComunGrupo: params.idClasificadorComunGrupo,
-      valueId: params.valueId,
-    });
+    const valuesClasificadorAux = [
+      params.idClasificadorComunGrupo,
+      params.activo,
+    ];
+    // let indexId = table.indexOf("_", 5);
+    // let idTable = "id" + table.substring(indexId, table.length);
     query = `SELECT * FROM public."APS_param_clasificador_comun"`;
-    query =
-      query +
-      " WHERE id_clasificador_comun_grupo = " +
-      params.idClasificadorComunGrupo;
+    query = query + " WHERE id_clasificador_comun_grupo = %L";
     if (params?.activo !== null) {
-      if (isArray(params?.activo))
-        query = query + ` AND activo IN (${params.activo})`;
+      if (isArray(params?.activo)) query = query + ` AND activo IN (%L)`;
       else query = query + ` AND activo IN (true, false)`;
     }
+    query = format(query, ...valuesClasificadorAux);
   } else {
     query = `SELECT * FROM public."${table}" `;
     if (params?.activo !== null) {
@@ -330,20 +341,15 @@ function BuscarUtil(table, params) {
   }
 
   query &&
-    map(params.body, (item, index) => {
-      // console.log(
-      //   "TIPO: " + typeof item + " CLAVE:" + index + " VALOR: " + item
-      // );
-      // index = ponerComillasACamposConMayuscula(index);
+    forEach(params.body, (item, index) => {
       if (item !== null && typeof item !== "undefined") {
         if (typeof item === "string") {
-          index &&
-            (query = query + ` AND lower(${index}::TEXT) like lower(%L::TEXT)`);
+          query = query + ` AND lower(${index}::TEXT) like lower(%L::TEXT)`;
           valuesWhereAuxArray.push(item + "%");
         } else if (typeof item === "number") {
-          index && (query = query + ` AND ${index} = ${item}`);
+          query = query + ` AND ${index} = ${item}`;
         } else if (typeof item === "boolean") {
-          index && (query = query + ` AND ${index} = ${item}`);
+          query = query + ` AND ${index} = ${item}`;
         }
         query = format(query, ...valuesWhereAuxArray);
         valuesWhereAuxArray = [];
@@ -365,24 +371,23 @@ function BuscarUtil(table, params) {
 
 async function BuscarDiferenteUtil(table, params) {
   let query = "";
+  let valuesWhereAuxArray = [];
   params.body && (query = query + `SELECT * FROM public."${table}" `);
   query = query + " WHERE activo = true";
 
   query &&
-    map(params.body, (item, index) => {
-      // console.log(
-      //   "TIPO: " + typeof item + " CLAVE:" + index + " VALOR: " + item
-      // );
-      // index = ponerComillasACamposConMayuscula(index);
+    forEach(params.body, (item, index) => {
       if (item !== null && typeof item !== "undefined") {
         if (typeof item === "string") {
-          index &&
-            (query = query + ` AND lower(${index}) not like lower('${item}%')`);
+          query = query + ` AND lower(${index}::TEXT) like lower(%L::TEXT)`;
+          valuesWhereAuxArray.push(item + "%");
         } else if (typeof item === "number") {
-          index && (query = query + ` AND ${index} <> ${item}`);
+          query = query + ` AND ${index} <> ${item}`;
         } else if (typeof item === "boolean") {
-          index && (query = query + ` AND ${index} <> ${item}`);
+          query = query + ` AND ${index} <> ${item}`;
         }
+        query = format(query, ...valuesWhereAuxArray);
+        valuesWhereAuxArray = [];
       }
     });
   params.body && (query = query = query + ";");
@@ -395,9 +400,9 @@ async function BuscarDiferenteUtil(table, params) {
 function EscogerLlaveClasificadorUtil(table, params) {
   let query = "";
   if (params?.idClasificadorComunGrupo) {
-    query = `SELECT llave 
-  FROM public."${table}" 
-  WHERE id_clasificador_comun_grupo = ${params?.idClasificadorComunGrupo}`;
+    const valuesAux = [params?.idClasificadorComunGrupo];
+    query = `SELECT llave FROM public."${table}" WHERE id_clasificador_comun_grupo = %L`;
+    query = format(query, ...valuesAux);
   } else {
     query = null;
   }
@@ -431,7 +436,7 @@ function EscogerLlaveClasificadorUtil(table, params) {
   // --28 = id_tipo_accion
   // --29 = id_tipo_rpt
 
-  console.log("QUERY LLAVE", query);
+  console.log(query);
 
   return query;
 }
@@ -442,19 +447,11 @@ function EscogerUtil(table, params) {
   if (params?.clasificador) {
     let indexId = table.indexOf("_", 5);
     let idTable = "id" + table.substring(indexId, table.length);
-    console.log("ID", {
-      idTable,
-      idClasificadorComunGrupo: params.idClasificadorComunGrupo,
-      valueId: params.valueId,
-    });
-
-    query = `SELECT ${idTable} AS ${params.valueId}, 
-    id_clasificador_comun_grupo, descripcion, sigla,
-    es_sistema, activo, id_usuario
-    FROM public."APS_param_clasificador_comun" 
-    WHERE ${idTable}_grupo = ${params.idClasificadorComunGrupo}`;
+    const valuesClasificadorAux = [params.idClasificadorComunGrupo];
+    query = `SELECT ${idTable} AS ${params.valueId}, id_clasificador_comun_grupo, descripcion, sigla, es_sistema, activo, id_usuario FROM public."APS_param_clasificador_comun" WHERE ${idTable}_grupo = %L`;
 
     query = query + " AND activo = true;";
+    query = format(query, ...valuesClasificadorAux);
   } else {
     params.body && (query = query + `SELECT * FROM public."${table}" `);
     if (
@@ -1317,27 +1314,15 @@ async function ObtenerInstitucion(user) {
       {
         table: `APS_seg_institucion`,
         on: [
-          {
-            table: `APS_seg_institucion`,
-            key: "id_institucion",
-          },
-          {
-            table: `APS_seg_usuario`,
-            key: "id_institucion",
-          },
+          { table: `APS_seg_institucion`, key: "id_institucion" },
+          { table: `APS_seg_usuario`, key: "id_institucion" },
         ],
       },
       {
         table: `APS_seg_usuario_rol`,
         on: [
-          {
-            table: `APS_seg_usuario_rol`,
-            key: "id_usuario",
-          },
-          {
-            table: `APS_seg_usuario`,
-            key: "id_usuario",
-          },
+          { table: `APS_seg_usuario_rol`, key: "id_usuario" },
+          { table: `APS_seg_usuario`, key: "id_usuario" },
         ],
       },
     ],
@@ -1350,14 +1335,11 @@ async function ObtenerInstitucion(user) {
   const resultFinal = await pool
     .query(queryInstitucion)
     .then((result) => {
-      if (result.rowCount >= 1) {
-        return { ok: true, result: result?.rows?.[0] };
-      } else {
-        return { ok: false, result: result?.rows?.[0] };
-      }
+      if (result.rowCount >= 1) return { ok: true, result: result?.rows?.[0] };
+      else return { ok: false, result: result?.rows?.[0] };
     })
     .catch((err) => {
-      return { ok: false, err };
+      throw err;
     });
   return resultFinal;
 }
@@ -1439,7 +1421,7 @@ async function EjecutarQuery(query) {
     return await pool
       .query(query)
       .then((result) => {
-        return result.rows;
+        return result.rows || [];
       })
       .catch((err) => {
         throw new Error(err);
@@ -1614,6 +1596,7 @@ function AsignarInformacionCompletaPorUnaClave(result, options) {
 }
 
 module.exports = {
+  formatearQuery,
   ListarUtil,
   ListarCamposDeTablaUtil,
   BuscarUtil,

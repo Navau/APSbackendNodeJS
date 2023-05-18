@@ -106,6 +106,81 @@ const TransformarArrayAObjeto = (array) => {
   return arrayAux;
 };
 
+const nombreSeccionTabla = (table) => {
+  const underscoreIndex = table.indexOf("_");
+  const segundoUnderscoreIndex = table.indexOf("_", underscoreIndex + 1);
+
+  if (underscoreIndex !== -1 && segundoUnderscoreIndex !== -1) {
+    const textoRestante = table.substring(segundoUnderscoreIndex + 1);
+    const textoSinGuiones = textoRestante.replace(/_/g, " ");
+    const primeraLetraMayuscula = textoSinGuiones.charAt(0).toUpperCase();
+    const restoTextoMinusculas = textoSinGuiones.slice(1).toLowerCase();
+
+    return primeraLetraMayuscula + restoTextoMinusculas;
+  }
+
+  return table;
+};
+
+const padTo2Digits = (num) => {
+  return num.toString().padStart(2, "0");
+};
+
+const formatearFecha = (date = new Date()) => {
+  return (
+    [
+      date.getFullYear(),
+      padTo2Digits(date.getMonth() + 1),
+      padTo2Digits(date.getDate()),
+    ].join("-") +
+    " " +
+    [
+      padTo2Digits(date.getHours()),
+      padTo2Digits(date.getMinutes()),
+      padTo2Digits(date.getSeconds()),
+    ].join(":") +
+    "." +
+    [padTo2Digits(date.getMilliseconds())].join()
+  );
+};
+
+function tipoReporteControlEnvio(id) {
+  const ID_REPORTES = {
+    25: {
+      folder: "custodio",
+      nameSheet: "Custodio",
+      nameExcel: "Custodio Entidad.xlsx",
+    },
+    26: {
+      folder: "cartera",
+      nameSheet: "Cartera",
+      nameExcel: "Cartera Valorada.xlsx",
+    },
+    31: {
+      folder: "cartera",
+      nameSheet: "Cartera (Pensiones)",
+      nameExcel: "Cartera Valorada Pensiones.xlsx",
+    },
+  };
+
+  return ID_REPORTES[id];
+}
+
+function validateEmail(email) {
+  const res =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return res.test(String(email).toLowerCase());
+}
+
+const agregarDias = (date, days) => {
+  date.setDate(date.getDate() + days);
+  return date;
+};
+const agregarMeses = (date, months) => {
+  date.setMonth(date.getMonth() + months);
+  return date;
+};
+
 module.exports = {
   formatearFechaDeInformacion,
   separarStringCamelCasePorCaracter,
@@ -114,4 +189,10 @@ module.exports = {
   formatoMiles,
   TransformarArrayAObjeto,
   separarStringPorCaracter,
+  nombreSeccionTabla,
+  formatearFecha,
+  tipoReporteControlEnvio,
+  validateEmail,
+  agregarDias,
+  agregarMeses,
 };
