@@ -24,6 +24,9 @@ const {
   ObtenerInstitucion,
   ObtenerUsuariosPorRol,
   EjecutarProcedimientoSQL,
+  EliminarMultiplesTablasUtil,
+  AlterarSequenciaMultiplesTablasUtil,
+  AlterarSequenciaUtil,
 } = require("./consulta.utils");
 const {
   ObtenerDatosCriticosAuditoria,
@@ -31,6 +34,7 @@ const {
   LogAuditoria,
   LogDetAuditoria,
   VerificarPermisoTablaUsuarioAuditoria,
+  VerificarPermisoVariasTablasUsuarioAuditoria,
 } = require("./auditoria.utils");
 const {
   respResultadoCorrectoObjeto200,
@@ -40,6 +44,10 @@ const {
   respUsuarioNoAutorizado200END,
   respResultadoIncorrectoObjeto200,
   respDatosNoRecibidos400,
+  respDescargarArchivos200,
+  respResultadoVacioObject200,
+  respArchivoErroneo415,
+  respArchivoErroneo200,
 } = require("./respuesta.utils");
 const { ValidarDatosValidacion } = require("./validacion.utils");
 const {
@@ -61,6 +69,8 @@ const {
   uniqBy,
   isNull,
   uniq,
+  join,
+  replace,
 } = require("lodash");
 const jwt = require("../services/jwt.service");
 const pool = require("../database");
@@ -71,8 +81,10 @@ const {
   agregarDias,
   agregarMeses,
 } = require("./formatearDatos");
+const { formatoArchivo } = require("./formatoCamposArchivos.utils");
 const nodemailer = require("nodemailer");
 const dayjs = require("dayjs");
+const fs = require("fs");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -707,7 +719,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
     action = undefined,
   } = paramsF;
   try {
-    if (!isUndefined(action)) {
+    if (!isUndefined(action) && !isUndefined(nameTable)) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -4199,9 +4211,1209 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             throw err;
           });
       },
+      Emisor_SeguroArchivo441: async () => {
+        const { fecha_informacion } = req.body;
+        const query = formatearQuery(
+          `SELECT emisor FROM public."${nameTable}" WHERE fecha_informacion=%L AND emisor NOT IN (SELECT codigo_rmv FROM public."APS_param_emisor");`,
+          [fecha_informacion]
+        );
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      InsertarRentaFija_SeguroArchivo441: async () => {
+        const { fecha, id_usuario } = req.body;
+        const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
+        if (Object.entries(req.body).length === 0) {
+          respDatosNoRecibidos400(res);
+          return;
+        }
+        const params = { body: { fecha, idUsuarioFinal } };
+        const query = EjecutarFuncionSQL("aps_ins_renta_fija", params);
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      Emisor_SeguroArchivo442: async () => {
+        const { fecha_informacion } = req.body;
+        const query = formatearQuery(
+          `SELECT emisor FROM public."${nameTable}" WHERE fecha_informacion=%L AND emisor NOT IN (SELECT codigo_rmv FROM public."APS_param_emisor");`,
+          [fecha_informacion]
+        );
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      InsertarOtrosActivos_SeguroArchivo442: async () => {
+        const { fecha, id_usuario } = req.body;
+        const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
+        if (Object.entries(req.body).length === 0) {
+          respDatosNoRecibidos400(res);
+          return;
+        }
+        const params = { body: { fecha, idUsuarioFinal } };
+        const query = EjecutarFuncionSQL("aps_ins_otros_activos", params);
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      Emisor_SeguroArchivo443: async () => {
+        const { fecha_informacion } = req.body;
+        const query = formatearQuery(
+          `SELECT emisor FROM public."${nameTable}" WHERE fecha_informacion=%L AND emisor NOT IN (SELECT codigo_rmv FROM public."APS_param_emisor");`,
+          [fecha_informacion]
+        );
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      InsertarRentaVariable_SeguroArchivo443: async () => {
+        const { fecha, id_usuario } = req.body;
+        const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
+        if (Object.entries(req.body).length === 0) {
+          respDatosNoRecibidos400(res);
+          return;
+        }
+        const params = { body: { fecha, idUsuarioFinal } };
+        const query = EjecutarFuncionSQL("aps_ins_renta_variable", params);
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      InsertarRentaFijaCupon_SeguroArchivo444: async () => {
+        const { fecha, id_usuario } = req.body;
+        const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
+        if (Object.entries(req.body).length === 0) {
+          respDatosNoRecibidos400(res);
+          return;
+        }
+        const params = { body: { fecha, idUsuarioFinal } };
+        const query = EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params);
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      InsertarOtrosActivosCupon_SeguroArchivo445: async () => {
+        const { fecha, id_usuario } = req.body;
+        const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
+        if (Object.entries(req.body).length === 0) {
+          respDatosNoRecibidos400(res);
+          return;
+        }
+        const params = { body: { fecha, idUsuarioFinal } };
+        const query = EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params);
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      DescargarArchivosPorFecha_DescargarArchivos: async () => {
+        const { fecha } = req.body;
+        const date = fecha.split("-").join("");
+        const nameExportZip = `./downloads/files_${date}.zip`;
+        const fileZipPromise = new Promise(async (resolve, reject) => {
+          try {
+            const filesFinalArray = [];
+            const files = fs.readdirSync("./uploads/tmp");
+            forEach(files, (item) => {
+              if (item.includes(date)) filesFinalArray.push(item);
+            });
+            if (filesFinalArray.length <= 0) resolve(filesFinalArray);
+            else {
+              const output = fs.createWriteStream(nameExportZip);
+              const archive = archiver("zip", {
+                zlib: { level: 9 }, // Sets the compression level.
+              });
+              archive.on("error", (err) => {
+                throw err;
+              });
+              forEach(files, (item) => {
+                if (item.includes(date))
+                  archive.file(`./uploads/tmp/${item}`, {
+                    name: `${item}`,
+                  });
+              });
+              archive.pipe(output);
+              await archive.finalize();
+              output.on("close", () => {
+                resolve(filesFinalArray);
+              });
+            }
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        fileZipPromise
+          .then((result) => {
+            if (result.length >= 1)
+              respDescargarArchivos200(res, nameExportZip, result);
+            else
+              respResultadoVacioObject200(
+                res,
+                result,
+                "No existen archivos para la fecha seleccionada"
+              );
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      DescargarArchivos_DescargarArchivos: async () => {
+        const { archivos } = req.body;
+        if (size(archivos) <= 0) {
+          respResultadoIncorrectoObjeto200(
+            res,
+            null,
+            archivos,
+            "No existen archivos para descargar"
+          );
+          return;
+        }
+        const filter = split(archivos?.[0], ".")[0];
+        const nameExportZip = `./downloads/archivos_${filter}.zip`;
+        const fileZipPromise = new Promise(async (resolve, reject) => {
+          try {
+            if (archivos.length <= 0) resolve(archivos);
+            else {
+              const output = fs.createWriteStream(nameExportZip);
+              const archive = archiver("zip", {
+                zlib: { level: 9 }, // Sets the compression level.
+              });
+              archive.on("error", (err) => {
+                reject(err);
+              });
+              forEach(archivos, (item) => {
+                archive.file(`./uploads/tmp/${item}`, {
+                  name: `${item}`,
+                });
+              });
+              archive.pipe(output);
+              await archive.finalize();
+              output.on("close", () => {
+                resolve(archivos);
+              });
+            }
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        fileZipPromise
+          .then((result) => {
+            if (result.length >= 1)
+              respDescargarArchivos200(res, nameExportZip, result);
+            else
+              respResultadoVacioObject200(
+                res,
+                result,
+                "No existen archivos para esa fecha."
+              );
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
+      ListarArchivos_DescargarArchivos: async () => {
+        const { modalidades, tipo_archivos = "seguros" } = req.body;
+        const codigos = [];
+        const nameTableTipoArchivos =
+          tipo_archivos === "pensiones"
+            ? "APS_pensiones_archivo_"
+            : "APS_seguro_archivo_";
+        const queryArchivos = EscogerInternoUtil("INFORMATION_SCHEMA.TABLES", {
+          select: ["*"],
+          where: [
+            { key: "table_schema", value: "public" },
+            { key: "table_type", value: "BASE TABLE" },
+            { key: "table_name", value: nameTableTipoArchivos, like: true },
+          ],
+        });
+        const codigosArchivosAux = await EjecutarQuery(queryArchivos);
+        const codigosArchivos = map(codigosArchivosAux, (item) =>
+          replace(item.table_name, nameTableTipoArchivos, "")
+        );
+        forEach(modalidades, (item) =>
+          filter(item.modalidades, (modalidad) => {
+            if (modalidad.esCompleto === true)
+              codigos.push({
+                fecha: join(split(item.fecha.replace(/\s/g, ""), "-"), ""),
+                codigo: modalidad.codigo,
+              });
+          })
+        );
+        const files = fs.readdirSync("./uploads/tmp");
+        const resultFinal = [];
+        forEach(codigos, (item) => {
+          const aux = filter(files, (file) => {
+            const splitFecha = split(item.fecha, "-").join("");
+            const fileSplitFecha = file
+              .toUpperCase()
+              .substring(0, file.indexOf(splitFecha));
+            const auxResultFind = find(codigosArchivos.result, (codArchivo) => {
+              if (fileSplitFecha.indexOf("CC") === -1)
+                if (tipo_archivos === "pensiones") {
+                  const codInstitucionAux = fileSplitFecha.substring(
+                    0,
+                    fileSplitFecha.indexOf(codArchivo)
+                  );
+                  return (
+                    split(file, codArchivo)[0] === codInstitucionAux &&
+                    item.codigo === codInstitucionAux
+                  );
+                } else if (tipo_archivos === "seguros") {
+                  return split(file, item.fecha)[0] === item.codigo;
+                } else return includes(file, codArchivo);
+
+              return false;
+            });
+            return isUndefined(auxResultFind) ? false : true;
+          });
+          resultFinal.push(...aux);
+        });
+        respResultadoCorrectoObjeto200(res, resultFinal);
+      },
+      Modalidades_DescargarArchivos: async () => {
+        const { fecha, id_tipo_modalidad } = req.body;
+        const { id_rol } = req.user;
+        const querys = [
+          EscogerInternoUtil(
+            id_rol === 10
+              ? "aps_view_modalidad_seguros"
+              : "aps_view_modalidad_pensiones",
+            {
+              select: ["*"],
+              where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+            }
+          ),
+        ];
+        const results = await EjecutarVariosQuerys(querys);
+        if (results.ok === null) throw results.result;
+        if (results.ok === false) throw results.errors;
+        const modalidadesArray = map(results.result, (item, index) => {
+          return {
+            id_modalidad: index + 1,
+            titulo: "Todas",
+            fecha,
+            descripcion: "Todas las entidades",
+            esCompleto: false,
+            esTodoCompleto: false,
+            modalidades: map(results.result?.[0].data, (item) => {
+              return {
+                id_tipo_modalidad: item.id_tipo_entidad,
+                esCompleto: false,
+                descripcion: item.descripcion,
+                codigo: item.codigo,
+                institucion: item.institucion,
+                sigla: item.sigla,
+              };
+            }),
+          };
+        });
+
+        respResultadoCorrectoObjeto200(res, modalidadesArray);
+      },
+      CargarArchivo_Upload: async () => CargarArchivo_Upload(req, res, action),
     };
 
     await OPERATION?.[methodName]();
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
+}
+
+async function CargarArchivo_Upload(req, res, action) {
+  try {
+    const fechaInicialOperacion = req?.body?.fecha_operacion;
+    const id_rol = req.user.id_rol;
+    const id_usuario = req.user.id_usuario;
+    const paramsQueryAux = {
+      select: ["codigo, sigla, id_rol, id_usuario"],
+      where: [
+        { key: "id_usuario", value: id_usuario },
+        { key: "id_rol", value: id_rol },
+      ],
+    };
+    const codigosSeguros = await EjecutarQuery(
+      EscogerInternoUtil("aps_view_modalidad_seguros", paramsQueryAux)
+    );
+    const codigosPensiones = await EjecutarQuery(
+      EscogerInternoUtil("aps_view_modalidad_pensiones", paramsQueryAux)
+    );
+    const filesReaded = req.filesReaded;
+    const previousResults = req.results;
+    const previousErrors = req.errors;
+    const returnsValues = req.returnsValues;
+    const idCargaArchivos = returnsValues[0].id_carga_archivos;
+    let cargaBolsaActual = null;
+    const resultFinal = [];
+    const tablesFilesArray = [];
+    const sequencesTablesFilesArray = [];
+    const idTablesFilesArray = [];
+    const errorsFieldsArray = [];
+    let bodyFinalQuery = [];
+    const filesSort = sortBy(req.files, (file) =>
+      file.originalname.toLowerCase()
+    ); // ORDENANDO LOS ARCHIVOS PARA ITERAR CON LA VARIABLE filesReaded
+
+    // const filesSort = req.files;
+    // console.log("filesReaded", filesReaded);
+    // console.log("filesUploadedBD", filesUploadedBD);
+    // console.log("previousResults", previousResults);
+    // console.log("previousErrors", previousErrors);
+    // console.log("returnsValues", returnsValues);
+    const INFO_TABLES = {
+      code: null,
+      cod_institution: null,
+      table: null,
+      tableErrors: null,
+    };
+
+    forEach(filesSort, (item) => {
+      const fileName = item.originalname.toUpperCase();
+      const codSeguros = fileName.substring(0, 3);
+      const codPensiones = fileName.substring(0, 2);
+      const codPensionesSeguros =
+        size(codigosSeguros) > 0
+          ? codSeguros
+          : size(codigosPensiones) > 0
+          ? codPensiones
+          : null;
+      if (codPensionesSeguros === null) return result;
+      const findSeguros = find(
+        codigosSeguros,
+        (itemF) => codSeguros === itemF.codigo
+      );
+      const findPensiones = find(
+        codigosPensiones,
+        (itemF) => codPensiones === itemF.codigo
+      );
+      if (
+        (!isUndefined(findSeguros) || !isUndefined(findPensiones)) &&
+        (!fileName.includes(".CC") ||
+          !item.originalname[2] + item.originalname[3] === "CC")
+      ) {
+        INFO_TABLES.code = codPensionesSeguros;
+        INFO_TABLES.cod_institution = codPensionesSeguros;
+        INFO_TABLES.table = "APS_aud_carga_archivos_pensiones_seguros";
+        INFO_TABLES.tableErrors =
+          "APS_aud_errores_carga_archivos_pensiones_seguros";
+      } else if (
+        fileName.substring(0, 1) === "M" &&
+        (fileName.includes("K.") ||
+          fileName.includes("L.") ||
+          fileName.includes("N.") ||
+          fileName.includes("P."))
+      ) {
+        INFO_TABLES.code = "M";
+        INFO_TABLES.cod_institution = "bolsa";
+        INFO_TABLES.table = "APS_aud_carga_archivos_bolsa";
+        INFO_TABLES.tableErrors = "APS_aud_errores_carga_archivos_bolsa";
+      } else if (fileName.includes(".CC")) {
+        const stringAux = item.originalname.toUpperCase();
+        const fechaAux = split(fechaInicialOperacion, "-").join("");
+        const codInstitucionPuntoCC = (string, split) => {
+          const splitString = string.split(split);
+          return splitString[0];
+        };
+        INFO_TABLES.code = "CC";
+        INFO_TABLES.cod_institution = codInstitucionPuntoCC(
+          stringAux,
+          fechaAux
+        );
+        INFO_TABLES.table = "APS_aud_carga_archivos_custodio";
+        INFO_TABLES.tableErrors = "APS_aud_errores_carga_archivos_custodio";
+      } else if (fileName.includes("CC")) {
+        const fechaAux = split(fechaInicialOperacion, "-").join("");
+        const fileSplitFecha = item.originalname
+          .toUpperCase()
+          .substring(0, item.originalname.toUpperCase().indexOf(fechaAux));
+        const codInstitucionCC = (stringAux) => {
+          const splitString = stringAux.split("CC");
+          return splitString[1] === "" ? splitString[0] : splitString[1];
+        };
+        INFO_TABLES.code = "CC";
+        INFO_TABLES.cod_institution = codInstitucionCC(fileSplitFecha);
+        INFO_TABLES.table = "APS_aud_carga_archivos_custodio";
+        INFO_TABLES.tableErrors = "APS_aud_errores_carga_archivos_custodio";
+      }
+    });
+
+    if (!isUndefined(action)) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: INFO_TABLES.table,
+        action,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, INFO_TABLES.table);
+        return;
+      }
+    }
+
+    if (INFO_TABLES.cod_institution === "bolsa") {
+      const queryBolsaAux = EscogerInternoUtil(nameTable, {
+        select: ["*"],
+        where: [{ key: "id_carga_archivos", value: idCargaArchivos }],
+      });
+      cargaBolsaActual = await EjecutarQuery(queryBolsaAux)?.[0];
+      if (isUndefined(cargaBolsaActual))
+        throw new Error(`No existe el registro con el id ${idCargaArchivos}`);
+    }
+
+    const uploadPromise = new Promise(async (resolve, reject) => {
+      let errors = [];
+      for (let index = 0; index < filesSort.length; index++) {
+        try {
+          const item = filesSort[index];
+          const fileName = item.originalname;
+          const arrayDataObject = [];
+          //#region SEPARAR LOS CAMPOS DEL ARCHIVO QUE ESTA DIVIDO EN FILAS
+          // SE ORDENAN PRIMERO LOS ARCHIVOS ANTES DE ITERAR CON FILES READED
+          forEach(filesReaded[index], (item2) => {
+            for (let i = 0; i < item2.length; i++) {
+              if (item2.charCodeAt(i) === 65279)
+                item2 = item2.replace(item2.slice(i, 1), "");
+            }
+            const rowWithoutQuotationMarks = item2.slice(1, item2.length - 1);
+            const rowSplit = rowWithoutQuotationMarks.split('","');
+            let resultObject = [];
+            forEach(rowSplit, (item3) => {
+              resultObject = [...resultObject, `"${item3}"`];
+            });
+            if (item2 !== "") {
+              arrayDataObject.push(resultObject);
+            }
+          });
+          //#endregion
+
+          const OPTIONS_FILE = {
+            headers: null,
+            detailsHeaders: null,
+            codeFile: null,
+            tableFile: null,
+            sequenceTableFile: null,
+            idTable: null,
+            dateField: null,
+            institutionField: null,
+            typeInstrumentField: null,
+            serieField: null,
+          };
+
+          //#region SELECCION DE CODIGO Y TABLA DE ARCHIVO
+          if (fileName.includes("K.")) {
+            OPTIONS_FILE.codeFile = "K";
+            OPTIONS_FILE.tableFile = "APS_oper_archivo_k";
+          } else if (fileName.includes("L.")) {
+            OPTIONS_FILE.codeFile = "L";
+            OPTIONS_FILE.tableFile = "APS_oper_archivo_l";
+          } else if (fileName.includes("N.")) {
+            OPTIONS_FILE.codeFile = "N";
+            OPTIONS_FILE.tableFile = "APS_oper_archivo_n";
+          } else if (fileName.includes("P.")) {
+            OPTIONS_FILE.codeFile = "P";
+            OPTIONS_FILE.tableFile = "APS_oper_archivo_p";
+          } else if (fileName.includes(".411")) {
+            OPTIONS_FILE.codeFile = "411";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_411";
+          } else if (fileName.includes(".412")) {
+            OPTIONS_FILE.codeFile = "412";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_412";
+          } else if (fileName.includes(".413")) {
+            OPTIONS_FILE.codeFile = "413";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_413";
+          } else if (fileName.includes(".441")) {
+            OPTIONS_FILE.codeFile = "441";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_441";
+          } else if (fileName.includes(".442")) {
+            OPTIONS_FILE.codeFile = "442";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_442";
+          } else if (fileName.includes(".443")) {
+            OPTIONS_FILE.codeFile = "443";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_443";
+          } else if (fileName.includes(".444")) {
+            OPTIONS_FILE.codeFile = "444";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_444";
+          } else if (fileName.includes(".445")) {
+            OPTIONS_FILE.codeFile = "445";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_445";
+          } else if (fileName.includes(".451")) {
+            OPTIONS_FILE.codeFile = "451";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_451";
+          } else if (fileName.includes(".481")) {
+            OPTIONS_FILE.codeFile = "481";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_481";
+          } else if (fileName.includes(".482")) {
+            OPTIONS_FILE.codeFile = "482";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_482";
+          } else if (fileName.includes(".483")) {
+            OPTIONS_FILE.codeFile = "483";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_483";
+          } else if (fileName.includes(".484")) {
+            OPTIONS_FILE.codeFile = "484";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_484";
+          } else if (fileName.includes(".485")) {
+            OPTIONS_FILE.codeFile = "485";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_485";
+          } else if (fileName.includes(".486")) {
+            OPTIONS_FILE.codeFile = "486";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_486";
+          } else if (fileName.includes(".461")) {
+            OPTIONS_FILE.codeFile = "461";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_461";
+          } else if (fileName.includes(".471")) {
+            OPTIONS_FILE.codeFile = "471";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_471";
+          } else if (fileName.includes(".491")) {
+            OPTIONS_FILE.codeFile = "491";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_491";
+          } else if (fileName.includes(".492")) {
+            OPTIONS_FILE.codeFile = "492";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_492";
+          } else if (fileName.includes(".494")) {
+            OPTIONS_FILE.codeFile = "494";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_494";
+          } else if (fileName.includes(".496")) {
+            OPTIONS_FILE.codeFile = "496";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_496";
+          } else if (fileName.includes(".497")) {
+            OPTIONS_FILE.codeFile = "497";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_497";
+          } else if (fileName.includes(".498")) {
+            OPTIONS_FILE.codeFile = "498";
+            OPTIONS_FILE.tableFile = "APS_seguro_archivo_498";
+          } else if (fileName.includes("DM")) {
+            OPTIONS_FILE.codeFile = "DM";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_DM";
+          } else if (fileName.includes("DR")) {
+            OPTIONS_FILE.codeFile = "DR";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_DR";
+          } else if (fileName.includes("UA")) {
+            OPTIONS_FILE.codeFile = "UA";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_UA";
+          } else if (fileName.includes("UE")) {
+            OPTIONS_FILE.codeFile = "UE";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_UE";
+          } else if (fileName.includes("TD")) {
+            OPTIONS_FILE.codeFile = "TD";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_TD";
+          } else if (fileName.includes("DU")) {
+            OPTIONS_FILE.codeFile = "DU";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_DU";
+          } else if (fileName.includes("UD")) {
+            OPTIONS_FILE.codeFile = "UD";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_UD";
+          } else if (fileName.includes("TO")) {
+            OPTIONS_FILE.codeFile = "TO";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_TO";
+          } else if (fileName.includes("CO")) {
+            OPTIONS_FILE.codeFile = "CO";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_CO";
+          } else if (fileName.includes("TV")) {
+            OPTIONS_FILE.codeFile = "TV";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_TV";
+          } else if (fileName.includes("DC")) {
+            OPTIONS_FILE.codeFile = "DC";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_DC";
+          } else if (fileName.includes("DO")) {
+            OPTIONS_FILE.codeFile = "DO";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_DO";
+          } else if (fileName.includes("BG")) {
+            OPTIONS_FILE.codeFile = "BG";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_BG";
+          } else if (fileName.includes("FE")) {
+            OPTIONS_FILE.codeFile = "FE";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_FE";
+          } else if (fileName.includes("VC")) {
+            OPTIONS_FILE.codeFile = "VC";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_VC";
+          } else if (fileName.includes("CD")) {
+            OPTIONS_FILE.codeFile = "CD";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_CD";
+          } else if (fileName.includes("DE")) {
+            OPTIONS_FILE.codeFile = "DE";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_DE";
+          } else if (fileName.includes("LQ")) {
+            OPTIONS_FILE.codeFile = "LQ";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_LQ";
+          } else if (fileName.includes("TR")) {
+            OPTIONS_FILE.codeFile = "TR";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_TR";
+          } else if (fileName.includes("CC") && INFO_TABLES.code === "CC") {
+            OPTIONS_FILE.codeFile = "CC";
+            OPTIONS_FILE.tableFile = "APS_oper_archivo_Custodio";
+          } else if (fileName.includes("FC")) {
+            OPTIONS_FILE.codeFile = "FC";
+            OPTIONS_FILE.tableFile = "APS_pensiones_archivo_FC";
+          }
+          //#endregion
+
+          //#region CONFIGURANDO LA INFORMACION DE OPTIONS_FILE
+          const columnsHeaders = await formatoArchivo(codeFile);
+          OPTIONS_FILE.detailsHeaders = await columnsHeaders.detailsHeaders;
+          OPTIONS_FILE.headers = await columnsHeaders.headers;
+          OPTIONS_FILE.idTable = OPTIONS_FILE.headers[0];
+          OPTIONS_FILE.sequenceTableFile = { table: tableFile, id: idTable };
+          const codInstitucionAux = INFO_TABLES.cod_institution;
+          OPTIONS_FILE.headers?.splice(0, 1); // ELIMINAR ID DE TABLA
+          tablesFilesArray.push(OPTIONS_FILE.tableFile);
+          sequencesTablesFilesArray.push({
+            table: OPTIONS_FILE.tableFile,
+            id: OPTIONS_FILE.idTable,
+          });
+          idTablesFilesArray.push(OPTIONS_FILE.idTable);
+          //#endregion
+
+          //#region ESTA ES UNA VALIDACION PARA VERIFICAR LA UNICIDAD SEGUN EL TIPO DE ARCHIVO, SE VERIFICA SI LA INFORMACION QUE SE ESTA REGISTRANDO YA EXISTE, SI ES ASI ENTONCES LOS REGISTROS ANTERIORES SE ELIMINAN
+
+          const valuesWhereInAux = [
+            `fecha_operacion`,
+            `fecha`,
+            `fecha_informacion`,
+            `cod_institucion`,
+          ];
+
+          if (INFO_TABLES.cod_institution === "CC") {
+            valuesWhereInAux.push(`tipo_instrumento`);
+            valuesWhereInAux.push(`serie`);
+          }
+
+          const queryInfoSchema = EscogerInternoUtil(
+            "INFORMATION_SCHEMA.COLUMNS",
+            {
+              select: ["*"],
+              where: [
+                {
+                  key: "COLUMN_NAME",
+                  valuesWhereIn: valuesWhereInAux,
+                  whereIn: true,
+                },
+                { key: "TABLE_NAME", value: OPTIONS_FILE.tableFile },
+              ],
+              orderby: { field: "COLUMN_NAME" },
+            }
+          );
+
+          const infoColumnas = await EjecutarQuery(queryInfoSchema);
+          if (size(infoColumnas) > 0) {
+            forEach(infoColumnas, (infoColumna) => {
+              const columnName = infoColumna.column_name;
+              if (columnName === "cod_institucion")
+                OPTIONS_FILE.institutionField = columnName;
+              if (
+                columnName === "tipo_instrumento" &&
+                INFO_TABLES.cod_institution === "CC"
+              )
+                OPTIONS_FILE.typeInstrumentField = columnName;
+              if (
+                columnName === "serie" &&
+                INFO_TABLES.cod_institution === "CC"
+              )
+                OPTIONS_FILE.serieField = columnName;
+              if (columnName.includes("fecha"))
+                OPTIONS_FILE.dateField = columnName;
+            });
+          }
+
+          if (
+            OPTIONS_FILE.codeFile === "K" ||
+            OPTIONS_FILE.codeFile === "L" ||
+            OPTIONS_FILE.codeFile === "N" ||
+            OPTIONS_FILE.codeFile === "P"
+          ) {
+            if (!OPTIONS_FILE.dateField) {
+              errorsFieldsArray.push({
+                message: `No existe el campo fecha para poder validar unicidad en la tabla ${OPTIONS_FILE.tableFile}.`,
+              });
+            } else {
+              const whereDelete = [
+                { key: OPTIONS_FILE.dateField, value: fechaInicialOperacion },
+              ];
+              await eliminarInformacionDuplicada(
+                tableFile,
+                whereDelete,
+                sequenceTableFile,
+                idTable
+              );
+            }
+          } else if (INFO_TABLES.cod_institution === "CC") {
+            if (
+              !OPTIONS_FILE.dateField ||
+              !OPTIONS_FILE.institutionField ||
+              !OPTIONS_FILE.typeInstrumentField ||
+              !OPTIONS_FILE.serieField
+            ) {
+              errorsFieldsArray.push({
+                message: `No existe el campo cod_institucion, fecha, tipo_instrumento y serie para poder validar unicidad en la tabla ${OPTIONS_FILE.tableFile}.`,
+              });
+            } else {
+              const typeInstrumentsValuesAux = [];
+              const seriesValuesAux = [];
+              forEach(arrayDataObject, (itemAux) => {
+                forEach(itemAux, (itemAux2, indexAux2) => {
+                  if (indexAux2 === 0) typeInstrumentsValuesAux.push(itemAux2);
+                  else if (indexAux2 === 1) seriesValuesAux.push(itemAux2);
+                });
+              });
+              const seriesUniqs = map(uniq(seriesValuesAux), (itemAux) =>
+                replace(itemAux, /\"/g, `'`)
+              );
+              const typeInstrumentsUniqs = map(
+                uniq(typeInstrumentsValuesAux),
+                (itemAux) => replace(itemAux, /\"/g, `'`)
+              );
+              const whereDelete = [
+                { key: OPTIONS_FILE.dateField, value: fechaInicialOperacion },
+                {
+                  key: OPTIONS_FILE.institutionField,
+                  value: INFO_TABLES.cod_institution,
+                },
+                size(seriesUniqs) > 0 && {
+                  key: serieField,
+                  valuesWhereIn: seriesUniqs,
+                  whereIn: true,
+                },
+                size(seriesUniqs) > 0 && {
+                  key: typeInstrumentField,
+                  valuesWhereIn: typeInstrumentsUniqs,
+                  whereIn: true,
+                },
+              ];
+              await eliminarInformacionDuplicada(
+                tableFile,
+                whereDelete,
+                sequenceTableFile,
+                idTable
+              );
+            }
+          } else {
+            if (!dateField || !institutionField) {
+              errorsFieldsArray.push({
+                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
+              });
+            } else {
+              const whereDelete = [
+                {
+                  key: dateField,
+                  value: fechaInicialOperacion,
+                },
+                {
+                  key: institutionField,
+                  value: codInstitucionAux,
+                },
+              ];
+              await eliminarInformacionDuplicada(
+                tableFile,
+                whereDelete,
+                sequenceTableFile,
+                idTable
+              );
+            }
+          }
+
+          if (size(errorsFieldsArray) > 0)
+            if (index === size(filesSort) - 1) resolve({ errorsFieldsArray });
+          //#endregion
+
+          //#region INSERTAR EL ID DE CARGA ARCHIVOS, COD_INSTITUCION, FECHA_INFORMACION A CADA FILA SEPARADA
+          const newArrayDataObject = [];
+
+          let stringFinalFile = "";
+          let arrayHeadersAux = [];
+          if (OPTIONS_FILE.headers.includes("id_carga_archivos")) {
+            stringFinalFile += `"${idCargaArchivos}"`;
+            arrayHeadersAux.push("id_carga_archivos");
+          }
+          if (OPTIONS_FILE.headers.includes("cod_institucion")) {
+            stringFinalFile += `,"${codInstitucionAux}"`;
+            arrayHeadersAux.push("cod_institucion");
+          }
+          if (OPTIONS_FILE.headers.includes("fecha_informacion")) {
+            stringFinalFile += `,"${fechaInicialOperacion}"`;
+            arrayHeadersAux.push("fecha_informacion");
+          }
+          //#endregion
+
+          //#region ELIMINANDO LOS CAMPOS DE ID_CARGA_ARCHIVOS, COD_INSTITUCION Y FECHA INFORMACION PARA VOLVER A PONERLOS PERO AL FINAL DEL ARRAY HEADERS
+          stringFinalFile += `\r\n`;
+          forEach(arrayHeadersAux, (item2) => {
+            const myIndex = OPTIONS_FILE.headers.indexOf(item2);
+            if (myIndex !== -1) OPTIONS_FILE.headers.splice(myIndex, 1);
+          });
+          forEach(arrayHeadersAux, (item2) => {
+            OPTIONS_FILE.headers.push(item2);
+          });
+          //#endregion
+
+          //#region CREANDO UN NUEVO ARRAY DATA OBJECT QUE CONTIENE LO MISMO QUE EL ARRAY DATA OBJECT ORIGINAL, PERO ACA SE ESTA AGREGANDO LOS CAMPOS DE ID_CARGA_ARCHIVOS, COD_INSTITUCION Y FECHA INFORMACION (SI ES QUE EXISTEN EN "stringFinalFile")
+          forEach(arrayDataObject, (item2) => {
+            newArrayDataObject.push([...item2, ...stringFinalFile.split(",")]);
+          });
+          //#endregion
+
+          //#region INSERTANDO LA INFORMACION FORMATEADA A LA RUTA DE UPLOADS/TMP/ARCHIVO JUNTO CON EL ID DE CARGA DE ARCHIVOS
+          //TO DO: crear una carpeta para cada tipo de archivo
+          const dataFile = newArrayDataObject.join("");
+          const filePathWrite = `./uploads/tmp/${fileName}`;
+          fs.writeFileSync(filePathWrite, dataFile);
+          //#endregion
+
+          //#region Formateando informacion de archivo para insertar por medio de un INSERT QUERY, ES DECIR ACA SE ESTA FORMATEANDO LA INFORMACION PARA QUE YA NO ESTE EN FORMATO DE SOLAMENTE STRING, ACA SE ESTA TRANSFORMANDO LA INFORMACION A [PROPIEDAD]: [VALOR], LO CUAL PERMITIRA TENER MEJOR ORGANIZADO LA INFORMACION PARA REALIZAR EL INSERT QUERY
+          let finalData = [];
+          let partialData = [];
+          forEach(newArrayDataObject, (itemV1) => {
+            let dataObject = Object.assign({}, itemV1);
+            partialData.push(dataObject);
+          });
+          let partialHeaders = headers;
+          forEach(partialData, (itemV1) => {
+            let x = {};
+            forEach(itemV1, (itemV2, indexV2) => {
+              let valueAux = itemV2;
+              x = {
+                ...x,
+                [partialHeaders[indexV2]]: valueAux
+                  ?.trim()
+                  .replace(/['"]+/g, ""),
+              };
+            });
+            finalData.push(x);
+          });
+          forEach([finalData], (itemBPQ) => {
+            bodyFinalQuery = bodyFinalQuery.concat(itemBPQ);
+          });
+          //#endregion
+
+          //#region CREANDO Y EJECUTANDO LOS QUERYS PARA INSERTAR LA INFORMACION A CADA TABLA SEGUN EL TIPO DE ARCHIVO
+          let queryFiles = "";
+
+          if (bodyFinalQuery.length >= 1) {
+            const codeFileAux = OPTIONS_FILE.codeFile.toLowerCase();
+            queryFiles = InsertarVariosUtil(OPTIONS_FILE.tableFile, {
+              body: bodyFinalQuery,
+              returnValue: [
+                `id_archivo_${codeFileAux === "cc" ? "custodio" : codeFileAux}`,
+              ],
+            });
+          }
+
+          bodyFinalQuery = [];
+
+          await pool
+            .query(queryFiles)
+            .then((resultFile) => {
+              resultFinal.push({
+                message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
+                result: {
+                  rowsUpdate: resultFile.rows,
+                  rowCount: resultFile.rowCount,
+                },
+              });
+            })
+            .catch((err) => {
+              errors.push({
+                type: "QUERY SQL ERROR",
+                message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
+                err,
+              });
+              // reject({ resultFinal, errors });
+            })
+            .finally(() => {
+              if (index === req.files.length - 1) {
+                resolve({ resultFinal, errors });
+              }
+            });
+          //#endregion
+        } catch (err) {
+          reject(err);
+        }
+      }
+    });
+
+    const actualizarCampoCargado = async (
+      resp,
+      state,
+      codInst,
+      reprocesado = false
+    ) => {
+      const bodyAux = { cargado: state };
+      if (
+        codInst === "bolsa" &&
+        cargaBolsaActual.result.cargado === false &&
+        cargaBolsaActual.result.reproceso === true &&
+        (req.body?.reproceso === true || req.body?.reproceso === "true")
+      )
+        bodyAux.reprocesado = reprocesado;
+      const queryUpdateForError = ActualizarUtil(infoTables.table, {
+        body: bodyAux,
+        idKey: "id_carga_archivos",
+        idValue: idCargaArchivos,
+      });
+      await EjecutarQuery(queryUpdateForError);
+      if (
+        codInst === "bolsa" &&
+        (req.body?.reproceso === true || req.body?.reproceso === "true")
+      ) {
+        const queryUltimaCarga = EscogerInternoUtil(infoTables.table, {
+          select: ["*"],
+          where: [
+            { key: "id_rol", value: req.user.id_rol },
+            { key: "reproceso", value: true },
+            { key: "reprocesado", value: false },
+          ],
+        });
+        const ultimaCargaAux = await EjecutarQuery(queryUltimaCarga);
+        const value = minBy(ultimaCargaAux, "fecha_operacion");
+        if (isUndefined(value)) throw new Error("No existe una fecha válida");
+        let dayOfMonth = value.fecha_operacion?.getDate();
+        dayOfMonth--;
+        value.fecha_operacion.setDate(dayOfMonth);
+        const ultimaCarga = value;
+        if (
+          fechaInicialOperacion !==
+          dayjs(ultimaCarga.fecha_operacion).format("YYYY-MM-DD")
+        ) {
+          const queryUpdateCargaReprocesado = ActualizarUtil(infoTables.table, {
+            body: { reprocesado: true },
+            idKey: "id_carga_archivos",
+            idValue: ultimaCarga.id_carga_archivos,
+          });
+          await EjecutarQuery(queryUpdateCargaReprocesado);
+        }
+      }
+      resp;
+    };
+
+    const funcionesInversiones = async (fechaI, id_rolI) => {
+      const params = { body: { fechaI, id_rolI } };
+      const querys = [
+        EjecutarFuncionSQL("aps_ins_renta_fija_td", params),
+        EjecutarFuncionSQL("aps_ins_renta_fija_cupon_ud", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos_to", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos_cupon_co", params),
+        EjecutarFuncionSQL("aps_ins_renta_variable_tv", params),
+      ];
+      const results = await EjecutarVariosQuerys(querys);
+      if (results.ok === null) return { ok: null, result: results.result };
+      if (results.ok === false) return { ok: false, result: results.errors };
+      return { ok: true, result: results.result };
+    };
+
+    const eliminarInformacionDuplicada = async (
+      table,
+      where,
+      sequence,
+      idTable
+    ) => {
+      const resultFinal = [];
+      const queryDelete = EliminarMultiplesTablasUtil([table], { where });
+      await EjecutarQuery(queryDelete);
+      resultFinal.push({
+        query: "Eliminando registros duplicados",
+        table,
+        ok: true,
+      });
+
+      const queryMax = ValorMaximoDeCampoUtil(table, { fieldMax: idTable });
+      const maxIdTablesAux = await EjecutarQuery(queryMax);
+      const maxIdTables =
+        maxIdTablesAux?.[0]?.max === null ? 0 : maxIdTablesAux?.[0]?.max;
+      resultFinal.push({
+        query: "Seleccionando Maximo de tabla",
+        table,
+        idTable,
+        ok: true,
+      });
+      const idRestartValue = parseInt(maxIdTables) + 1;
+      const querySequence = AlterarSequenciaUtil(sequence, {
+        restartValue: idRestartValue,
+      });
+
+      await EjecutarQuery(querySequence);
+      resultFinal.push({
+        query: "Alterando secuencia",
+        table,
+        idRestartValue,
+        ok: true,
+      });
+
+      return resultFinal;
+    };
+
+    const eliminarArchivosCargados = async (tables, sequences, idTables) => {
+      const resultFinal = [];
+      const idsSequencesArray = [];
+
+      const queryDelete = EliminarMultiplesTablasUtil(tables, {
+        where: [{ key: "id_carga_archivos", value: idCargaArchivos }],
+      });
+      resultFinal.push({
+        query: "Eliminando cargas con error",
+        tables,
+        ok: true,
+      });
+      await EjecutarQuery(queryDelete);
+
+      for (let index = 0; index < tables.length; index++) {
+        const item = tables[index];
+        const id = idTables[index];
+        const queryMax = ValorMaximoDeCampoUtil(item, {
+          fieldMax: id,
+        });
+        const maxIdTablesAux = await EjecutarQuery(queryMax);
+        const maxIdTables =
+          maxIdTablesAux?.[0]?.max === null ? 0 : maxIdTablesAux?.[0]?.max;
+        resultFinal.push({
+          query: "Seleccionando Maximos de cada tabla",
+          item,
+          id,
+          ok: true,
+        });
+        const idReturn = parseInt(maxIdTables) + 1;
+        idsSequencesArray.push(idReturn);
+      }
+
+      const querySequence = AlterarSequenciaMultiplesTablasUtil(sequences, {
+        restartValue: idsSequencesArray,
+      });
+
+      await EjecutarQuery(querySequence);
+      resultFinal.push({
+        query: "Alterando secuencias",
+        tables,
+        idsSequencesArray,
+        ok: true,
+      });
+
+      return resultFinal;
+    };
+
+    uploadPromise
+      .then(async (response) => {
+        if (response?.errorsFieldsArray) {
+          respArchivoErroneo200(
+            res,
+            response.errorsFieldsArray,
+            ...previousResults
+          );
+          return;
+        }
+        if (response.errors.length >= 1) {
+          const resultDelete = await eliminarArchivosCargados(
+            tablesFilesArray,
+            sequencesTablesFilesArray,
+            idTablesFilesArray
+          );
+          console.log(resultDelete);
+          await actualizarCampoCargado(
+            respArchivoErroneo415(res, {
+              errores: [...response.errors, ...previousErrors],
+              cargado: false,
+              resultDelete,
+              idCargaArchivos,
+            }),
+            false,
+            infoTables.cod_institution,
+            false
+          );
+        } else {
+          const finalRespArray = [];
+          map(previousResults[0].files, (item, index) => {
+            finalRespArray.push({
+              archivo: item,
+              cargado: true,
+              id_carga_archivos: idCargaArchivos,
+              mensaje: `La información está correcta`,
+              fecha_operacion: fechaInicialOperacion,
+            });
+          });
+          if (infoTables.code === "02") {
+            const funcionesInversionesAux = await funcionesInversiones(
+              fechaInicialOperacion,
+              req.user.id_usuario
+            );
+            if (funcionesInversionesAux.ok !== true) {
+              throw funcionesInversionesAux.result;
+            } else {
+              actualizarCampoCargado(
+                respResultadoCorrectoObjeto200(res, finalRespArray),
+                true,
+                infoTables.cod_institution,
+                true
+              );
+            }
+          } else {
+            actualizarCampoCargado(
+              respResultadoCorrectoObjeto200(res, finalRespArray),
+              true,
+              infoTables.cod_institution,
+              true
+            );
+          }
+        }
+      })
+      .catch(async (err) => {
+        const resultDelete = await eliminarArchivosCargados(
+          tablesFilesArray,
+          sequencesTablesFilesArray,
+          idTablesFilesArray
+        );
+        await actualizarCampoCargado(
+          respErrorServidor500END(
+            res,
+            {
+              errores: err,
+              cargado: false,
+              resultDelete: resultDelete,
+              idCargaArchivos: idCargaArchivos,
+            },
+            `Ocurrió un error inesperado. ERROR: ${err.message}`,
+            false,
+            infoTables.cod_institution,
+            false
+          )
+        );
+      });
   } catch (err) {
     respErrorServidor500END(res, err);
   }

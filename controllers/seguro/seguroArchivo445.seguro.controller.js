@@ -6,60 +6,18 @@ const {
   ActualizarCRUD,
 } = require("../../utils/crud.utils");
 
-const pool = require("../../database");
-
-const {
-  ListarUtil,
-  BuscarUtil,
-  EscogerUtil,
-  InsertarUtil,
-  ActualizarUtil,
-  ValidarIDActualizarUtil,
-  EjecutarFuncionSQL,
-} = require("../../utils/consulta.utils");
-
-const {
-  respDatosNoRecibidos400,
-  respResultadoCorrecto200,
-  respResultadoVacio404,
-  respIDNoRecibido400,
-  respResultadoIncorrectoObjeto200,
-  respErrorServidor500END,
-  respResultadoCorrectoObjeto200,
-} = require("../../utils/respuesta.utils");
-
 const nameTable = "APS_seguro_archivo_445";
 
 // OBTENER TODOS LOS CRITICO DE SEGURIDAD
 async function InsertarOtrosActivosCupon(req, res) {
-  const { fecha, id_usuario } = req.body;
-  const idUsuarioFinal = id_usuario ? id_usuario : req.user.id_usuario;
-
-  if (Object.entries(req.body).length === 0) {
-    respDatosNoRecibidos400(res);
-  } else {
-    const params = {
-      body: {
-        fecha,
-        idUsuarioFinal,
-      },
-    };
-    const query = EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params);
-
-    pool
-      .query(query)
-      .then((result) => {
-        if (result.rowCount > 0) {
-          respResultadoCorrectoObjeto200(res, result.rows);
-        } else {
-          respResultadoIncorrectoObjeto200(res, null, result.rows);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        respErrorServidor500END(res, err);
-      });
-  }
+  const params = {
+    req,
+    res,
+    nameTable,
+    methodName: "InsertarOtrosActivosCupon_SeguroArchivo445",
+    action: "Insertar",
+  };
+  await RealizarOperacionAvanzadaCRUD(params);
 }
 
 async function Listar(req, res) {

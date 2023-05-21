@@ -1215,7 +1215,7 @@ function VerificarPermisoUtil(table, params) {
   query += `SELECT * FROM public."${table}"`;
 
   if (params?.where) {
-    map(params.where, (item, index) => {
+    forEach(params.where, (item, index) => {
       if (item?.like === true) {
         query = query + ` AND ${item.key} like '${item.value}%'`;
       } else {

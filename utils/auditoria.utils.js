@@ -1,18 +1,11 @@
-const { map, forEach } = require("lodash");
-const moment = require("moment");
+const { map, isUndefined } = require("lodash");
 const pool = require("../database");
 const {
   VerificarPermisoUtil,
-  EscogerUtil,
   EscogerInternoUtil,
   InsertarVariosUtil,
   InsertarUtil,
-  ValidarIDActualizarUtil,
 } = require("./consulta.utils");
-const {
-  respResultadoVacio404,
-  respErrorServidor500END,
-} = require("./respuesta.utils");
 
 async function VerificarPermisoTablaUsuarioAuditoria(params) {
   try {
@@ -21,20 +14,13 @@ async function VerificarPermisoTablaUsuarioAuditoria(params) {
 
     const paramsQuery = {
       where: [
-        {
-          key: "id_usuario",
-          value: id_usuario,
-        },
-        {
-          key: "tabla",
-          value: table,
-        },
-        {
-          key: "accion",
-          value: action,
-        },
+        { key: "id_usuario", value: id_usuario },
+        { key: "accion", value: action },
       ],
     };
+    if (!isUndefined(table)) {
+      paramsQuery.where.push({ key: "tabla", value: table });
+    }
     const query = VerificarPermisoUtil(
       "APS_seg_view_permiso_usuario",
       paramsQuery

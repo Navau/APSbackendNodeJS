@@ -303,6 +303,7 @@ function respUsuarioNoAutorizado200END(res, msg, action, table) {
       resultado: 0,
       datos: null,
       mensaje: msgFinal(msg, messageAux),
+      permiso_validacion: true,
     })
     .end();
 }

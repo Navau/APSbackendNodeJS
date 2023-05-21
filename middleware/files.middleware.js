@@ -62,8 +62,12 @@ const {
   respDatosNoRecibidos400,
   respErrorServidor500END,
   respArchivoErroneo200,
+  respUsuarioNoAutorizado200END,
 } = require("../utils/respuesta.utils");
 const dayjs = require("dayjs");
+const {
+  VerificarPermisoTablaUsuarioAuditoria,
+} = require("../utils/auditoria.utils");
 
 var nameTable = "";
 var codeCurrentFile = "";
@@ -4502,7 +4506,6 @@ exports.validarArchivo = async (req, res, next) => {
       ? fechaInicialOperacion.split("-").join("")
       : moment().format("YYYYMMDD");
 
-    console.log(fechaInicialOperacion);
     const paramsQueryAux = {
       select: ["codigo, sigla, id_rol, id_usuario"],
       where: [
@@ -4523,6 +4526,17 @@ exports.validarArchivo = async (req, res, next) => {
       codigosPensiones,
     });
 
+    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      table: infoTables.table,
+      action: "Insertar",
+      req,
+      res,
+    });
+    if (permiso.ok === false) {
+      respUsuarioNoAutorizado200END(res, null, action, infoTables.table);
+      return;
+    }
+
     if (infoTables.code === null && infoTables.table === null) {
       respErrorServidor500END(res, {
         type: "NAME TABLE",
@@ -4539,18 +4553,9 @@ exports.validarArchivo = async (req, res, next) => {
       let result = 1;
       let nroCarga = 1;
       const whereAux = [
-        {
-          key: "id_rol",
-          value: id_rol,
-        },
-        {
-          key: "fecha_operacion",
-          value: fechaInicialOperacion,
-        },
-        {
-          key: "id_usuario",
-          value: id_usuario,
-        },
+        { key: "id_rol", value: id_rol },
+        { key: "fecha_operacion", value: fechaInicialOperacion },
+        { key: "id_usuario", value: id_usuario },
       ];
       if (nameTable === "APS_aud_carga_archivos_pensiones_seguros") {
         whereAux.push({
@@ -4818,14 +4823,10 @@ exports.subirArchivo = async (req, res, next) => {
 
   upload(req, res, (err) => {
     // console.log("REQ FILES", req?.files);
-    if (err instanceof multer.MulterError) {
-      respErrorMulter500(res, err);
-    } else if (err) {
-      if (err.name == "ExtensionError") {
-        respErrorExtensionError403(res, err);
-      } else {
-        respErrorServidor500END(res, err);
-      }
+    if (err instanceof multer.MulterError) respErrorMulter500(res, err);
+    else if (err) {
+      if (err.name == "ExtensionError") respErrorExtensionError403(res, err);
+      else respErrorServidor500END(res, err);
     } else {
       let filesUploaded = req?.files;
       if (!filesUploaded || filesUploaded?.length === 0) {
@@ -4833,9 +4834,7 @@ exports.subirArchivo = async (req, res, next) => {
           res,
           "No se encontro ningún archivo para subir."
         );
-      } else {
-        next();
-      }
+      } else next();
     }
   });
 };
