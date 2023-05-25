@@ -4533,7 +4533,12 @@ exports.validarArchivo = async (req, res, next) => {
       res,
     });
     if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, infoTables.table);
+      respUsuarioNoAutorizado200END(
+        res,
+        null,
+        (action = "Insertar"),
+        infoTables.table
+      );
       return;
     }
 
