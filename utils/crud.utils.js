@@ -5358,12 +5358,12 @@ async function CargarArchivo_Upload(req, res, action) {
           );
         } else {
           const finalRespArray = [];
-          map(previousResults[0].files, (item, index) => {
+          forEach(previousResults[0].files, (item) => {
             finalRespArray.push({
               archivo: item,
               cargado: true,
               id_carga_archivos: idCargaArchivos,
-              mensaje: `La información está correcta`,
+              mensaje: `Envió satisfactorio`,
               fecha_operacion: fechaInicialOperacion,
             });
           });
