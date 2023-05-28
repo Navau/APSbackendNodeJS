@@ -1595,6 +1595,31 @@ function AsignarInformacionCompletaPorUnaClave(result, options) {
   return main?.data || [];
 }
 
+async function VerificarUsuarioSegurosPensiones(user) {
+  try {
+    const { id_rol, id_usuario } = user;
+    const whereQuery = [
+      { key: "id_rol", value: id_rol },
+      { key: "id_usuario", value: id_usuario },
+    ];
+    const querySeguros = EscogerInternoUtil("aps_view_modalidad_seguros", {
+      select: ["*"],
+      where: whereQuery,
+    });
+    const queryPensiones = EscogerInternoUtil("aps_view_modalidad_pensiones", {
+      select: ["*"],
+      where: whereQuery,
+    });
+    const seguros = await EjecutarQuery(querySeguros);
+    const pensiones = await EjecutarQuery(queryPensiones);
+    if (size(seguros) > 0) return "seguros";
+    if (size(pensiones) > 0) return "pensiones";
+    throw new Error("Usuario no encontrado");
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   formatearQuery,
   ListarUtil,
@@ -1631,4 +1656,5 @@ module.exports = {
   AsignarInformacionCompletaPorUnaClave,
   EjecutarQuerysReportes,
   EjecutarQuery,
+  VerificarUsuarioSegurosPensiones,
 };

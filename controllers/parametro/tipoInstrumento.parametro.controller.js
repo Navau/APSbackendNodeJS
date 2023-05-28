@@ -58,19 +58,19 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS TIPO INSTRUMENTO DE SEGURIDAD
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN TIPO INSTRUMENTO, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN TIPO INSTRUMENTO, CON ID DEL TIPO INSTRUMENTO
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
@@ -98,13 +98,13 @@ async function TipoInstrumentoDetalle(req, res) {
 
 // INSERTAR UN TIPO INSTRUMENTO
 async function Insertar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN TIPO INSTRUMENTO
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 

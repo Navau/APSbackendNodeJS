@@ -21,31 +21,31 @@ async function InsertarOtrosActivosCupon(req, res) {
 }
 
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN CRITICO, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN CRITICO, CON ID DEL CRITICO
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
 // INSERTAR UN CRITICO
 async function Insertar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN CRITICO
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 

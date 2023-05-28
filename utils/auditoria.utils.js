@@ -9,7 +9,7 @@ const {
 
 async function VerificarPermisoTablaUsuarioAuditoria(params) {
   try {
-    const { table, action, req, res } = params;
+    const { table, action, id, req, res } = params;
     const { id_usuario } = req.user;
 
     const paramsQuery = {
@@ -18,9 +18,11 @@ async function VerificarPermisoTablaUsuarioAuditoria(params) {
         { key: "accion", value: action },
       ],
     };
-    if (!isUndefined(table)) {
+    if (!isUndefined(id))
+      paramsQuery.where.push({ key: "id_tabla", value: id });
+    else if (!isUndefined(table))
       paramsQuery.where.push({ key: "tabla", value: table });
-    }
+
     const query = VerificarPermisoUtil(
       "APS_seg_view_permiso_usuario",
       paramsQuery

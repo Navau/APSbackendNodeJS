@@ -12,19 +12,19 @@ const newID = "id_cupon";
 
 // OBTENER TODOS LOS OTROS ACTIVOS CUPON
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN OTROS ACTIVOS CUPON, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN OTROS ACTIVOS CUPON, CON ID DEL OTROS ACTIVOS CUPON
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 

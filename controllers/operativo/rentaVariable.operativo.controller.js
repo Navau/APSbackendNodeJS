@@ -68,31 +68,31 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS RENTA VARIABLE  DE SEGURIDAD
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN RENTA VARIABLE , CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN RENTA VARIABLE , CON ID DEL RENTA VARIABLE
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
 // INSERTAR UN RENTA VARIABLE
 async function Insertar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN RENTA VARIABLE
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 

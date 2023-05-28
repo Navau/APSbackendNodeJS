@@ -36,19 +36,19 @@ async function ObtenerInformacion(req, res) {
 }
 
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN CARGA ARCHIVO BOLSA, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN CARGA ARCHIVO BOLSA, CON ID DEL CARGA ARCHIVO BOLSA
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
@@ -66,13 +66,13 @@ async function ReporteExito(req, res) {
 
 // INSERTAR UN CARGA ARCHIVO BOLSA
 async function Insertar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN CARGA ARCHIVO BOLSA
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 

@@ -109,6 +109,7 @@ async function ListarCompletoCRUD(paramsF) {
     res,
     nameTable,
     nameView,
+    id = undefined,
     queryOptions,
     tableOptions = [],
     extraExecuteQueryOptions = {},
@@ -118,6 +119,7 @@ async function ListarCompletoCRUD(paramsF) {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -161,12 +163,13 @@ async function ListarCompletoCRUD(paramsF) {
 }
 
 async function ListarCRUD(paramsF) {
-  const { req, res, nameTable, nameView } = paramsF;
+  const { req, res, nameTable, nameView, id = undefined } = paramsF;
   const action = "Listar";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -192,13 +195,21 @@ async function ListarCRUD(paramsF) {
 }
 
 async function ListarClasificadorCRUD(paramsF) {
-  const { req, res, nameTable, nameView, idClasificadorComunGrupo, valueId } =
-    paramsF;
+  const {
+    req,
+    res,
+    nameTable,
+    nameView,
+    id = undefined,
+    idClasificadorComunGrupo,
+    valueId,
+  } = paramsF;
   const action = "Listar";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -239,12 +250,13 @@ async function ListarClasificadorCRUD(paramsF) {
 }
 
 async function BuscarCRUD(paramsF) {
-  const { req, res, nameTable } = paramsF;
+  const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Buscar";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -284,12 +296,13 @@ async function BuscarCRUD(paramsF) {
 }
 
 async function BuscarDiferenteCRUD(paramsF) {
-  const { req, res, nameTable } = paramsF;
+  const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Buscar";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -331,12 +344,13 @@ async function BuscarDiferenteCRUD(paramsF) {
 }
 
 async function EscogerCRUD(paramsF) {
-  const { req, res, nameTable } = paramsF;
+  const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Escoger";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -380,6 +394,7 @@ async function EscogerClasificadorCRUD(paramsF) {
     req,
     res,
     nameTable,
+    id = undefined,
     idClasificadorComunGrupo,
     valueId,
     nameTableGroup,
@@ -389,6 +404,7 @@ async function EscogerClasificadorCRUD(paramsF) {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -440,12 +456,13 @@ async function EscogerClasificadorCRUD(paramsF) {
 }
 
 async function InsertarCRUD(paramsF) {
-  const { req, res, nameTable, newID = undefined } = paramsF;
+  const { req, res, nameTable, newID = undefined, id = undefined } = paramsF;
   const action = "Insertar";
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -488,11 +505,12 @@ async function InsertarCRUD(paramsF) {
 
 async function ActualizarCRUD(paramsF) {
   try {
-    const { req, res, nameTable, newID } = paramsF;
+    const { req, res, nameTable, id = undefined, newID } = paramsF;
     const action = "Actualizar";
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -663,12 +681,13 @@ async function ActualizarCRUD(paramsF) {
 
 async function EliminarCRUD(paramsF) {
   try {
-    const { req, res, nameTable } = paramsF;
+    const { req, res, nameTable, id = undefined } = paramsF;
     const action = "Eliminar";
     // TO DO: EXTREMO!!! INFORMAR DE ESTO
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
       action,
+      id,
       req,
       res,
     });
@@ -715,14 +734,16 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
     res,
     nameTable,
     nameTableErrors,
+    id = undefined,
     methodName,
     action = undefined,
   } = paramsF;
   try {
-    if (!isUndefined(action) && !isUndefined(nameTable)) {
+    if (!isUndefined(action) && (!isUndefined(nameTable) || !isUndefined(id))) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
+        id,
         req,
         res,
       });
@@ -4561,7 +4582,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
   }
 }
 
-async function CargarArchivo_Upload(req, res, action) {
+async function CargarArchivo_Upload(req, res, action, id = undefined) {
   try {
     const fechaInicialOperacion = req?.body?.fecha_operacion;
     const id_rol = req.user.id_rol;
@@ -4681,6 +4702,7 @@ async function CargarArchivo_Upload(req, res, action) {
     if (!isUndefined(action)) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: INFO_TABLES.table,
+        id,
         action,
         req,
         res,

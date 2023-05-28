@@ -53,37 +53,37 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS EMISOR DE PARAMETRO
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN EMISOR, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN EMISOR, CON BUSQUEDA DIFERENTE
 async function BuscarDiferente(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarDiferenteCRUD(params);
 }
 
 // OBTENER UN EMISOR, CON ID DEL EMISOR
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
 // INSERTAR UN EMISOR
 async function Insertar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await InsertarCRUD(params);
 }
 
 // ACTUALIZAR UN EMISOR
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 

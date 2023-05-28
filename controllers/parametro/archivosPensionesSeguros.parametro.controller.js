@@ -56,31 +56,31 @@ async function SeleccionarArchivosCustodio(req, res) {
 
 // LISTAR TODO DE PARAMETRO DE ARCHIVOS PENSIONES Y SEGUROS
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // BUSCAR DE PARAMETRO DE ARCHIVOS PENSIONES Y SEGUROS
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // ESCOGER DE PARAMETRO DE ARCHIVOS PENSIONES Y SEGUROS, CON ID DEL CARGA ARCHIVO PENSIONES SEGURO
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
 // INSERTAR DE PARAMETRO DE ARCHIVOS PENSIONES Y SEGUROS
 async function Insertar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await InsertarCRUD(params);
 }
 
 // ACTUALIZAR DE PARAMETRO DE ARCHIVOS PENSIONES Y SEGUROS
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 

@@ -12,19 +12,19 @@ const newID = "id_cupon";
 
 // OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN RENTA FIJA CUPON, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN RENTA FIJA CUPON, CON ID DEL RENTA FIJA CUPON
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
@@ -42,7 +42,7 @@ async function Actualizar(req, res) {
 
 // ELIMINAR UN RENTA FIJA CUPON
 async function Eliminar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EliminarCRUD(params);
 }
 

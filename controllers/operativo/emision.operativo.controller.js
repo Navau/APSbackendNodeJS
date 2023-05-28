@@ -28,25 +28,25 @@ async function ListarCompleto(req, res) {
 
 // OBTENER TODOS LOS EMISION
 async function Listar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
 }
 
 // OBTENER UN EMISION, CON BUSQUEDA
 async function Buscar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarCRUD(params);
 }
 
 // OBTENER UN EMISION, CON BUSQUEDA DIFERENTE
 async function BuscarDiferente(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await BuscarDiferenteCRUD(params);
 }
 
 // OBTENER UN EMISION PATRIMONIO, CON ID DEL EMISION
 async function Escoger(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await EscogerCRUD(params);
 }
 
@@ -75,7 +75,7 @@ async function Insertar(req, res) {
 
 // ACTUALIZAR UN EMISION PATRIMONIO
 async function Actualizar(req, res) {
-  const params = { req, res, nameTable };
+  const params = { req, res, nameTable, id: undefined };
   await ActualizarCRUD(params);
 }
 
