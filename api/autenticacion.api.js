@@ -3,47 +3,28 @@ const {
   obtenerTokenApi,
   obtenerInfoUsuarioApi,
 } = require("../services/apsApiExterna.service");
-const {
-  respResultadoIncorrectoObjeto200,
-  respErrorServidor500END,
-} = require("../utils/respuesta.utils");
 
-async function estadoJWT(res) {
+async function estadoJWT() {
   try {
-    const resultApi = await obtenerJwtEstadoApi();
-    if (resultApi.ok === false) throw resultApi;
-    if (resultApi.ok === null) throw resultApi.err;
-    return resultApi.result;
+    return await obtenerJwtEstadoApi();
   } catch (err) {
-    if (err.ok === false) respResultadoIncorrectoObjeto200(res, err, []);
-    else respErrorServidor500END(res, err);
-    return null;
+    throw err;
   }
 }
 
-async function obtenerToken(data, res) {
+async function obtenerToken(data) {
   try {
-    const resultApi = await obtenerTokenApi(data);
-    if (resultApi.ok === false) throw result;
-    if (resultApi.ok === null) throw resultApi.err;
-    return resultApi.result;
+    return await obtenerTokenApi(data);
   } catch (err) {
-    if (err.ok === false) respResultadoIncorrectoObjeto200(res, err, []);
-    else respErrorServidor500END(res, err);
-    return null;
+    throw err;
   }
 }
 
 async function obtenerInfoUsuario(token, data, res) {
   try {
-    const resultApi = await obtenerInfoUsuarioApi(token, data);
-    if (resultApi.ok === false) throw result;
-    if (resultApi.ok === null) throw resultApi.err;
-    return resultApi.result;
+    return await obtenerInfoUsuarioApi(token, data);
   } catch (err) {
-    if (err.ok === false) respResultadoIncorrectoObjeto200(res, err, []);
-    else respErrorServidor500END(res, err);
-    return null;
+    throw err;
   }
 }
 

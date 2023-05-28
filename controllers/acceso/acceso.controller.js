@@ -486,25 +486,14 @@ async function LoginApiExterna(req, res) {
       }
     };
     //#endregion
-    const estado = estadoJWT(res); //VERIFICAR ESTADO DE SERVICIO
-    if (estado === null) {
-      return;
-    }
-    const data = {
-      usuario: user,
-      password,
-      app: APP_GUID,
-    };
-    const tokenInfo = await obtenerToken(data, res); //OBTENER TOKEN
-    if (tokenInfo === null) {
-      return;
-    }
+    const estado = await estadoJWT(); //VERIFICAR ESTADO DE SERVICIO
+    const data = { usuario: user, password, app: APP_GUID };
+    const tokenInfo = await obtenerToken(data); //OBTENER TOKEN
     const token = {
       token_value: tokenInfo?.access_token,
       token_type: tokenInfo?.token_type,
     };
-    const usuarioActual = await obtenerInfoUsuario(token, data, res); // OBTIENE INFO DE USUARIO
-    if (usuarioActual === null) return;
+    const usuarioActual = await obtenerInfoUsuario(token, data); // OBTIENE INFO DE USUARIO
     const rolesUsuarioActual = usuarioActual.roles; //ROLES DEL USUARIO ACTUAL
     const whereInAux = map(rolesUsuarioActual, (item) => `'${item.nombre}'`); // VARIABLE AUXILIAR QUE ES UN ARRAY DE NOMBRES DE LOS ROLES DEL USUARIO ACTUAL
     const results = await EjecutarVariosQuerys([
