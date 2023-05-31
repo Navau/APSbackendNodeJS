@@ -14,7 +14,7 @@ async function ObtenerRol(req, res) {
   const params = {
     req,
     res,
-    nameTable,
+    nameTable: req.body?.login === true ? undefined : nameTable,
     methodName: "ObtenerRol_Rol",
     // action: "Listar",
   };
@@ -57,7 +57,12 @@ async function Buscar(req, res) {
 
 //ESCOGER UN ROL
 async function Escoger(req, res) {
-  const params = { req, res, nameTable, id: undefined };
+  const params = {
+    req,
+    res,
+    nameTable: req.body?.login === true ? undefined : nameTable,
+    id: undefined,
+  };
   await EscogerCRUD(params);
 }
 

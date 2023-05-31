@@ -34,7 +34,12 @@ async function Buscar(req, res) {
 
 //ESCOGER UN USUARIO
 async function Escoger(req, res) {
-  const params = { req, res, nameTable, id: undefined };
+  const params = {
+    req,
+    res,
+    nameTable: req.body?.login === true ? undefined : nameTable,
+    id: undefined,
+  };
   await EscogerCRUD(params);
 }
 
