@@ -10,17 +10,13 @@ exports.obtenerJwtEstadoApi = async function () {
       .then((response) => {
         const result = response.data;
         const status = response?.status;
-        return {
-          ok: status === 200 ? true : false,
-          status,
-          result,
-        };
+        return { status, result };
       })
       .catch((err) => {
-        return { ok: null, err };
+        throw err;
       });
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
@@ -38,17 +34,13 @@ exports.obtenerTokenApi = async function (data) {
       .then((response) => {
         const result = response.data;
         const status = response?.status;
-        return {
-          ok: status === 200 ? true : false,
-          status,
-          result,
-        };
+        return { status, result };
       })
       .catch((err) => {
-        return { ok: null, err };
+        throw err;
       });
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
@@ -71,17 +63,13 @@ exports.obtenerInfoUsuarioApi = async function (token, data) {
       .then((response) => {
         const result = response.data;
         const status = response?.status;
-        return {
-          ok: status === 200 ? true : false,
-          status,
-          result,
-        };
+        return { status, result };
       })
       .catch((err) => {
-        return { ok: null, err };
+        throw err;
       });
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
@@ -104,16 +92,12 @@ exports.actualizarContraseñaUsuarioApi = async function (token, data) {
       .then((response) => {
         const result = response.data;
         const status = response?.status;
-        return {
-          ok: status === 200 || status === 201 ? true : false,
-          status,
-          result,
-        };
+        return { status, result };
       })
       .catch((err) => {
-        return { ok: null, err };
+        throw err;
       });
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
