@@ -6,8 +6,13 @@ const { basename } = require("path");
 
 const api = express.Router();
 
-api.post(
+api.get(
   "/ObtenerRol",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ObtenerRol
+);
+api.post(
+  "/ObtenerRolPost",
   [md_auth.AsegurarAutenticacionConToken],
   controller.ObtenerRol
 );
