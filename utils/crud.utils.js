@@ -361,6 +361,7 @@ async function EscogerCRUD(paramsF) {
       }
     }
     const body = req.body;
+    delete body?.login;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
