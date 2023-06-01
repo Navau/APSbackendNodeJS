@@ -344,19 +344,21 @@ async function BuscarDiferenteCRUD(paramsF) {
 }
 
 async function EscogerCRUD(paramsF) {
-  const { req, res, nameTable, id = undefined } = paramsF;
+  const { req, res, nameTable, id = undefined, login } = paramsF;
   const action = "Escoger";
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (isUndefined(login)) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const body = req.body;
     if (size(body) === 0) {
