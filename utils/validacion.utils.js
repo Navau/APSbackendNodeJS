@@ -1,4 +1,4 @@
-const { forEach, isUndefined, findKey } = require("lodash");
+const { forEach, isUndefined, findKey, trim } = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
@@ -318,9 +318,36 @@ async function ValidarDatosValidacion(params) {
                 );
                 return regex.test(value);
               }
+            )
+            .trim() // Elimina espacios en blanco al inicio y al final
+            .test(
+              "tiene espacios en blanco",
+              "El campo contraseña no debe tener espacios en blanco",
+              (value) => {
+                if (isUndefined(value)) return true;
+                const noSpaces = value.replace(/\s/g, "");
+                return noSpaces === value;
+              }
             );
         };
         validationSchema = passwordValidation(validationSchema, 8, 1, 1, 1);
+      } else if (
+        columnName === "usuario" &&
+        (action === "Insertar" || action === "Actualizar")
+      ) {
+        validationSchema = validationSchema
+          .trim() // Elimina espacios en blanco al inicio y al final
+          .test(
+            "tiene espacios en blanco",
+            "El campo usuario no debe tener espacios en blanco",
+            (value) => {
+              if (isUndefined(value)) return true;
+              const noSpaces = value.replace(/\s/g, "");
+              return noSpaces === value;
+            }
+          );
+      } else if (columnName === "gmail" || columnName === "email") {
+        validationSchema = validationSchema.email(defaultMessage);
       }
 
       schema[columnName] = validationSchema;

@@ -6,23 +6,36 @@ const {
 
 async function estadoJWT() {
   try {
-    return await obtenerJwtEstadoApi();
+    const resultApi = await obtenerJwtEstadoApi();
+    return resultApi?.result;
   } catch (err) {
     throw err;
   }
 }
 
-async function obtenerToken(data) {
+async function obtenerToken(res, data, numeroDeIntentos, ip) {
   try {
-    return await obtenerTokenApi(data);
-  } catch (err) {
-    throw err;
+    const resultApi = await obtenerTokenApi(data);
+    return resultApi?.result;
+  } catch (err1) {
+    const { usuario, password } = data;
+    try {
+      const aux = await numeroDeIntentos(res, usuario, password, ip);
+      if (aux.ok === false) {
+        aux.resp();
+        return null;
+      }
+    } catch (err2) {
+      throw err2;
+    }
+    throw err1;
   }
 }
 
-async function obtenerInfoUsuario(token, data, res) {
+async function obtenerInfoUsuario(token, data) {
   try {
-    return await obtenerInfoUsuarioApi(token, data);
+    const resultApi = await obtenerInfoUsuarioApi(token, data);
+    return resultApi?.result;
   } catch (err) {
     throw err;
   }

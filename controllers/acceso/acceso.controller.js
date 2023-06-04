@@ -37,6 +37,8 @@ const {
   InsertarUtil,
   ActualizarUtil,
   EliminarUtil,
+  formatearQuery,
+  EjecutarQuery,
 } = require("../../utils/consulta.utils");
 const { APP_GUID } = require("../../config");
 const {
@@ -142,30 +144,27 @@ async function Login(req, res) {
     }
 
     const auxVerifica = await verificaCuentaBloqueada(res, user);
-    if (auxVerifica.ok === null) throw auxVerifica.err;
     if (auxVerifica.ok === false) {
       auxVerifica.resp();
       return;
     }
 
     const values = [user, password];
-    const queryUsuario = format(
+    const queryUsuario = formatearQuery(
       'SELECT * FROM public."APS_seg_usuario" WHERE usuario = %L AND password is NOT NULL AND password = crypt(%L, password);',
-      ...values
+      values
     );
 
-    console.log(queryUsuario);
     await pool
       .query(queryUsuario)
       .then(async (result) => {
         if (result.rowCount > 0) {
           await reiniciarIntentosFallidos(result.rows[0].id_usuario);
           const valuesRol = [result.rows[0].id_usuario, true];
-          const queryRol = format(
+          const queryRol = formatearQuery(
             `SELECT id_rol FROM public."APS_seg_usuario_rol" WHERE id_usuario = %L and activo = %L;`,
-            ...valuesRol
+            valuesRol
           );
-          console.log(queryRol);
 
           await pool
             .query(queryRol)
@@ -196,12 +195,6 @@ async function Login(req, res) {
                   );
                 }
               } else {
-                // const aux = await numeroDeIntentos(res, user, ip);
-                // if (aux.ok === null) throw aux.err;
-                // if (aux.ok === false) {
-                //   aux.resp();
-                //   return;
-                // }
                 respResultadoVacio404END(
                   res,
                   "Este usuario no cuenta con un Rol"
@@ -213,7 +206,6 @@ async function Login(req, res) {
             });
         } else {
           const aux = await numeroDeIntentos(res, user, password, ip);
-          if (aux.ok === null) throw aux.err;
           if (aux.ok === false) {
             aux.resp();
             return;
@@ -252,65 +244,44 @@ function TokenConRol(req, res) {
 const numeroDeIntentos = async (res, user, pass, ip) => {
   try {
     //#region CONSULTAS
-    const usuario = await pool
-      .query(
-        EscogerInternoUtil("APS_seg_usuario", {
-          select: ["*"],
-          where: [
-            { key: "usuario", value: user },
-            { key: "activo", value: true },
-          ],
-        })
-      )
-      .then((result) => {
-        if (result.rowCount === 1) return { ok: true, result: result.rows[0] };
-        else return { ok: false, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
+    const queryUsuario = EscogerInternoUtil("APS_seg_usuario", {
+      select: ["*"],
+      where: [
+        { key: "usuario", value: user },
+        { key: "activo", value: true },
+      ],
+    });
+    const usuario = (await EjecutarQuery(queryUsuario))?.[0] || undefined;
 
-    if (usuario.ok === null) return usuario;
-    if (usuario.ok === false)
+    if (isUndefined(usuario))
       return {
         ok: false,
-        resp: () => respResultadoVacio404END(res, "El usuario no existe"),
+        resp: () =>
+          respResultadoVacio404END(res, "Usuario y/o Contraseña incorrecto"),
       };
 
-    const intentosActuales = await pool
-      .query(
-        EscogerInternoUtil("APS_seg_intentos_log", {
-          select: ["*"],
-          where: [
-            { key: "id_usuario", value: usuario.result?.id_usuario },
-            { key: "activo", value: true },
-          ],
-        })
-      )
-      .then((result) => {
-        return { ok: true, result: result.rows };
+    const intentosActuales = await EjecutarQuery(
+      EscogerInternoUtil("APS_seg_intentos_log", {
+        select: ["*"],
+        where: [
+          { key: "id_usuario", value: usuario.id_usuario },
+          { key: "activo", value: true },
+        ],
       })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-
-    if (intentosActuales.ok === null) return intentosActuales;
+    );
     //#endregion
     //#region OBTENIENDO EL ULTIMO INTENTO, UTILIZANDO EL MAXIMO
-    const maxIntentoAux = maxBy(
-      intentosActuales.result,
-      (item) => item.num_intento
-    );
+    const maxIntentoAux = maxBy(intentosActuales, (item) => item.num_intento);
     const maxIntento = isUndefined(maxIntentoAux)
       ? 0
       : maxIntentoAux.num_intento;
     //#endregion
     //#region INSERTANDO INTENTO EN APS_seg_intentos_log
     let ultimoIntentoInsertado;
-    if (maxIntento < 3) {
+    if (maxIntento < 5) {
       const queryInsert = InsertarUtil("APS_seg_intentos_log", {
         body: {
-          id_usuario: usuario.result?.id_usuario || -1,
+          id_usuario: usuario.id_usuario || -1,
           usuario: user,
           password: pass,
           ip,
@@ -319,20 +290,12 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
         returnValue: "*",
       });
 
-      ultimoIntentoInsertado = await pool
-        .query(queryInsert)
-        .then((result) => {
-          return { ok: true, result: result.rows };
-        })
-        .catch((err) => {
-          return { ok: null, err };
-        });
-      if (ultimoIntentoInsertado.ok === null) return ultimoIntentoInsertado;
-    } else ultimoIntentoInsertado = { result: [{ num_intento: maxIntento }] };
+      ultimoIntentoInsertado = await EjecutarQuery(queryInsert);
+    } else ultimoIntentoInsertado = [{ num_intento: maxIntento }];
     //#endregion
 
-    if (ultimoIntentoInsertado.result[0].num_intento >= 3) {
-      await ActualizarUsuarioBloqueado(true, usuario.result?.id_usuario);
+    if (ultimoIntentoInsertado[0].num_intento >= 5) {
+      await ActualizarUsuarioBloqueado(true, usuario.id_usuario);
 
       return {
         ok: false,
@@ -343,65 +306,54 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
           ),
       };
     }
-    return { ok: true, result: ultimoIntentoInsertado.result };
+    return { ok: true, result: ultimoIntentoInsertado };
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
 const verificaCuentaBloqueada = async (res, usuario) => {
   try {
     //#region CONSULTAS
-    const usuarioInfo = await pool
-      .query(
-        EscogerInternoUtil("APS_seg_usuario", {
+    const queryUsuario = EscogerInternoUtil("APS_seg_usuario", {
+      select: ["*"],
+      where: [
+        { key: "usuario", value: usuario },
+        { key: "activo", value: true },
+      ],
+    });
+    const usuarioInfo = (await EjecutarQuery(queryUsuario))?.[0] || undefined;
+
+    if (isUndefined(usuarioInfo))
+      return {
+        ok: false,
+        resp: () =>
+          respResultadoVacio404END(res, "Usuario y/o Contraseña incorrecto"),
+      };
+
+    let intentosInfo = [];
+    if (usuarioInfo.id_usuario) {
+      intentosInfo = await EjecutarQuery(
+        EscogerInternoUtil("APS_seg_intentos_log", {
           select: ["*"],
           where: [
-            { key: "usuario", value: usuario },
+            { key: "id_usuario", value: usuarioInfo.id_usuario },
             { key: "activo", value: true },
           ],
         })
-      )
-      .then((result) => {
-        return { ok: true, result: result.rows?.[0] || {} };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-
-    if (usuarioInfo.ok === null) return usuarioInfo;
-    let intentosInfo = { ok: false, result: [] };
-    if (usuarioInfo.result?.id_usuario) {
-      intentosInfo = await pool
-        .query(
-          EscogerInternoUtil("APS_seg_intentos_log", {
-            select: ["*"],
-            where: [
-              { key: "id_usuario", value: usuarioInfo.result?.id_usuario },
-              { key: "activo", value: true },
-            ],
-          })
-        )
-        .then((result) => {
-          return { ok: true, result: result.rows };
-        })
-        .catch((err) => {
-          return { ok: null, err };
-        });
-
-      if (usuarioInfo.ok === null) return usuarioInfo;
+      );
     }
     //#endregion
 
-    //#region VERIRIFICACION DE INTENTOS LOG, ESTO ES POR SI EN USUARIOS ESTA EN TRUE, PERO TIENE LOS INTENTOS EN MAS DE 3 EN LA TABLA DE APS_INTENTOS_LOG
-    if (size(intentosInfo.result) > 0) {
-      const maxIntentoAux = maxBy(intentosInfo.result, "num_intento");
+    //#region VERIRIFICACION DE INTENTOS LOG, ESTO ES POR SI EN USUARIOS ESTA EN TRUE, PERO TIENE LOS INTENTOS EN MAS DE 5 EN LA TABLA DE APS_INTENTOS_LOG
+    if (size(intentosInfo) > 0) {
+      const maxIntentoAux = maxBy(intentosInfo, "num_intento");
       const maxIntentoFinal = isUndefined(maxIntentoAux)
         ? 0
         : maxIntentoAux.num_intento;
-      if (maxIntentoFinal >= 3) {
-        if (usuarioInfo.result.bloqueado === false) {
-          await ActualizarUsuarioBloqueado(true, usuarioInfo.result.id_usuario);
+      if (maxIntentoFinal >= 5) {
+        if (usuarioInfo.bloqueado === false) {
+          await ActualizarUsuarioBloqueado(true, usuarioInfo.id_usuario);
         }
         return {
           ok: false,
@@ -416,7 +368,7 @@ const verificaCuentaBloqueada = async (res, usuario) => {
     //#endregion
 
     return {
-      ok: usuarioInfo.result.bloqueado === true ? false : true,
+      ok: usuarioInfo.bloqueado === true ? false : true,
       resp: () =>
         respDemasiadasSolicitudes429(
           res,
@@ -424,7 +376,7 @@ const verificaCuentaBloqueada = async (res, usuario) => {
         ),
     };
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
@@ -436,16 +388,10 @@ const reiniciarIntentosFallidos = async (id_usuario) => {
       idValue: id_usuario,
       returnValue: ["*"],
     });
-    await pool
-      .query(queryReinicio)
-      .then(async (result) => {
-        await ActualizarUsuarioBloqueado(false, id_usuario);
-      })
-      .catch((err) => {
-        throw err;
-      });
+    await EjecutarQuery(queryReinicio);
+    await ActualizarUsuarioBloqueado(false, id_usuario);
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
@@ -457,17 +403,9 @@ const ActualizarUsuarioBloqueado = async (bloqueado, id_usuario) => {
       idValue: id_usuario,
       returnValue: ["*"],
     });
-    const usuarioBloqueado = await pool
-      .query(queryBloqueaUsuario)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-    if (usuarioBloqueado.ok === null) throw usuarioBloqueado.err;
+    await EjecutarQuery(queryBloqueaUsuario);
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 };
 
@@ -477,25 +415,44 @@ async function LoginApiExterna(req, res) {
     const user = body.usuario;
     const password = body.password;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
-    //#region NUMERO DE INTENTOS
-    const intento = async () => {
-      const aux = await numeroDeIntentos(res, user, ip);
-      if (aux.ok === null) throw aux.err;
-      if (aux.ok === false) {
-        aux.resp();
-      }
+    const userInputSchema = yup.object().shape({
+      usuario: yup.string().max(50).required(),
+      contraseña: yup.string().max(80).required(),
+    });
+    const userInput = {
+      usuario: user,
+      contraseña: password,
     };
-    //#endregion
+    const resultInput = await userInputSchema
+      .validate(userInput)
+      .then((validUserInput) => {
+        return { ok: true, result: validUserInput };
+      })
+      .catch((err) => {
+        return { ok: false, err };
+      });
+    if (resultInput.ok === false) {
+      respResultadoIncorrectoObjeto200(res, null, [], resultInput.err.message);
+      return;
+    }
+
+    const auxVerifica = await verificaCuentaBloqueada(res, user);
+    if (auxVerifica.ok === false) {
+      auxVerifica.resp();
+      return;
+    }
+
     const estado = await estadoJWT(); //VERIFICAR ESTADO DE SERVICIO
     const data = { usuario: user, password, app: APP_GUID };
-    const tokenInfo = await obtenerToken(data); //OBTENER TOKEN
+    const tokenInfo = await obtenerToken(res, data, numeroDeIntentos, ip); //OBTENER TOKEN
+    if (tokenInfo === null) return;
     const token = {
       token_value: tokenInfo?.access_token,
       token_type: tokenInfo?.token_type,
     };
     const usuarioActual = await obtenerInfoUsuario(token, data); // OBTIENE INFO DE USUARIO
     const rolesUsuarioActual = usuarioActual.roles; //ROLES DEL USUARIO ACTUAL
-    const whereInAux = map(rolesUsuarioActual, (item) => `'${item.nombre}'`); // VARIABLE AUXILIAR QUE ES UN ARRAY DE NOMBRES DE LOS ROLES DEL USUARIO ACTUAL
+    const whereInAux = map(rolesUsuarioActual, (item) => item.nombre); // VARIABLE AUXILIAR QUE ES UN ARRAY DE NOMBRES DE LOS ROLES DEL USUARIO ACTUAL
     const results = await EjecutarVariosQuerys([
       EscogerInternoUtil("APS_seg_usuario", {
         select: ["*"],
@@ -562,18 +519,18 @@ async function LoginApiExterna(req, res) {
 
     const usuariosExistentes = results.result[0].data; //SON LOS USUARIOS DE LA TABLA APS_SEG_USUARIO QUE EXISTEN EN LA BASE DE DATOS
     if (size(usuariosExistentes) <= 0) {
-      respResultadoVacio404END(res, "El usuario no existe");
+      respResultadoVacio404END(res, "Usuario y/o Contraseña incorrecto");
       return;
     }
     if (size(usuariosExistentes) > 1) {
       respResultadoVacio404END(
         res,
-        "Existen varios usuarios con este nombre de usuario, comuniquese con el administrador"
+        "Existen varios usuarios con este nombre de usuario, contáctese con el Administrador del Sistema"
       );
       return;
     }
     const infoUsuario = usuariosExistentes[0];
-    const rolesExistentes = results.result[1].data; //SON LOS ROLES DE LA TABLA ASP_SEG_ROL QUE EXISTEN EN LA BASE DE DATOS
+    const rolesExistentes = results.result[1].data; //SON LOS ROLES DE LA TABLA ASP_SEG_ROL QUE EXISTEN EN LA BASE DE DATOS, TAMBIEN ESTAN ENLAZADOS A LOS ROLES QUE LLEGAN DE LA API EXTERNA
     const rolesActualesDelUsuario = results.result[2].data; //SON LOS REGISTROS DE LA CONSULTA COMPLEJA, QUE SACA LOS ROLES DEL USUARIO QUE EXISTE EN LA BASE DE DATOS, ESTO CON EL FIN DE REGISTRAR LOS ROLES QUE NO TENGA EN LA BASE DE DATOS
 
     if (size(rolesExistentes) <= 0) {
@@ -582,14 +539,14 @@ async function LoginApiExterna(req, res) {
         "No existen roles disponibles para este usuario"
       );
       return;
-    }
-    if (size(rolesActualesDelUsuario) <= 0) {
-      respResultadoVacio404END(
-        res,
-        "No existen roles asignados para este usuario"
-      );
-      return;
-    }
+    } // VALIDA LOS ROLES DE LA APS EXTERNA Y LA BASE DE DATOS
+    // if (size(rolesActualesDelUsuario) <= 0) {
+    //   respResultadoVacio404END(
+    //     res,
+    //     "No existen roles asignados para este usuario"
+    //   );
+    //   return;
+    // }
 
     const diferenciasRolesAux = differenceBy(
       rolesExistentes,
@@ -598,40 +555,33 @@ async function LoginApiExterna(req, res) {
     ); // VARIABLE QUE CONTIENE LA DIFERENCIA ENTRE rolesExistentes Y rolesActualesDelUsuario
     const dataQuery = map(diferenciasRolesAux, (item) => {
       return { id_rol: item.id_rol, id_usuario: infoUsuario.id_usuario };
-    }); //PREPARACIÓN DE DATOS PARA REGISTRAR LOS ROLES
+    }); //PREPARACIÓN DE DATOS PARA REGISTRAR LOS ROLES DE LA API EXTERNA EN LA BASE DE DATOS
     if (size(dataQuery) > 0) {
       //EJECUCION DE REGISTRAR ROLES EN APS_SEG_USUARIO_ROL
-      await pool
-        .query(
-          InsertarVariosUtil("APS_seg_usuario_rol", {
-            body: dataQuery,
-            returnValue: ["*"],
-          })
-        )
-        .then((result) => {
-          return { ok: true, result: result.rows };
+      const rolesInsertados = await EjecutarQuery(
+        InsertarVariosUtil("APS_seg_usuario_rol", {
+          body: dataQuery,
+          returnValue: ["*"],
         })
-        .catch((err) => {
-          throw err;
-        });
+      );
+      console.log({ rolesInsertados });
     }
     //LOGIN
     const values = [user, password];
-    const queryUsuario = format(
+    const queryUsuario = formatearQuery(
       'SELECT * FROM public."APS_seg_usuario" WHERE usuario = %L AND password is NOT NULL AND password = crypt(%L, password);',
-      ...values
+      values
     );
-    console.log(queryUsuario);
     await pool
       .query(queryUsuario)
       .then(async (result) => {
         if (result.rowCount > 0) {
+          await reiniciarIntentosFallidos(result.rows[0].id_usuario);
           const valuesRol = [result.rows[0].id_usuario, true];
-          const queryRol = format(
+          const queryRol = formatearQuery(
             `SELECT id_rol FROM public."APS_seg_usuario_rol" WHERE id_usuario = %L and activo = %L;`,
-            ...valuesRol
+            valuesRol
           );
-          console.log(queryRol);
 
           await pool
             .query(queryRol)
@@ -670,8 +620,14 @@ async function LoginApiExterna(req, res) {
             .catch((err) => {
               respErrorServidor500END(res, err);
             });
-        } else
+        } else {
+          const aux = await numeroDeIntentos(res, user, password, ip);
+          if (aux.ok === false) {
+            aux.resp();
+            return;
+          }
           respResultadoVacio404END(res, "Usuario y/o Contraseña incorrecto");
+        }
       })
       .catch((err) => {
         respErrorServidor500END(res, err);

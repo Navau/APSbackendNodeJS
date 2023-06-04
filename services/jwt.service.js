@@ -6,7 +6,6 @@ const SECRET_KEY =
 
 exports.createAccessToken = function (user) {
   //FUNCTION PARA CREAR EL ACCESS TOKEN
-  console.log("USER", user);
   const payload = {
     id_usuario: user.id_usuario,
     nbf: moment().unix(),
@@ -19,7 +18,6 @@ exports.createAccessToken = function (user) {
 
 exports.createAccessTokenWithRol = function (user) {
   //FUNCTION PARA CREAR EL ACCESS TOKEN
-  console.log("USER", user);
   const payload = {
     id_usuario: user.id_usuario,
     id_rol: user.id_rol,
