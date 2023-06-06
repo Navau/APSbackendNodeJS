@@ -40,7 +40,7 @@ const {
   formatearQuery,
   EjecutarQuery,
 } = require("../../utils/consulta.utils");
-const { APP_GUID } = require("../../config");
+const { APP_GUID, MAX_INTENTOS_LOGIN } = require("../../config");
 const {
   size,
   forEach,
@@ -278,7 +278,7 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
     //#endregion
     //#region INSERTANDO INTENTO EN APS_seg_intentos_log
     let ultimoIntentoInsertado;
-    if (maxIntento < 5) {
+    if (maxIntento < MAX_INTENTOS_LOGIN) {
       const queryInsert = InsertarUtil("APS_seg_intentos_log", {
         body: {
           id_usuario: usuario.id_usuario || -1,
@@ -294,7 +294,7 @@ const numeroDeIntentos = async (res, user, pass, ip) => {
     } else ultimoIntentoInsertado = [{ num_intento: maxIntento }];
     //#endregion
 
-    if (ultimoIntentoInsertado[0].num_intento >= 5) {
+    if (ultimoIntentoInsertado[0].num_intento >= MAX_INTENTOS_LOGIN) {
       await ActualizarUsuarioBloqueado(true, usuario.id_usuario);
 
       return {
@@ -345,13 +345,13 @@ const verificaCuentaBloqueada = async (res, usuario) => {
     }
     //#endregion
 
-    //#region VERIRIFICACION DE INTENTOS LOG, ESTO ES POR SI EN USUARIOS ESTA EN TRUE, PERO TIENE LOS INTENTOS EN MAS DE 5 EN LA TABLA DE APS_INTENTOS_LOG
+    //#region VERIRIFICACION DE INTENTOS LOG, ESTO ES POR SI EN USUARIOS ESTA EN TRUE, PERO TIENE LOS INTENTOS EN MAS DE 5 (MAX_INTENTOS_LOGIN) EN LA TABLA DE APS_INTENTOS_LOG
     if (size(intentosInfo) > 0) {
       const maxIntentoAux = maxBy(intentosInfo, "num_intento");
       const maxIntentoFinal = isUndefined(maxIntentoAux)
         ? 0
         : maxIntentoAux.num_intento;
-      if (maxIntentoFinal >= 5) {
+      if (maxIntentoFinal >= MAX_INTENTOS_LOGIN) {
         if (usuarioInfo.bloqueado === false) {
           await ActualizarUsuarioBloqueado(true, usuarioInfo.id_usuario);
         }

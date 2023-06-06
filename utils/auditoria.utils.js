@@ -1,10 +1,13 @@
-const { map, isUndefined } = require("lodash");
+const { map, isUndefined, isEmpty } = require("lodash");
 const pool = require("../database");
+const { getDateTime } = require("../timezone");
 const {
   VerificarPermisoUtil,
   EscogerInternoUtil,
   InsertarVariosUtil,
   InsertarUtil,
+  EjecutarQuery,
+  ActualizarUtil,
 } = require("./consulta.utils");
 
 async function VerificarPermisoTablaUsuarioAuditoria(params) {
@@ -43,7 +46,7 @@ async function VerificarPermisoTablaUsuarioAuditoria(params) {
 
 async function ObtenerDatosCriticosAuditoria(params) {
   try {
-    const { table, action, req, res } = params;
+    const { table, action } = params;
     const queryDatosCriticos = EscogerInternoUtil("APS_seg_view_critico", {
       where: [
         { key: "tabla", value: table },
@@ -51,46 +54,30 @@ async function ObtenerDatosCriticosAuditoria(params) {
       ],
     });
 
-    return await pool
-      .query(queryDatosCriticos)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
+    return await EjecutarQuery(queryDatosCriticos);
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 }
 
 async function ObtenerInformacionAnteriorAuditoria(params) {
   try {
-    const { nameTable, idInfo, req, res } = params;
-    const { body } = req;
+    const { nameTable, idInfo } = params;
 
     const queryDatosAnteriores = EscogerInternoUtil(nameTable, {
       select: ["*"],
       where: [{ key: idInfo.idKey, value: idInfo.idValue }],
     });
 
-    return await pool
-      .query(queryDatosAnteriores)
-      .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows };
-        else return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
+    return await EjecutarQuery(queryDatosAnteriores);
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 }
 
 async function LogAuditoria(params) {
+  const { id_registro, id_tabla_accion, id_accion, req } = params;
   try {
-    const { id_registro, id_tabla_accion, id_accion, req, res } = params;
     const { id_usuario } = req.user;
 
     const queryLogs = InsertarUtil("APS_seg_log", {
@@ -98,34 +85,27 @@ async function LogAuditoria(params) {
         id_usuario: id_usuario,
         id_tabla_accion: id_tabla_accion,
         id_accion: id_accion,
+        fecha: getDateTime().toFormat("yyyy-MM-dd HH:mm:ss.SSS"),
         id_registro,
         activo: true,
       },
       returnValue: ["id_log"],
     });
 
-    return await pool
-      .query(queryLogs)
-      .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows };
-        else return { ok: false, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
+    return await EjecutarQuery(queryLogs);
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 }
 
 async function LogDetAuditoria(params) {
+  const { id_log, registroAnterior, req } = params;
   try {
-    const { id_log, actualizacion, req, res } = params;
     const { body } = req;
     const datosNuevos = body;
     const queryLogsDet = InsertarVariosUtil("APS_seg_log_det", {
       body: map(datosNuevos, (item, index) => {
-        const valorOriginal = actualizacion[0][index];
+        const valorOriginal = registroAnterior?.[index] || undefined;
         return {
           id_log: id_log,
           columna: index,
@@ -136,19 +116,27 @@ async function LogDetAuditoria(params) {
       }),
       returnValue: ["id_log_det"],
     });
-    return await pool
-      .query(queryLogsDet)
-      .then((result) => {
-        if (result.rowCount > 0) return { ok: true, result: result.rows };
-        else return { ok: false, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
+    return await EjecutarQuery(queryLogsDet);
   } catch (err) {
-    return { ok: null, err };
+    throw err;
   }
 }
+
+//#region POR SI EXISTE ALGUN ERROR EN LAS OPERACIONES, SE LLAMA A ESTA FUNCION
+async function ActualizarRegistroAInfoAnterior(nameTable, data, idInfo) {
+  try {
+    const queryAux = ActualizarUtil(nameTable, {
+      body: data,
+      idKey: idInfo.idKey,
+      idValue: idInfo.idValue,
+      returnValue: ["*"],
+    });
+    return await EjecutarQuery(queryAux);
+  } catch (err) {
+    throw err;
+  }
+}
+//#endregion
 
 module.exports = {
   VerificarPermisoTablaUsuarioAuditoria,
@@ -156,4 +144,5 @@ module.exports = {
   ObtenerInformacionAnteriorAuditoria,
   LogAuditoria,
   LogDetAuditoria,
+  ActualizarRegistroAInfoAnterior,
 };

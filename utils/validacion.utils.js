@@ -1,4 +1,4 @@
-const { forEach, isUndefined, findKey, trim } = require("lodash");
+const { forEach, isUndefined, findKey, trim, isEmpty } = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
@@ -15,7 +15,7 @@ setLocale({
   },
 });
 
-const messagesTypeData = (columnName, typeData) => {
+const getMessageTypeData = (columnName, typeData) => {
   const DATA_TYPES = {
     "character varying": `El valor de '${columnName}' debe ser texto`,
     integer: `El valor de '${columnName}' debe ser un número entero`,
@@ -149,6 +149,7 @@ async function ValidarDatosValidacion(params) {
     const { nameTable, data, action } = params;
     const columnas = await EjecutarQuery(ObtenerColumnasDeTablaUtil(nameTable));
     const schema = {};
+    if (isEmpty(data?.password)) delete data.password;
 
     forEach(columnas, (item) => {
       const columnName = item.column_name;
@@ -258,7 +259,7 @@ async function ValidarDatosValidacion(params) {
               typeof value === "symbol")
           )
             validationSchema = validationSchema.required(
-              messagesTypeData(columnName, dataType) || defaultMessage
+              getMessageTypeData(columnName, dataType) || defaultMessage
             );
         } else {
           if (isNullable) validationSchema = validationSchema.nullable();
@@ -273,6 +274,7 @@ async function ValidarDatosValidacion(params) {
 
       if (
         columnName === "password" &&
+        !isEmpty(value) &&
         (action === "Insertar" || action === "Actualizar")
       ) {
         const passwordValidation = (
@@ -319,7 +321,6 @@ async function ValidarDatosValidacion(params) {
                 return regex.test(value);
               }
             )
-            .trim() // Elimina espacios en blanco al inicio y al final
             .test(
               "tiene espacios en blanco",
               "El campo contraseña no debe tener espacios en blanco",
@@ -335,17 +336,15 @@ async function ValidarDatosValidacion(params) {
         columnName === "usuario" &&
         (action === "Insertar" || action === "Actualizar")
       ) {
-        validationSchema = validationSchema
-          .trim() // Elimina espacios en blanco al inicio y al final
-          .test(
-            "tiene espacios en blanco",
-            "El campo usuario no debe tener espacios en blanco",
-            (value) => {
-              if (isUndefined(value)) return true;
-              const noSpaces = value.replace(/\s/g, "");
-              return noSpaces === value;
-            }
-          );
+        validationSchema = validationSchema.test(
+          "tiene espacios en blanco",
+          "El campo usuario no debe tener espacios en blanco",
+          (value) => {
+            if (isUndefined(value)) return true;
+            const noSpaces = value.replace(/\s/g, "");
+            return noSpaces === value;
+          }
+        );
       } else if (columnName === "gmail" || columnName === "email") {
         validationSchema = validationSchema.email(defaultMessage);
       }

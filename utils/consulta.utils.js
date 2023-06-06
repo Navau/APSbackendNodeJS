@@ -799,7 +799,7 @@ function InsertarUtil(table, params) {
   let idAux = ValidarIDActualizarUtil(table, params.body, params?.newID);
 
   query &&
-    map(params.body, (item, index) => {
+    forEach(params.body, (item, index) => {
       if (idAux.idKey !== index) {
         // index = ponerComillasACamposConMayuscula(index);
         index && (query = query + `%I, `);
@@ -811,7 +811,7 @@ function InsertarUtil(table, params) {
   query && (query = query.substring(0, query.length - 2));
   query && (query = query + ") VALUES (");
 
-  map(params.body, (item, index) => {
+  forEach(params.body, (item, index) => {
     if (idAux.idKey !== index) {
       if (item instanceof Date) {
         index && (query = query + `%L, `);
@@ -883,10 +883,12 @@ function InsertarUtil(table, params) {
 
 function InsertarVariosUtil(table, params) {
   let query = "";
+  let indexInsertAuxArray = [];
+  let valuesInsertAuxArray = [];
   params.body && (query = query + `INSERT INTO public."${table}"`);
   query && (query = query + " (");
   query &&
-    map(params.body[0], (item, index) => {
+    forEach(params.body[0], (item, index) => {
       index = ponerComillasACamposConMayuscula(index);
       index && (query = query + `${index}, `);
     });
@@ -894,48 +896,55 @@ function InsertarVariosUtil(table, params) {
   query && (query = query.substring(0, query.length - 2));
   query && (query = query + ") VALUES (");
 
-  map(params.body, (item2, index2) => {
-    map(item2, (item, index) => {
+  forEach(params.body, (item2, index2) => {
+    forEach(item2, (item, index) => {
       if (item instanceof Date) {
-        index &&
-          (query =
-            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
-      } else if (item?.toString()?.includes("$2a$")) {
-        // index && (query = query + `crypt('${item}', ${index}), `);
+        index && (query = query + `%L, `);
+        valuesInsertAuxArray.push(
+          moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+        );
       } else {
         if (typeof item === "string") {
           if (index === "password") {
-            index && (query = query + `crypt('${item}', gen_salt('bf')), `);
+            index && (query = query + `crypt(%L, gen_salt('bf')), `);
+            valuesInsertAuxArray.push(item);
           } else if (
             index === "fecha_activo" ||
             index === "fecha_emision" ||
             index === "fecha_vencimiento" ||
             index === "vencimiento_1er_cupon"
           ) {
-            index &&
-              (query =
-                query +
-                `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(
+              moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+            );
           } else {
-            index && (query = query + `'${item}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(item);
           }
         } else if (typeof item === "number") {
-          index && (query = query + `${item}, `);
+          index && (query = query + `%L, `);
+          valuesInsertAuxArray.push(item);
         } else if (typeof item === "boolean") {
-          index && (query = query + `${item}, `);
+          index && (query = query + `%L, `);
+          valuesInsertAuxArray.push(item);
         } else if (typeof item === "object" && item === null) {
-          index && (query = query + `${item}, `);
+          index && (query = query + `%L, `);
+          valuesInsertAuxArray.push(item);
         } else {
           if (index === "fecha_activo") {
-            index &&
-              (query =
-                query +
-                `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(
+              moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")
+            );
           } else {
-            index && (query = query + `'${item}', `);
+            index && (query = query + `%L, `);
+            valuesInsertAuxArray.push(item);
           }
         }
       }
+      query = format(query, ...valuesInsertAuxArray);
+      valuesInsertAuxArray = [];
     });
     query && (query = query.substring(0, query.length - 2));
 
@@ -1424,10 +1433,10 @@ async function EjecutarQuery(query) {
         return result.rows || [];
       })
       .catch((err) => {
-        throw new Error(err);
+        throw err;
       });
   } catch (err) {
-    throw new Error(err);
+    throw err;
   }
 }
 

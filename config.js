@@ -1,5 +1,6 @@
 const API_VERSION = "v1";
 const IP_SERVER_API_EXTERNA = "https://testsau.aps.gob.bo";
+const MAX_INTENTOS_LOGIN = 5;
 const IP_SERVER_API = "localhost";
 const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
@@ -34,4 +35,5 @@ module.exports = {
   PORT_SERVER,
   IP_SERVER_API_EXTERNA,
   APP_GUID,
+  MAX_INTENTOS_LOGIN,
 };

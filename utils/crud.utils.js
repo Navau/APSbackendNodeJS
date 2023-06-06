@@ -35,6 +35,7 @@ const {
   LogDetAuditoria,
   VerificarPermisoTablaUsuarioAuditoria,
   VerificarPermisoVariasTablasUsuarioAuditoria,
+  ActualizarRegistroAInfoAnterior,
 } = require("./auditoria.utils");
 const {
   respResultadoCorrectoObjeto200,
@@ -48,6 +49,7 @@ const {
   respResultadoVacioObject200,
   respArchivoErroneo415,
   respArchivoErroneo200,
+  respIDNoRecibido400,
 } = require("./respuesta.utils");
 const { ValidarDatosValidacion } = require("./validacion.utils");
 const {
@@ -507,8 +509,10 @@ async function InsertarCRUD(paramsF) {
 }
 
 async function ActualizarCRUD(paramsF) {
+  const { req, res, nameTable, id = undefined, newID } = paramsF;
+  let registroAnterior = undefined;
+  let idInfo = undefined;
   try {
-    const { req, res, nameTable, id = undefined, newID } = paramsF;
     const action = "Actualizar";
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
@@ -535,43 +539,22 @@ async function ActualizarCRUD(paramsF) {
       respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
       return;
     }
-    const idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
-    //#region POR SI EXISTE ALGUN ERROR EN LAS OPERACIONES, SE LLAMA A ESTA FUNCION
-    const ActualizarRegistroAInfoAnterior = async (data) => {
-      const queryAux = ActualizarUtil(nameTable, {
-        body: data,
-        idKey: idInfo.idKey,
-        idValue: idInfo.idValue,
-        returnValue: ["*"],
-      });
-      return await pool
-        .query(queryAux)
-        .then((result) => {
-          return { ok: true, result: result.rows };
-        })
-        .catch((err) => {
-          return { ok: null, err };
-        });
-    };
-    //#endregion
+    idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
+    if (!idInfo.idOk) {
+      respIDNoRecibido400(res);
+      return;
+    }
 
     //#region OBTENIENDO INFORMACION ANTERIOR, ESTA INFORMACION SE OBTIENE MEDIANTE EL ID QUE SE QUIERE ACTUALIZAR
     const infoAnterior = await ObtenerInformacionAnteriorAuditoria({
-      req,
-      res,
       nameTable,
       idInfo,
     });
-    if (infoAnterior.ok === false) {
+    if (size(infoAnterior) <= 0) {
       respResultadoVacio404END(
         res,
         "No existe la información que se desea actualizar"
       );
-      return;
-    }
-    if (infoAnterior.ok === null) throw infoAnterior.err;
-    if (!idInfo.idOk) {
-      respIDNoRecibido400(res);
       return;
     }
     //#endregion
@@ -583,8 +566,6 @@ async function ActualizarCRUD(paramsF) {
       table: nameTable,
       action: "Actualizar",
     });
-
-    if (criticos.ok === null) throw infoAnterior.err;
     //#endregion
 
     //#region AQUI SE REALIZA LA OPERACION DE ACTUALIZAR EL REGISTRO ESPECIFICADO
@@ -594,97 +575,67 @@ async function ActualizarCRUD(paramsF) {
       idValue: idInfo.idValue,
       returnValue: ["*"],
     };
-
     const query = ActualizarUtil(nameTable, params);
-
-    const actualizacion = await pool
-      .query(query)
-      .then((result) => {
-        return { ok: true, result: result.rows };
-      })
-      .catch((err) => {
-        return { ok: null, err };
-      });
-    if (actualizacion.ok === null) throw actualizacion.err;
+    const queryRegisotrAnterior = EscogerInternoUtil(nameTable, {
+      select: ["*"],
+      where: [{ key: idInfo.idKey, value: idInfo.idValue }],
+    });
+    registroAnterior =
+      (await EjecutarQuery(queryRegisotrAnterior))?.[0] || undefined;
+    const actualizacion = (await EjecutarQuery(query))?.[0] || undefined;
+    if (isUndefined(registroAnterior))
+      throw new Error("Error al obtener el registro anterior");
     //#endregion
 
     //#region REGISTRANDO EN LAS TABLAS DE LOG Y LOGDET
-    // console.log(criticos, infoAnterior);
-    if (size(criticos.result) > 0 && size(infoAnterior.result) > 0) {
+    if (size(criticos) > 0 && size(infoAnterior) > 0) {
       console.log("-----------------------------------");
       console.log("======================");
       console.log("REGISTRANDO AUDITORIA");
       console.log("======================");
       console.log("===INICIO AUDITORIA===");
-      const idTablaAccion = criticos.result[0].id_tabla_accion;
-      const idAccion = criticos.result[0].id_accion;
-      const log = await LogAuditoria({
-        req,
-        res,
-        id_registro: idInfo.idValue,
-        id_tabla_accion: idTablaAccion ? idTablaAccion : 12,
-        id_accion: idAccion,
-      });
-      if (log.ok === null) {
-        const actualizacionAux = await ActualizarRegistroAInfoAnterior(
-          actualizacion.result[0]
-        );
-        if (actualizacionAux.ok === false)
-          throw new Error("Error al actualizar a la información anterior");
-        else if (actualizacionAux.ok === null) throw actualizacionAux.err;
-        else throw log.err;
-      }
-      if (log.ok === false) {
-        const actualizacionAux = await ActualizarRegistroAInfoAnterior(
-          actualizacion.result[0]
-        );
-        if (actualizacionAux.ok === false)
-          throw new Error("Error al actualizar a la información anterior");
-        else if (actualizacionAux.ok === null) throw actualizacionAux.err;
-        else respResultadoVacio404END(res, "No se registro ningún log");
-        return;
-      }
+      const idTablaAccion = criticos[0].id_tabla_accion;
+      const idAccion = criticos[0].id_accion;
+      const log =
+        (
+          await LogAuditoria({
+            req,
+            res,
+            id_registro: idInfo.idValue,
+            id_tabla_accion: idTablaAccion ? idTablaAccion : 12,
+            id_accion: idAccion,
+          })
+        )?.[0] || undefined;
+      if (isUndefined(log)) throw new Error("Error al obtener el log");
       const logDet = await LogDetAuditoria({
         req,
         res,
-        actualizacion: actualizacion.result,
-        id_log: log?.result?.[0].id_log || undefined,
+        registroAnterior,
+        id_log: log.id_log || undefined,
       });
-      if (logDet.ok === null) {
-        const actualizacionAux = await ActualizarRegistroAInfoAnterior(
-          actualizacion.result[0]
-        );
-        if (actualizacionAux.ok === false)
-          throw new Error("Error al actualizar a la información anterior");
-        else if (actualizacionAux.ok === null) throw actualizacionAux.err;
-        else throw logDet.err;
-      }
-      if (logDet.ok === false) {
-        const actualizacionAux = await ActualizarRegistroAInfoAnterior(
-          actualizacion.result[0]
-        );
-        if (actualizacionAux.ok === false)
-          throw new Error("Error al actualizar a la información anterior");
-        else if (actualizacionAux.ok === null) throw actualizacionAux.err;
-        else respResultadoVacio404END(res, "No se registro ningún log det");
-        return;
-      }
       console.log("=====FIN AUDITORIA====");
     }
     //#endregion
     respResultadoCorrectoObjeto200(
       res,
-      actualizacion.result,
+      actualizacion,
       "Información actualizada correctamente"
     );
   } catch (err) {
+    !isUndefined(registroAnterior) &&
+      !isUndefined(idInfo) &&
+      (await ActualizarRegistroAInfoAnterior(
+        nameTable,
+        registroAnterior,
+        idInfo
+      ));
     respErrorServidor500END(res, err);
   }
 }
 
 async function EliminarCRUD(paramsF) {
+  const { req, res, nameTable, id = undefined } = paramsF;
   try {
-    const { req, res, nameTable, id = undefined } = paramsF;
     const action = "Eliminar";
     // TO DO: EXTREMO!!! INFORMAR DE ESTO
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
