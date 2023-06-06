@@ -1,10 +1,19 @@
-const { forEach, isUndefined, findKey, trim, isEmpty } = require("lodash");
+const {
+  forEach,
+  isUndefined,
+  findKey,
+  trim,
+  isEmpty,
+  isDate,
+  isBoolean,
+} = require("lodash");
 const {
   ObtenerColumnasDeTablaUtil,
   EjecutarQuery,
 } = require("./consulta.utils");
 const Yup = require("yup");
 const { setLocale } = require("yup");
+const { default: isEmail } = require("validator/lib/isEmail");
 
 setLocale({
   mixed: {
@@ -262,6 +271,11 @@ async function ValidarDatosValidacion(params) {
               getMessageTypeData(columnName, dataType) || defaultMessage
             );
         } else {
+          validationSchema = validarCamposUsuario(
+            nameTable,
+            columnName,
+            validationSchema
+          );
           if (isNullable) validationSchema = validationSchema.nullable();
           if (!isNullable && columnDefault === null && action === "Insertar") {
             validationSchema = validationSchema.required(requiredMessage);
@@ -333,7 +347,7 @@ async function ValidarDatosValidacion(params) {
         };
         validationSchema = passwordValidation(validationSchema, 8, 1, 1, 1);
       } else if (
-        columnName === "usuario" &&
+        columnName === "usuarioXD" &&
         (action === "Insertar" || action === "Actualizar")
       ) {
         validationSchema = validationSchema.test(
@@ -347,6 +361,16 @@ async function ValidarDatosValidacion(params) {
         );
       } else if (columnName === "gmail" || columnName === "email") {
         validationSchema = validationSchema.email(defaultMessage);
+      } else {
+        // validationSchema = validationSchema.test(
+        //   "tiene espacios en blanco",
+        //   "El campo contraseña no debe tener espacios en blanco",
+        //   (value) => {
+        //     if (isUndefined(value)) return true;
+        //     const noSpaces = value.replace(/\s/g, "");
+        //     return noSpaces === value;
+        //   }
+        // );
       }
 
       schema[columnName] = validationSchema;
@@ -375,6 +399,194 @@ async function ValidarDatosValidacion(params) {
     throw err;
   }
 }
+
+const validarCamposUsuario = (nameTable, columnName, schema = Yup) => {
+  const TABLES_VALIDATIONS = {
+    APS_seg_usuario: {
+      usuario: (value) => {
+        return schema
+          .string()
+          .matches(
+            /^[a-zA-Z0-9]+$/,
+            `El campo ${columnName} solo puede contener letras mayúsculas, minúsculas y números`
+          )
+          .test(
+            "tiene espacios en blanco",
+            `El campo ${columnName} no debe tener espacios en blanco`,
+            (value) => {
+              if (isUndefined(value)) return true;
+              const noSpaces = value.replace(/\s/g, "");
+              return noSpaces === value;
+            }
+          );
+      },
+      password: (value) => {
+        if (!isEmpty(value)) {
+          return schema
+            .min(
+              minLength,
+              `El campo contraseña debe tener al menos ${minLength} caracteres de longitud`
+            )
+            .test(
+              "tiene letras",
+              `El campo contraseña debe tener al menos ${minChars} ${
+                minChars > 1 ? "letras" : "letra"
+              }`,
+              (value) => {
+                const regex = new RegExp(`^(.*?[A-Za-z]){${minChars}}.*$`);
+                return regex.test(value);
+              }
+            )
+            .test(
+              "tiene numeros",
+              `El campo contraseña debe tener al menos ${minNumbers} ${
+                minChars > 1 ? "números" : "número"
+              }`,
+              (value) => {
+                const regex = new RegExp(`^(.*?[0-9]){${minNumbers}}.*$`);
+                return regex.test(value);
+              }
+            )
+            .test(
+              "tiene caracteres especiales",
+              `El campo contraseña debe tener al menos ${minSpecialChars} ${
+                minChars > 1 ? "caracteres especiales" : "caracter especial"
+              }`,
+              (value) => {
+                const regex = new RegExp(
+                  `^(.*?[!@#$%^&*()_+\\-=[\\]{};':"\\|,.<>\\/?]){${minSpecialChars}}.*$`
+                );
+                return regex.test(value);
+              }
+            )
+            .test(
+              "tiene espacios en blanco",
+              "El campo contraseña no debe tener espacios en blanco",
+              (value) => {
+                if (isUndefined(value)) return true;
+                const noSpaces = value.replace(/\s/g, "");
+                return noSpaces === value;
+              }
+            );
+        } else return schema;
+      },
+      paterno: (value) => {
+        return schema
+          .string()
+          .matches(
+            /^[a-zA-Z]+$/,
+            `El campo ${columnName} solo puede contener letras mayúsculas y minúsculas`
+          )
+          .test(
+            "tiene espacios en blanco",
+            `El campo ${columnName} no debe tener espacios en blanco`,
+            (value) => {
+              if (isUndefined(value)) return true;
+              const noSpaces = value.replace(/\s/g, "");
+              return noSpaces === value;
+            }
+          );
+      },
+      materno: (value) => {
+        return schema
+          .string()
+          .matches(
+            /^[a-zA-Z]+$/,
+            `El campo ${columnName} solo puede contener letras mayúsculas y minúsculas`
+          )
+          .test(
+            "tiene espacios en blanco",
+            `El campo ${columnName} no debe tener espacios en blanco`,
+            (value) => {
+              if (isUndefined(value)) return true;
+              const noSpaces = value.replace(/\s/g, "");
+              return noSpaces === value;
+            }
+          );
+      },
+      nombres: (value) => {
+        return schema
+          .string()
+          .matches(
+            /^[a-zA-Z]+$/,
+            `El campo ${columnName} solo puede contener letras mayúsculas y minúsculas`
+          )
+          .test(
+            "tiene espacios en blanco",
+            `El campo ${columnName} no debe tener espacios en blanco`,
+            (value) => {
+              if (isUndefined(value)) return true;
+              const noSpaces = value.replace(/\s/g, "");
+              return noSpaces === value;
+            }
+          );
+      },
+      doc_identidad: (value) => {
+        return schema
+          .string()
+          .matches(
+            /^[a-zA-Z0-9]+$/,
+            `El campo ${columnName} solo puede contener letras mayúsculas, minúsculas y números`
+          )
+          .test(
+            "tiene espacios en blanco",
+            `El campo ${columnName} no debe tener espacios en blanco`,
+            (value) => {
+              if (isUndefined(value)) return true;
+              const noSpaces = value.replace(/\s/g, "");
+              return noSpaces === value;
+            }
+          );
+      },
+      email: (value) => {
+        return schema.test(
+          "es email",
+          `El campo ${columnName} no es un email válido`,
+          (value) => {
+            return isEmail(value);
+          }
+        );
+      },
+      fecha_activo: (value) => {
+        return schema.test(
+          "es fecha valida",
+          `El campo ${columnName} no es una fecha válida`,
+          (value) => {
+            return isDate(value);
+          }
+        );
+      },
+      verificado: (value) => {
+        return schema.test(
+          "es booleano",
+          `El campo ${columnName} no es un valor válido`,
+          (value) => {
+            return isBoolean(value);
+          }
+        );
+      },
+      activo: (value) => {
+        return schema.test(
+          "es booleano",
+          `El campo ${columnName} no es un valor válido`,
+          (value) => {
+            return isBoolean(value);
+          }
+        );
+      },
+      bloqueado: (value) => {
+        return schema.test(
+          "es booleano",
+          `El campo ${columnName} no es un valor válido`,
+          (value) => {
+            return isBoolean(value);
+          }
+        );
+      },
+    },
+  };
+  return TABLES_VALIDATIONS?.[nameTable]?.[columnName]() || schema;
+};
 
 module.exports = {
   ValidarDatosValidacion,
