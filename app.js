@@ -2,6 +2,15 @@ const express = require("express");
 const helmet = require("helmet");
 const app = express();
 const RouterApi = require("./routes");
+const storage = require("node-persist");
+(async () => {
+  try {
+    await storage.init();
+    console.log(await storage.getItem("token"));
+  } catch (error) {
+    console.error("Error:", error);
+  }
+})();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

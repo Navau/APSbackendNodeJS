@@ -48,8 +48,7 @@ function respErrorServidor500END(res, err, msg, datos = null) {
     const fieldsWithValuesArray = [];
     forEach(fieldsSplit, (field, index) => {
       const value = valuesSplit[index];
-      if (!includes(field, "id_"))
-        fieldsWithValuesArray.push(`${trim(field)} = ${trim(value)}`);
+      fieldsWithValuesArray.push(`${trim(field)} = ${trim(value)}`);
     });
     const fieldsWithValuesString = join(fieldsWithValuesArray, ", ");
 
