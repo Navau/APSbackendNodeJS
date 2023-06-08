@@ -24,7 +24,7 @@ async function obtenerToken(req, res) {
   try {
     const data = {
       usuario: "laurence",
-      password: "Jmmt3Ah[xd2)",
+      password: "YDaf(ssdq9+6",
       app: "8cb2f01b-fa2a-44bb-9928-746530e7d53c",
     };
     const result = await obtenerTokenApi(data);

@@ -443,14 +443,17 @@ async function LoginApiExterna(req, res) {
     }
 
     const estado = await estadoJWT(); //VERIFICAR ESTADO DE SERVICIO
+    console.log({ estado });
     const data = { usuario: user, password, app: APP_GUID };
     const tokenInfo = await obtenerToken(res, data, numeroDeIntentos, ip); //OBTENER TOKEN
+    console.log({ tokenInfo });
     if (tokenInfo === null) return;
     const token = {
       token_value: tokenInfo?.access_token,
       token_type: tokenInfo?.token_type,
     };
     const usuarioActual = await obtenerInfoUsuario(token, data); // OBTIENE INFO DE USUARIO
+    console.log({ usuarioActual });
     const rolesUsuarioActual = usuarioActual.roles; //ROLES DEL USUARIO ACTUAL
     const whereInAux = map(rolesUsuarioActual, (item) => item.nombre); // VARIABLE AUXILIAR QUE ES UN ARRAY DE NOMBRES DE LOS ROLES DEL USUARIO ACTUAL
     const results = await EjecutarVariosQuerys([
@@ -590,6 +593,7 @@ async function LoginApiExterna(req, res) {
                 const resultFinal = {
                   id_usuario: result.rows[0].id_usuario,
                   id_rol: result2.rows[0].id_rol,
+                  tokenAPI: tokenInfo,
                 };
                 if (result2.rowCount >= 2) {
                   respLoginResultadoCorrectoObjeto200(

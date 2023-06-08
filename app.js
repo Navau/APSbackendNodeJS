@@ -6,7 +6,7 @@ const storage = require("node-persist");
 (async () => {
   try {
     await storage.init();
-    console.log(await storage.getItem("token"));
+    console.log("TOKEN", await storage.getItem("token"));
   } catch (error) {
     console.error("Error:", error);
   }

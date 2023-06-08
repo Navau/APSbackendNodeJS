@@ -33,7 +33,7 @@ exports.obtenerTokenApi = async function (data) {
     return await axios
       .post(url, body, options)
       .then((response) => {
-        const result = response.data;
+        const result = response?.data;
         const status = response?.status;
         return { status, result };
       })
