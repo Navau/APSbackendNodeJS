@@ -1,6 +1,5 @@
 const { IP_SERVER_API_EXTERNA } = require("../config");
 const axios = require("axios");
-const storage = require("node-persist");
 
 exports.obtenerJwtEstadoApi = async function () {
   try {
@@ -51,8 +50,6 @@ exports.obtenerInfoUsuarioApi = async function (token, data) {
     const { usuario, app } = data;
     const { token_value, token_type } = token;
     const url = `${IP_SERVER_API_EXTERNA}/jwt/api/v2/usuarios/${usuario}/app/${app}`;
-    await storage.setItem("token", `${token_type} ${token_value}`);
-    await storage.setItem("usuario", usuario);
 
     const options = {
       headers: {

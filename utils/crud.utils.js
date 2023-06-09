@@ -87,6 +87,7 @@ const { formatoArchivo } = require("./formatoCamposArchivos.utils");
 const nodemailer = require("nodemailer");
 const dayjs = require("dayjs");
 const fs = require("fs");
+const { CAPTCHA_KEY } = require("../config");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -767,6 +768,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           .catch((err) => {
             throw err;
           });
+      },
+      CaptchaKey_Usuario: async () => {
+        respResultadoCorrectoObjeto200(res, CAPTCHA_KEY);
       },
       Desbloquear_Usuario: async () => {
         const { id_usuario, bloqueado } = req.body;

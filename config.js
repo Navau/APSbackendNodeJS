@@ -7,6 +7,8 @@ const CONFIG_PASSWORD = {
   minNumbers: 1,
   minSpecialChars: 1,
 };
+const CAPTCHA_KEY =
+  process.env.CAPTCHA_KEY || "6LfP1nAmAAAAAMuv_hZ_PqJQFh494BZxBk8lCC-u";
 const IP_SERVER_API = "localhost";
 const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
@@ -27,7 +29,7 @@ const APP_GUID = "8cb2f01b-fa2a-44bb-9928-746530e7d53c";
 const PARAMS_CONNECTION = {
   host: IP_SERVER_DB,
   user: process.env.DATABASE_USER || "postgres",
-  password: process.env.DATABASE_PASS || "apsadmin2022", //apsadmin2022
+  password: process.env.DATABASE_PASS || "navau", //apsadmin2022
   database: process.env.DATABASE_NAME || "APS",
   port: PORT_DB,
 };
@@ -43,4 +45,5 @@ module.exports = {
   APP_GUID,
   MAX_INTENTOS_LOGIN,
   CONFIG_PASSWORD,
+  CAPTCHA_KEY,
 };
