@@ -84,10 +84,11 @@ const {
   agregarMeses,
 } = require("./formatearDatos");
 const { formatoArchivo } = require("./formatoCamposArchivos.utils");
-const nodemailer = require("nodemailer");
-const dayjs = require("dayjs");
-const fs = require("fs");
 const { CAPTCHA_KEY } = require("../config");
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const { actualizarContraseñaUsuario } = require("../api/autenticacion.api.js");
+const dayjs = require("dayjs");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -586,6 +587,26 @@ async function ActualizarCRUD(paramsF) {
     const actualizacion = (await EjecutarQuery(query))?.[0] || undefined;
     if (isUndefined(registroAnterior))
       throw new Error("Error al obtener el registro anterior");
+
+    if (
+      (!isUndefined(body?.password) ||
+        !isNull(body?.password) ||
+        !isEmpty(body?.password)) &&
+      !isUndefined(req.user?.token_api)
+    ) {
+      const { token_api } = req.user;
+      const token = {
+        token_value: token_api.access_token,
+        token_type: token_api.token_type,
+      };
+      const data = {
+        usuario: registroAnterior.usuario,
+        app: APP_GUID,
+        // oldPassword: old_password,
+        // newPassword: new_password,
+      };
+      // await actualizarContraseñaUsuario(token, data);
+    }
     //#endregion
 
     //#region REGISTRANDO EN LAS TABLAS DE LOG Y LOGDET
