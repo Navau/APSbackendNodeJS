@@ -2,6 +2,7 @@ const {
   obtenerJwtEstadoApi,
   obtenerTokenApi,
   obtenerInfoUsuarioApi,
+  actualizarContraseñaUsuarioApi,
 } = require("../services/apsApiExterna.service");
 
 async function estadoJWT() {
@@ -41,8 +42,18 @@ async function obtenerInfoUsuario(token, data) {
   }
 }
 
+async function actualizarContraseñaUsuario(token, data) {
+  try {
+    const resultApi = await actualizarContraseñaUsuarioApi(token, data);
+    return resultApi?.result;
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   estadoJWT,
   obtenerToken,
   obtenerInfoUsuario,
+  actualizarContraseñaUsuario,
 };
