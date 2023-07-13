@@ -1049,7 +1049,7 @@ function ActualizarUtil(table, params) {
   params?.returnValue && (query = query.substring(0, query.length - 1));
 
   params.body && (query = query = query + ";");
-  console.log(params, query);
+  console.log(query);
 
   return query;
 }

@@ -5,7 +5,7 @@ const {
   actualizarContraseñaUsuarioApi,
 } = require("../services/apsApiExterna.service");
 
-async function estadoJWT() {
+async function estadoJWTAPS() {
   try {
     const resultApi = await obtenerJwtEstadoApi();
     return resultApi?.result;
@@ -14,35 +14,25 @@ async function estadoJWT() {
   }
 }
 
-async function obtenerToken(res, data, numeroDeIntentos, ip) {
+async function obtenerTokenAPS(payload) {
   try {
-    const resultApi = await obtenerTokenApi(data);
+    const resultApi = await obtenerTokenApi(payload);
     return resultApi?.result;
   } catch (err1) {
-    const { usuario, password } = data;
-    try {
-      const aux = await numeroDeIntentos(res, usuario, password, ip);
-      if (aux.ok === false) {
-        aux.resp();
-        return null;
-      }
-    } catch (err2) {
-      throw err2;
-    }
     throw err1;
   }
 }
 
-async function obtenerInfoUsuario(token, data) {
+async function obtenerInfoUsuarioAPS(token, payload) {
   try {
-    const resultApi = await obtenerInfoUsuarioApi(token, data);
-    return resultApi?.result;
+    const resultApi = await obtenerInfoUsuarioApi(token, payload);
+    return resultApi?.result || undefined;
   } catch (err) {
     throw err;
   }
 }
 
-async function actualizarContraseñaUsuario(token, data) {
+async function actualizarContraseñaUsuarioAPS(token, data) {
   try {
     const resultApi = await actualizarContraseñaUsuarioApi(token, data);
     return resultApi?.result;
@@ -52,8 +42,8 @@ async function actualizarContraseñaUsuario(token, data) {
 }
 
 module.exports = {
-  estadoJWT,
-  obtenerToken,
-  obtenerInfoUsuario,
-  actualizarContraseñaUsuario,
+  estadoJWTAPS,
+  obtenerTokenAPS,
+  obtenerInfoUsuarioAPS,
+  actualizarContraseñaUsuarioAPS,
 };
