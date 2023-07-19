@@ -35,7 +35,14 @@ const {
   EjecutarQuery,
 } = require("../../utils/consulta.utils");
 const { APP_GUID, MAX_INTENTOS_LOGIN } = require("../../config");
-const { size, map, differenceBy, maxBy, isUndefined } = require("lodash");
+const {
+  size,
+  map,
+  differenceBy,
+  maxBy,
+  isUndefined,
+  isInteger,
+} = require("lodash");
 
 async function Login(req, res) {
   try {
@@ -175,7 +182,7 @@ async function LoginApiExterna(req, res) {
       await loginNormal(res, usuario, password, ip, usuarioObtenido);
     }
   } catch (err) {
-    if (!isUndefined(err?.code))
+    if (!isUndefined(err?.code) && isInteger(err?.code))
       respResultadoDinamicoEND(
         res,
         err.code,
