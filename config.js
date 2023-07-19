@@ -18,7 +18,7 @@ const APP_GUID = "8cb2f01b-fa2a-44bb-9928-746530e7d53c";
 const PARAMS_CONNECTION = {
   host: IP_SERVER_DB,
   user: process.env.DATABASE_USER || "postgres",
-  password: process.env.DATABASE_PASS || "navau", //apsadmin2022
+  password: process.env.DATABASE_PASS || "apsadmin2022", //apsadmin2022
   database: process.env.DATABASE_NAME || "APS",
   port: PORT_DB,
 };

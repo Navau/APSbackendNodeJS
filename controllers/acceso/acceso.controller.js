@@ -213,6 +213,7 @@ async function loginConAPS(res, usuario, password, ip) {
 async function loginNormal(res, usuario, password, ip, usuarioObtenido) {
   try {
     await verificaCuentaBloqueada(usuarioObtenido);
+    await verificaContraseña(usuario, password, usuarioObtenido);
     await logearUsuario(res, usuario, password, ip, usuarioObtenido);
   } catch (err) {
     throw err;
@@ -297,10 +298,9 @@ const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
         message: "Usuario y/o Contraseña incorrecto",
       };
     }
-    //#endregion
-
-    //#region Esto se realiza porque anteriormente a esto ya se habia hecho en el LoginNormal el verificaCuentaBloqueada
+    // Esto se realiza porque anteriormente a esto ya se habia hecho en el LoginNormal el verificaCuentaBloqueada
     await reiniciarIntentosFallidos(usuarioLogeado.id_usuario);
+
     //#endregion
 
     //#region Obteniendo los Roles del usuario por el id del usuario
@@ -422,6 +422,32 @@ const verificaCuentaBloqueada = async (usuario) => {
   }
 };
 
+const verificaContraseña = async (usuario, password, usuarioObtenido) => {
+  try {
+    const values = [usuario, password];
+    const queryUsuario = formatearQuery(
+      'SELECT * FROM public."APS_seg_usuario" WHERE usuario = %L AND password is NOT NULL AND password = crypt(%L, password);',
+      values
+    );
+    const usuarioLogeado =
+      (await EjecutarQuery(queryUsuario))?.[0] || undefined;
+
+    //SI EL LOGEO ES INCORRECTO
+    if (isUndefined(usuarioLogeado)) {
+      const usuarioAPS = await verificarUsuarioAPS(usuario, password);
+      if (!isUndefined(usuarioAPS))
+        await actualizarContraseña(usuarioObtenido.id_usuario, password);
+      else
+        throw {
+          code: 500,
+          message: "Hubo un error al verificar el usuario",
+        };
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
 const actualizarUsuarioBloqueado = async (bloqueado, id_usuario) => {
   try {
     const queryBloqueaUsuario = ActualizarUtil("APS_seg_usuario", {
@@ -431,6 +457,20 @@ const actualizarUsuarioBloqueado = async (bloqueado, id_usuario) => {
       returnValue: ["*"],
     });
     await EjecutarQuery(queryBloqueaUsuario);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const actualizarContraseña = async (id, password) => {
+  try {
+    const query = ActualizarUtil("APS_seg_usuario", {
+      body: { password },
+      idKey: "id_usuario",
+      idValue: id,
+      returnValue: ["*"],
+    });
+    await EjecutarQuery(query);
   } catch (err) {
     throw err;
   }
