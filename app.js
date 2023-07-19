@@ -3,8 +3,8 @@ const helmet = require("helmet");
 const app = express();
 const RouterApi = require("./routes");
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: false }));
 app.use(helmet());
 // const timeZone = "America/La_Paz";
 // process.env.TZ = timeZone;

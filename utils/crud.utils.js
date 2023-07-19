@@ -73,6 +73,11 @@ const {
   uniq,
   join,
   replace,
+  chain,
+  flatMap,
+  differenceBy,
+  differenceWith,
+  intersectionBy,
 } = require("lodash");
 const jwt = require("../services/jwt.service");
 const pool = require("../database");
@@ -89,6 +94,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const { actualizarContraseñaUsuario } = require("../api/autenticacion.api.js");
 const dayjs = require("dayjs");
+const { group } = require("console");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -777,7 +783,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               ],
             },
           ],
-          where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
+          where: [
+            {
+              key: `"APS_seg_usuario".id_usuario`,
+              value: id_usuario,
+            },
+          ],
         };
 
         const query = EscogerInternoUtil(nameTable, params);
@@ -889,7 +900,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             },
           ],
           where: [
-            { key: `"APS_seg_usuario".id_usuario`, value: id_usuario },
+            {
+              key: `"APS_seg_usuario".id_usuario`,
+              value: id_usuario,
+            },
             { key: `"APS_seg_rol".id_rol`, value: id_rol },
           ],
         });
@@ -930,7 +944,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   });
                   respResultadoCorrectoObjeto200(res, resultData);
                 } else
-                  respResultadoIncorrectoObjeto200(res, { result1, result2 });
+                  respResultadoIncorrectoObjeto200(res, {
+                    result1,
+                    result2,
+                  });
               })
               .catch((err) => {
                 throw err;
@@ -942,491 +959,170 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
       },
       CambiarPermisos_Permiso: async () => {
         const { permisos, id_rol } = req.body;
-        const errors = []; //VARIABLE PARA CONTROLAR LOS QUERYS INICIALES
-        //#region TABLA_ACCION
-        const queryTablaAccion = EscogerInternoUtil("APS_seg_tabla_accion", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
-        const tablaAccion = await pool
-          .query(queryTablaAccion)
-          .then((result) => {
-            return { ok: true, result: result.rows };
+        const permisosActualizados = {
+          inserciones: [],
+          actualizaciones: [],
+        };
+        //#region PERMISOS ACTUALES DEL ID_ROL
+        const permisosIdRol = await EjecutarQuery(
+          EjecutarFuncionSQL("aps_obtener_permisos_por_id_rol", {
+            body: { id_rol },
           })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
-        //#region PERMISOS
-        const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
-          select: ["*"],
-          where: [{ key: "id_rol", value: id_rol }],
-          orderby: {
-            field: "id_permiso",
-          },
-        });
-        const permisosDB = await pool
-          .query(queryPermisos)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
-        //#region ACCIONES
-        const queryAcciones = EscogerInternoUtil("APS_seg_accion", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
-        const acciones = await pool
-          .query(queryAcciones)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
+        );
         //#endregion
 
-        //#region VERIFICACION DE ERRORES DE LOS QUERYS PARA OBTENER LOS DATOS NECESARISO
-        forEach([permisosDB, tablaAccion, acciones], (item) => {
-          if (item?.err) {
-            errors.push({ err: item.err, message: item.err.message });
-          }
-        });
-        if (size(errors) > 0) {
-          throw errors;
-        }
-        //#endregion
-
-        //#region FORMATEO DE LOS DATOS OBTENIDOS DESDE EL FRONTEND, ESTO SE HACE PARA QUE EXISTA UN MEJOR ORDEN CUANDO SE ESTE VALIDANDO ESTOS REGISTROS PARA REGISTRARLOS EN LAS TABLAS DE PERMISOS Y PERMISO
-        const errorsAdmin = []; //VARIABLE DE ERRORES DE PERMISO
-        const tablaAccionPermisosAuxArray = []; // VARIABLE AUXILIAR PARA ALMACENAR LOS DATOS FORMATEADOS
-        forEach(permisos, (itemP) => {
-          forEach(itemP.tablas, (itemP2) => {
-            if (size(itemP2.data_tabla_accion) > 0) {
-              forEach(itemP2.data_tabla_accion, (itemP3) => {
-                forEach(tablaAccion.result, (itemTA) => {
-                  if (itemP3.id_tabla_accion === itemTA.id_tabla_accion) {
-                    tablaAccionPermisosAuxArray.push({
-                      ...itemP3,
-                      tabla: itemP2.tabla,
-                      descripcion: itemP2.descripcion,
-                      esCompleto: itemP2.esCompleto,
-                      data_accion: find(
-                        acciones.result,
-                        (itemA) => itemA.id_accion === itemP3.id_accion
-                      ),
-                    });
-                  }
-                });
+        const nuevosPermisos = [];
+        forEach(flatMap(permisos, "submodulos"), (submodulo) => {
+          forEach(submodulo.data_tabla_accion, (DTA) => {
+            if (
+              !isNull(submodulo?.id_submodulo) &&
+              !isNull(DTA?.id_tabla_accion)
+            )
+              nuevosPermisos.push({
+                id_tabla_accion: DTA?.id_tabla_accion,
+                accion: DTA?.accion,
+                submodulo: submodulo?.submodulo,
+                esCompleto: submodulo?.esCompleto,
               });
-            } else {
-              if (itemP2.esCompleto === true) {
-                errorsAdmin.push({
-                  mensaje: `No existe información suficiente para cambiar el permiso de ${itemP2.descripcion}, porfavor, comuniquese con el administrador`,
-                  tabla: itemP2.tabla,
-                  id_rol,
-                  descripcion: itemP2.descripcion,
-                  tipo_error: `No existe registros en la tabla de APS_seg_tabla_accion, para cambiar permisos a la tabla "${itemP2.tabla}" de "${itemP2.descripcion}"`,
-                });
-              }
-            }
           });
         });
-        //#endregion
+        const antiguosPermisos = map(permisosIdRol, (antiguoPermiso) => ({
+          id_permiso: antiguoPermiso.id_permiso,
+          id_tabla_accion: antiguoPermiso.id_tabla_accion,
+          activo_permiso: antiguoPermiso.activo_permiso,
+          accion: antiguoPermiso.accion,
+          tabla: antiguoPermiso.tabla,
+          submodulo: antiguoPermiso.submodulo,
+        }));
+        const diferenciaPermisosParaInsertar = differenceBy(
+          nuevosPermisos,
+          antiguosPermisos,
+          "id_tabla_accion"
+        ).filter((value) => value.esCompleto === true);
 
-        //#region ERRORES ALMACENADOS EN LA VARIABLE "errorsAdmin" SI NO EXISTEN REGISTROS SUFICIENTES EN LA PERMISO
-        if (size(errorsAdmin) > 0) {
-          respResultadoIncorrectoObjeto200(res, null, errorsAdmin);
-          return;
-        }
-        //#endregion
-
-        //#region AGRUPACION DE LOS PERMISOS FORMATEADOS ANTERIORMENTE, ESTA AGRUPACION ES POR EL ID_TABLA Y LA TABLA
-        const permisosAgrupadosPorTabla = groupBy(
-          tablaAccionPermisosAuxArray,
-          (item) => `${item.id_tabla}_${item.tabla}`
-        );
-        //#endregion
-
-        const permisosAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA PREPARAR LOS QUERYS DE UPDATE PARA ACTUALIZAR LOS PERMISOS
-        const errorsPermisosAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA PREPARAR LOS QUERYS DE UPDATE POR SI EXISTE ALGUN ERROR AL ACTUALIZAR EL PERMISO CUANDO SE ESTE EJECUTANDO LOS QUERYS PARA LA BASE DE DATOS
-        const errorsPermisosTablaAccionAuxArray = []; // VARIABLE QUE ALMACENA LA INFORMACION PARA VALIDAR QUE LOS REGISTROS PARA EL ROL ACTUAL SEAN CORRECTOS Y EXISTAN EN LA TABLA DE APS_seg_permiso
-        const errorsAdminRolNoExistenteAuxArray = []; // VARIABLE PARA MOSTRAR LOS MENSAJES DE LA VARIABLE: errorsPermisosTablaAccionAuxArray
-        const errorsQuerys = [];
-        const resultQuerys = [];
-        const resultQuerysInsert = [];
-        const errorsQuerysPermisos = [];
-
-        // const insertarRegistrosAuxArray = []; //Inserta los registros cuando no existen en APS_seg_permiso, esto pasa porque el rol no esta registrado
-
-        //#region SE HACEN ESTAS ITERACIONES CON LOS PERMISOS YA AGRUPADOS POR ID TABLA Y TABLA, DONDE ACA SE VERIFICA QUE SI ALGUN REGISTRO DE LA TABLA PERMISOS ESTA EN "FALSE" Y EL CAMBIO QUE SE QUIERE HACER ES "TRUE" CON EL FIN DE CAMBIAR EL PERMISO AL ROL SELECCIONADO SE ALMACENARA ESTA INFORMACION EN LAS VARIABLES AUXILIARES DECLARADAS ANTERIORMENTE
-
-        forEach(permisosAgrupadosPorTabla, (itemPAPT) => {
-          forEach(itemPAPT, (itemPAPT2) => {
-            forEach(permisosDB.result, (itemPDB) => {
-              if (
-                itemPAPT2.id_tabla_accion === itemPDB.id_tabla_accion &&
-                itemPAPT2.esCompleto === true
-              ) {
-                errorsPermisosTablaAccionAuxArray.push(itemPAPT2);
-              }
-              if (
-                itemPAPT2.id_tabla_accion === itemPDB.id_tabla_accion &&
-                itemPAPT2.esCompleto !== itemPDB.activo
-              ) {
-                permisosAuxArray.push({
-                  id_permiso: itemPDB.id_permiso,
-                  tabla: itemPAPT2.tabla,
-                  descripcion: itemPAPT2.descripcion,
-                  esCompleto: itemPAPT2.esCompleto,
-                });
-                errorsPermisosAuxArray.push({
-                  id_permiso: itemPDB.id_permiso,
-                  activo: itemPDB.activo,
-                });
-              }
-            });
-          });
-        });
-        //#endregion
-
-        //#region SECCION PARA DIFERENCIAR LOS DATOS QUE LLEGAN DEL FRONTEND Y COMPARARLOS CON LOS PERMISOS QUE SE QUIEREN EDITAR, ESTO SIRVE PARA PODER CONTROLAR QUE LOS REGISTROS EXISTAN EN LA TABLA DE PERMISO JUNTO CON EL ROL SELECCIONADO. ESTOS PERMISOS DEBEN EXISTIR EN LA TABLA DE PERMISOS JUNTO AL ROL QUE SE QUIERE EDITAR, SI HAY ALGUNA DIFERENCIA ENTRE LO QUE LLEGA DEL FRONTEND Y LO QUE EXISTE EN LA BD, HABRA UN ERROR Y SE PROCEDERA A INSERTAR LOS NUEVOS REGISTROS.
-        const diferenciasAux = groupBy(
-          filter(
-            difference(
-              tablaAccionPermisosAuxArray,
-              errorsPermisosTablaAccionAuxArray
-            ),
-            (itemF) => itemF.esCompleto === true
-          ),
-          (itemG) => `${itemG.id_tabla}-*-${itemG.tabla}-*-${itemG.descripcion}`
-        );
-        const insertarRegistrosAuxArray = map(
-          diferenciasAux,
-          (itemDIF, indexDIF) => {
-            const separatorDeIndex = "-*-";
-            const idTablaAux = split(indexDIF, separatorDeIndex)[0];
-            const tablaAux = split(indexDIF, separatorDeIndex)[1];
-            const descripcionAux = split(indexDIF, separatorDeIndex)[2];
-            return map(itemDIF, (itemInsert) => {
-              return itemInsert;
-            });
-            // errorsAdminRolNoExistenteAuxArray.push({
-            //   mensaje: `No existe información suficiente para cambiar el permiso de ${descripcionAux}, porfavor, comuniquese con el administrador`,
-            //   id_rol,
-            //   tabla: tablaAux,
-            //   descripcion: descripcionAux,
-            //   tipo_error: `No existen registros en APS_seg_permiso con el rol "${id_rol}" para la tabla "${tablaAux}" de "${descripcionAux}"`,
-            // });
-          }
-        );
-
-        for await (const insert of insertarRegistrosAuxArray) {
-          const queryInsertar = InsertarVariosUtil(nameTable, {
-            body: map(insert, (itemInsert) => {
+        if (size(diferenciaPermisosParaInsertar) > 0) {
+          const queryInsertarPermisos = InsertarVariosUtil(nameTable, {
+            body: map(diferenciaPermisosParaInsertar, (itemInsert) => {
               return {
                 id_rol,
                 id_tabla_accion: itemInsert.id_tabla_accion,
-                permiso: `${itemInsert.data_accion.accion} ${itemInsert.descripcion}`,
+                permiso: `${itemInsert.accion} ${itemInsert.submodulo}`,
                 activo: true,
               };
             }),
             returnValue: ["*"],
           });
-          await pool
-            .query(queryInsertar)
-            .then((result) => {
-              if (result.rowCount <= 0) {
-                errorsQuerysPermisos.push({
-                  mensaje: `No existe información suficiente para cambiar el permiso de ${insert.descripcion}, porfavor, comuniquese con el administrador`,
-                  id_rol,
-                  tabla: insert.tabla,
-                  descripcion: insert.descripcion,
-                  tipo_error: `No se inserto el permiso debido a que los registros para la tabla "${insert.tabla}" de "${insert.descripcion}" existen en APS_seg_tabla_accion, pero no existen en APS_seg_permiso`,
-                });
-              }
-              resultQuerys.push({ id: result.id_permiso, result: result.rows });
-            })
-            .catch((err) => {
-              errorsQuerys.push({ err });
-            });
+          permisosActualizados.inserciones = await EjecutarQuery(
+            queryInsertarPermisos
+          );
         }
 
-        //#region CONTROL DE ERROR POR SI NO SE ACTUALIZO CORRECTAMENTE LOS PERMISOS DEBIDO A QUE NO EXISTEN LOS REGISTROS SUFICIENTES EN LAS TABLAS DE TABLA_ACCION Y PERMISO
-        if (size(errorsQuerysPermisos) > 0) {
-          respResultadoIncorrectoObjeto200(res, null, errorsQuerysPermisos);
-          return;
-        }
-        //#endregion
+        const permisosIguales = intersectionBy(
+          antiguosPermisos,
+          nuevosPermisos,
+          "id_tabla_accion"
+        );
 
-        // if (size(resultQuerysInsert) > 0) {
-        //   respResultadoCorrectoObjeto200(res, resultQuerysInsert); //RESULTADOS, SI SE INSERTO ALGO, ENTONCES MOSTRARA EL ID Y EL REGISTRO QUE SE INSERTO
-        //   return;
-        // }
-        //#endregion
+        const diferenciaPermisos = differenceWith(
+          sortBy(permisosIguales, "id_tabla_accion"),
+          sortBy(nuevosPermisos, "id_tabla_accion"),
+          (value1, value2) =>
+            value1.activo_permiso === value2.esCompleto &&
+            value1.id_tabla_accion === value2.id_tabla_accion
+        );
 
-        // if (size(permisosAuxArray) > 0) ESTA VALIDACION NO ES NECESARIA, DEBIDO A QUE SI NO EXISTEN DATOS ENTONCES NO HARA ITERACIONES EN "map" (linea 228) PARA ARMAR LOS QUERYS, PERO SE COMENTO ESTO PARA PODER TENER UNA IDEA DE COMO ENTRAN LOS PERMISOS A LOS QUERYS
-
-        //#region PREPARACION DE LOS QUERYS UPDATE, PARA ACTUALIZAR LOS PERMISOS, SE HACEN 5 QUERYS DEBIDO A LAS 5 ACCIONES
-        const querys = map(permisosAuxArray, (item) => {
-          console.log(item);
-          return {
-            id: item.id_permiso,
-            text: ActualizarUtil("APS_seg_permiso", {
-              body: { activo: item.esCompleto },
-              idKey: "id_permiso",
-              idValue: item.id_permiso,
-              returnValue: ["*"],
-            }),
-            descripcion: item.descripcion,
-            tabla: item.tabla,
-          };
-        });
-        //#endregion
-
-        //#region PREPARACION DE LOS QUERYS UPDATE, PARA ACTUALIZAR LOS PERMISOS, ESTOS QUERYS SE EJECUTAN SOLAMENTE SI EXISTE UN ERROR EN LOS QUERYS ANTERIORES, LOS CUALES LOS ANTERIORES SON LOS CORRECTOS Y LO QUE SE ESPERA DE LA FUNCIONALIDAD, EN CAMBIO ESTOS QUERYS ERRORS SON QUERYS PARA VOLVER A PONER EL ESTADO ANTERIOR EN EL QUE SE ENCONTRABA EL PERMISO, ASI ASEGURANDO DE QUE NINGUN PERMISO ESTE INCOMPLETO Y SE CAMBIEN SI O SI LAS 5 ACCIONES, SI ESTO NO SUCEDE CON LAS 5 ACCIONES ENTONCES SE VUELVE A SU ESTADO INICIAL
-        const querysErrorsAux = map(errorsPermisosAuxArray, (item) => {
-          console.log("CONSULTA QUE SE EJECUTA SI EXISTE ALGÚN ERRORE");
-          return {
-            id: item.id_permiso,
-            text: ActualizarUtil("APS_seg_permiso", {
-              body: { activo: item.activo },
-              idKey: "id_permiso",
-              idValue: item.id_permiso,
-              returnValue: ["*"],
-            }),
-          };
-        });
-        //#endregion
-
-        //#region EJECUCION DE LOS QUERYS
-
-        for await (const query of querys) {
-          await pool
-            .query(query.text)
-            .then((result) => {
-              if (result.rowCount <= 0) {
-                errorsQuerysPermisos.push({
-                  mensaje: `No existe información suficiente para cambiar el permiso de ${itemP2.descripcion}, porfavor, comuniquese con el administrador`,
-                  id_rol,
-                  tabla: query.tabla,
-                  descripcion: query.descripcion,
-                  tipo_error: `No se actualizó el permiso debido a que los registros para la tabla "${query.tabla}" de "${query.descripcion}" existen en APS_seg_tabla_accion, pero no existen en APS_seg_permiso`,
-                });
-              }
-              resultQuerys.push({ id: query.id, result: result.rows });
-            })
-            .catch((err) => {
-              errorsQuerys.push({ err });
-            });
-        }
-        //#endregion
-
-        //#region CONTROL DE ERROR POR SI NO SE ACTUALIZO CORRECTAMENTE LOS PERMISOS DEBIDO A QUE NO EXISTEN LOS REGISTROS SUFICIENTES EN LAS TABLAS DE TABLA_ACCION Y PERMISO
-        if (size(errorsQuerysPermisos) > 0) {
-          respResultadoIncorrectoObjeto200(res, null, errorsQuerysPermisos);
-          return;
-        }
-        //#endregion
-
-        //#region EJECUCION DE LOS QUERYS POR SI HUBO ALGUN ERROR
-        if (size(errorsQuerys) > 0) {
-          for await (const query of querysErrorsAux) {
-            await pool
-              .query(query.text)
-              .then((result) => {})
-              .catch((err) => {
-                errorsQuerys.push({ id: query.id, err });
-              })
-              .finally(() => {
-                throw errorsQuerys;
-              });
+        const diferenciasPermisosFinal = map(
+          diferenciaPermisos,
+          (diferencia) => {
+            const nuevoPermisoItem = find(
+              nuevosPermisos,
+              (permisoF) =>
+                permisoF.id_tabla_accion === diferencia.id_tabla_accion
+            );
+            if (isUndefined(nuevoPermisoItem)) return null;
+            return {
+              ...diferencia,
+              ...nuevoPermisoItem,
+            };
           }
-          throw errorsQuerys;
-        }
-        //#endregion
+        ).filter((value) => !isNull(value));
 
-        respResultadoCorrectoObjeto200(res, resultQuerys); //RESULTADOS, SI SE ACTUALIZO ALGO, ENTONCES MOSTRARA EL ID Y EL REGISTRO QUE SE ACTUALIZO, SI NO, DEVOLVERA UN ARRAY VACIO
+        for await (const permiso of diferenciasPermisosFinal) {
+          const queryActualizarPermiso = ActualizarUtil(nameTable, {
+            body: {
+              id_rol,
+              id_tabla_accion: permiso.id_tabla_accion,
+              permiso: `${permiso.accion} ${permiso.submodulo}`,
+              activo: permiso.esCompleto,
+            },
+            idKey: "id_permiso",
+            idValue: permiso.id_permiso,
+            returnValue: ["*"],
+          });
+          const actualizacion =
+            (await EjecutarQuery(queryActualizarPermiso))?.[0] || undefined;
+          permisosActualizados.actualizaciones.push(actualizacion);
+        }
+        permisosActualizados.actualizaciones = filter(
+          permisosActualizados.actualizaciones,
+          (item) => !isUndefined(item)
+        );
+
+        respResultadoCorrectoObjeto200(
+          res,
+          permisosActualizados,
+          "Permisos actualizados correctamente"
+        );
       },
       ListarPermisos_Permiso: async () => {
         const { id_rol } = req.body;
-        const errors = [];
-        //#region MODULOS
-        const queryModulo = EscogerInternoUtil("APS_seg_modulo", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-          orderby: {
-            field: "orden",
-          },
-        });
-        const modulos = await pool
-          .query(queryModulo)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
-        //#region TABLAS
-        const queryTablas = EscogerInternoUtil("APS_seg_tabla", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-          orderby: {
-            field: "orden",
-          },
-        });
-        const tablas = await pool
-          .query(queryTablas)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
-        //#region TABLA_ACCION
-        const queryTablaAccion = EscogerInternoUtil("APS_seg_tabla_accion", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
-        const tablaAccion = await pool
-          .query(queryTablaAccion)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
-        //#region PERMISOS
-        const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
-        const permisos = await pool
-          .query(queryPermisos)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
-        //#region ACCIONES
-        const queryAcciones = EscogerInternoUtil("APS_seg_accion", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
-        const acciones = await pool
-          .query(queryAcciones)
-          .then((result) => {
-            return { ok: true, result: result.rows };
-          })
-          .catch((err) => {
-            return { ok: null, err };
-          });
-        //#endregion
+        const queryListarPermisos = EscogerInternoUtil(
+          "APS_seg_view_listar_permisos"
+        );
+        const permisos = await EjecutarQuery(queryListarPermisos);
 
-        forEach([modulos, tablas, permisos, tablaAccion, acciones], (item) => {
-          if (item?.err) {
-            errors.push({ err: item.err, message: item.err.message });
-          }
-        });
-        if (size(errors) > 0) {
-          throw errors;
-        }
-        //#region FORMATEO DE LOS DATOS PARA QUE LA JERARQUIA QUEDE CORRECTA:
-        //[MODULOS -> [TABLAS -> [TABLA_ACCION -> [PERMISOS, ACCIONES]]]]
-        const modulosTablasArray = [];
-        forEach(modulos.result, (itemMO) => {
-          const resultTablas = filter(
-            tablas.result,
-            (itemF) => itemF.id_modulo === itemMO.id_modulo
-          );
-          if (size(resultTablas) > 0) {
-            modulosTablasArray.push({
-              id_modulo: itemMO.id_modulo,
-              modulo: itemMO.modulo,
-              descripcion: itemMO.descripcion,
-              data_tabla: map(resultTablas, (itemT) => {
-                return {
-                  id_tabla: itemT.id_tabla,
-                  tabla: itemT.tabla,
-                  descripcion: itemT.descripcion,
-                  data_tabla_accion: map(
-                    filter(
-                      tablaAccion.result,
-                      (itemTA) => itemT.id_tabla === itemTA.id_tabla
-                    ),
-                    (itemTAMap) => {
-                      return {
-                        id_tabla_accion: itemTAMap.id_tabla_accion,
-                        id_tabla: itemTAMap.id_tabla,
-                        id_accion: itemTAMap.id_accion,
-                        data_permisos: filter(
-                          permisos.result,
-                          (itemP) =>
-                            itemTAMap.id_tabla_accion ===
-                              itemP.id_tabla_accion && itemP.id_rol === id_rol
-                        ),
-                        // data_acciones: filter(
-                        //   acciones.result,
-                        //   (itemA) => itemTAMap.id_accion === itemA.id_accion
-                        // ),
-                      };
-                    }
-                  ),
-                };
-              }),
-            });
-          }
-        });
-        //#endregion
-
-        //#region PREPARACIÓN FINAL DE LOS DATOS, PARA MANDAR AL FRONTEND
-        const resultFinal = map(modulosTablasArray, (item, index) => {
-          let esCompleto = true;
-          forEach(item.data_tabla, (itemEC) => {
-            if (size(itemEC.data_tabla_accion) <= 0) esCompleto = false;
-            forEach(itemEC.data_tabla_accion, (itemEC2) => {
-              if (size(itemEC2.data_permisos) <= 0) esCompleto = false;
-            });
+        const result = chain(permisos)
+          .groupBy("id_modulo")
+          .map((modulos) => ({
+            id_modulo: modulos[0].id_modulo,
+            modulo: modulos[0].modulo,
+            descripcion_modulo: modulos[0].descripcion_modulo,
+            esCompleto: true,
+            esTodoCompleto: true,
+            submodulos: chain(modulos)
+              .groupBy("id_submodulo")
+              .map((submodulos) => ({
+                id_submodulo: submodulos[0].id_submodulo,
+                submodulo: submodulos[0].submodulo,
+                tabla: submodulos[0].tabla,
+                descripcion_tabla: submodulos[0].descripcion_tabla,
+                esCompleto: !isUndefined(
+                  find(submodulos, (item) => item.id_rol === id_rol)
+                ),
+                data_tabla_accion: chain(submodulos)
+                  .groupBy((item) => `${item.id_accion}_${item.id_permiso}`)
+                  .map((accionesPermisos) => ({
+                    id_tabla_accion: accionesPermisos[0].id_tabla_accion,
+                    id_tabla: accionesPermisos[0].id_tabla,
+                    id_accion: accionesPermisos[0].id_accion,
+                    accion: accionesPermisos[0].accion,
+                  }))
+                  .uniqBy("id_tabla_accion")
+                  .value(),
+              }))
+              .value(),
+          }))
+          .value();
+        forEach(result, (item) => {
+          forEach(item.submodulos, (submodulo) => {
+            if (submodulo.esCompleto === false) {
+              item.esCompleto = false;
+              item.esTodoCompleto = false;
+              return;
+            }
           });
-          return {
-            id_modulo: index + 1,
-            modulo: item.modulo,
-            descripcion: item.descripcion,
-            esCompleto,
-            esTodoCompleto: esCompleto,
-            tablas: map(item.data_tabla, (itemDT, indexDT) => {
-              let completado = false;
-              forEach(itemDT.data_tabla_accion, (itemDT2) => {
-                if (size(itemDT2.data_permisos) >= 1) completado = true;
-                else completado = false;
-              });
-              return {
-                id_tabla: itemDT.id_tabla,
-                tabla: itemDT.tabla,
-                descripcion: itemDT.descripcion,
-                esCompleto: completado,
-                data_tabla_accion: map(itemDT.data_tabla_accion, (itemDT2) => {
-                  return {
-                    id_tabla_accion: itemDT2.id_tabla_accion,
-                    id_tabla: itemDT2.id_tabla,
-                    id_accion: itemDT2.id_accion,
-                  };
-                }),
-              };
-            }),
-          };
         });
-        //#endregion
-
-        respResultadoCorrectoObjeto200(res, resultFinal);
+        respResultadoCorrectoObjeto200(res, result);
       },
       SeleccionarArchivos_ArchivosPensionesSeguros: async () => {
         const { fecha_operacion, periodicidad } = req.body;
@@ -1631,7 +1327,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           respDatosNoRecibidos400(res);
           return;
         }
-        const query = EjecutarFuncionSQL("aps_limites_seguros", { body });
+        const query = EjecutarFuncionSQL("aps_limites_seguros", {
+          body,
+        });
         await pool
           .query(query)
           .then((result) => {
@@ -1666,7 +1364,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const query = EscogerInternoUtil(nameTable, {
           select: ["*", "sigla ||'-'|| descripcion AS sigla_descripcion"],
           where: [
-            { key: "id_tipo_renta", valuesWhereIn: [136], whereIn: true },
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [136],
+              whereIn: true,
+            },
             { key: "activo", value: true },
           ],
           orderby: { field: "sigla ASC" },
@@ -1684,7 +1386,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const { body } = req;
         let whereAux = [
           { key: "es_seriado", value: true },
-          { key: "id_tipo_renta", valuesWhereIn: [135, 136], whereIn: true },
+          {
+            key: "id_tipo_renta",
+            valuesWhereIn: [135, 136],
+            whereIn: true,
+          },
           { key: "activo", value: true },
           {
             key: "id_grupo",
@@ -1729,7 +1435,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           {
             select: ["*"],
             where: [
-              { key: "id_tipo_instrumento", value: id_tipo_instrumento },
+              {
+                key: "id_tipo_instrumento",
+                value: id_tipo_instrumento,
+              },
               { key: "es_seriado", value: true },
               {
                 key: "id_tipo_renta",
@@ -2080,7 +1789,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             EscogerInternoUtil(nameTable, {
               select: ["*"],
               where: [
-                { key: "id_carga_archivos", value: id_carga_archivos },
+                {
+                  key: "id_carga_archivos",
+                  value: id_carga_archivos,
+                },
                 { key: "cargado", value: true },
               ],
             })
@@ -2119,7 +1831,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const whereFinal = [
           { key: "id_rol", value: id_rol },
           { key: "id_periodo", value: periodicidad },
-          { key: "cod_institucion", value: cod_institucion.result.codigo },
+          {
+            key: "cod_institucion",
+            value: cod_institucion.result.codigo,
+          },
           { key: "cargado", value: true },
         ];
         const query = ValorMaximoDeCampoUtil(nameTable, {
@@ -2273,7 +1988,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const querys = [
           EscogerInternoUtil(viewModalidad, {
             select: ["*"],
-            where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+            where: [
+              {
+                key: "id_tipo_entidad",
+                value: id_tipo_modalidad,
+              },
+            ],
           }),
         ];
         const results = await EjecutarVariosQuerys(querys);
@@ -2331,7 +2051,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           // VALIDACION PRELIMINAR
           const aux = map(instituciones.result, (item) => {
             return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
-              body: { fecha, cod_institucion: item.codigo, periodo: periodo },
+              body: {
+                fecha,
+                cod_institucion: item.codigo,
+                periodo: periodo,
+              },
             });
           });
           forEach(aux, (item) => querys.push(item));
@@ -2487,7 +2211,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           // VALIDACION PRELIMINAR
           const aux = map(instituciones.result, (item) => {
             return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
-              body: { fecha, cod_institucion: item.codigo, periodo: periodo },
+              body: {
+                fecha,
+                cod_institucion: item.codigo,
+                periodo: periodo,
+              },
               where: id_rol_cargas && [
                 {
                   key: "id_rol",
@@ -2802,7 +2530,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             valuesWhereIn: split(periodo, ","),
             whereIn: true,
           },
-          { key: "reproceso", valuesWhereIn: reproceso, whereIn: true },
+          {
+            key: "reproceso",
+            valuesWhereIn: reproceso,
+            whereIn: true,
+          },
           {
             key: "cod_institucion",
             valuesWhereIn: map(institucionesFinal, (item) => `${item.codigo}`),
@@ -2867,7 +2599,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             EscogerInternoUtil(nameTable, {
               select: ["*"],
               where: [
-                { key: "id_carga_archivos", value: id_carga_archivos },
+                {
+                  key: "id_carga_archivos",
+                  value: id_carga_archivos,
+                },
                 { key: "cargado", value: true },
               ],
             })
@@ -2905,7 +2640,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const querys = [
           EscogerInternoUtil(viewModalidad, {
             select: ["*"],
-            where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+            where: [
+              {
+                key: "id_tipo_entidad",
+                value: id_tipo_modalidad,
+              },
+            ],
           }),
         ];
         const results = await EjecutarVariosQuerys(querys);
@@ -3083,7 +2823,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             EscogerInternoUtil(nameTable, {
               select: ["*"],
               where: [
-                { key: "id_carga_archivos", value: id_carga_archivos },
+                {
+                  key: "id_carga_archivos",
+                  value: id_carga_archivos,
+                },
                 { key: "cargado", value: true },
               ],
             })
@@ -3113,7 +2856,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         }
         const params = { body };
         const query = EscogerUtil(nameTable.replace("errores_", ""), params);
-        const cargaArchivos = (await EjecutarQuery(query)?.[0]) || undefined;
+        const cargaArchivos = (await EjecutarQuery(query))?.[0] || undefined;
         if (isUndefined(cargaArchivos)) {
           respResultadoIncorrectoObjeto200(
             res,
@@ -3157,7 +2900,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           const querys = [
             EscogerInternoUtil("APS_aud_carga_archivos_pensiones_seguros", {
               select: ["*"],
-              where: [{ key: "id_carga_archivos", value: id_carga_archivos }],
+              where: [
+                {
+                  key: "id_carga_archivos",
+                  value: id_carga_archivos,
+                },
+              ],
             }),
             EscogerUtil(nameTable, {
               activo: null,
@@ -3277,7 +3025,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const idRolFinal = id_rol ? id_rol : req.user.id_rol;
         const resultArray = [];
         const errorsArray = [];
-        const users = await ObtenerUsuariosPorRol({ id_rol: idRolFinal });
+        const users = await ObtenerUsuariosPorRol({
+          id_rol: idRolFinal,
+        });
         if (users.err)
           errorsArray.push({
             message: users?.err?.message && users?.err.message,
@@ -3303,7 +3053,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             // const emailFinal = "milibrolunadepluton344@gmail.com";
 
             if (!validateEmail(emailFinal)) {
-              errorsArray.push({ message: "Email no válido", emailFinal });
+              errorsArray.push({
+                message: "Email no válido",
+                emailFinal,
+              });
             } else {
               const mailOptions = {
                 from: "APS validaciones",
@@ -3422,7 +3175,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         } else if (tipo_archivo === "PENSIONES") {
           whereMax = [
             { key: "id_rol", value: id_rol },
-            { key: "cod_institucion", value: cod_institucion.codigo },
+            {
+              key: "cod_institucion",
+              value: cod_institucion.codigo,
+            },
             {
               key: "id_periodo",
               value:
@@ -3433,7 +3189,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         } else if (tipo_archivo === "SEGUROS") {
           whereMax = [
             { key: "id_rol", value: id_rol },
-            { key: "cod_institucion", value: cod_institucion.codigo },
+            {
+              key: "cod_institucion",
+              value: cod_institucion.codigo,
+            },
             {
               key: "id_periodo",
               value:
@@ -3791,7 +3550,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             });
 
             const audInsertValida =
-              (await EjecutarQuery(queryInsertValida)?.[0]) || undefined;
+              (await EjecutarQuery(queryInsertValida))?.[0] || undefined;
             if (isUndefined(audInsertValida))
               throw new Error("Error al registrar las validaciones");
             idValidaArchivos.push({
@@ -3867,7 +3626,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             });
 
             const audInsertValida =
-              (await EjecutarQuery(queryInsertValida)?.[0]) || undefined;
+              (await EjecutarQuery(queryInsertValida))?.[0] || undefined;
             if (isUndefined(audInsertValida))
               throw new Error("Error al registrar las validaciones");
             idValidaArchivos.push({
@@ -4092,7 +3851,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             where: [
               { key: "fecha_operacion", value: fecha },
               { key: "cargado", value: cargado },
-              { key: "id_rol", valuesWhereIn: id_rol_cargas, whereIn: true },
+              {
+                key: "id_rol",
+                valuesWhereIn: id_rol_cargas,
+                whereIn: true,
+              },
               { key: "id_periodo", value: 154 },
             ],
           }),
@@ -4190,7 +3953,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             EscogerInternoUtil(nameTable, {
               select: ["*"],
               where: [
-                { key: "id_valora_archivos", value: id_valora_archivos },
+                {
+                  key: "id_valora_archivos",
+                  value: id_valora_archivos,
+                },
                 { key: "valorado", value: true },
               ],
             })
@@ -4465,7 +4231,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           where: [
             { key: "table_schema", value: "public" },
             { key: "table_type", value: "BASE TABLE" },
-            { key: "table_name", value: nameTableTipoArchivos, like: true },
+            {
+              key: "table_name",
+              value: nameTableTipoArchivos,
+              like: true,
+            },
           ],
         });
         const codigosArchivosAux = await EjecutarQuery(queryArchivos);
@@ -4522,7 +4292,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               : "aps_view_modalidad_pensiones",
             {
               select: ["*"],
-              where: [{ key: "id_tipo_entidad", value: id_tipo_modalidad }],
+              where: [
+                {
+                  key: "id_tipo_entidad",
+                  value: id_tipo_modalidad,
+                },
+              ],
             }
           ),
         ];
@@ -4894,7 +4669,10 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
           OPTIONS_FILE.detailsHeaders = await columnsHeaders.detailsHeaders;
           OPTIONS_FILE.headers = await columnsHeaders.headers;
           OPTIONS_FILE.idTable = OPTIONS_FILE.headers[0];
-          OPTIONS_FILE.sequenceTableFile = { table: tableFile, id: idTable };
+          OPTIONS_FILE.sequenceTableFile = {
+            table: tableFile,
+            id: idTable,
+          };
           const codInstitucionAux = INFO_TABLES.cod_institution;
           OPTIONS_FILE.headers?.splice(0, 1); // ELIMINAR ID DE TABLA
           tablesFilesArray.push(OPTIONS_FILE.tableFile);
@@ -4929,7 +4707,10 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
                   valuesWhereIn: valuesWhereInAux,
                   whereIn: true,
                 },
-                { key: "TABLE_NAME", value: OPTIONS_FILE.tableFile },
+                {
+                  key: "TABLE_NAME",
+                  value: OPTIONS_FILE.tableFile,
+                },
               ],
               orderby: { field: "COLUMN_NAME" },
             }
@@ -4968,7 +4749,10 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               });
             } else {
               const whereDelete = [
-                { key: OPTIONS_FILE.dateField, value: fechaInicialOperacion },
+                {
+                  key: OPTIONS_FILE.dateField,
+                  value: fechaInicialOperacion,
+                },
               ];
               await eliminarInformacionDuplicada(
                 tableFile,
@@ -5004,7 +4788,10 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
                 (itemAux) => replace(itemAux, /\"/g, `'`)
               );
               const whereDelete = [
-                { key: OPTIONS_FILE.dateField, value: fechaInicialOperacion },
+                {
+                  key: OPTIONS_FILE.dateField,
+                  value: fechaInicialOperacion,
+                },
                 {
                   key: OPTIONS_FILE.institutionField,
                   value: INFO_TABLES.cod_institution,
@@ -5255,7 +5042,9 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
         ok: true,
       });
 
-      const queryMax = ValorMaximoDeCampoUtil(table, { fieldMax: idTable });
+      const queryMax = ValorMaximoDeCampoUtil(table, {
+        fieldMax: idTable,
+      });
       const maxIdTablesAux = await EjecutarQuery(queryMax);
       const maxIdTables =
         maxIdTablesAux?.[0]?.max === null ? 0 : maxIdTablesAux?.[0]?.max;
