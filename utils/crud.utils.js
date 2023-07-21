@@ -801,9 +801,6 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             throw err;
           });
       },
-      CaptchaKey_Usuario: async () => {
-        respResultadoCorrectoObjeto200(res, CAPTCHA_KEY);
-      },
       Desbloquear_Usuario: async () => {
         const { id_usuario, bloqueado } = req.body;
         const queryReinicio = ActualizarUtil("APS_seg_intentos_log", {

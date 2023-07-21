@@ -7,8 +7,10 @@ const CONFIG_PASSWORD = {
   minNumbers: 1,
   minSpecialChars: 1,
 };
+
+const TYPE_ENVIRONMENT = process.env.TYPE_ENVIRONMENT || "PROD";
 const CAPTCHA_KEY =
-  process.env.CAPTCHA_KEY || "6LfP1nAmAAAAAMuv_hZ_PqJQFh494BZxBk8lCC-u";
+  process.env.CAPTCHA_KEY || "6LfumzUUAAAAAArgQOK52eFc0svPnAE9kZ0mspWD";
 const IP_SERVER_API = "localhost";
 const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
@@ -35,4 +37,5 @@ module.exports = {
   MAX_INTENTOS_LOGIN,
   CONFIG_PASSWORD,
   CAPTCHA_KEY,
+  TYPE_ENVIRONMENT,
 };

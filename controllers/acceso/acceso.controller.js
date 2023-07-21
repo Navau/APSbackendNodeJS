@@ -34,7 +34,12 @@ const {
   formatearQuery,
   EjecutarQuery,
 } = require("../../utils/consulta.utils");
-const { APP_GUID, MAX_INTENTOS_LOGIN } = require("../../config");
+const {
+  APP_GUID,
+  MAX_INTENTOS_LOGIN,
+  CAPTCHA_KEY,
+  TYPE_ENVIRONMENT,
+} = require("../../config");
 const {
   size,
   map,
@@ -43,6 +48,14 @@ const {
   isUndefined,
   isInteger,
 } = require("lodash");
+
+async function TipoAmbiente() {
+  respResultadoCorrectoObjeto200(res, TYPE_ENVIRONMENT);
+}
+
+async function CaptchaKey() {
+  respResultadoCorrectoObjeto200(res, CAPTCHA_KEY);
+}
 
 async function Login(req, res) {
   try {
@@ -654,4 +667,6 @@ module.exports = {
   Login,
   LoginApiExterna,
   TokenConRol,
+  TipoAmbiente,
+  CaptchaKey,
 };

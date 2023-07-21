@@ -11,7 +11,6 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.InstitucionConIDUsuario
 );
-api.get("/CaptchaKey", controller.CaptchaKey);
 api.post(
   "/Desbloquear",
   [md_auth.AsegurarAutenticacionConToken],

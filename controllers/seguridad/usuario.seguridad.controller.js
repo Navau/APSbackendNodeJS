@@ -9,17 +9,6 @@ const {
 
 const nameTable = "APS_seg_usuario";
 
-async function CaptchaKey(req, res) {
-  const params = {
-    req,
-    res,
-    nameTable,
-    methodName: "CaptchaKey_Usuario",
-    // action: "Escoger",
-  };
-  await RealizarOperacionAvanzadaCRUD(params);
-}
-
 async function InstitucionConIDUsuario(req, res) {
   const params = {
     req,
