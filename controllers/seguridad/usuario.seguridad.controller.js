@@ -76,5 +76,4 @@ module.exports = {
   Actualizar,
   InstitucionConIDUsuario,
   Desbloquear,
-  CaptchaKey,
 };

@@ -49,11 +49,11 @@ const {
   isInteger,
 } = require("lodash");
 
-async function TipoAmbiente() {
+function TipoAmbiente(req, res) {
   respResultadoCorrectoObjeto200(res, TYPE_ENVIRONMENT);
 }
 
-async function CaptchaKey() {
+function CaptchaKey(req, res) {
   respResultadoCorrectoObjeto200(res, CAPTCHA_KEY);
 }
 
