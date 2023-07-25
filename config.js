@@ -8,7 +8,7 @@ const CONFIG_PASSWORD = {
   minSpecialChars: 1,
 };
 
-const TYPE_ENVIRONMENT = process.env.TYPE_ENVIRONMENT || "PROD";
+const TYPE_ENVIRONMENT = process.env.TYPE_ENVIRONMENT || "TEST";
 const CAPTCHA_KEY =
   process.env.CAPTCHA_KEY || "6LfumzUUAAAAAArgQOK52eFc0svPnAE9kZ0mspWD";
 const IP_SERVER_API = "localhost";
