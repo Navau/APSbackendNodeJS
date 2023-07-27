@@ -625,6 +625,7 @@ const insertarUsuarioAPSaSistema = async (usuarioAPS, password) => {
       select: ["*"],
       where: [
         { key: "sigla", value: usuarioAPS?.entidad?.nombre || "" },
+        { key: "institucion", value: usuarioAPS?.entidad?.nombre || "", operatorSQL: "OR" },
         { key: "activo", value: true },
       ],
     });
