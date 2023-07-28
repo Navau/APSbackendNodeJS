@@ -78,6 +78,10 @@ const {
   differenceBy,
   differenceWith,
   intersectionBy,
+  intersectionWith,
+  every,
+  take,
+  some,
 } = require("lodash");
 const jwt = require("../services/jwt.service");
 const pool = require("../database");
@@ -956,20 +960,32 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
       },
       CambiarPermisos_Permiso: async () => {
         const { permisos, id_rol } = req.body;
-        const permisosActualizados = {
+        const permisosFiltrados = sortBy(
+          filter(permisos, (permiso) => {
+            return every(
+              permiso.submodulos,
+              (submodulo) =>
+                !isNull(submodulo.id_submodulo) && !isNull(submodulo.id_tabla)
+            );
+          }),
+          "id_modulo"
+        );
+
+        const resultPermisosActualizados = {
           inserciones: [],
           actualizaciones: [],
         };
         //#region PERMISOS ACTUALES DEL ID_ROL
-        const permisosIdRol = await EjecutarQuery(
-          EjecutarFuncionSQL("aps_obtener_permisos_por_id_rol", {
-            body: { id_rol },
+        const permisosBD = await EjecutarQuery(
+          EscogerInternoUtil("APS_seg_permiso", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
           })
         );
         //#endregion
 
         const nuevosPermisos = [];
-        forEach(flatMap(permisos, "submodulos"), (submodulo) => {
+        forEach(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
           forEach(submodulo.data_tabla_accion, (DTA) => {
             if (
               !isNull(submodulo?.id_submodulo) &&
@@ -983,62 +999,66 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               });
           });
         });
-        const antiguosPermisos = map(permisosIdRol, (antiguoPermiso) => ({
-          id_permiso: antiguoPermiso.id_permiso,
-          id_tabla_accion: antiguoPermiso.id_tabla_accion,
-          activo_permiso: antiguoPermiso.activo_permiso,
-          accion: antiguoPermiso.accion,
-          tabla: antiguoPermiso.tabla,
-          submodulo: antiguoPermiso.submodulo,
-        }));
-        const diferenciaPermisosParaInsertar = differenceBy(
+        const nuevosPermisosTrue = filter(
           nuevosPermisos,
-          antiguosPermisos,
-          "id_tabla_accion"
-        ).filter((value) => value.esCompleto === true);
+          (nuevoPermiso) => nuevoPermiso.esCompleto === true
+        );
+        const diferenciaPermisosParaInsertar = filter(
+          nuevosPermisosTrue,
+          (nuevoPermiso) => {
+            const permisoBDFind = find(permisosBD, (permisoBD) => {
+              const permisoTextAux = `${nuevoPermiso.accion} ${nuevoPermiso.submodulo}`;
+              return (
+                permisoBD.id_tabla_accion === nuevoPermiso.id_tabla_accion &&
+                permisoBD.permiso === permisoTextAux
+              );
+            });
+            return isUndefined(permisoBDFind);
+          }
+        );
 
         if (size(diferenciaPermisosParaInsertar) > 0) {
           const queryInsertarPermisos = InsertarVariosUtil(nameTable, {
-            body: map(diferenciaPermisosParaInsertar, (itemInsert) => {
-              return {
-                id_rol,
-                id_tabla_accion: itemInsert.id_tabla_accion,
-                permiso: `${itemInsert.accion} ${itemInsert.submodulo}`,
-                activo: true,
-              };
-            }),
+            body: map(diferenciaPermisosParaInsertar, (itemInsert) => ({
+              id_rol,
+              id_tabla_accion: itemInsert.id_tabla_accion,
+              permiso: `${itemInsert.accion} ${itemInsert.submodulo}`,
+              activo: true,
+            })),
             returnValue: ["*"],
           });
-          permisosActualizados.inserciones = await EjecutarQuery(
+          resultPermisosActualizados.inserciones = await EjecutarQuery(
             queryInsertarPermisos
           );
         }
 
-        const permisosIguales = intersectionBy(
-          antiguosPermisos,
+        const diferenciaPermisos = intersectionWith(
+          permisosBD,
           nuevosPermisos,
-          "id_tabla_accion"
-        );
-
-        const diferenciaPermisos = differenceWith(
-          sortBy(permisosIguales, "id_tabla_accion"),
-          sortBy(nuevosPermisos, "id_tabla_accion"),
-          (value1, value2) =>
-            value1.activo_permiso === value2.esCompleto &&
-            value1.id_tabla_accion === value2.id_tabla_accion
+          (value1, value2) => {
+            const permisoTextAux = `${value2.accion} ${value2.submodulo}`;
+            return (
+              value1.id_tabla_accion === value2.id_tabla_accion &&
+              value1.permiso === permisoTextAux &&
+              value1.activo !== value2.esCompleto
+            );
+          }
         );
 
         const diferenciasPermisosFinal = map(
           diferenciaPermisos,
-          (diferencia) => {
-            const nuevoPermisoItem = find(
-              nuevosPermisos,
-              (permisoF) =>
-                permisoF.id_tabla_accion === diferencia.id_tabla_accion
-            );
+          (diferenciaPermiso) => {
+            const nuevoPermisoItem = find(nuevosPermisos, (nuevoPermiso) => {
+              const permisoTextAux = `${nuevoPermiso.accion} ${nuevoPermiso.submodulo}`;
+              return (
+                nuevoPermiso.id_tabla_accion ===
+                  diferenciaPermiso.id_tabla_accion &&
+                permisoTextAux === diferenciaPermiso.permiso
+              );
+            });
             if (isUndefined(nuevoPermisoItem)) return null;
             return {
-              ...diferencia,
+              ...diferenciaPermiso,
               ...nuevoPermisoItem,
             };
           }
@@ -1058,27 +1078,34 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           });
           const actualizacion =
             (await EjecutarQuery(queryActualizarPermiso))?.[0] || undefined;
-          permisosActualizados.actualizaciones.push(actualizacion);
+          resultPermisosActualizados.actualizaciones.push(actualizacion);
         }
-        permisosActualizados.actualizaciones = filter(
-          permisosActualizados.actualizaciones,
+        resultPermisosActualizados.actualizaciones = filter(
+          resultPermisosActualizados.actualizaciones,
           (item) => !isUndefined(item)
         );
 
         respResultadoCorrectoObjeto200(
           res,
-          permisosActualizados,
+          resultPermisosActualizados,
           "Permisos actualizados correctamente"
         );
       },
       ListarPermisos_Permiso: async () => {
         const { id_rol } = req.body;
-        const queryListarPermisos = EscogerInternoUtil(
-          "APS_seg_view_listar_permisos"
+        const queryModulos = EscogerInternoUtil("APS_seg_view_listar_modulos");
+        const queryTablaAccion = EscogerInternoUtil(
+          "APS_seg_view_listar_tabla_accion"
         );
-        const permisos = await EjecutarQuery(queryListarPermisos);
+        const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
+          select: ["*"],
+          where: [{ key: "activo", value: true }],
+        });
+        const modulosPrincipales = await EjecutarQuery(queryModulos);
+        const tablaAccion = await EjecutarQuery(queryTablaAccion);
+        const permisos = await EjecutarQuery(queryPermisos);
 
-        const result = chain(permisos)
+        const resultModulos = chain(modulosPrincipales)
           .groupBy("id_modulo")
           .map((modulos) => ({
             id_modulo: modulos[0].id_modulo,
@@ -1091,35 +1118,45 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               .map((submodulos) => ({
                 id_submodulo: submodulos[0].id_submodulo,
                 submodulo: submodulos[0].submodulo,
+                id_tabla: submodulos[0].id_tabla,
                 tabla: submodulos[0].tabla,
                 descripcion_tabla: submodulos[0].descripcion_tabla,
-                esCompleto: !isUndefined(
-                  find(submodulos, (item) => item.id_rol === id_rol)
-                ),
-                data_tabla_accion: chain(submodulos)
-                  .groupBy((item) => `${item.id_accion}_${item.id_permiso}`)
-                  .map((accionesPermisos) => ({
-                    id_tabla_accion: accionesPermisos[0].id_tabla_accion,
-                    id_tabla: accionesPermisos[0].id_tabla,
-                    id_accion: accionesPermisos[0].id_accion,
-                    accion: accionesPermisos[0].accion,
-                  }))
-                  .uniqBy("id_tabla_accion")
-                  .value(),
+                esCompleto: false,
+                data_tabla_accion: [],
               }))
               .value(),
           }))
           .value();
-        forEach(result, (item) => {
-          forEach(item.submodulos, (submodulo) => {
+        forEach(resultModulos, (modulo) => {
+          forEach(modulo.submodulos, (submodulo) => {
+            const resultTablaAccion = filter(
+              tablaAccion,
+              (itemTA) => itemTA.id_tabla === submodulo.id_tabla
+            ).map((itemTA) => ({
+              id_tabla_accion: itemTA?.id_tabla_accion,
+              id_tabla: itemTA?.id_tabla,
+              id_accion: itemTA?.id_accion,
+              accion: itemTA?.accion,
+            }));
+            submodulo.data_tabla_accion = resultTablaAccion;
+            const dataIntersection = intersectionBy(
+              permisos,
+              resultTablaAccion,
+              "id_tabla_accion"
+            ).filter((item) => item.id_rol === id_rol);
+            submodulo.esCompleto = size(dataIntersection) > 0;
+          });
+        });
+        forEach(resultModulos, (modulo) => {
+          forEach(modulo.submodulos, (submodulo) => {
             if (submodulo.esCompleto === false) {
-              item.esCompleto = false;
-              item.esTodoCompleto = false;
+              modulo.esCompleto = false;
+              modulo.esTodoCompleto = false;
               return;
             }
           });
         });
-        respResultadoCorrectoObjeto200(res, result);
+        respResultadoCorrectoObjeto200(res, resultModulos);
       },
       SeleccionarArchivos_ArchivosPensionesSeguros: async () => {
         const { fecha_operacion, periodicidad } = req.body;
