@@ -921,42 +921,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           });
       },
       ObtenerMenuAng_Rol: async () => {
-        const token = req?.headers?.authorization;
-
-        const dataToken = jwt.decodedToken(token);
-        if (!dataToken.id_usuario) {
-          respDatosNoRecibidos400(
-            res,
-            "El token no contiene el ID de usuario."
-          );
-          return;
-        }
-        const querys = ObtenerMenuAngUtil(dataToken);
-        await pool
-          .query(querys.query)
-          .then(async (result1) => {
-            await pool
-              .query(querys.querydet)
-              .then((result2) => {
-                if (result2.rowCount > 0) {
-                  const resultData = FormatearObtenerMenuAngUtil({
-                    result: result1.rows,
-                    result2: result2.rows,
-                  });
-                  respResultadoCorrectoObjeto200(res, resultData);
-                } else
-                  respResultadoIncorrectoObjeto200(res, {
-                    result1,
-                    result2,
-                  });
-              })
-              .catch((err) => {
-                throw err;
-              });
-          })
-          .catch((err) => {
-            throw err;
-          });
+        const { id_rol } = req.user;
+        const menuQuerys = ObtenerMenuAngUtil(id_rol);
+        const menu = await EjecutarQuery(menuQuerys.query);
+        const menudet = await EjecutarQuery(menuQuerys.querydet);
+        const menuFinal = FormatearObtenerMenuAngUtil(menu, menudet);
+        respResultadoCorrectoObjeto200(res, menuFinal);
       },
       CambiarPermisos_Permiso: async () => {
         const { permisos, id_rol } = req.body;

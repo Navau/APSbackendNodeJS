@@ -11,6 +11,7 @@ const {
   isUndefined,
   isArray,
   truncate,
+  isNull,
 } = require("lodash");
 const pool = require("../database");
 const format = require("pg-format");
@@ -68,7 +69,7 @@ function ObtenerRolUtil(table, data, idPK) {
   return query;
 }
 
-function ObtenerMenuAngUtil(data) {
+function ObtenerMenuAngUtil(id_rol) {
   let query = "";
   let querydet = `select text, 'my_library_books' as icon, routerLink || 
   replace(replace(replace(replace(replace(text, 'á', 'a'), 'ó', 'o'), ' ', ''), 'ú', 'u'), 'í', 'i')  as routerLink 
@@ -81,7 +82,7 @@ function ObtenerMenuAngUtil(data) {
       inner join public."APS_seg_tabla_accion" on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
       inner join public."APS_seg_permiso" on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
       where public."APS_seg_permiso".activo = true AND 
-      id_rol = ${data.id_rol} order by public."APS_seg_modulo".id_modulo, public."APS_seg_tabla".orden) as children`;
+      id_rol = ${id_rol} order by public."APS_seg_modulo".id_modulo, public."APS_seg_tabla".orden) as children`;
 
   query = `SELECT text, icon, children FROM (select DISTINCT modulo as text, case 
     when modulo like 'Tablas Básicas' then 'tab' 
@@ -95,7 +96,7 @@ function ObtenerMenuAngUtil(data) {
     on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
     inner join public."APS_seg_permiso" 
     on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
-    where public."APS_seg_modulo".activo = true and id_rol = ${data.id_rol.toString()} 
+    where public."APS_seg_modulo".activo = true and id_rol = ${id_rol.toString()} 
     order by "APS_seg_modulo".orden) as menu`;
 
   // query = `SELECT text, icon, children FROM (select DISTINCT modulo as text, case
@@ -136,37 +137,29 @@ function ObtenerColumnasDeTablaUtil(table, params) {
   return query;
 }
 
-function FormatearObtenerMenuAngUtil(data) {
-  // console.log(data);
-  let result = data.result;
-  map(data.result, (item, index) => {
-    let text = item.text;
+function FormatearObtenerMenuAngUtil(menu, menudet) {
+  const menuPartial = map(menu, (itemMenu, indexMenu) => {
+    let text = itemMenu.text;
     text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     text = text.replace(/\s+/g, "");
-    let arrayChildren = [];
-    map(data.result2, (item2, index2) => {
-      // console.log(item2.routerlink.split("/")[1]);
-      if (item2.routerlink.split("/")[1] === text) {
-        // console.log("ITEM", item);
-        // console.log("ITEM2", item2);
-        arrayChildren.push(item2);
-      }
+    const arrayChildren = [];
+    forEach(menudet, (itemMenudet, indexMenudet) => {
+      if (itemMenudet.routerlink.split("/")[1] === text)
+        arrayChildren.push(itemMenudet);
     });
-    result = [
-      ...result,
-      {
-        ...result[index],
-        children: arrayChildren,
-      },
-    ];
+    return {
+      ...itemMenu,
+      children: arrayChildren,
+    };
   });
-  let resultFinal = result.filter((f) => {
-    return f.children !== null;
-  });
+  const menuFinal = filter(
+    menuPartial,
+    (menuItem) => !isNull(menuItem.children) && size(menuItem.children) > 0
+  );
 
-  console.log("resultFinal", resultFinal);
+  console.log("menuFinal", menuFinal);
 
-  return resultFinal;
+  return menuFinal;
 }
 
 function CargarArchivoABaseDeDatosUtil(table, params) {
