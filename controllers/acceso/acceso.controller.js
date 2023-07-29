@@ -625,7 +625,11 @@ const insertarUsuarioAPSaSistema = async (usuarioAPS, password) => {
       select: ["*"],
       where: [
         { key: "sigla", value: usuarioAPS?.entidad?.nombre || "" },
-        { key: "institucion", value: usuarioAPS?.entidad?.nombre || "", operatorSQL: "OR" },
+        {
+          key: "institucion",
+          value: usuarioAPS?.entidad?.nombre || "",
+          operatorSQL: "OR",
+        },
         { key: "activo", value: true },
       ],
     });
@@ -633,12 +637,18 @@ const insertarUsuarioAPSaSistema = async (usuarioAPS, password) => {
     const institucionInfo =
       (await EjecutarQuery(queryInstituciones))?.[0] || undefined;
 
-    if (isUndefined(institucionInfo))
+    if (isUndefined(institucionInfo)) {
+      const messageErrorInstitucion =
+        usuarioAPS?.entidad?.nombre && usuarioAPS?.entidad?.sigla
+          ? `No se encontró la institucion '${usuarioAPS.entidad.nombre}' con la sigla ${usuarioAPS.entidad.sigla} en el sistema para registrar al usuario`
+          : usuarioAPS?.entidad?.nombre
+          ? `No se encontró la institucion '${usuarioAPS.entidad.nombre}' en el sistema para registrar al usuario`
+          : "No se encontró la institución en el sistema para registrar al usuario";
       throw {
         code: 404,
-        message:
-          "No se encontró la institución en el sistema para registrar al usuario",
+        message: messageErrorInstitucion,
       };
+    }
     //#endregion
     //#region Insertando el usuario de la APS al sistema
     const queryInsertarUsuario = InsertarUtil("APS_seg_usuario", {
