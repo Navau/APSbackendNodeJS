@@ -4,6 +4,7 @@ const {
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  RealizarOperacionAvanzadaCRUD,
 } = require("../../utils/crud.utils");
 
 const nameTable = "APS_param_Reportes";
