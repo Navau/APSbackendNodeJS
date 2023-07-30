@@ -14,6 +14,7 @@ const {
   find,
   max,
   isUndefined,
+  isNull,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -47,6 +48,7 @@ const {
   monedaTipoCambio,
   rango,
   agrupacion,
+  unicoPor,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1304,6 +1306,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         operationNotValid,
         notValidate,
         unique,
+        uniqueBy,
         singleGroup,
         endSingleGroup,
         grouping,
@@ -4014,7 +4017,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       dates: true,
                     })
                   : null;
-              console.log(_operacionEntreColumnas);
+              // console.log(_operacionEntreColumnas);
 
               if (_operacionEntreColumnas?.ok === false) {
                 errors.push({
@@ -4267,6 +4270,32 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           }
           if (
+            !isNull(uniqueBy) &&
+            !isEmpty(uniqueBy) &&
+            index2 === arrayDataObject?.length - 1
+          ) {
+            const _unicoPor = infoArchivo.paramsUnico
+              ? await unicoPor({
+                  fileArrayObject: arrayDataObject,
+                  field: columnName,
+                  validatedBy: uniqueBy,
+                })
+              : null;
+
+            if (size(_unicoPor) >= 1) {
+              forEach(_unicoPor, (errorUnicoPor) => {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: errorUnicoPor?.message,
+                  valor: errorUnicoPor?.value,
+                  columna: columnName,
+                  fila: errorUnicoPor?.row,
+                });
+              });
+            }
+          }
+          if (
             endSingleGroup === true &&
             index2 === arrayDataObject?.length - 1
           ) {
@@ -4294,13 +4323,13 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           }
 
-          //grouping sin USAR E INCOMPLETO
+          //! grouping sin USAR E INCOMPLETO
           if (
             grouping === true &&
             groupingAux === false &&
             index2 === arrayDataObject?.length - 1
           ) {
-            console.log("TEST");
+            // console.log("TEST");
             const _grouping = infoArchivo?.paramsGrouping
               ? agrupacion({
                   fileArrayValidateObject: arrayValidateObject,
@@ -4437,6 +4466,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let notValidate =
             item3?.notValidate === true ? item3.notValidate : null;
           let unique = item3?.unique === true ? item3.unique : null;
+          let uniqueBy = item3?.uniqueBy ? item3.uniqueBy : null;
           let singleGroup =
             item3?.singleGroup === true ? item3.singleGroup : null;
           let endSingleGroup =
@@ -4445,7 +4475,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
           let grouping = item3?.grouping === true ? item3.grouping : null;
           let messageError = isUndefined(item3?.messageError)
             ? undefined
-            : messageError;
+            : item3?.messageError;
           if (!value && (mayBeEmpty === false || mayBeEmpty === null)) {
             errors.push({
               archivo: item.archivo,
@@ -4471,6 +4501,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               operationNotValid,
               notValidate,
               unique,
+              uniqueBy,
               singleGroup,
               endSingleGroup,
               grouping,

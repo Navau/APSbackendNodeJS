@@ -1,6 +1,21 @@
 const multer = require("multer");
 const path = require("path");
-const { map, filter, isEmpty, forEach, find, chunk } = require("lodash");
+const {
+  map,
+  filter,
+  isEmpty,
+  forEach,
+  find,
+  chunk,
+  uniqBy,
+  every,
+  size,
+  flatMap,
+  intersectionBy,
+  intersection,
+  reduce,
+  pickBy,
+} = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -755,7 +770,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             where: [
               {
                 key: "id_clasificador_comun_grupo",
-                value: 6,
+                value: 5,
               },
             ],
           },
@@ -4217,7 +4232,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        unique: true,
+        uniqueBy: "serie",
         function: ["mayorACeroEntero"],
       },
       {
@@ -8487,6 +8502,46 @@ async function unico(params) {
   return result;
 }
 
+async function unicoPor(params) {
+  const { fileArrayObject, field, validatedBy } = params;
+  const data = map(fileArrayObject, (item, index) => ({ ...item, index }));
+  const uniquesValidatedBy = uniqBy(data, validatedBy);
+  const duplicates = [];
+  forEach(uniquesValidatedBy, (unique) => {
+    const ocurrences = filter(
+      data,
+      (item) => item[validatedBy] === unique[validatedBy]
+    );
+    if (size(ocurrences) !== uniqBy(ocurrences, field)) {
+      const positionsByField = reduce(
+        ocurrences,
+        (acc, item, index) => {
+          const value = item[field];
+          if (!acc[value]) acc[value] = [index];
+          else acc[value].push(index);
+          return acc;
+        },
+        {}
+      );
+      const nonUniques = pickBy(
+        positionsByField,
+        (positions) => size(positions) > 1
+      );
+
+      forEach(flatMap(Object.values(nonUniques)), (position) =>
+        duplicates.push(ocurrences[position])
+      );
+    }
+  });
+
+  return map(duplicates, (duplicate) => ({
+    ok: false,
+    message: `El campo debe ser único por ${validatedBy} (${duplicate[validatedBy]})`,
+    value: duplicate?.[field],
+    row: duplicate?.index,
+  }));
+}
+
 async function grupoUnico(params) {
   const { fileArrayValidateObject, fileArrayObject, codeCurrentFile } = params;
   const fields = [];
@@ -8656,6 +8711,7 @@ module.exports = {
   plazoValorConInstrumento,
   tasaUltimoHecho,
   unico,
+  unicoPor,
   grupoUnico,
   selectComun,
   compararFechas,
