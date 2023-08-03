@@ -624,12 +624,7 @@ const insertarUsuarioAPSaSistema = async (usuarioAPS, password) => {
     const queryInstituciones = EscogerInternoUtil("APS_seg_institucion", {
       select: ["*"],
       where: [
-        { key: "sigla", value: usuarioAPS?.entidad?.nombre || "" },
-        {
-          key: "institucion",
-          value: usuarioAPS?.entidad?.nombre || "",
-          operatorSQL: "OR",
-        },
+        { key: "codigo", value: usuarioAPS?.entidad?.sigla || "" },
         { key: "activo", value: true },
       ],
     });
@@ -640,10 +635,12 @@ const insertarUsuarioAPSaSistema = async (usuarioAPS, password) => {
     if (isUndefined(institucionInfo)) {
       const messageErrorInstitucion =
         usuarioAPS?.entidad?.nombre && usuarioAPS?.entidad?.sigla
-          ? `No se encontró la institucion '${usuarioAPS.entidad.nombre}' con la sigla ${usuarioAPS.entidad.sigla} en el sistema para registrar al usuario`
-          : usuarioAPS?.entidad?.nombre
-          ? `No se encontró la institucion '${usuarioAPS.entidad.nombre}' en el sistema para registrar al usuario`
-          : "No se encontró la institución en el sistema para registrar al usuario";
+          ? `No se encontró la institución '${usuarioAPS.entidad.nombre}' con el código '${usuarioAPS.entidad.sigla}' en el sistema para registrar al usuario`
+          : usuarioAPS?.entidad?.nombre && !usuarioAPS?.entidad?.sigla
+          ? `No se encontró la institución '${usuarioAPS.entidad.nombre}' en el sistema para registrar al usuario`
+          : !usuarioAPS?.entidad?.nombre && usuarioAPS?.entidad?.sigla
+          ? `No se encontró la institucion con el código '${usuarioAPS.entidad.sigla}' en el sistema para registrar al usuario`
+          : "No se encontró el nombre de institución ni el código de institucion en el sistema para registrar al usuario";
       throw {
         code: 404,
         message: messageErrorInstitucion,
