@@ -82,6 +82,7 @@ const {
   every,
   take,
   some,
+  mapValues,
 } = require("lodash");
 const jwt = require("../services/jwt.service");
 const pool = require("../database");
@@ -492,6 +493,16 @@ async function InsertarCRUD(paramsF) {
       respDatosNoRecibidos200END(res);
       return;
     }
+
+    const tablasUsuarioRegistrador = await EjecutarQuery(
+      EscogerInternoUtil("APS_seg_view_tablas_id_usuario_registro")
+    );
+
+    if (
+      find(tablasUsuarioRegistrador, (table) => table.table_name === nameTable)
+    )
+      body.id_usuario = req.user.id_usuario;
+
     const validateData = await ValidarDatosValidacion({
       nameTable,
       data: body,
