@@ -273,17 +273,18 @@ async function ValidarDatosValidacion(params) {
               getMessageTypeData(columnName, dataType) || defaultMessage
             );
         } else {
-          let tablaUsuario = validarCamposUsuario(
+          let validacionAvanzada = validarCamposAvanzados(
             nameTable,
             columnName,
             validationSchema,
             value,
             action,
             isNullable,
-            columnDefault
+            columnDefault,
+            data
           );
-          validationSchema = !isUndefined(tablaUsuario)
-            ? tablaUsuario(value, action, isNullable, columnDefault)
+          validationSchema = !isUndefined(validacionAvanzada)
+            ? validacionAvanzada(value, action, isNullable, columnDefault)
             : validationSchema;
           if (isNullable) validationSchema = validationSchema.nullable();
           if (!isNullable && columnDefault === null && action === "Insertar") {
@@ -342,14 +343,15 @@ async function ValidarDatosValidacion(params) {
   }
 }
 
-const validarCamposEspeciales = (
+const validarCamposAvanzados = (
   nameTable,
   columnName,
   schema = Yup,
   mainValue,
   action,
   isNullable,
-  columnDefault
+  columnDefault,
+  data
 ) => {
   const auxValidations = (value) => {
     if (isEmpty(value) && columnDefault !== null) return true;
@@ -584,20 +586,24 @@ const validarCamposEspeciales = (
         );
       },
     },
+    APS_param_composicion_serie: {
+      fin: () => {
+        return schema.test(
+          `es fin mayor que inicio`,
+          `El valor de fin: '${data?.fin}' debe ser mayor que el valor de inicio: '${data?.inicio}'`,
+          (value) => {
+            if (isUndefined(value) && isUndefined(data.inicio)) return false;
+            if (Number(value) < Number(data.inicio)) return false;
+            return true;
+          }
+        );
+      },
+    },
   };
   return TABLES_VALIDATIONS?.[nameTable]?.[columnName] || undefined;
 };
 
 // APS_param_composicion_serie;
-const validarComposicionSerie = (
-  nameTable,
-  columnName,
-  schema = Yup,
-  mainValue,
-  action,
-  isNullable,
-  columnDefault
-) => {};
 
 module.exports = {
   ValidarDatosValidacion,
