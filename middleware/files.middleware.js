@@ -4607,7 +4607,7 @@ exports.validarArchivo = async (req, res, next) => {
       await pool
         .query(queryNroCarga)
         .then((resultNroCarga) => {
-          result = max(resultNroCarga, "nro_carga") || 0;
+          result = max(resultNroCarga.rows, "nro_carga")?.nro_carga || 0;
         })
         .catch((err) => {
           reject(err);
@@ -4629,6 +4629,8 @@ exports.validarArchivo = async (req, res, next) => {
         });
         return undefined;
       });
+
+    console.log({ nroCarga });
 
     await validarArchivosIteraciones({
       req,
