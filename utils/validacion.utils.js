@@ -302,6 +302,16 @@ async function ValidarDatosValidacion(params) {
               ? validationSchema.typeError(requiredMessage)
               : validationSchema;
           }
+          if (
+            !isNullable &&
+            columnDefault &&
+            !value &&
+            action === "Actualizar"
+          ) {
+            validationSchema = isUndefined(value)
+              ? validationSchema.required(requiredMessage)
+              : validationSchema.required(defaultMessage);
+          }
         }
       }
 
@@ -332,7 +342,7 @@ async function ValidarDatosValidacion(params) {
   }
 }
 
-const validarCamposUsuario = (
+const validarCamposEspeciales = (
   nameTable,
   columnName,
   schema = Yup,
@@ -577,6 +587,17 @@ const validarCamposUsuario = (
   };
   return TABLES_VALIDATIONS?.[nameTable]?.[columnName] || undefined;
 };
+
+// APS_param_composicion_serie;
+const validarComposicionSerie = (
+  nameTable,
+  columnName,
+  schema = Yup,
+  mainValue,
+  action,
+  isNullable,
+  columnDefault
+) => {};
 
 module.exports = {
   ValidarDatosValidacion,
