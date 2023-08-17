@@ -4033,7 +4033,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{1,4}$/,
         function: ["calificacion"],
       },
       {

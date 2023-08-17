@@ -4630,8 +4630,6 @@ exports.validarArchivo = async (req, res, next) => {
         return undefined;
       });
 
-    console.log({ nroCarga });
-
     await validarArchivosIteraciones({
       req,
       res,

@@ -285,9 +285,18 @@ async function ValidarDatosValidacion(params) {
           validationSchema = !isUndefined(tablaUsuario)
             ? tablaUsuario(value, action, isNullable, columnDefault)
             : validationSchema;
-          // console.log({ columnName, columnDefault, isNullable });
           if (isNullable) validationSchema = validationSchema.nullable();
           if (!isNullable && columnDefault === null && action === "Insertar") {
+            validationSchema = validationSchema.required(requiredMessage);
+            validationSchema = isUndefined(value)
+              ? validationSchema.typeError(requiredMessage)
+              : validationSchema;
+          }
+          if (
+            !isNullable &&
+            columnDefault === null &&
+            action === "Actualizar"
+          ) {
             validationSchema = validationSchema.required(requiredMessage);
             validationSchema = isUndefined(value)
               ? validationSchema.typeError(requiredMessage)
