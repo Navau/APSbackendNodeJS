@@ -1719,6 +1719,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
 
               if (isUndefined(value)) {
                 respResultadoVacio404END(
+                  res,
                   "No existe una fecha válida disponible"
                 );
                 return;
@@ -1731,7 +1732,8 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               respResultadoCorrectoObjeto200(res, [
                 { max: value.fecha_operacion },
               ]);
-            } else respResultadoVacio404END(res);
+            } else
+              respResultadoVacio404END(res, "No existen registros iniciales");
           })
           .catch((err) => {
             throw err;
