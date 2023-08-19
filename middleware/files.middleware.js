@@ -15,6 +15,7 @@ const {
   max,
   isUndefined,
   isNull,
+  maxBy,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -4607,7 +4608,11 @@ exports.validarArchivo = async (req, res, next) => {
       await pool
         .query(queryNroCarga)
         .then((resultNroCarga) => {
-          result = max(resultNroCarga.rows, "nro_carga")?.nro_carga || 0;
+          console.log({
+            resultNroCarga: resultNroCarga.rows,
+            max: resultNroCarga.rows?.[0]?.nro_carga,
+          });
+          result = maxBy(resultNroCarga.rows, "nro_carga")?.nro_carga || 0;
         })
         .catch((err) => {
           reject(err);
@@ -4629,6 +4634,8 @@ exports.validarArchivo = async (req, res, next) => {
         });
         return undefined;
       });
+
+    console.log({ nroCarga });
 
     await validarArchivosIteraciones({
       req,
