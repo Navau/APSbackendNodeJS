@@ -15,6 +15,7 @@ const {
   intersection,
   reduce,
   pickBy,
+  includes,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -764,6 +765,18 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
           },
         };
         PARAMS.paramsCalificacion = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+            ],
+          },
+        };
+        PARAMS.paramsCalificacionVacio = {
           table: "APS_param_clasificador_comun",
           params: {
             select: ["descripcion"],
@@ -3936,6 +3949,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
+        uniqueBy: "serie",
         function: ["tipoInstrumento"],
       },
       {
@@ -4004,7 +4018,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        function: ["mayorACeroDecimal"],
+        function: ["tasaEmision"],
       },
       {
         columnName: "plazo_emision",
@@ -4051,6 +4065,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
+        uniqueBy: "serie",
         function: ["tipoInstrumento"],
       },
       {
@@ -4147,6 +4162,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
+        uniqueBy: "serie",
         function: ["tipoInstrumento"],
       },
       {
@@ -4156,8 +4172,8 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "serie_emision",
-        pattern: /^[A-Za-z]{1,1}$/,
-        function: [],
+        pattern: /^[A-Za-z0-9]{1,1}$/,
+        function: ["serieEmision"],
       },
       {
         columnName: "serie",
@@ -4204,7 +4220,8 @@ async function obtenerValidaciones(typeFile) {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
         mayBeEmpty: true,
-        function: ["calificacion"],
+        function: ["calificacionConInstrumento"],
+        tiposInstrumentos: ["CFC", "ACC"],
       },
       {
         columnName: "calificadora",
@@ -4222,6 +4239,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
+        uniqueBy: "serie",
         function: ["tipoInstrumento"],
       },
       {
@@ -7666,6 +7684,39 @@ async function tipoTasa(table, params) {
   return resultFinal;
 }
 
+function tasaEmision(tipoInteresValue, tasaEmisionValue) {
+  try {
+    if (tipoInteresValue !== "R" && tipoInteresValue !== "D")
+      return "El Tipo de Interes debe ser 'R' o 'D'";
+    if (tipoInteresValue === "R" && Number(tasaEmisionValue) <= 0)
+      return "La Tasa Emisión debe ser mayor a '0', debido a que Tipo Interes es 'R'";
+    if (tipoInteresValue === "D" && Number(tasaEmisionValue) > 0)
+      return "La Tasa Emision debe ser '0', debido a que Tipo Interes es 'D'";
+    return true;
+  } catch (err) {
+    throw err;
+  }
+}
+function serieEmision(tipoInstrumentoValue, serieEmisionValue) {
+  try {
+    const serieEmisionValues1 = ["U", "A"];
+    const serieEmisionValues2 = ["1", "A", "B"];
+    if (
+      tipoInstrumentoValue === "ACC" &&
+      includes(serieEmisionValues1, serieEmisionValue)
+    )
+      return "La Serie de Emision debe ser 'U' o 'A', debido a que Tipo Instrumento es 'ACC'";
+    if (
+      tipoInstrumentoValue === "CFC" &&
+      includes(serieEmisionValues2, serieEmisionValue)
+    )
+      return "La Serie de Emision debe ser '1', 'A' o 'B', debido a que Tipo Instrumento es 'CFC'";
+    return true;
+  } catch (err) {
+    throw err;
+  }
+}
+
 async function plazoCupon(params) {
   const { plazo_cupon, nro_pago } = params;
 
@@ -8503,43 +8554,47 @@ async function unico(params) {
 }
 
 async function unicoPor(params) {
-  const { fileArrayObject, field, validatedBy } = params;
-  const data = map(fileArrayObject, (item, index) => ({ ...item, index }));
-  const uniquesValidatedBy = uniqBy(data, validatedBy);
-  const duplicates = [];
-  forEach(uniquesValidatedBy, (unique) => {
-    const ocurrences = filter(
-      data,
-      (item) => item[validatedBy] === unique[validatedBy]
-    );
-    if (size(ocurrences) !== uniqBy(ocurrences, field)) {
-      const positionsByField = reduce(
-        ocurrences,
-        (acc, item, index) => {
-          const value = item[field];
-          if (!acc[value]) acc[value] = [index];
-          else acc[value].push(index);
-          return acc;
-        },
-        {}
+  try {
+    const { fileArrayObject, field, validatedBy } = params;
+    const data = map(fileArrayObject, (item, index) => ({ ...item, index }));
+    const uniquesValidatedBy = uniqBy(data, validatedBy);
+    const duplicates = [];
+    forEach(uniquesValidatedBy, (unique) => {
+      const ocurrences = filter(
+        data,
+        (item) => item[validatedBy] === unique[validatedBy]
       );
-      const nonUniques = pickBy(
-        positionsByField,
-        (positions) => size(positions) > 1
-      );
+      if (size(ocurrences) !== uniqBy(ocurrences, field)) {
+        const positionsByField = reduce(
+          ocurrences,
+          (acc, item, index) => {
+            const value = item[field];
+            if (!acc[value]) acc[value] = [index];
+            else acc[value].push(index);
+            return acc;
+          },
+          {}
+        );
+        const nonUniques = pickBy(
+          positionsByField,
+          (positions) => size(positions) > 1
+        );
 
-      forEach(flatMap(Object.values(nonUniques)), (position) =>
-        duplicates.push(ocurrences[position])
-      );
-    }
-  });
+        forEach(flatMap(Object.values(nonUniques)), (position) =>
+          duplicates.push(ocurrences[position])
+        );
+      }
+    });
 
-  return map(duplicates, (duplicate) => ({
-    ok: false,
-    message: `El campo debe ser único por ${validatedBy} (${duplicate[validatedBy]})`,
-    value: duplicate?.[field],
-    row: duplicate?.index,
-  }));
+    return map(duplicates, (duplicate) => ({
+      ok: false,
+      message: `El campo debe ser único por ${validatedBy} (${duplicate[validatedBy]})`,
+      value: duplicate?.[field],
+      row: duplicate?.index,
+    }));
+  } catch (err) {
+    throw err;
+  }
 }
 
 async function grupoUnico(params) {
@@ -8671,6 +8726,8 @@ module.exports = {
   tipoAmortizacion,
   tipoInteres,
   tipoTasa,
+  tasaEmision,
+  serieEmision,
   calificacionRiesgoConsultaMultiple,
   CortoLargoPlazo,
   fechaOperacionMenor,

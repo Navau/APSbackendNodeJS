@@ -16,6 +16,7 @@ const {
   isUndefined,
   isNull,
   maxBy,
+  isArray,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -50,6 +51,8 @@ const {
   rango,
   agrupacion,
   unicoPor,
+  tasaEmision,
+  serieEmision,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1788,6 +1791,21 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
+            } else if (itemFunction === "serieEmision") {
+              const functionMessage = serieEmision(
+                item2?.tipo_instrumento,
+                value
+              );
+              if (functionMessage !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: functionMessage,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             } else if (itemFunction === "precioNominalBs") {
               try {
                 const _monedaTipoCambio = await monedaTipoCambio({
@@ -2474,7 +2492,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  descripcion: `Solicitar el Registro de Emisor a la APS (Autorización RMV)`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -2543,6 +2561,18 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: `El campo no corresponde a ningún Tipo de Tasa definido`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "tasaEmision") {
+              const functionMessage = tasaEmision(item2?.tipo_interes, value);
+              if (functionMessage !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: functionMessage,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -2662,19 +2692,22 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               }
             } else if (itemFunction === "calificacionConInstrumento") {
+              const tiposInstrumentos = item3?.tiposInstrumentos;
               let errFunction = true;
               let errFunctionInstrumento = true;
               let errFunctionVacio = true;
-              map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
+              if (!isUndefined(tiposInstrumentos)) {
+                if (!includes(tiposInstrumentos, item2.tipo_instrumento))
                   errFunctionInstrumento = false;
-                }
-              });
+              } else {
+                forEach(_calificacionConInstrumento?.resultFinal, (item4) => {
+                  if (item2.tipo_instrumento === item4.sigla)
+                    errFunctionInstrumento = false;
+                });
+              }
               if (!errFunctionInstrumento) {
-                map(_calificacionVacio?.resultFinal, (item4, index4) => {
-                  if (value === item4.descripcion) {
-                    errFunctionVacio = false;
-                  }
+                forEach(_calificacionVacio?.resultFinal, (item4) => {
+                  if (value === item4.descripcion) errFunctionVacio = false;
                 });
                 if (
                   (value !== "" || value.length >= 1) &&
@@ -4275,13 +4308,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             !isEmpty(uniqueBy) &&
             index2 === arrayDataObject?.length - 1
           ) {
-            const _unicoPor = infoArchivo.paramsUnico
-              ? await unicoPor({
-                  fileArrayObject: arrayDataObject,
-                  field: columnName,
-                  validatedBy: uniqueBy,
-                })
-              : null;
+            const _unicoPor = await unicoPor({
+              fileArrayObject: arrayDataObject,
+              field: columnName,
+              validatedBy: uniqueBy,
+            });
 
             if (size(_unicoPor) >= 1) {
               forEach(_unicoPor, (errorUnicoPor) => {
@@ -4608,10 +4639,6 @@ exports.validarArchivo = async (req, res, next) => {
       await pool
         .query(queryNroCarga)
         .then((resultNroCarga) => {
-          console.log({
-            resultNroCarga: resultNroCarga.rows,
-            max: resultNroCarga.rows?.[0]?.nro_carga,
-          });
           result = maxBy(resultNroCarga.rows, "nro_carga")?.nro_carga || 0;
         })
         .catch((err) => {
@@ -4634,8 +4661,6 @@ exports.validarArchivo = async (req, res, next) => {
         });
         return undefined;
       });
-
-    console.log({ nroCarga });
 
     await validarArchivosIteraciones({
       req,
