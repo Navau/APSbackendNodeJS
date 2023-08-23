@@ -129,7 +129,7 @@ async function ListarCompletoCRUD(paramsF) {
   } = paramsF;
   const action = "Listar";
   const {
-    body: { key },
+    query: { key },
   } = req;
   try {
     if (key !== KEY_AUX) {
@@ -184,7 +184,7 @@ async function ListarCRUD(paramsF) {
   const { req, res, nameTable, nameView, id = undefined } = paramsF;
   const action = "Listar";
   const {
-    body: { key },
+    query: { key, limit, offset },
   } = req;
   try {
     if (key !== KEY_AUX) {
@@ -201,7 +201,7 @@ async function ListarCRUD(paramsF) {
       }
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
-      ? ListarUtil(nameView || nameTable, { activo: null })
+      ? ListarUtil(nameView || nameTable, { activo: null, limit, offset })
       : ListarUtil(nameView || nameTable);
 
     await pool
@@ -229,7 +229,7 @@ async function ListarClasificadorCRUD(paramsF) {
   } = paramsF;
   const action = "Listar";
   const {
-    body: { key },
+    query: { key, limit, offset },
   } = req;
   try {
     if (key !== KEY_AUX) {
@@ -252,7 +252,12 @@ async function ListarClasificadorCRUD(paramsF) {
     };
 
     const query = isUndefined(await CampoActivoAux(nameTable))
-      ? ListarUtil(nameView || nameTable, { ...params, activo: null })
+      ? ListarUtil(nameView || nameTable, {
+          ...params,
+          activo: null,
+          limit,
+          offset,
+        })
       : ListarUtil(nameView || nameTable, params);
 
     await pool
@@ -282,6 +287,7 @@ async function BuscarCRUD(paramsF) {
   const action = "Buscar";
   const {
     body: { key },
+    query: { limit, offset },
   } = req;
   try {
     if (key !== KEY_AUX) {
@@ -315,6 +321,8 @@ async function BuscarCRUD(paramsF) {
     const params = { body };
     const x = await CampoActivoAux(nameTable);
     if (isUndefined(x)) params.activo = null;
+    if (!isUndefined(limit)) params.limit = limit;
+    if (!isUndefined(offset)) params.offset = offset;
     const query = BuscarUtil(nameTable, params);
     await pool
       .query(query)
@@ -334,6 +342,7 @@ async function BuscarDiferenteCRUD(paramsF) {
   const action = "Buscar";
   const {
     body: { key },
+    query: { limit, offset },
   } = req;
   try {
     if (key !== KEY_AUX) {
@@ -368,6 +377,8 @@ async function BuscarDiferenteCRUD(paramsF) {
     const params = { body };
     const x = await CampoActivoAux(nameTable);
     if (isUndefined(x)) params.activo = null;
+    if (!isUndefined(limit)) params.limit = limit;
+    if (!isUndefined(offset)) params.offset = offset;
     const query = BuscarDiferenteUtil(nameTable, params);
 
     await pool
@@ -388,6 +399,7 @@ async function EscogerCRUD(paramsF) {
   const action = "Escoger";
   const {
     body: { key },
+    query: { limit, offset },
   } = req;
   try {
     if (isUndefined(login) && key !== KEY_AUX) {
@@ -422,6 +434,8 @@ async function EscogerCRUD(paramsF) {
     const params = { body };
     const activoAux = await CampoActivoAux(nameTable);
     if (isUndefined(activoAux)) params.activo = null;
+    if (!isUndefined(limit)) params.limit = limit;
+    if (!isUndefined(offset)) params.offset = offset;
     const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
@@ -770,9 +784,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
     methodName,
     action = undefined,
   } = paramsF;
-  const {
-    body: { key },
-  } = req;
+  let key = undefined;
+  if (!isUndefined(req.body.key)) key = req.body.key;
+  if (!isUndefined(req.query.key)) key = req.query.key;
   try {
     if (
       !isUndefined(action) &&

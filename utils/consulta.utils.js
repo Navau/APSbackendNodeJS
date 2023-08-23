@@ -12,6 +12,7 @@ const {
   isArray,
   truncate,
   isNull,
+  isNumber,
 } = require("lodash");
 const pool = require("../database");
 const format = require("pg-format");
@@ -309,6 +310,9 @@ function ListarUtil(table, params) {
       });
       query = query + ` WHERE ${params.whereIn.key} in (${valuesAux.join()})`;
     }
+    if (params?.limit && params?.offset) {
+      query = query + `LIMIT ${params.limit} OFFSET ${params.offset};`;
+    }
     query && (query = query + ";");
   }
 
@@ -348,6 +352,9 @@ function BuscarUtil(table, params) {
         valuesWhereAuxArray = [];
       }
     });
+  if (params?.limit && params?.offset) {
+    query = query + ` LIMIT ${params.limit} OFFSET ${params.offset};`;
+  }
   params.body && (query = query = query + ";");
 
   if (!query.includes("WHERE") && query.includes("AND")) {
@@ -383,6 +390,9 @@ async function BuscarDiferenteUtil(table, params) {
         valuesWhereAuxArray = [];
       }
     });
+  if (params?.limit && params?.offset) {
+    query = query + ` LIMIT ${params.limit} OFFSET ${params.offset};`;
+  }
   params.body && (query = query = query + ";");
 
   console.log(query);
@@ -456,12 +466,12 @@ function EscogerUtil(table, params) {
     }
 
     query &&
-      map(params.body, (item, index) => {
+      forEach(params.body, (item, index) => {
         // index = ponerComillasACamposConMayuscula(index);
         if (item !== null && typeof item !== "undefined") {
           if (params?.whereIn) {
             let valuesAux = [];
-            map(params.whereIn.values, (itemV, indexV) => {
+            forEach(params.whereIn.values, (itemV, indexV) => {
               valuesAux.push(itemV);
             });
             query =
@@ -500,6 +510,9 @@ function EscogerUtil(table, params) {
       queryAux.splice(query.indexOf("AND"), 4);
       queryAux.join("");
       query = queryAux.join("");
+    }
+    if (params?.limit && params?.offset) {
+      query = query + ` LIMIT ${params.limit} OFFSET ${params.offset}`;
     }
 
     params.body && (query = query = query + ";");
