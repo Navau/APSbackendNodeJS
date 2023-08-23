@@ -97,6 +97,7 @@ const {
 } = require("./formatearDatos");
 const { formatoArchivo } = require("./formatoCamposArchivos.utils");
 const dayjs = require("dayjs");
+const { KEY_AUX } = require("../config");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -131,7 +132,7 @@ async function ListarCompletoCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (key !== process.env.KEY_AUX) {
+    if (key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -186,7 +187,7 @@ async function ListarCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (key !== process.env.KEY_AUX) {
+    if (key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -231,7 +232,7 @@ async function ListarClasificadorCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (key !== process.env.KEY_AUX) {
+    if (key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -283,7 +284,7 @@ async function BuscarCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (key !== process.env.KEY_AUX) {
+    if (key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -335,7 +336,7 @@ async function BuscarDiferenteCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (key !== process.env.KEY_AUX) {
+    if (key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -389,7 +390,7 @@ async function EscogerCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (isUndefined(login) || key !== process.env.KEY_AUX) {
+    if (isUndefined(login) && key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -450,7 +451,7 @@ async function EscogerClasificadorCRUD(paramsF) {
     body: { key },
   } = req;
   try {
-    if (key !== process.env.KEY_AUX) {
+    if (key !== KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -775,7 +776,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
   try {
     if (
       (!isUndefined(action) && (!isUndefined(nameTable) || !isUndefined(id))) ||
-      key !== process.env.KEY_AUX
+      key !== KEY_AUX
     ) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
