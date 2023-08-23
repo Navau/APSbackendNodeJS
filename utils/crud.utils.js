@@ -297,6 +297,7 @@ async function BuscarCRUD(paramsF) {
       }
     }
     const body = req.body;
+    delete body?.key;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
@@ -348,6 +349,7 @@ async function BuscarDiferenteCRUD(paramsF) {
       }
     }
     const body = req.body;
+    delete body?.key;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
@@ -402,6 +404,7 @@ async function EscogerCRUD(paramsF) {
     }
     const body = req.body;
     delete body?.login;
+    delete body?.key;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
@@ -460,6 +463,7 @@ async function EscogerClasificadorCRUD(paramsF) {
         return;
       }
     }
+    delete req.body?.key;
     const params = {
       clasificador: true,
       idClasificadorComunGrupo,
