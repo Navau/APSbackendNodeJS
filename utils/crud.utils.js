@@ -775,7 +775,8 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
   } = req;
   try {
     if (
-      (!isUndefined(action) && (!isUndefined(nameTable) || !isUndefined(id))) ||
+      !isUndefined(action) &&
+      (!isUndefined(nameTable) || !isUndefined(id)) &&
       key !== KEY_AUX
     ) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
