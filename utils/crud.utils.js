@@ -1,3 +1,39 @@
+const nodemailer = require("nodemailer");
+const jwt = require("../services/jwt.service");
+const pool = require("../database");
+const fs = require("fs");
+const {
+  forEach,
+  map,
+  size,
+  find,
+  includes,
+  isUndefined,
+  filter,
+  groupBy,
+  difference,
+  split,
+  sortBy,
+  toLower,
+  minBy,
+  maxBy,
+  isEmpty,
+  uniqBy,
+  isNull,
+  uniq,
+  join,
+  replace,
+  chain,
+  flatMap,
+  differenceBy,
+  differenceWith,
+  intersectionBy,
+  intersectionWith,
+  every,
+  take,
+  some,
+  mapValues,
+} = require("lodash");
 const {
   ListarUtil,
   ListarCamposDeTablaUtil,
@@ -53,40 +89,6 @@ const {
 } = require("./respuesta.utils");
 const { ValidarDatosValidacion } = require("./validacion.utils");
 const {
-  forEach,
-  map,
-  size,
-  find,
-  includes,
-  isUndefined,
-  filter,
-  groupBy,
-  difference,
-  split,
-  sortBy,
-  toLower,
-  minBy,
-  maxBy,
-  isEmpty,
-  uniqBy,
-  isNull,
-  uniq,
-  join,
-  replace,
-  chain,
-  flatMap,
-  differenceBy,
-  differenceWith,
-  intersectionBy,
-  intersectionWith,
-  every,
-  take,
-  some,
-  mapValues,
-} = require("lodash");
-const jwt = require("../services/jwt.service");
-const pool = require("../database");
-const {
   formatearFecha,
   tipoReporteControlEnvio,
   validateEmail,
@@ -94,12 +96,7 @@ const {
   agregarMeses,
 } = require("./formatearDatos");
 const { formatoArchivo } = require("./formatoCamposArchivos.utils");
-const { CAPTCHA_KEY } = require("../config");
-const nodemailer = require("nodemailer");
-const fs = require("fs");
-const { actualizarContraseñaUsuario } = require("../api/autenticacion.api.js");
 const dayjs = require("dayjs");
-const { group } = require("console");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -130,17 +127,22 @@ async function ListarCompletoCRUD(paramsF) {
     extraExecuteQueryOptions = {},
   } = paramsF;
   const action = "Listar";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== process.env.KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const querys = [];
     for await (item of queryOptions) {
@@ -180,17 +182,22 @@ async function ListarCompletoCRUD(paramsF) {
 async function ListarCRUD(paramsF) {
   const { req, res, nameTable, nameView, id = undefined } = paramsF;
   const action = "Listar";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== process.env.KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
       ? ListarUtil(nameView || nameTable, { activo: null })
@@ -220,17 +227,22 @@ async function ListarClasificadorCRUD(paramsF) {
     valueId,
   } = paramsF;
   const action = "Listar";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== process.env.KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const params = {
       clasificador: true,
@@ -267,17 +279,22 @@ async function ListarClasificadorCRUD(paramsF) {
 async function BuscarCRUD(paramsF) {
   const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Buscar";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== process.env.KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const body = req.body;
     if (size(body) === 0) {
@@ -313,17 +330,22 @@ async function BuscarCRUD(paramsF) {
 async function BuscarDiferenteCRUD(paramsF) {
   const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Buscar";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== process.env.KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const body = req.body;
     if (size(body) === 0) {
@@ -361,8 +383,11 @@ async function BuscarDiferenteCRUD(paramsF) {
 async function EscogerCRUD(paramsF) {
   const { req, res, nameTable, id = undefined, login } = paramsF;
   const action = "Escoger";
+  const {
+    body: { key },
+  } = req;
   try {
-    if (isUndefined(login)) {
+    if (isUndefined(login) || key !== process.env.KEY_AUX) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -418,17 +443,22 @@ async function EscogerClasificadorCRUD(paramsF) {
     nameTableGroup,
   } = paramsF;
   const action = "Escoger";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== process.env.KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
     const params = {
       clasificador: true,
@@ -735,8 +765,14 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
     methodName,
     action = undefined,
   } = paramsF;
+  const {
+    body: { key },
+  } = req;
   try {
-    if (!isUndefined(action) && (!isUndefined(nameTable) || !isUndefined(id))) {
+    if (
+      (!isUndefined(action) && (!isUndefined(nameTable) || !isUndefined(id))) ||
+      key !== process.env.KEY_AUX
+    ) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -749,7 +785,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         return;
       }
     }
-    //TO DO: Sanitizar las entradas de req.body, hay que crear una funcion en validacion.utils.js, que realize validaciones en yup basadas en las opciones que se le pase.
+    //TODO: Sanitizar las entradas de req.body, hay que crear una funcion en validacion.utils.js, que realize validaciones en yup basadas en las opciones que se le pase.
 
     const OPERATION = {
       InstitucionConIDUsuario_Usuario: async () => {

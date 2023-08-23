@@ -16,6 +16,7 @@ const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
 const PORT_SERVER = process.env.PORT || 3977; // 3977 || 5290
 const APP_GUID = "8cb2f01b-fa2a-44bb-9928-746530e7d53c";
+const KEY_AUX = "ou89mXQs8H7tvEE7TCqGVDZG38ZsjdGb";
 
 const PARAMS_CONNECTION = {
   host: IP_SERVER_DB,
@@ -37,5 +38,6 @@ module.exports = {
   MAX_INTENTOS_LOGIN,
   CONFIG_PASSWORD,
   CAPTCHA_KEY,
+  KEY_AUX,
   TYPE_ENVIRONMENT,
 };
