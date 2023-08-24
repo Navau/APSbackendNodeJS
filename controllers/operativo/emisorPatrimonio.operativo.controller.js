@@ -45,7 +45,7 @@ async function Insertar(req, res) {
     req,
     res,
     nameTable,
-    methodName: "Insertar_Emision",
+    methodName: "Insertar_EmisorPatrimonio",
     action: "Insertar",
   };
   await RealizarOperacionAvanzadaCRUD(params);

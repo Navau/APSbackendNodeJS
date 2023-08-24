@@ -551,6 +551,7 @@ async function EscogerClasificadorCRUD(paramsF) {
 async function InsertarCRUD(paramsF) {
   const { req, res, nameTable, newID = undefined, id = undefined } = paramsF;
   const action = "Insertar";
+
   try {
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: nameTable,
@@ -583,6 +584,7 @@ async function InsertarCRUD(paramsF) {
       data: body,
       action,
     });
+
     if (validateData.ok === false) {
       respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
       return;
