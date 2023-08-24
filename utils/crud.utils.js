@@ -146,6 +146,7 @@ async function ListarCompletoCRUD(paramsF) {
       // }
     }
     const querys = [];
+    let activoAuxMain = undefined;
     for await (item of queryOptions) {
       let query = "";
       const tableAux = item.table;
@@ -158,7 +159,8 @@ async function ListarCompletoCRUD(paramsF) {
         const activoAux = await CampoActivoAux(tableAux);
         query = isUndefined(activoAux)
           ? ListarUtil(tableAux, { activo: null, ...queryUrl })
-          : ListarUtil(tableAux);
+          : ListarUtil(tableAux, { ...queryUrl });
+        activoAuxMain = item.main === true ? activoAux : undefined;
       }
       querys.push(query);
     }
@@ -175,7 +177,17 @@ async function ListarCompletoCRUD(paramsF) {
       resultQuerys.result,
       tableOptions
     );
-    respResultadoCorrectoObjeto200(res, resultFinal);
+    const tableMain = find(queryOptions, (item) => item.main);
+    if (isUndefined(tableMain))
+      throw new Error("Error al ejecutar la consulta a la BD");
+    const queryTotal = isUndefined(activoAuxMain)
+      ? ListarUtil(tableMain.table, { activo: null })
+      : ListarUtil(tableMain.table);
+    const totalData = await EjecutarQuery(queryTotal);
+    respResultadoCorrectoObjeto200(res, {
+      result: resultFinal,
+      sizeData: size(totalData),
+    });
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -203,7 +215,7 @@ async function ListarCRUD(paramsF) {
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
       ? ListarUtil(nameView || nameTable, { activo: null, limit, offset })
-      : ListarUtil(nameView || nameTable);
+      : ListarUtil(nameView || nameTable, { limit, offset });
 
     const dataTotal = await EjecutarQuery(
       isUndefined(await CampoActivoAux(nameTable))
@@ -444,13 +456,17 @@ async function EscogerCRUD(paramsF) {
     const params = { body };
     const activoAux = await CampoActivoAux(nameTable);
     if (isUndefined(activoAux)) params.activo = null;
+    const totalData = await EjecutarQuery(EscogerUtil(nameTable, params));
     if (!isUndefined(limit)) params.limit = limit;
     if (!isUndefined(offset)) params.offset = offset;
     const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
       .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
+        respResultadoCorrectoObjeto200(res, {
+          result: result.rows,
+          sizeData: size(totalData),
+        });
       })
       .catch((err) => {
         throw err;
