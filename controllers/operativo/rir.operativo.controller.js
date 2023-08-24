@@ -12,7 +12,7 @@ const nameTableFK1 = "aps_view_modalidad_seguros";
 
 async function ListarCompleto(req, res) {
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     { table: nameTableFK1, select: ["*"] },
   ];
   const tableOptions = [{ table: nameTableFK1, key: "id_tipo_entidad" }];

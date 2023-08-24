@@ -13,7 +13,7 @@ const nameTableFK1 = "APS_param_clasificador_comun";
 async function ListarCompleto(req, res) {
   // TO DO OPTIMIZAR LOS QUERYS DE LAS TABLAS APS_param_clasificador_comun, haciendo que la asignacion de IDs sea automatico y asi realizar solo 1 peticion
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     {
       table: nameTableFK1,
       select: ["*"],

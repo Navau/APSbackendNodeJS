@@ -147,9 +147,9 @@ async function ListarCompletoCRUD(paramsF) {
     }
     const querys = [];
     for await (item of queryOptions) {
-      console.log(item);
       let query = "";
       const tableAux = item.table;
+      const queryUrl = item.main === true ? { limit, offset } : {};
       if (item?.where) {
         delete item.table;
         const queryParams = item;
@@ -157,7 +157,7 @@ async function ListarCompletoCRUD(paramsF) {
       } else {
         const activoAux = await CampoActivoAux(tableAux);
         query = isUndefined(activoAux)
-          ? ListarUtil(tableAux, { activo: null, limit, offset })
+          ? ListarUtil(tableAux, { activo: null, ...queryUrl })
           : ListarUtil(tableAux);
       }
       querys.push(query);

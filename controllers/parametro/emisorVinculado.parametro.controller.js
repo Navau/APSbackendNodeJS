@@ -15,7 +15,7 @@ const nameTableFK3 = "aps_view_modalidad_seguros";
 async function ListarCompleto(req, res) {
   //ASEGURADORA === INSTITUCION
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     { table: nameTableFK1, select: ["*"] },
     { table: nameTableFK2, select: ["*"] },
     { table: nameTableFK3, select: ["*"] },

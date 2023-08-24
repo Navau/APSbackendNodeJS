@@ -13,7 +13,7 @@ const nameTableFK1 = "APS_param_emisor";
 
 async function ListarCompleto(req, res) {
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     { table: nameTableFK1, select: ["*"] },
   ];
   const tableOptions = [];

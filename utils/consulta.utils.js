@@ -603,6 +603,9 @@ function EscogerInternoUtil(table, params) {
     queryAux.join("");
     query = queryAux.join("");
   }
+  if (params?.limit && params?.offset) {
+    query = query + ` LIMIT ${params.limit} OFFSET ${params.offset}`;
+  }
   query && (query = query + ";");
   console.log(query);
   return query;
@@ -1447,49 +1450,53 @@ async function EjecutarQuery(query) {
 }
 
 async function EjecutarVariosQuerys(querys = [], newID, newTable) {
-  if (size(querys) < 0) return null;
-  const resultFinal = [];
-  const errors = [];
-  let counterAux = 0;
-  for await (const query of querys) {
-    const table = query;
-    const y = table.indexOf("FROM");
-    const z = table.substring(y, table.indexOf(`"`));
-    const w = table.substring(
-      table.lastIndexOf(z[z.length - 1]) + 2,
-      table.length
-    );
-    const v = w.substring(0, w.indexOf(`"`));
-    await pool
-      .query(query)
-      .then((result) => {
-        resultFinal.push({
-          data: result.rows,
-          table: newTable?.[counterAux] ? newTable[counterAux] : v,
-          order: counterAux,
-          fields: map(result?.fields, (field) => field.name),
-          id:
-            newID?.order === counterAux
-              ? newID?.id
-              : ObtenerIDDeTabla(v, result.rows)?.idKey,
+  try {
+    if (size(querys) < 0) return null;
+    const resultFinal = [];
+    const errors = [];
+    let counterAux = 0;
+    for await (const query of querys) {
+      const table = query;
+      const y = table.indexOf("FROM");
+      const z = table.substring(y, table.indexOf(`"`));
+      const w = table.substring(
+        table.lastIndexOf(z[z.length - 1]) + 2,
+        table.length
+      );
+      const v = w.substring(0, w.indexOf(`"`));
+      await pool
+        .query(query)
+        .then((result) => {
+          resultFinal.push({
+            data: result.rows,
+            table: newTable?.[counterAux] ? newTable[counterAux] : v,
+            order: counterAux,
+            fields: map(result?.fields, (field) => field.name),
+            id:
+              newID?.order === counterAux
+                ? newID?.id
+                : ObtenerIDDeTabla(v, result.rows)?.idKey,
+          });
+        })
+        .catch((err) => {
+          errors.push({
+            err,
+            message: err?.message,
+            table: v,
+            order: counterAux,
+          });
+        })
+        .finally(() => {
+          counterAux += 1;
         });
-      })
-      .catch((err) => {
-        errors.push({
-          err,
-          message: err?.message,
-          table: v,
-          order: counterAux,
-        });
-      })
-      .finally(() => {
-        counterAux += 1;
-      });
+    }
+    // const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
+    if (size(errors) > 0) return { ok: false, errors };
+    if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
+    return { ok: null, result: [errors, resultFinal] };
+  } catch (err) {
+    throw err;
   }
-  // const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
-  if (size(errors) > 0) return { ok: false, errors };
-  if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
-  return { ok: null, result: [errors, resultFinal] };
 }
 
 async function EjecutarQuerysReportes(opciones = {}, tipoReporte) {

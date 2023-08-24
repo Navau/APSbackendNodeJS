@@ -17,7 +17,7 @@ const nameTableFK5 = "APS_seg_usuario";
 
 async function ListarCompleto(req, res) {
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     { table: nameTableFK1, select: ["*"] },
     { table: nameTableFK2, select: ["*"] },
     { table: nameTableFK3, select: ["*"] },
