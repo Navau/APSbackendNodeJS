@@ -255,11 +255,13 @@ function respDemasiadasSolicitudes429(res, msg) {
 }
 
 function respResultadoCorrectoObjeto200(res, data, msg) {
+  const sizeData = !isUndefined(data?.sizeData) ? data.sizeData : undefined;
   res
     .status(200)
     .send({
       resultado: 1,
-      datos: data,
+      datos: isUndefined(sizeData) ? data : [...data.result],
+      sizeData,
       mensaje: msgFinal(msg, "La petición fue realizada correctamente"),
     })
     .end();

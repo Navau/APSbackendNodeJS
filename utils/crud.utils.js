@@ -129,7 +129,7 @@ async function ListarCompletoCRUD(paramsF) {
   } = paramsF;
   const action = "Listar";
   const {
-    query: { key },
+    query: { key, limit, offset },
   } = req;
   try {
     if (key !== KEY_AUX) {
@@ -147,6 +147,7 @@ async function ListarCompletoCRUD(paramsF) {
     }
     const querys = [];
     for await (item of queryOptions) {
+      console.log(item);
       let query = "";
       const tableAux = item.table;
       if (item?.where) {
@@ -156,7 +157,7 @@ async function ListarCompletoCRUD(paramsF) {
       } else {
         const activoAux = await CampoActivoAux(tableAux);
         query = isUndefined(activoAux)
-          ? ListarUtil(tableAux, { activo: null })
+          ? ListarUtil(tableAux, { activo: null, limit, offset })
           : ListarUtil(tableAux);
       }
       querys.push(query);
@@ -204,10 +205,19 @@ async function ListarCRUD(paramsF) {
       ? ListarUtil(nameView || nameTable, { activo: null, limit, offset })
       : ListarUtil(nameView || nameTable);
 
+    const dataTotal = await EjecutarQuery(
+      isUndefined(await CampoActivoAux(nameTable))
+        ? ListarUtil(nameView || nameTable, { activo: null })
+        : ListarUtil(nameView || nameTable)
+    );
+
     await pool
       .query(query)
       .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
+        respResultadoCorrectoObjeto200(res, {
+          result: result.rows,
+          sizeData: size(dataTotal),
+        });
       })
       .catch((err) => {
         throw err;
