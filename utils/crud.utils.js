@@ -133,17 +133,17 @@ async function ListarCompletoCRUD(paramsF) {
   } = req;
   try {
     if (key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const querys = [];
     for await (item of queryOptions) {
@@ -188,17 +188,17 @@ async function ListarCRUD(paramsF) {
   } = req;
   try {
     if (key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
       ? ListarUtil(nameView || nameTable, { activo: null, limit, offset })
@@ -233,17 +233,17 @@ async function ListarClasificadorCRUD(paramsF) {
   } = req;
   try {
     if (key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const params = {
       clasificador: true,
@@ -291,17 +291,17 @@ async function BuscarCRUD(paramsF) {
   } = req;
   try {
     if (key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const body = req.body;
     delete body?.key;
@@ -346,17 +346,17 @@ async function BuscarDiferenteCRUD(paramsF) {
   } = req;
   try {
     if (key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const body = req.body;
     delete body?.key;
@@ -403,17 +403,17 @@ async function EscogerCRUD(paramsF) {
   } = req;
   try {
     if (isUndefined(login) && key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const body = req.body;
     delete body?.login;
@@ -466,17 +466,17 @@ async function EscogerClasificadorCRUD(paramsF) {
   } = req;
   try {
     if (key !== KEY_AUX) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     delete req.body?.key;
     const params = {
