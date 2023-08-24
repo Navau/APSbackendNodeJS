@@ -817,9 +817,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
   if (!isUndefined(req.query.key)) key = req.query.key;
   try {
     if (
-      !isUndefined(action) &&
-      (!isUndefined(nameTable) || !isUndefined(id)) &&
-      key !== KEY_AUX
+      (!isUndefined(action) &&
+        (!isUndefined(nameTable) || !isUndefined(id)) &&
+        key !== KEY_AUX &&
+        action === "Insertar") ||
+      action === "Actualizar"
     ) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
@@ -1804,7 +1806,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               if (isUndefined(value)) {
                 respResultadoVacio404END(
                   res,
-                  "No existe una fecha válida disponible"
+                  reproceso === true
+                    ? "No existe ninguna Fecha Habilitada para reprocesar"
+                    : "No existen registros iniciales"
                 );
                 return;
               }
@@ -1817,7 +1821,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 { max: value.fecha_operacion },
               ]);
             } else
-              respResultadoVacio404END(res, "No existen registros iniciales");
+              respResultadoVacio404END(
+                res,
+                reproceso === true
+                  ? "No existe ninguna Fecha Habilitada para reprocesar"
+                  : "No existen registros iniciales"
+              );
           })
           .catch((err) => {
             throw err;
