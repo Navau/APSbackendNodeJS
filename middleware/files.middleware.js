@@ -258,6 +258,7 @@ async function seleccionarTablas(params) {
     code: null,
     table: null,
   };
+  console.log({ codigosSeguros, codigosPensiones });
   forEach(files, (item, index) => {
     const nameFile = item.originalname.toUpperCase();
     const codSeguros = nameFile.substring(0, 3);
@@ -269,6 +270,7 @@ async function seleccionarTablas(params) {
         ? codPensiones
         : null;
     if (codPensionesSeguros === null) return result;
+    console.log(nameFile);
     const findSeguros = find(
       codigosSeguros,
       (itemF) => codSeguros === itemF.codigo
