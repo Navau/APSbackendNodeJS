@@ -11,6 +11,7 @@ const {
   forEachRight,
   isArray,
   map,
+  isEmpty,
 } = require("lodash");
 
 const { nombreSeccionTabla } = require("./formatearDatos");
@@ -140,18 +141,23 @@ function respErrorServidor500END(res, err, msg, datos = null) {
 }
 
 function respErrorMulter500(res, err, msg) {
-  console.log(err);
   const errMessage = err?.message ? err?.message : "";
+  const limitSizeMessage =
+    err.code === "LIMIT_FILE_SIZE"
+      ? "El tamaño del archivo debe ser menor a 20MB"
+      : "";
   res
     .status(500)
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msgFinalError(
-        msg,
-        "Se ha producido un error de Multer al cargar el archivo. ERROR:",
-        errMessage
-      ),
+      mensaje: isEmpty(limitSizeMessage)
+        ? msgFinalError(
+            msg,
+            "Se ha producido un error de Multer al cargar el archivo. ERROR:",
+            errMessage
+          )
+        : limitSizeMessage,
       err,
     })
     .end();
