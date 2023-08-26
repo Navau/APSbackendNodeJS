@@ -53,6 +53,8 @@ const {
   unicoPor,
   tasaEmision,
   serieEmision,
+  calificacionConInstrumentoEstatico,
+  combinacionUnicaPorArchivo,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -258,7 +260,6 @@ async function seleccionarTablas(params) {
     code: null,
     table: null,
   };
-  console.log({ codigosSeguros, codigosPensiones });
   forEach(files, (item, index) => {
     const nameFile = item.originalname.toUpperCase();
     const codSeguros = nameFile.substring(0, 3);
@@ -1313,6 +1314,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         notValidate,
         unique,
         uniqueBy,
+        uniqueCombinationPerFile,
         singleGroup,
         endSingleGroup,
         grouping,
@@ -1451,7 +1453,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       dependencyInstrumentoSerie === currentInstrumentoSerie
                     ) {
                       if (tasa !== null) {
-                        if (tasaEmision !== itemArray.tasa_interes) {
+                        if (
+                          Number(tasaEmision) !== Number(itemArray.tasa_interes)
+                        ) {
                           errTasaArray.push({
                             value: itemArray.tasa_interes,
                             valuePrevious: tasaEmision,
@@ -1532,7 +1536,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       dependencyInstrumentoSerie === currentInstrumentoSerie
                     ) {
                       if (tasa !== null) {
-                        if (tasaEmision !== itemArray.tasa_interes) {
+                        if (
+                          Number(tasaEmision) !== Number(itemArray.tasa_interes)
+                        ) {
                           errTasaArray.push({
                             value: itemArray.tasa_interes,
                             valuePrevious: tasaEmision,
@@ -2693,54 +2699,71 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   });
                 }
               }
-            } else if (itemFunction === "calificacionConInstrumento") {
+            } else if (itemFunction === "calificacionConInstrumentoEstatico") {
               const tiposInstrumentos = item3?.tiposInstrumentos;
-              let errFunction = true;
-              let errFunctionInstrumento = true;
-              let errFunctionVacio = true;
-              if (!isUndefined(tiposInstrumentos)) {
-                if (!includes(tiposInstrumentos, item2.tipo_instrumento))
-                  errFunctionInstrumento = false;
-              } else {
-                forEach(_calificacionConInstrumento?.resultFinal, (item4) => {
-                  if (item2.tipo_instrumento === item4.sigla)
-                    errFunctionInstrumento = false;
+              const validacionCalificacion = calificacionConInstrumentoEstatico(
+                item2?.tipo_instrumento,
+                tiposInstrumentos,
+                value,
+                _calificacion?.resultFinal,
+                _calificacionVacio?.resultFinal
+              );
+              if (validacionCalificacion !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: validacionCalificacion,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
                 });
               }
-              if (!errFunctionInstrumento) {
-                forEach(_calificacionVacio?.resultFinal, (item4) => {
-                  if (value === item4.descripcion) errFunctionVacio = false;
-                });
-                if (
-                  (value !== "" || value.length >= 1) &&
-                  errFunctionVacio === true
-                ) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
-                }
-              } else {
-                map(_calificacion?.resultFinal, (item4, index4) => {
-                  if (value === item4.descripcion) {
-                    errFunction = false;
-                  }
-                });
-                if (errFunction === true) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
-                }
-              }
+              // let errFunction = true;
+              // let errFunctionInstrumento = true;
+              // let errFunctionVacio = true;
+              // if (!isUndefined(tiposInstrumentos)) {
+              //   if (!includes(tiposInstrumentos, item2.tipo_instrumento))
+              //     errFunctionInstrumento = false;
+              // } else {
+              //   forEach(_calificacionConInstrumento?.resultFinal, (item4) => {
+              //     if (item2.tipo_instrumento === item4.sigla)
+              //       errFunctionInstrumento = false;
+              //   });
+              // }
+              // if (!errFunctionInstrumento) {
+              //   forEach(_calificacionVacio?.resultFinal, (item4) => {
+              //     if (value === item4.descripcion) errFunctionVacio = false;
+              //   });
+              //   if (
+              //     (value !== "" || value.length >= 1) &&
+              //     errFunctionVacio === true
+              //   ) {
+              //     errors.push({
+              //       archivo: item.archivo,
+              //       tipo_error: "VALOR INCORRECTO",
+              //       descripcion: `La calificación no se encuentra en ninguna calificación válida`,
+              //       valor: value,
+              //       columna: columnName,
+              //       fila: index2,
+              //     });
+              //   }
+              // } else {
+              //   map(_calificacion?.resultFinal, (item4, index4) => {
+              //     if (value === item4.descripcion) {
+              //       errFunction = false;
+              //     }
+              //   });
+              //   if (errFunction === true) {
+              //     errors.push({
+              //       archivo: item.archivo,
+              //       tipo_error: "VALOR INCORRECTO",
+              //       descripcion: `La calificación no se encuentra en ninguna calificación válida`,
+              //       valor: value,
+              //       columna: columnName,
+              //       fila: index2,
+              //     });
+              //   }
+              // }
             } else if (itemFunction === "custodio") {
               if (mayBeEmpty === true && !value) {
               } else {
@@ -4330,6 +4353,33 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           }
           if (
+            !isNull(uniqueCombinationPerFile) &&
+            !isEmpty(uniqueCombinationPerFile) &&
+            index2 === arrayDataObject?.length - 1
+          ) {
+            const _combinacionUnicaPorArchivo =
+              await combinacionUnicaPorArchivo({
+                fileArrayObject: arrayDataObject,
+                field: columnName,
+              });
+
+            if (size(_combinacionUnicaPorArchivo) >= 1) {
+              forEach(
+                _combinacionUnicaPorArchivo,
+                (errorCombinacionUnicaPor) => {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: errorCombinacionUnicaPor?.message,
+                    valor: errorCombinacionUnicaPor?.value,
+                    columna: columnName,
+                    fila: errorCombinacionUnicaPor?.row,
+                  });
+                }
+              );
+            }
+          }
+          if (
             endSingleGroup === true &&
             index2 === arrayDataObject?.length - 1
           ) {
@@ -4341,10 +4391,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 })
               : null;
 
-            // console.log(_unico);
+            // console.log({ _singleGroup });
 
             if (_singleGroup?.length >= 1) {
-              map(_singleGroup, (item4, index4) => {
+              forEach(_singleGroup, (item4, index4) => {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
@@ -4501,6 +4551,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             item3?.notValidate === true ? item3.notValidate : null;
           let unique = item3?.unique === true ? item3.unique : null;
           let uniqueBy = item3?.uniqueBy ? item3.uniqueBy : null;
+          let uniqueCombinationPerFile = item3?.uniqueCombinationPerFile
+            ? item3.uniqueCombinationPerFile
+            : null;
           let singleGroup =
             item3?.singleGroup === true ? item3.singleGroup : null;
           let endSingleGroup =
@@ -4536,6 +4589,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               notValidate,
               unique,
               uniqueBy,
+              uniqueCombinationPerFile,
               singleGroup,
               endSingleGroup,
               grouping,

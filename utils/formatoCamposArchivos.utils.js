@@ -636,6 +636,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".442")) {
         console.log("ARCHIVO CORRECTO : 442", nameFile);
         PARAMS.codeCurrentFile = "442";
@@ -719,6 +720,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".443")) {
         console.log("ARCHIVO CORRECTO : 443", nameFile);
         PARAMS.codeCurrentFile = "443";
@@ -814,6 +816,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             ],
           },
         };
+        PARAMS.paramsSingleGroup = true;
       } else if (nameFile.includes(".444")) {
         console.log("ARCHIVO CORRECTO : 444", nameFile);
         PARAMS.codeCurrentFile = "444";
@@ -3632,7 +3635,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         typeError: "format",
         function: [],
       },
@@ -3681,7 +3684,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         function: [],
       },
       {
@@ -3719,7 +3722,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         function: [],
       },
       {
@@ -3730,7 +3733,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_marcacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         notValidate: true,
         function: [],
       },
@@ -3749,7 +3752,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         function: [],
       },
       {
@@ -3765,7 +3768,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "ult_fecha_disponible",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         notValidate: true,
         function: [],
       },
@@ -3784,7 +3787,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -3847,7 +3850,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -3905,7 +3908,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -3949,12 +3952,14 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        uniqueBy: "serie",
+        singleGroup: true,
         function: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
+        singleGroup: true,
+        endSingleGroup: true,
         function: [],
       },
       {
@@ -3972,7 +3977,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -3980,7 +3985,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4065,12 +4070,14 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        uniqueBy: "serie",
+        singleGroup: true,
         function: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
+        singleGroup: true,
+        endSingleGroup: true,
         function: [],
       },
       {
@@ -4091,7 +4098,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4099,7 +4106,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4154,7 +4161,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4162,7 +4169,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        uniqueBy: "serie",
+        singleGroup: true,
         function: ["tipoInstrumento"],
       },
       {
@@ -4179,6 +4186,8 @@ async function obtenerValidaciones(typeFile) {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{0,23}$/,
         mayBeEmpty: true,
+        singleGroup: true,
+        endSingleGroup: true,
         function: [],
       },
       {
@@ -4220,7 +4229,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
         mayBeEmpty: true,
-        function: ["calificacionConInstrumento"],
+        function: ["calificacionConInstrumentoEstatico"],
         tiposInstrumentos: ["CFC", "ACC"],
       },
       {
@@ -4239,7 +4248,6 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        uniqueBy: "serie",
         function: ["tipoInstrumento"],
       },
       {
@@ -4308,13 +4316,13 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        unique: true,
+        uniqueBy: "serie",
         function: ["mayorACeroEntero"],
       },
       {
         columnName: "fecha_pago",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4472,7 +4480,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -4488,7 +4496,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4585,7 +4593,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -4601,7 +4609,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -4642,7 +4650,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -4747,7 +4755,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -4824,7 +4832,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -4846,7 +4854,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -4970,7 +4978,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_compra",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -5008,7 +5016,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_rev_tec",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         mayBeEmpty: true,
@@ -5121,7 +5129,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_compra",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -5159,7 +5167,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_rev_tec",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         mayBeEmpty: true,
@@ -5299,7 +5307,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_compra",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenor"],
@@ -5379,7 +5387,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_prestamo",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: ["fechaOperacionMenor"],
       },
@@ -5391,14 +5399,14 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_inicio",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: ["fechaOperacionMenor"],
       },
       {
         columnName: "fecha_finalizacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: ["fechaOperacionMenor"],
       },
@@ -5457,14 +5465,14 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_inicio_prestamo",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: ["fechaOperacionMenor"],
       },
       {
         columnName: "fecha_finalizacion_prestamo",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: ["fechaOperacionMenor"],
       },
@@ -5491,7 +5499,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_prestamo",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: ["fechaOperacionMenor"],
       },
@@ -5540,7 +5548,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -5605,7 +5613,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -5663,7 +5671,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -5692,7 +5700,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         function: [],
       },
@@ -5741,7 +5749,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -5749,7 +5757,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -5875,7 +5883,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_pago",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -5942,7 +5950,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -5950,7 +5958,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -6021,7 +6029,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_pago",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -6069,7 +6077,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -6224,7 +6232,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -6240,7 +6248,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: [],
@@ -6330,7 +6338,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         notValidate: true,
         function: ["fechaOperacionMenorAlArchivo"],
@@ -6393,7 +6401,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         notValidate: true,
         date: true,
         function: [],
@@ -7703,18 +7711,40 @@ function serieEmision(tipoInstrumentoValue, serieEmisionValue) {
     const serieEmisionValues2 = ["1", "A", "B"];
     if (
       tipoInstrumentoValue === "ACC" &&
-      includes(serieEmisionValues1, serieEmisionValue)
+      !includes(serieEmisionValues1, serieEmisionValue)
     )
       return "La Serie de Emision debe ser 'U' o 'A', debido a que Tipo Instrumento es 'ACC'";
     if (
       tipoInstrumentoValue === "CFC" &&
-      includes(serieEmisionValues2, serieEmisionValue)
+      !includes(serieEmisionValues2, serieEmisionValue)
     )
       return "La Serie de Emision debe ser '1', 'A' o 'B', debido a que Tipo Instrumento es 'CFC'";
     return true;
   } catch (err) {
     throw err;
   }
+}
+
+function calificacionConInstrumentoEstatico(
+  tipoInstrumento,
+  tiposInstrumentos,
+  calificacion,
+  calificaciones,
+  calificacionesVacio
+) {
+  const calificacionesMap = map(calificaciones, "descripcion");
+  const calificacionesVacioMap = map(calificacionesVacio, "descripcion");
+  if (!includes(tiposInstrumentos, tipoInstrumento))
+    return `El Tipo de Instrumento esperado es ${tiposInstrumentos?.join(
+      " o "
+    )}`;
+  if (tipoInstrumento === "CFC" && !includes(calificacionesMap, calificacion))
+    return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
+  if (tipoInstrumento === "ACC" && isEmpty(calificacion))
+    if (!includes(calificacionesVacioMap, calificacion))
+      return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento ACC)";
+
+  return true;
 }
 
 async function plazoCupon(params) {
@@ -8597,6 +8627,8 @@ async function unicoPor(params) {
   }
 }
 
+async function combinacionUnicaPorArchivo(params) {}
+
 async function grupoUnico(params) {
   const { fileArrayValidateObject, fileArrayObject, codeCurrentFile } = params;
   const fields = [];
@@ -8621,7 +8653,7 @@ async function grupoUnico(params) {
       row: i,
     });
   }
-  // console.log(fields);
+  console.log(fields);
   const search = fields.reduce((acc, item, index) => {
     // console.log(index);
     acc[item.values] = ++acc[item.values] || 0;
@@ -8729,6 +8761,7 @@ module.exports = {
   tasaEmision,
   serieEmision,
   calificacionRiesgoConsultaMultiple,
+  calificacionConInstrumentoEstatico,
   CortoLargoPlazo,
   fechaOperacionMenor,
   tipoDeCambio,
@@ -8769,6 +8802,7 @@ module.exports = {
   tasaUltimoHecho,
   unico,
   unicoPor,
+  combinacionUnicaPorArchivo,
   grupoUnico,
   selectComun,
   compararFechas,
