@@ -158,8 +158,6 @@ function FormatearObtenerMenuAngUtil(menu, menudet) {
     (menuItem) => !isNull(menuItem.children) && size(menuItem.children) > 0
   );
 
-  console.log("menuFinal", menuFinal);
-
   return menuFinal;
 }
 

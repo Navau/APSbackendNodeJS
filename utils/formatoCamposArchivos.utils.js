@@ -8653,7 +8653,7 @@ async function grupoUnico(params) {
       row: i,
     });
   }
-  console.log(fields);
+  // console.log(fields);
   const search = fields.reduce((acc, item, index) => {
     // console.log(index);
     acc[item.values] = ++acc[item.values] || 0;

@@ -82,7 +82,6 @@ var codeCurrentFile = "";
 var codeCurrentFilesArray = [];
 var nameTableErrors = "";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
-var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
 var dependenciesArrayEmptys = [];
 var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
@@ -4675,7 +4674,6 @@ exports.validarArchivo = async (req, res, next) => {
 
     const nroCargaPromise = new Promise(async (resolve, reject) => {
       let result = 1;
-      let nroCarga = 1;
       const whereAux = [
         { key: "id_rol", value: id_rol },
         { key: "fecha_operacion", value: fechaInicialOperacion },
@@ -4710,11 +4708,6 @@ exports.validarArchivo = async (req, res, next) => {
         return response;
       })
       .catch((err) => {
-        errorsCode.push({
-          type: "QUERY SQL ERROR",
-          message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla "${nameTable}" del usuario con ID: "${req.user.id_usuario}". ERROR: ${err.message}`,
-          err,
-        });
         return undefined;
       });
 
@@ -4731,7 +4724,7 @@ exports.validarArchivo = async (req, res, next) => {
           let bodyQuery = [];
           let currentFiles = [];
           let resultsPromise = [];
-          map(req.files, (item, index) => {
+          forEach(req.files, (item) => {
             currentFiles.push(item.originalname);
           });
           process.env.TZ = "America/La_Paz";
@@ -4785,13 +4778,7 @@ exports.validarArchivo = async (req, res, next) => {
               });
             })
             .catch((err) => {
-              console.log("ERR CARGA", err);
-              errorsCode.push({
-                files: currentFiles,
-                type: "QUERY SQL ERROR",
-                message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                err,
-              });
+              reject(err);
             })
             .finally(() => {
               resolve({ resultsPromise, bodyQuery });
@@ -4800,14 +4787,14 @@ exports.validarArchivo = async (req, res, next) => {
 
         await insertFilesPromise
           .then(async (response) => {
-            if (errors.length >= 1 || errorsCode.length >= 1) {
+            if (errors.length >= 1) {
               const insertErrorsPromise = new Promise(
                 async (resolve, reject) => {
                   let queryFiles = "";
                   let bodyQuery = [];
                   let currentFiles = [];
                   let resultsPromise = [];
-                  map(errors, (item, index) => {
+                  forEach(errors, (item, index) => {
                     bodyQuery.push({
                       id_carga_archivos:
                         response.resultsPromise[0]?.result?.rowsUpdate[0]
@@ -4857,13 +4844,6 @@ exports.validarArchivo = async (req, res, next) => {
                       });
                     })
                     .catch((err) => {
-                      console.log("ERR CARGA ERRORES", err);
-                      errorsCode.push({
-                        files: currentFiles,
-                        type: "QUERY SQL ERROR",
-                        message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                        err,
-                      });
                       reject(err);
                     })
                     .finally(() => {
@@ -4873,16 +4853,9 @@ exports.validarArchivo = async (req, res, next) => {
               );
 
               await insertErrorsPromise
-                .then((response) => {
-                  // console.log(response);
-                })
                 .catch((err) => {
-                  console.log("ERR", err);
-                  respErrorServidor500END(
-                    res,
-                    err,
-                    "Ocurrió un error inesperado."
-                  );
+                  // console.log("ERR", err);
+                  throw err;
                 })
                 .finally(() => {
                   respArchivoErroneo200(res, errors, response.resultsPromise);
@@ -4890,7 +4863,6 @@ exports.validarArchivo = async (req, res, next) => {
             } else {
               // console.log("PASE");
               req.errors = errors;
-              req.errorsCode = errorsCode;
               req.results = response.resultsPromise;
               req.returnsValues =
                 response.resultsPromise[0]?.result?.rowsUpdate;
@@ -4907,17 +4879,14 @@ exports.validarArchivo = async (req, res, next) => {
             }
           })
           .catch((err) => {
-            console.log({ err, errorsCode });
-            respErrorServidor500END(res, errorsCode);
-            return;
+            throw err;
           });
       })
       .catch((err) => {
-        console.log("ERR1", err);
-        respErrorServidor500END(res, { err, errorsCode });
+        throw err;
       });
   } catch (err) {
-    respErrorServidor500END(res, { err, errorsCode });
+    respErrorServidor500END(res, err);
   }
 };
 
@@ -4927,7 +4896,6 @@ exports.subirArchivo = async (req, res, next) => {
   codeCurrentFilesArray = [];
   nameTableErrors = "";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
-  errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   dependenciesArray = [];
   dependenciesArrayEmptys = [];
 
