@@ -4818,15 +4818,11 @@ exports.validarArchivo = async (req, res, next) => {
                         : 0,
                     });
                   });
-                  // console.log(errors);
-
-                  // console.log(nameTableErrors);
 
                   queryFiles = InsertarVariosUtil(nameTableErrors, {
                     body: bodyQuery,
                     returnValue: ["id_error_archivo"],
                   });
-                  // console.log("queryFiles", queryFiles);
 
                   await pool
                     .query(queryFiles)
@@ -4853,15 +4849,17 @@ exports.validarArchivo = async (req, res, next) => {
               );
 
               await insertErrorsPromise
-                .catch((err) => {
-                  // console.log("ERR", err);
-                  throw err;
+                .then((responseIEP) => {
+                  respArchivoErroneo200(
+                    res,
+                    errors,
+                    responseIEP.resultsPromise
+                  );
                 })
-                .finally(() => {
-                  respArchivoErroneo200(res, errors, response.resultsPromise);
+                .catch((err) => {
+                  throw err;
                 });
             } else {
-              // console.log("PASE");
               req.errors = errors;
               req.results = response.resultsPromise;
               req.returnsValues =
