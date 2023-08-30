@@ -4849,15 +4849,11 @@ exports.validarArchivo = async (req, res, next) => {
               );
 
               await insertErrorsPromise
-                .then((responseIEP) => {
-                  respArchivoErroneo200(
-                    res,
-                    errors,
-                    responseIEP.resultsPromise
-                  );
-                })
                 .catch((err) => {
                   throw err;
+                })
+                .finally(() => {
+                  respArchivoErroneo200(res, errors, response.resultsPromise);
                 });
             } else {
               req.errors = errors;
