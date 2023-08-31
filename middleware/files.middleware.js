@@ -1475,18 +1475,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     parseInt(countCurrentInstrumentoSerie) !==
                     parseInt(cantidadNroPago)
                   ) {
-                    const valorMessageAux = `${
-                      itemDP.code
-                    }: serie: ${dependencyInstrumentoSerie}, ${
-                      itemDP.column
-                    }: ${cantidadNroPago}, ${codeCurrentFile}: ${
-                      currentInstrumentoSerieAux &&
-                      `serie: ${currentInstrumentoSerieAux}, `
-                    }registros: ${countCurrentInstrumentoSerie}`;
+                    const valorMessageAux = `serie (${itemDP.code}): ${dependencyInstrumentoSerie} - serie (${codeCurrentFile}): ${currentInstrumentoSerieAux}, nro_pago (${itemDP.code}): ${cantidadNroPago}, registros (${codeCurrentFile}): ${countCurrentInstrumentoSerie}`;
                     errors.push({
                       archivo: `${itemDP.file}, ${item.archivo}`,
-                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
-                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
+                      tipo_error: `VALOR INCORRECTO DE ${itemDP.code} A ${codeCurrentFile}`,
+                      descripcion: `El Archivo ${codeCurrentFile} tiene el valor de '${cantidadNroPago}' en '${itemDP.column}', por lo que el archivo ${itemDP.code} debe tener '${cantidadNroPago}' y no '${countCurrentInstrumentoSerie}' registros con la misma serie`,
                       valor: valorMessageAux,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
@@ -1566,18 +1559,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     parseInt(countCurrentInstrumentoSerie) !==
                     parseInt(cantidadNroPago)
                   ) {
+                    const valorMessageAux = `serie (${itemDP.code}): ${dependencyInstrumentoSerie} - serie (${codeCurrentFile}): ${currentInstrumentoSerieAux}, nro_pago (${itemDP.code}): ${cantidadNroPago}, registros (${codeCurrentFile}): ${countCurrentInstrumentoSerie}`;
                     errors.push({
                       archivo: `${itemDP.file}, ${item.archivo}`,
                       tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
                       descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                      valor: `${
-                        itemDP.code
-                      }: serie: ${dependencyInstrumentoSerie}, ${
-                        itemDP.column
-                      }: ${cantidadNroPago}, ${codeCurrentFile}: ${
-                        currentInstrumentoSerieAux &&
-                        `serie: ${currentInstrumentoSerieAux}, `
-                      }registros: ${countCurrentInstrumentoSerie}`,
+                      valor: valorMessageAux,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
                     });
