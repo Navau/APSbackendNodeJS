@@ -1459,6 +1459,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                             value: itemArray.tasa_interes,
                             valuePrevious: tasaEmision,
                             column: "tasa_interes",
+                            seriePrevious: dependencyInstrumentoSerie,
                             serie: currentInstrumentoSerie,
                             row: indexArray,
                             message: `No es la misma Tasa que indica el archivo ${itemDP.code}`,
@@ -1474,29 +1475,30 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     parseInt(countCurrentInstrumentoSerie) !==
                     parseInt(cantidadNroPago)
                   ) {
+                    const valorMessageAux = `${
+                      itemDP.code
+                    }: serie: ${dependencyInstrumentoSerie}, ${
+                      itemDP.column
+                    }: ${cantidadNroPago}, ${codeCurrentFile}: ${
+                      currentInstrumentoSerieAux &&
+                      `serie: ${currentInstrumentoSerieAux}, `
+                    }registros: ${countCurrentInstrumentoSerie}`;
                     errors.push({
                       archivo: `${itemDP.file}, ${item.archivo}`,
                       tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
                       descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                      valor: `${
-                        itemDP.code
-                      }: serie: ${dependencyInstrumentoSerie}, ${
-                        itemDP.column
-                      }: ${cantidadNroPago}, ${codeCurrentFile}: ${
-                        currentInstrumentoSerieAux &&
-                        `serie: ${currentInstrumentoSerieAux}, `
-                      }registros: ${countCurrentInstrumentoSerie}`,
+                      valor: valorMessageAux,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
                     });
                   }
                   if (errTasaArray.length >= 1) {
-                    map(errTasaArray, (itemErr, indexErr) => {
+                    map(errTasaArray, (itemErr) => {
                       errors.push({
                         archivo: item.archivo,
                         tipo_error: `VALOR INCORRECTO`,
                         descripcion: itemErr.message,
-                        valor: `serie: ${currentInstrumentoSerie} ${codeCurrentFile}: tasa_interes: ${itemErr.value}, ${itemDP.code}: tasa_emision: ${itemErr.valuePrevious}`,
+                        valor: `serie (${codeCurrentFile}): ${itemErr.serie} - serie (${itemDP.code}): ${itemErr.seriePrevious}, tasa_interes (${codeCurrentFile}): ${itemErr.value} - tasa_emision (${itemDP.code}): ${itemErr.valuePrevious}`,
                         columna: itemErr.column,
                         fila: itemErr.row,
                       });
