@@ -8449,7 +8449,7 @@ async function operacionEntreColumnas(params) {
       let isEqual =
         typeof result === "string"
           ? result === total.value.toString()
-          : result === total.value;
+          : Number(result) === Number(total.value);
       // console.log("RESULT", typeof result, result);
       // console.log("total.value", typeof total.value, total.value);
       if (isEqual) {
