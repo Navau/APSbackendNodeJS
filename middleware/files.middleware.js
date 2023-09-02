@@ -55,6 +55,7 @@ const {
   serieEmision,
   calificacionConInstrumentoEstatico,
   combinacionUnicaPorArchivo,
+  custodioConInstrumento,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -1337,7 +1338,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             value?.slice(6);
           match = valueAux?.match(pattern);
         } else {
-          match = value?.match(pattern);
+          if (!item3?.pattern2) match = value?.match(pattern);
         }
 
         if (mayBeEmpty === true && !value) {
@@ -2312,6 +2313,38 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
+            } else if (itemFunction === "plazoEmisionTipoDeDato") {
+              const pattern1 = pattern;
+              const pattern2 = item3?.pattern2;
+              const serieAux = item2?.serie;
+              const lastValue = serieAux?.[size(serieAux) - 1];
+              if (lastValue === "Q") {
+                if (value?.match(pattern1) === null)
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "TIPO DE DATO INCORRECTO",
+                    descripcion:
+                      typeError === "format"
+                        ? "El campo no cumple el formato establecido"
+                        : `El campo no cumple las especificaciones de Tipo de Dato`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  }); //FORMATO DE VALOR DE DOMINIO
+              } else {
+                if (value?.match(pattern2) === null)
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "TIPO DE DATO INCORRECTO",
+                    descripcion:
+                      typeError === "format"
+                        ? "El campo no cumple el formato establecido"
+                        : `El campo no cumple las especificaciones de Tipo de Dato`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  }); //FORMATO DE VALOR DE DOMINIO
+              }
             } else if (itemFunction === "tasaUltimoHechoConInstrumento") {
               let _igualA = null;
               let _mayorIgualACeroDecimal = null;
@@ -2706,52 +2739,6 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
-              // let errFunction = true;
-              // let errFunctionInstrumento = true;
-              // let errFunctionVacio = true;
-              // if (!isUndefined(tiposInstrumentos)) {
-              //   if (!includes(tiposInstrumentos, item2.tipo_instrumento))
-              //     errFunctionInstrumento = false;
-              // } else {
-              //   forEach(_calificacionConInstrumento?.resultFinal, (item4) => {
-              //     if (item2.tipo_instrumento === item4.sigla)
-              //       errFunctionInstrumento = false;
-              //   });
-              // }
-              // if (!errFunctionInstrumento) {
-              //   forEach(_calificacionVacio?.resultFinal, (item4) => {
-              //     if (value === item4.descripcion) errFunctionVacio = false;
-              //   });
-              //   if (
-              //     (value !== "" || value.length >= 1) &&
-              //     errFunctionVacio === true
-              //   ) {
-              //     errors.push({
-              //       archivo: item.archivo,
-              //       tipo_error: "VALOR INCORRECTO",
-              //       descripcion: `La calificación no se encuentra en ninguna calificación válida`,
-              //       valor: value,
-              //       columna: columnName,
-              //       fila: index2,
-              //     });
-              //   }
-              // } else {
-              //   map(_calificacion?.resultFinal, (item4, index4) => {
-              //     if (value === item4.descripcion) {
-              //       errFunction = false;
-              //     }
-              //   });
-              //   if (errFunction === true) {
-              //     errors.push({
-              //       archivo: item.archivo,
-              //       tipo_error: "VALOR INCORRECTO",
-              //       descripcion: `La calificación no se encuentra en ninguna calificación válida`,
-              //       valor: value,
-              //       columna: columnName,
-              //       fila: index2,
-              //     });
-              //   }
-              // }
             } else if (itemFunction === "custodio") {
               if (mayBeEmpty === true && !value) {
               } else {
@@ -2771,6 +2758,25 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     fila: index2,
                   });
                 }
+              }
+            } else if (itemFunction === "custodioConInstrumento") {
+              const tiposInstrumentos = item3?.tiposInstrumentos;
+              const custodioValidacion = custodioConInstrumento(
+                item3.tipo_instrumento,
+                tiposInstrumentos,
+                value,
+                _custodio?.resultFinal
+              );
+
+              if (custodioValidacion !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: custodioValidacion,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
             } else if (itemFunction === "codigoMercado") {
               let errFunction = true;
@@ -3096,6 +3102,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                         total: {
                           key: `${columnName} (fila actual: ${index2})`,
                           value: parseFloat(value),
+                          pattern,
                         },
                         fields: [
                           {

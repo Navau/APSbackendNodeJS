@@ -4775,13 +4775,13 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
           //#endregion
 
           //#region CONFIGURANDO LA INFORMACION DE OPTIONS_FILE
-          const columnsHeaders = await formatoArchivo(codeFile);
+          const columnsHeaders = await formatoArchivo(OPTIONS_FILE.codeFile);
           OPTIONS_FILE.detailsHeaders = await columnsHeaders.detailsHeaders;
           OPTIONS_FILE.headers = await columnsHeaders.headers;
           OPTIONS_FILE.idTable = OPTIONS_FILE.headers[0];
           OPTIONS_FILE.sequenceTableFile = {
-            table: tableFile,
-            id: idTable,
+            table: OPTIONS_FILE.tableFile,
+            id: OPTIONS_FILE.idTable,
           };
           const codInstitucionAux = INFO_TABLES.cod_institution;
           OPTIONS_FILE.headers?.splice(0, 1); // ELIMINAR ID DE TABLA
@@ -4918,33 +4918,33 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
                 },
               ];
               await eliminarInformacionDuplicada(
-                tableFile,
+                OPTIONS_FILE.tableFile,
                 whereDelete,
-                sequenceTableFile,
-                idTable
+                OPTIONS_FILE.sequenceTableFile,
+                OPTIONS_FILE.idTable
               );
             }
           } else {
-            if (!dateField || !institutionField) {
+            if (!OPTIONS_FILE.dateField || !OPTIONS_FILE.institutionField) {
               errorsFieldsArray.push({
-                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
+                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${OPTIONS_FILE.tableFile}.`,
               });
             } else {
               const whereDelete = [
                 {
-                  key: dateField,
+                  key: OPTIONS_FILE.dateField,
                   value: fechaInicialOperacion,
                 },
                 {
-                  key: institutionField,
+                  key: OPTIONS_FILE.institutionField,
                   value: codInstitucionAux,
                 },
               ];
               await eliminarInformacionDuplicada(
-                tableFile,
+                OPTIONS_FILE.tableFile,
                 whereDelete,
-                sequenceTableFile,
-                idTable
+                OPTIONS_FILE.sequenceTableFile,
+                OPTIONS_FILE.idTable
               );
             }
           }
@@ -5003,7 +5003,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             let dataObject = Object.assign({}, itemV1);
             partialData.push(dataObject);
           });
-          let partialHeaders = headers;
+          let partialHeaders = OPTIONS_FILE.headers;
           forEach(partialData, (itemV1) => {
             let x = {};
             forEach(itemV1, (itemV2, indexV2) => {
@@ -5041,7 +5041,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             .query(queryFiles)
             .then((resultFile) => {
               resultFinal.push({
-                message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
+                message: `El archivo fue insertado correctamente a la tabla '${OPTIONS_FILE.tableFile}'`,
                 result: {
                   rowsUpdate: resultFile.rows,
                   rowCount: resultFile.rowCount,
@@ -5051,7 +5051,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             .catch((err) => {
               errors.push({
                 type: "QUERY SQL ERROR",
-                message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
+                message: `Hubo un error al insertar datos en la tabla ${OPTIONS_FILE.tableFile} ERROR: ${err.message}`,
                 err,
               });
               // reject({ resultFinal, errors });
@@ -5082,7 +5082,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
         (req.body?.reproceso === true || req.body?.reproceso === "true")
       )
         bodyAux.reprocesado = reprocesado;
-      const queryUpdateForError = ActualizarUtil(infoTables.table, {
+      const queryUpdateForError = ActualizarUtil(INFO_TABLES.table, {
         body: bodyAux,
         idKey: "id_carga_archivos",
         idValue: idCargaArchivos,
@@ -5092,7 +5092,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
         codInst === "bolsa" &&
         (req.body?.reproceso === true || req.body?.reproceso === "true")
       ) {
-        const queryUltimaCarga = EscogerInternoUtil(infoTables.table, {
+        const queryUltimaCarga = EscogerInternoUtil(INFO_TABLES.table, {
           select: ["*"],
           where: [
             { key: "id_rol", value: req.user.id_rol },
@@ -5111,11 +5111,14 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
           fechaInicialOperacion !==
           dayjs(ultimaCarga.fecha_operacion).format("YYYY-MM-DD")
         ) {
-          const queryUpdateCargaReprocesado = ActualizarUtil(infoTables.table, {
-            body: { reprocesado: true },
-            idKey: "id_carga_archivos",
-            idValue: ultimaCarga.id_carga_archivos,
-          });
+          const queryUpdateCargaReprocesado = ActualizarUtil(
+            INFO_TABLES.table,
+            {
+              body: { reprocesado: true },
+              idKey: "id_carga_archivos",
+              idValue: ultimaCarga.id_carga_archivos,
+            }
+          );
           await EjecutarQuery(queryUpdateCargaReprocesado);
         }
       }
@@ -5253,7 +5256,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               idCargaArchivos,
             }),
             false,
-            infoTables.cod_institution,
+            INFO_TABLES.cod_institution,
             false
           );
         } else {
@@ -5267,7 +5270,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               fecha_operacion: fechaInicialOperacion,
             });
           });
-          if (infoTables.code === "02") {
+          if (INFO_TABLES.code === "02") {
             const funcionesInversionesAux = await funcionesInversiones(
               fechaInicialOperacion,
               req.user.id_usuario
@@ -5278,7 +5281,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               actualizarCampoCargado(
                 respResultadoCorrectoObjeto200(res, finalRespArray),
                 true,
-                infoTables.cod_institution,
+                INFO_TABLES.cod_institution,
                 true
               );
             }
@@ -5286,7 +5289,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             actualizarCampoCargado(
               respResultadoCorrectoObjeto200(res, finalRespArray),
               true,
-              infoTables.cod_institution,
+              INFO_TABLES.cod_institution,
               true
             );
           }
@@ -5309,7 +5312,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             },
             `Ocurrió un error inesperado. ERROR: ${err.message}`,
             false,
-            infoTables.cod_institution,
+            INFO_TABLES.cod_institution,
             false
           )
         );
