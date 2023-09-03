@@ -4031,7 +4031,7 @@ async function obtenerValidaciones(typeFile) {
         pattern2: /^(0|[1-9][0-9]{0,2})$/,
         function: [
           "fechaVencimientoMenosFechaEmision",
-          // "plazoEmisionTipoDeDato",
+          "plazoEmisionTipoDeDato",
         ],
       },
       {
@@ -7762,8 +7762,10 @@ function custodioConInstrumento(
   const custodioMap = map(custodios, "sigla");
   if (!includes(tiposInstrumentos, tipoInstrumento)) {
     if (isEmpty(custodio) && mayBeEmpty === true) return true;
-    else
-      return `El custodio no es válido debido a que el tipo de instrumento es ${tiposInstrumentos?.join()}`;
+    else {
+      if (!includes(custodioMap, custodio))
+        return `El custodio no es válido debido a que el tipo de instrumento es ${tiposInstrumentos?.join()}`;
+    }
   } else {
     if (!includes(custodioMap, custodio))
       return "El campo no corresponde a ninguna sigla de Custodio definida";
