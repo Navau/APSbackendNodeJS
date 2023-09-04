@@ -5271,7 +5271,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             });
           });
           // includes(map(codigosSeguros, "codigo"), INFO_TABLES.code)
-          if (includes(map(codigosPensiones, "codigo"), INFO_TABLES.code)) {
+          if (includes(map(codigosSeguros, "codigo"), INFO_TABLES.code)) {
             const funcionesInversionesAux = await funcionesInversiones(
               fechaInicialOperacion,
               req.user.id_usuario
