@@ -7757,10 +7757,11 @@ function custodioConInstrumento(
   tipoInstrumento,
   tiposInstrumentos,
   custodio,
-  custodios
+  custodios,
+  mayBeEmpty
 ) {
   const custodioMap = map(custodios, "sigla");
-  if (!includes(tiposInstrumentos, tipoInstrumento)) {
+  if (includes(tiposInstrumentos, tipoInstrumento)) {
     if (isEmpty(custodio) && mayBeEmpty === true) return true;
     else {
       if (!includes(custodioMap, custodio))
@@ -7768,7 +7769,7 @@ function custodioConInstrumento(
     }
   } else {
     if (!includes(custodioMap, custodio))
-      return "El campo no corresponde a ninguna sigla de Custodio definida";
+      return `El campo no corresponde a ninguna sigla de Custodio definida (instrumento: '${tipoInstrumento}')`;
   }
   return true;
 }

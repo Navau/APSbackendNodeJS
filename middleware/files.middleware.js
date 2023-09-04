@@ -2762,10 +2762,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             } else if (itemFunction === "custodioConInstrumento") {
               const tiposInstrumentos = item3?.tiposInstrumentos;
               const custodioValidacion = custodioConInstrumento(
-                item3.tipo_instrumento,
+                item2.tipo_instrumento,
                 tiposInstrumentos,
                 value,
-                _custodio?.resultFinal
+                _custodio?.resultFinal,
+                mayBeEmpty
               );
 
               if (custodioValidacion !== true) {
