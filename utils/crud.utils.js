@@ -5140,6 +5140,21 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
       return { ok: true, result: results.result };
     };
 
+    const funcionesSeguros = async (fechaS, id_usuarioS, codInst) => {
+      const params = { body: { fechaS, id_usuarioS, codInst } };
+      const querys = [
+        EjecutarFuncionSQL("aps_ins_renta_fija", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params),
+        EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params),
+        EjecutarFuncionSQL("aps_ins_renta_variable", params),
+      ];
+      const results = await EjecutarVariosQuerys(querys);
+      if (results.ok === null) return { ok: null, result: results.result };
+      if (results.ok === false) return { ok: false, result: results.errors };
+      return { ok: true, result: results.result };
+    };
+
     const eliminarInformacionDuplicada = async (
       table,
       where,
@@ -5272,20 +5287,36 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
           });
           // includes(map(codigosSeguros, "codigo"), INFO_TABLES.code)
           if (includes(map(codigosSeguros, "codigo"), INFO_TABLES.code)) {
-            const funcionesInversionesAux = await funcionesInversiones(
+            const funcionesSegurosAux = await funcionesSeguros(
               fechaInicialOperacion,
-              req.user.id_usuario
+              req.user.id_usuario,
+              INFO_TABLES.cod_institution
             );
-            if (funcionesInversionesAux.ok !== true) {
-              throw funcionesInversionesAux.result;
-            } else {
+            if (funcionesSegurosAux.ok !== true)
+              throw funcionesSegurosAux.result;
+            else
               actualizarCampoCargado(
                 respResultadoCorrectoObjeto200(res, finalRespArray),
                 true,
                 INFO_TABLES.cod_institution,
                 true
               );
-            }
+          } else if (
+            includes(map(codigosPensiones, "codigo"), INFO_TABLES.code)
+          ) {
+            const funcionesInversionesAux = await funcionesInversiones(
+              fechaInicialOperacion,
+              req.user.id_usuario
+            );
+            if (funcionesInversionesAux.ok !== true)
+              throw funcionesInversionesAux.result;
+            else
+              actualizarCampoCargado(
+                respResultadoCorrectoObjeto200(res, finalRespArray),
+                true,
+                INFO_TABLES.cod_institution,
+                true
+              );
           } else {
             actualizarCampoCargado(
               respResultadoCorrectoObjeto200(res, finalRespArray),
