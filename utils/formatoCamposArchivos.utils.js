@@ -809,7 +809,7 @@ async function obtenerInformacionDeArchivo(nameFile, fechaInicialOperacion) {
             select: ["sigla"],
             where: [
               {
-                key: "id_clasificador_comun_grupo",
+                key: "id_clasificador_comun",
                 valuesWhereIn: [106],
                 whereIn: true,
               },
