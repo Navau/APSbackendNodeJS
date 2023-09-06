@@ -2326,7 +2326,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     descripcion:
                       typeError === "format"
                         ? "El campo no cumple el formato establecido"
-                        : `El campo no cumple las especificaciones de Tipo de Dato`,
+                        : `El campo no cumple las especificaciones de Tipo de Dato ()`,
                     valor: value,
                     columna: columnName,
                     fila: index2,
