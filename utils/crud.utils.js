@@ -3287,7 +3287,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             { key: "id_rol", value: id_rol },
             {
               key: "cod_institucion",
-              value: cod_institucion.codigo,
+              value: cod_institucion.result.codigo,
             },
             {
               key: "id_periodo",
@@ -3297,11 +3297,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             { key: "cargado", value: true },
           ];
         } else if (tipo_archivo === "SEGUROS") {
+          console.log({ cod_institucion });
           whereMax = [
             { key: "id_rol", value: id_rol },
             {
               key: "cod_institucion",
-              value: cod_institucion.codigo,
+              value: cod_institucion.result.codigo,
             },
             {
               key: "id_periodo",
