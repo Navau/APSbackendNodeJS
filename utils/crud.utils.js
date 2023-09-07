@@ -3297,7 +3297,6 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             { key: "cargado", value: true },
           ];
         } else if (tipo_archivo === "SEGUROS") {
-          console.log({ cod_institucion });
           whereMax = [
             { key: "id_rol", value: id_rol },
             {

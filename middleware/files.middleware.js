@@ -56,6 +56,7 @@ const {
   calificacionConInstrumentoEstatico,
   combinacionUnicaPorArchivo,
   custodioConInstrumento,
+  calificadoraConCalificacion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -2662,10 +2663,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               }
             } else if (itemFunction === "calificadora") {
-              if (mayBeEmpty === true && !value) {
+              if (mayBeEmpty === true && isEmpty(value)) {
               } else {
                 let errFunction = true;
-                map(_calificadora?.resultFinal, (item4, index4) => {
+                forEach(_calificadora?.resultFinal, (item4, index4) => {
                   if (value === item4.sigla) {
                     errFunction = false;
                   }
@@ -2680,6 +2681,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     fila: index2,
                   });
                 }
+              }
+            } else if (itemFunction === "calificadoraConCalificacion") {
+              const validacionCalificadora = calificadoraConCalificacion(
+                value,
+                item2.calificacion,
+                _calificadora.resultFinal,
+                mayBeEmpty
+              );
+              if (validacionCalificadora !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: validacionCalificadora,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
             } else if (itemFunction === "calificadoraConInstrumento") {
               let errFunction = true;
@@ -2727,7 +2745,8 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 tiposInstrumentos,
                 value,
                 _calificacion?.resultFinal,
-                _calificacionVacio?.resultFinal
+                _calificacionVacio?.resultFinal,
+                mayBeEmpty
               );
               if (validacionCalificacion !== true) {
                 errors.push({

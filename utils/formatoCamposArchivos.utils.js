@@ -4240,7 +4240,7 @@ async function obtenerValidaciones(typeFile) {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
-        function: ["calificadora"],
+        function: ["calificadoraConCalificacion"],
       },
       {
         columnName: "custodio",
@@ -4277,7 +4277,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "plazo_cupon",
-        pattern: /^(0|[1-9][0-9]{1,2})$/,
+        pattern: /^(0|[1-9][0-9]{1,3})$/,
         function: ["mayorACeroEntero"],
       },
       {
@@ -7736,7 +7736,8 @@ function calificacionConInstrumentoEstatico(
   tiposInstrumentos,
   calificacion,
   calificaciones,
-  calificacionesVacio
+  calificacionesVacio,
+  mayBeEmpty
 ) {
   const calificacionesMap = map(calificaciones, "descripcion");
   const calificacionesVacioMap = map(calificacionesVacio, "descripcion");
@@ -7746,9 +7747,11 @@ function calificacionConInstrumentoEstatico(
     )}`;
   if (tipoInstrumento === "CFC" && !includes(calificacionesMap, calificacion))
     return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
-  if (tipoInstrumento === "ACC" && isEmpty(calificacion))
+  if (tipoInstrumento === "ACC") {
+    if (isEmpty(calificacion) && mayBeEmpty === true) return true;
     if (!includes(calificacionesVacioMap, calificacion))
       return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento ACC)";
+  }
 
   return true;
 }
@@ -7770,6 +7773,24 @@ function custodioConInstrumento(
   } else {
     if (!includes(custodioMap, custodio))
       return `El campo no corresponde a ninguna sigla de Custodio definida (instrumento: '${tipoInstrumento}')`;
+  }
+  return true;
+}
+
+function calificadoraConCalificacion(
+  calificadora,
+  calificacion,
+  calificadores,
+  mayBeEmpty
+) {
+  const calificadoraMap = map(calificadores, "sigla");
+  if (isEmpty(calificacion)) {
+    if (isEmpty(calificadora) && mayBeEmpty === true) return true;
+    else
+      return `La calificadora no debe tener contenido debido a que la calificación no tiene contenido`;
+  } else {
+    if (!includes(calificadoraMap, calificadora))
+      return `La calificadora no se encuentra en ninguna calificadora válida`;
   }
   return true;
 }
@@ -8834,4 +8855,5 @@ module.exports = {
   rango,
   agrupacion,
   custodioConInstrumento,
+  calificadoraConCalificacion,
 };
