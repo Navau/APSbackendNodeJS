@@ -4277,7 +4277,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "plazo_cupon",
-        pattern: /^(0|[1-9][0-9]{1,3})$/,
+        pattern: /^(0|[1-9][0-9]{0,3})$/,
         function: ["mayorACeroEntero"],
       },
       {
