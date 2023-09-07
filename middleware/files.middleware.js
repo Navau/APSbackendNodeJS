@@ -2319,20 +2319,20 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               const serieAux = item2?.serie;
               const lastValue = serieAux?.[size(serieAux) - 1];
               if (lastValue === "Q") {
-                if (value?.match(pattern1) === null)
+                if (value?.match(pattern2) === null)
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "TIPO DE DATO INCORRECTO",
                     descripcion:
                       typeError === "format"
                         ? "El campo no cumple el formato establecido"
-                        : `El campo no cumple las especificaciones de Tipo de Dato ()`,
+                        : `El campo no cumple las especificaciones de Tipo de Dato`,
                     valor: value,
                     columna: columnName,
                     fila: index2,
                   }); //FORMATO DE VALOR DE DOMINIO
               } else {
-                if (value?.match(pattern2) === null)
+                if (value?.match(pattern1) === null)
                   errors.push({
                     archivo: item.archivo,
                     tipo_error: "TIPO DE DATO INCORRECTO",
