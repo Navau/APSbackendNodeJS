@@ -4206,7 +4206,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
+        pattern: /^(^-?(0|[1-9][0-9]{2,9}))$/,
         function: ["mayorACeroEntero"],
       },
       {
