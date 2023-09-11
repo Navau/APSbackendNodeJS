@@ -4,6 +4,7 @@
   "description": "API REST para APS",
   "main": "index.js",
   "scripts": {
+    "debug": "node --inspect index.js",
     "dev": "nodemon index.js",
     "dev-swagger": "node swagger.js",
     "start": "node index.js",

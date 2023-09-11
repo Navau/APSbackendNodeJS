@@ -130,9 +130,7 @@ function ObtenerColumnasDeTablaUtil(table, params) {
   let query = "";
   query = `SELECT ${
     params?.select ? params.select : "*"
-  } FROM information_schema.columns 
-  WHERE table_schema = 'public' 
-  AND table_name  = '${table}'`;
+  } FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}'`;
 
   console.log(query);
 
@@ -960,7 +958,8 @@ function InsertarVariosUtil(table, params) {
   });
   query && (query = query.substring(0, query.length - 2));
 
-  params?.returnValue && (query = query = query + ` RETURNING `);
+  if (params?.returnValue) query = query + ` RETURNING `;
+  else query = query + ")";
 
   map(params.returnValue, (item, index) => {
     query = query + `${item},`;

@@ -421,8 +421,8 @@ async function validarArchivosIteraciones(params) {
           const item = isAllFiles.currentFiles[index];
           // console.log("TEST PARA VER ASYNC", item.archivo);
           const filePath = `./uploads/tmp/${item.archivo}`;
-          // console.log(fs.readFileSync(filePath));
-          const data = fs.readFileSync(filePath, "utf8");
+          // console.log(fs.readedFilesync(filePath));
+          const data = fs.readedFilesync(filePath, "utf8");
 
           let dataSplit = null;
           if (data.includes("\r\n")) {

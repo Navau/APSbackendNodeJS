@@ -1,4 +1,4 @@
-const { Worker, setEnvironmentData } = require("node:worker_threads");
+const { Worker, isMainThread } = require("node:worker_threads");
 const multer = require("multer");
 const {
   respErrorMulter500,
@@ -19,18 +19,24 @@ const {
   isNumber,
   find,
 } = require("lodash");
-const {
-  validarEntradasCargaArchivos,
-} = require("./helpers/validar-entradas-carga-archivos.helper");
+
 const {
   VerificarPermisoTablaUsuarioAuditoria,
 } = require("../utils/auditoria.utils");
+const { DateTime } = require("luxon");
 const {
-  obtenerInformacionInicial,
-} = require("./helpers/obtener-info-inicial.helper");
+  obtenerInformacionColumnasArchivosBD,
+} = require("./helpers/informacion-archivo.helper");
 const {
   insertarNuevaCargaArchivo,
+  obtenerArchivosSubidos,
 } = require("./helpers/consultas-cargas.helpers");
+const {
+  obtenerInformacionInicial,
+} = require("./helpers/informacion-inicial.helper");
+const {
+  validacionesEntradasCargaArchivos,
+} = require("./helpers/validaciones-entradas-carga-archivos.helper");
 
 const TABLES_INFO_UPLOAD = (codInstitucion = undefined) => ({
   SEGUROS_PENSIONES: {
@@ -101,7 +107,7 @@ exports.formatearArchivos = async (req, res, next) => {
     };
     const { id_rol, id_usuario } = req.user;
 
-    const validaciones = await validarEntradasCargaArchivos(dataInitial);
+    const validaciones = await validacionesEntradasCargaArchivos(dataInitial);
     if (size(validaciones?.errors) > 0)
       throw { code: 400, message: validaciones.errors };
 
@@ -117,11 +123,12 @@ exports.formatearArchivos = async (req, res, next) => {
         table: TABLES_INFO_UPLOAD()[tipo_carga].table,
         action: "Insertar",
       };
-
-    const fechaOperacionFormateada = fecha_operacion.split("-").join("");
-    dataInitial.fechaOperacionFormateada = fechaOperacionFormateada;
-    const { codigosSeguros, codigosPensiones, confArchivos } =
-      await obtenerInformacionInicial(dataInitial, req.user);
+    const {
+      codigosSeguros,
+      codigosPensiones,
+      confArchivos,
+      formatoArchivosRequeridos,
+    } = await obtenerInformacionInicial(dataInitial, req.user);
 
     const COD_INSTITUCION =
       size(codigosSeguros) > 0
@@ -135,6 +142,12 @@ exports.formatearArchivos = async (req, res, next) => {
         message: `No se encontró el código de la institución (usuario: ${id_usuario}, rol: ${id_rol})`,
       };
     const TABLE_INFO = TABLES_INFO_UPLOAD(COD_INSTITUCION)[tipo_carga];
+
+    const fechaOperacionFormateada = DateTime.fromISO(fecha_operacion).toFormat(
+      TABLE_INFO.id === "BOLSA" ? "yyMMdd" : "yyyyMMdd"
+    );
+    dataInitial.fechaOperacionFormateada = fechaOperacionFormateada;
+
     const nuevaCarga = await insertarNuevaCargaArchivo({
       TABLE_INFO,
       user: req.user,
@@ -143,12 +156,26 @@ exports.formatearArchivos = async (req, res, next) => {
 
     const WORKER_OPTIONS = {
       data: {
+        TABLE_INFO,
         ...dataInitial,
         ...req.user,
+        codigosSeguros,
+        codigosPensiones,
+        confArchivos,
+        formatoArchivosRequeridos,
+        nuevaCarga,
       },
       error: undefined,
+      isFormattedFiles: false,
+      isValidatedContentFormatFiles: false,
+      isValidatedContentValueFiles: false,
       formattedFiles: [],
+      validatedContentFormatFiles: [],
+      validatedContentValueFiles: [],
+      errorsFiles: [],
+      poolErrors: undefined,
     };
+
     const worker = new Worker(
       "./middleware/workers/formatear-archivo.worker.js",
       { workerData: WORKER_OPTIONS.data }
@@ -161,7 +188,10 @@ exports.formatearArchivos = async (req, res, next) => {
     });
     worker.on("message", (params) => {
       try {
-        WORKER_OPTIONS.formattedFiles = map(params.files, "originalname");
+        const { formattedFiles, errorsFormatFile } = params;
+        WORKER_OPTIONS.formattedFiles = formattedFiles;
+        if (size(errorsFormatFile) > 0)
+          WORKER_OPTIONS.errorsFiles = errorsFormatFile;
       } catch (err) {
         WORKER_OPTIONS.error = err;
       }
@@ -169,7 +199,7 @@ exports.formatearArchivos = async (req, res, next) => {
     worker.on("error", (err) => {
       console.error("==============================");
       console.error("ERROR FORMATEO DE ARCHIVOS");
-      console.log(err);
+      console.error(err);
       console.error("==============================");
       WORKER_OPTIONS.error = err;
     });
@@ -177,48 +207,176 @@ exports.formatearArchivos = async (req, res, next) => {
       console.log("==============================");
       console.log("FIN FORMATEO DE ARCHIVOS");
       console.log("==============================");
-      if (!isUndefined(WORKER_OPTIONS.error))
+      if (!isUndefined(WORKER_OPTIONS.error)) {
         respErrorServidor500END(res, WORKER_OPTIONS.error);
-      else if (size(WORKER_OPTIONS.formattedFiles) !== size(files))
+      } else if (size(WORKER_OPTIONS.formattedFiles) !== size(files))
         respErrorServidor500END(
           res,
           null,
           "La cantidad de archivos de salida no es igual a la cantidad de archivos de entrada."
         );
-      else {
-        req.formattedFiles = WORKER_OPTIONS.formattedFiles;
+      else if (size(WORKER_OPTIONS.errorsFiles) > 0) {
+        const workerErrors = new Worker(
+          "./middleware/workers/carga-errores-bd.worker.js",
+          {
+            workerData: {
+              ...WORKER_OPTIONS,
+              type: "formatearArchivos",
+            },
+          }
+        );
+        workerErrors.on("online", () => {
+          console.log("==============================");
+          console.log(`INICIO CARGA ERRORES DE FORMATO`);
+          console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+          console.log("==============================");
+        });
+        workerErrors.on("message", (params) => {});
+        workerErrors.on("error", (err) => {
+          console.error("==============================");
+          console.error(`ERROR EN CARGA ERRORES DE FORMATO A BASE DE DATOS`);
+          console.error(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+          console.error(err);
+          console.error("==============================");
+          //TODO: AVISAR AL USUARIO QUE NO SE REGISTRARON LOS ERRORES EN LA BASE DE DATOS, POR MEDIO DE SOCKET IO
+        });
+        workerErrors.on("exit", (exitCode) => {
+          console.log("============================================");
+          console.log(`FIN CARGA ERRORES DE FORMATO`);
+          console.log(
+            "PROCESO TERMINADO CON ",
+            exitCode === 0 ? "EXITO" : "ERROR"
+          );
+          console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+          console.log("============================================");
+        });
+        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles);
+      } else {
+        WORKER_OPTIONS.isFormattedFiles = true;
+        req.WORKER_OPTIONS = WORKER_OPTIONS;
         next();
       }
     });
   } catch (err) {
-    if (err?.type === "errores_archivos")
-      respArchivoErroneo200(res, err.errors);
-    else if (err?.type === "unauthorized")
+    if (err?.type === "unauthorized")
       respUsuarioNoAutorizado200END(res, null, err.action, err.table);
     else if (isNumber(err?.code))
       respResultadoDinamicoEND(res, err.code, [], [], err.message);
     else respErrorServidor500END(res, err);
   }
 };
-// exports.formatearArchivo = async (req, res, next) => {
-//   const files = sortBy(req.files, "originalname");
-//   const { fecha_operacion, tipo_periodo } = req.body;
-//   let completedWorkers = 0;
-//   let result = [];
-//   forEach(files, (file, index) => {
-//     const worker = new Worker(
-//       "./middleware/workers/formatearArchivo.worker.js",
-//       { workerData: { file, index } }
-//     );
-//     worker.on("message", (fileName) => {
-//       result.push(fileName);
-//       completedWorkers++;
-//       if (completedWorkers === size(files))
-//         respResultadoCorrectoObjeto200(res, result, "Archivo formateado");
-//     });
-//   });
-// };
 
-exports.validarArchivos = async (req, res, next) => {
-  respResultadoCorrectoObjeto200(res, req.formattedFiles, "Archivo formateado");
+exports.validarFormatoContenidoDeArchivos = async (req, res, next) => {
+  try {
+    const { WORKER_OPTIONS } = req;
+    const { data, formattedFiles } = WORKER_OPTIONS;
+    const { confArchivos } = data;
+
+    const readedFiles = await obtenerArchivosSubidos(formattedFiles);
+    const infoColumnasArchivos = await obtenerInformacionColumnasArchivosBD(
+      confArchivos
+    );
+    WORKER_OPTIONS.data.readedFiles = readedFiles;
+    WORKER_OPTIONS.data.infoColumnasArchivos = infoColumnasArchivos;
+
+    const worker = new Worker(
+      "./middleware/workers/validar-contenido-archivo.worker.js",
+      { workerData: WORKER_OPTIONS.data }
+    );
+
+    worker.on("online", () => {
+      console.log("==========================================");
+      console.log("INICIO VALIDACIÓN DE CONTENIDO DE ARCHIVOS");
+      console.log("==========================================");
+    });
+    worker.on("message", (params) => {
+      try {
+        const { validatedContentFormatFiles, errorsContentFormatFile } = params;
+        WORKER_OPTIONS.validatedContentFormatFiles =
+          validatedContentFormatFiles;
+        if (size(errorsContentFormatFile) > 0)
+          WORKER_OPTIONS.errorsFiles = errorsContentFormatFile;
+      } catch (err) {
+        WORKER_OPTIONS.error = err;
+      }
+    });
+    worker.on("error", (err) => {
+      console.error("==========================================");
+      console.error("ERROR VALIDACIÓN DE CONTENIDO DE ARCHIVOS");
+      console.error(err);
+      console.error("==========================================");
+      WORKER_OPTIONS.error = err;
+    });
+    worker.on("exit", (exitCode) => {
+      console.log("==========================================");
+      console.log("FIN VALIDACIÓN DE CONTENIDO DE ARCHIVOS");
+      console.log("==========================================");
+      if (!isUndefined(WORKER_OPTIONS.error)) {
+        respErrorServidor500END(res, WORKER_OPTIONS.error);
+      } else if (size(WORKER_OPTIONS.errorsFiles) > 0) {
+        const workerErrors = new Worker(
+          "./middleware/workers/carga-errores-bd.worker.js",
+          {
+            workerData: {
+              ...WORKER_OPTIONS,
+              type: "validarFormatoContenidoDeArchivos",
+            },
+          }
+        );
+        workerErrors.on("online", () => {
+          console.log("==============================");
+          console.log(`INICIO CARGA ERRORES DE CONTENIDO`);
+          console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+          console.log("==============================");
+        });
+        workerErrors.on("message", (params) => {});
+        workerErrors.on("error", (err) => {
+          console.error("==============================");
+          console.error(`ERROR EN CARGA ERRORES DE CONTENIDO A BASE DE DATOS`);
+          console.error(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+          console.error(err);
+          console.error("==============================");
+          //TODO: AVISAR AL USUARIO QUE NO SE REGISTRARON LOS ERRORES EN LA BASE DE DATOS, POR MEDIO DE SOCKET IO
+        });
+        workerErrors.on("exit", (exitCode) => {
+          console.log("============================================");
+          console.log(`FIN CARGA ERRORES DE CONTENIDO`);
+          console.log(
+            "PROCESO TERMINADO CON ",
+            exitCode === 0 ? "EXITO" : "ERROR"
+          );
+          console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+          console.log("============================================");
+        });
+        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles);
+      } else {
+        WORKER_OPTIONS.isValidatedContentFormatFiles = true;
+        req.WORKER_OPTIONS = WORKER_OPTIONS;
+        next();
+      }
+    });
+  } catch (err) {
+    if (isNumber(err?.code))
+      respResultadoDinamicoEND(res, err.code, [], [], err.message);
+    else respErrorServidor500END(res, err);
+  }
+};
+
+exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
+  try {
+    const { WORKER_OPTIONS } = req;
+    const { data, validatedContentFormatFiles } = WORKER_OPTIONS;
+    const { confArchivos, infoColumnasArchivos } = data;
+    respResultadoCorrectoObjeto200(
+      res,
+      validatedContentFormatFiles,
+      "Archivo formateado"
+    );
+  } catch (err) {
+    if (err?.type === "errores_archivos")
+      respArchivoErroneo200(res, err.errors);
+    else if (isNumber(err?.code))
+      respResultadoDinamicoEND(res, err.code, [], [], err.message);
+    else respErrorServidor500END(res, err);
+  }
 };
