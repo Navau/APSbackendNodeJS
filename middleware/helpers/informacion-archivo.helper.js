@@ -1,4 +1,4 @@
-const { size, forEach, map, find, set } = require("lodash");
+const { size, forEach, map, find, set, filter } = require("lodash");
 const {
   EjecutarQuery,
   ObtenerColumnasDeTablaUtil,
@@ -46,12 +46,13 @@ async function obtenerInformacionColumnasArchivosBD(confArchivos) {
 }
 
 async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
-  const optionsValidationsFiles = {};
-  const querysFiles = [];
-  const keysFiles = {};
-  const executedFilesQueries = {};
   try {
-    forEach(validatedContentFormatFiles, (fileContent, fileCode) => {
+    const optionsValidationsFiles = {};
+    const querysFiles = [];
+    const keysFiles = {};
+    const executedFilesQueries = {};
+    forEach(validatedContentFormatFiles, (fileContent, fileName) => {
+      const fileCode = fileName.split(".").pop();
       const fileValidations = CONF_FILE_VALUE_VALIDATIONS(fileCode);
       forEach(fileValidations, (validation) => {
         const { globalFileValidations } = validation;
@@ -61,6 +62,7 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
           keysFiles[fileCode] = preparedQueries.keys;
           executedFilesQueries[fileCode] = {};
           querysFiles.push(...preparedQueries.querys);
+          delete globalFileValidations.queries;
         }
       });
       optionsValidationsFiles[fileCode] = fileValidations;
@@ -78,20 +80,17 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
         });
         forEach(executedFilesQueries, (executedQuerys, fileCode) => {
           const validationsFile = optionsValidationsFiles[fileCode];
-          forEach(executedQuerys, (executedQuery, column) => {
-            const validationFile = find(
-              validationsFile,
-              (validation) => validation.columnName === column
+          // console.log(fileCode, executedQuerys);
+          forEach(executedQuerys, (executedQuery, columnKeyQuery) => {
+            const validations = filter(validationsFile, (validation) =>
+              columnKeyQuery.includes(validation.columnName)
             );
-            if (size(validationFile.functions) > 0) {
-              const newFunctions = map(
-                validationFile.functions,
-                (functionName) => {
-                  return functionName.bind(null, executedQuery);
-                }
-              );
-              validationFile.functions = newFunctions;
-            }
+            forEach(validations, (validation) => {
+              validation.paramsBD = {
+                ...validation?.paramsBD,
+                [`${columnKeyQuery}_data_db`]: executedQuery,
+              };
+            });
           });
         });
         return optionsValidationsFiles;
@@ -105,6 +104,7 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
 }
 
 const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
+  //! IMPORTANTE: Para que una consulta se acople a una columna de validacion, se debee colocar el mismo nombre de la columna de validacion en el objeto TYPES_QUERY_FILES, por otro lado si es que se quiere aumentar otra consulta a esa misma columna de validacion, se debe colocar el mismo nombre de la columna de validacion seguido de "_VALOR", por ejemplo: "calificacion, calificacion_vacio"
   const TYPES_QUERY_FILES = {
     441: {
       tipo_instrumento: {
@@ -190,6 +190,18 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
             {
               key: "id_clasificador_comun_grupo",
               value: 6,
+            },
+          ],
+        },
+      },
+      calificacion_vacio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 5,
             },
           ],
         },
@@ -1009,10 +1021,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [
-          (params) => tipoInstrumento(params),
-          (params) => tipoInstrumento2(params),
-        ],
+        functions: ["tipoInstrumento", "tipoInstrumento2"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1030,7 +1039,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => emisor(params)],
+        functions: ["emisor"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1039,7 +1048,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => moneda(params)],
+        functions: ["moneda"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1068,7 +1077,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1077,7 +1086,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1086,7 +1095,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1095,7 +1104,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_amortizacion",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => tipoAmortizacion(params)],
+        functions: ["tipoAmortizacion"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1104,7 +1113,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_interes",
         pattern: /^[A-Za-z]{1,1}$/,
-        functions: [(params) => tipoInteres(params)],
+        functions: ["tipoInteres"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1113,7 +1122,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_tasa",
         pattern: /^[A-Za-z]{1,1}$/,
-        functions: [(params) => tipoTasa(params)],
+        functions: ["tipoTasa"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1122,7 +1131,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: [(params) => tasaEmision(params)],
+        functions: ["tasaEmision"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1133,8 +1142,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         pattern: [/^(0|[1-9][0-9]{1,4})$/, /^(0|[1-9][0-9]{0,2})$/],
         functions: [
           // "operacionfechaVencimientoMenosFechaEmision",
-          (params) => operacionMatematica(params),
-          (params) => plazoEmisionTiposDeDatos(params),
+          "operacionMatematica",
+          "plazoEmisionTiposDeDatos",
         ],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
@@ -1144,7 +1153,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "nro_pago",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: [(params) => nroPago(params)],
+        functions: ["nroPago"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1153,7 +1162,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]*)$/,
-        functions: [(params) => plazoCupon(params)],
+        functions: ["plazoCupon"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1162,7 +1171,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "prepago",
         pattern: /^[A-Za-z0-9\-]{1,1}$/,
-        functions: [(params) => prepago(params)],
+        functions: ["prepago"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1171,7 +1180,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "subordinado",
         pattern: /^[A-Za-z0-9\-]{1,1}$/,
-        functions: [(params) => subordinado(params)],
+        functions: ["subordinado"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1180,7 +1189,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,4}$/,
-        functions: [(params) => calificacion(params)],
+        functions: ["calificacion"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1189,7 +1198,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => calificadora(params)],
+        functions: ["calificadora"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",
@@ -1198,7 +1207,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => custodio(params)],
+        functions: ["custodio"],
         messages: {
           DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
           MESSAGE_ERROR_DB: "",

@@ -4,6 +4,7 @@ const {
   validarFechaOperacionIgual,
   validarArchivosNecesariosDeUsuario,
 } = require("../helpers/validaciones-formato-archivo.helper");
+const { agregarError } = require("../helpers/funciones-auxiliares.helper");
 
 function formatearArchivo() {
   const {
@@ -52,14 +53,17 @@ function formatearArchivo() {
       errorsFormatFile
     );
   } catch (err) {
-    errorsFormatFile.push({
-      id_carga_archivos: nuevaCarga.id_carga_archivos,
-      archivo: "",
-      tipo_error: "ERROR DE SERVIDOR",
-      mensaje: `Error de servidor al formatear los archivos. ${
-        err?.message ? err.message : err
-      }`,
-    });
+    agregarError(
+      {
+        id_carga_archivos: nuevaCarga.id_carga_archivos,
+        archivo: "",
+        tipo_error: "ERROR DE SERVIDOR",
+        descripcion: `Error de servidor al formatear los archivos. ${
+          err?.message ? err.message : err
+        }`,
+      },
+      errorsContentValuesFile
+    );
   }
 
   return { formattedFiles, errorsFormatFile };

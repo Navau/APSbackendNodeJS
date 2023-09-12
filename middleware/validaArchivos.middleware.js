@@ -10,7 +10,15 @@ const {
   respResultadoDinamicoEND,
   respArchivoErroneo200,
 } = require("../utils/respuesta.utils");
-const { size, sortBy, map, isUndefined, isNumber, forEach } = require("lodash");
+const {
+  size,
+  sortBy,
+  map,
+  isUndefined,
+  isNumber,
+  forEach,
+  find,
+} = require("lodash");
 
 const {
   VerificarPermisoTablaUsuarioAuditoria,
@@ -104,7 +112,7 @@ exports.formatearArchivos = async (req, res, next) => {
 
     const validaciones = await validacionesEntradasCargaArchivos(dataInitial);
     if (size(validaciones?.errors) > 0)
-      throw { code: 400, message: validaciones.errors };
+      throw { myCode: 400, message: validaciones.errors };
 
     const permiso = await VerificarPermisoTablaUsuarioAuditoria({
       table: TABLES_INFO_UPLOAD()[tipo_carga].table,
@@ -133,7 +141,7 @@ exports.formatearArchivos = async (req, res, next) => {
         : null;
     if (COD_INSTITUCION === null)
       throw {
-        code: 500,
+        myCode: 500,
         message: `No se encontró el código de la institución (usuario: ${id_usuario}, rol: ${id_rol})`,
       };
     const TABLE_INFO = TABLES_INFO_UPLOAD(COD_INSTITUCION)[tipo_carga];
@@ -158,6 +166,7 @@ exports.formatearArchivos = async (req, res, next) => {
         codigosPensiones,
         confArchivos,
         formatoArchivosRequeridos,
+        optionsValidationsFiles: {},
         nuevaCarga,
       },
       error: undefined,
@@ -223,8 +232,8 @@ exports.formatearArchivos = async (req, res, next) => {
   } catch (err) {
     if (err?.type === "unauthorized")
       respUsuarioNoAutorizado200END(res, null, err.action, err.table);
-    else if (isNumber(err?.code))
-      respResultadoDinamicoEND(res, err.code, [], [], err.message);
+    else if (isNumber(err?.myCode))
+      respResultadoDinamicoEND(res, err.myCode, [], [], err.message);
     else respErrorServidor500END(res, err);
   }
 };
@@ -287,8 +296,8 @@ exports.validarFormatoContenidoDeArchivos = async (req, res, next) => {
       }
     });
   } catch (err) {
-    if (isNumber(err?.code))
-      respResultadoDinamicoEND(res, err.code, [], [], err.message);
+    if (isNumber(err?.myCode))
+      respResultadoDinamicoEND(res, err.myCode, [], [], err.message);
     else respErrorServidor500END(res, err);
   }
 };
@@ -298,70 +307,12 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
     const { WORKER_OPTIONS } = req;
     const { validatedContentFormatFiles } = WORKER_OPTIONS;
 
-    const optionsValidationsFiles = {};
-    const querysFiles = [];
-    const keysFiles = {};
-    const executedFilesQueries = {};
-    forEach(validatedContentFormatFiles, (fileContent, fileCode) => {
-      const fileValidations = CONF_FILE_VALUE_VALIDATIONS(fileCode);
-      forEach(fileValidations, (validation) => {
-        const { globalFileValidations } = validation;
-        if (globalFileValidations?.queries) {
-          const { queries } = globalFileValidations;
-          const preparedQueries = queries();
-          keysFiles[fileCode] = preparedQueries.keys;
-          executedFilesQueries[fileCode] = {};
-          querysFiles.push(...preparedQueries.querys);
-        }
-      });
-      optionsValidationsFiles[fileCode] = fileValidations;
-    });
-    const response = await Promise.all(
-      map(querysFiles, (queryFile) => EjecutarQuery(queryFile))
-    )
-      .then((response) => {
-        // let counter = 0;
-        // forEach(keysFiles, (keys, fileCode) => {
-        //   forEach(keys, (key) => {
-        //     executedFilesQueries[fileCode][key] = response[counter];
-        //     counter++;
-        //   });
-        // });
-        // forEach(executedFilesQueries, (executedQuerys, fileCode) => {
-        //   const validationsFile = optionsValidationsFiles[fileCode];
-        //   forEach(executedQuerys, (executedQuery, column) => {
-        //     const validationFile = find(
-        //       validationsFile,
-        //       (validation) => validation.columnName === column
-        //     );
-        //     if (size(validationFile.functions) > 0) {
-        //       const newFunctions = map(
-        //         validationFile.functions,
-        //         (functionName) => {
-        //           return functionName.bind(null, executedQuery);
-        //         }
-        //       );
-        //       validationFile.functions = newFunctions;
-        //     }
-        //   });
-        // });
-        // return optionsValidationsFiles;
-      })
-      .catch((err) => {
-        throw err;
-      });
+    const optionsValidationsFiles = await obtenerValidacionesArchivos(
+      validatedContentFormatFiles
+    );
 
-    // const optionsValidationsFiles = await obtenerValidacionesArchivos(
-    //   validatedContentFormatFiles
-    // );
-    // forEach(optionsValidationsFiles, (validations) =>
-    //   forEach(validations, (validation) => {
-    //     forEach(validation.functions, (functionName) => {
-    //       // functionName();
-    //     });
-    //   })
-    // );
-    // WORKER_OPTIONS.data.optionsValidationsFiles = optionsValidationsFiles;
+    WORKER_OPTIONS.data.optionsValidationsFiles = optionsValidationsFiles;
+    WORKER_OPTIONS.data.objectArrayFileContent = validatedContentFormatFiles;
 
     const worker = new Worker(
       "./middleware/workers/validar-contenido-valores-archivo.worker.js",
@@ -415,8 +366,8 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
   } catch (err) {
     if (err?.type === "errores_archivos")
       respArchivoErroneo200(res, err.errors);
-    else if (isNumber(err?.code))
-      respResultadoDinamicoEND(res, err.code, [], [], err.message);
+    else if (isNumber(err?.myCode))
+      respResultadoDinamicoEND(res, err.myCode, [], [], err.message);
     else respErrorServidor500END(res, err);
   }
 };

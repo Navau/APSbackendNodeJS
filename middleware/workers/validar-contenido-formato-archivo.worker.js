@@ -6,6 +6,7 @@ const {
   verificarFormatoContenidoArchivo,
   verificarCantidadColumnasArchivo,
 } = require("../helpers/validaciones-contenido-archivo.helper");
+const { agregarError } = require("../helpers/funciones-auxiliares.helper");
 
 function validarContenidoArchivo() {
   const { readedFiles, infoColumnasArchivos, TABLE_INFO, nuevaCarga } =
@@ -34,21 +35,22 @@ function validarContenidoArchivo() {
       return { validatedContentFormatFiles, errorsContentFormatFile };
 
     forEach(readedFiles, (file) => {
-      const { fileContent, fileName, fileCode } = file;
+      const { fileContent, fileName } = file;
       const fileContentSplit = verificarFormatoContenidoArchivo(
         fileContent,
         fileName,
         nuevaCarga,
         errorsContentFormatFile
       );
-      filesContentSplitByRow[fileCode] = fileContentSplit;
+      filesContentSplitByRow[fileName] = fileContentSplit;
     });
 
     if (size(errorsContentFormatFile) > 0)
       return { validatedContentFormatFiles, errorsContentFormatFile };
     validatedContentFormatFiles = {};
 
-    forEach(filesContentSplitByRow, (fileContentSplit, fileCode) => {
+    forEach(filesContentSplitByRow, (fileContentSplit, fileName) => {
+      const fileCode = fileName.split(".").pop();
       const fileHeaders = headers[fileCode];
       const objectArrayFileContent = verificarCantidadColumnasArchivo(
         fileHeaders,
@@ -57,17 +59,20 @@ function validarContenidoArchivo() {
         nuevaCarga,
         errorsContentFormatFile
       );
-      validatedContentFormatFiles[fileCode] = objectArrayFileContent;
+      validatedContentFormatFiles[fileName] = objectArrayFileContent;
     });
   } catch (err) {
-    errorsContentFormatFile.push({
-      id_carga_archivos: nuevaCarga.id_carga_archivos,
-      archivo: "",
-      tipo_error: "ERROR DE SERVIDOR",
-      descripcion: `Error de servidor al formatear los archivos. ${
-        err?.message ? err.message : err
-      }`,
-    });
+    agregarError(
+      {
+        id_carga_archivos: nuevaCarga.id_carga_archivos,
+        archivo: "",
+        tipo_error: "ERROR DE SERVIDOR",
+        descripcion: `Error de servidor al formatear los archivos. ${
+          err?.message ? err.message : err
+        }`,
+      },
+      errorsContentValuesFile
+    );
   }
   return { validatedContentFormatFiles, errorsContentFormatFile };
 }

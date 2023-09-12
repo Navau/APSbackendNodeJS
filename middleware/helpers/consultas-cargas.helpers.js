@@ -23,7 +23,7 @@ async function insertarNuevaCargaArchivo(params) {
 
     const ultimaCarga = await obtenerUltimaCarga(params);
     if (isUndefined(ultimaCarga))
-      throw { code: 500, message: "La carga anterior no fue encontrada" };
+      throw { myCode: 500, message: "La carga anterior no fue encontrada" };
     const maxCarga = ultimaCarga?.nro_carga || 0;
     const whereCarga = {
       id_rol,

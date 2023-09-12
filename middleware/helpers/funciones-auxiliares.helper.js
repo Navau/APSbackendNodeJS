@@ -1,3 +1,5 @@
+const { includes, replace } = require("lodash");
+
 function agregarError(newError, arrayErrors) {
   arrayErrors.push({
     id_carga_archivos: newError.id_carga_archivos,
