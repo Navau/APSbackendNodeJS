@@ -23,7 +23,6 @@ function formatearArchivo() {
     formatoArchivosRequeridos,
     nuevaCarga,
   } = workerData;
-  const { tableErrors } = TABLE_INFO;
   const errorsFormatFile = [];
   let formattedFiles = files;
   try {

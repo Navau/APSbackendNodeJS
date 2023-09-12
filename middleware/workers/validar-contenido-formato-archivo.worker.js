@@ -1,4 +1,4 @@
-const { map, find, forEach, size } = require("lodash");
+const { map, forEach, size } = require("lodash");
 const { parentPort, workerData } = require("worker_threads");
 const {
   quitarCaracteresExtrañosContenidoArchivo,
@@ -6,14 +6,10 @@ const {
   verificarFormatoContenidoArchivo,
   verificarCantidadColumnasArchivo,
 } = require("../helpers/validaciones-contenido-archivo.helper");
-const {
-  insertarCabecerasArchivos,
-} = require("../helpers/informacion-archivo.helper");
 
 function validarContenidoArchivo() {
   const { readedFiles, infoColumnasArchivos, TABLE_INFO, nuevaCarga } =
     workerData;
-  const { tableErrors } = TABLE_INFO;
   const errorsContentFormatFile = [];
   let validatedContentFormatFiles = readedFiles;
   const headers = {};

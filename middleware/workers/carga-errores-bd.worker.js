@@ -28,3 +28,6 @@ if (type === "validarFormatoContenidoDeArchivos" && size(errorsFiles) > 0) {
 if (type === "formatearArchivos" && size(errorsFiles) > 0) {
   parentPort.postMessage(insertarErroresBD());
 }
+if (type === "validarValoresContenidoDeArchivos" && size(errorsFiles) > 0) {
+  parentPort.postMessage(insertarErroresBD());
+}

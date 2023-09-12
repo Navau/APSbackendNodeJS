@@ -412,7 +412,7 @@ async function validarArchivosIteraciones(params) {
         //   resolve(errors);
         //   return;
         // }
-        console.log(isAllFiles);
+        // console.log(isAllFiles);
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
@@ -421,8 +421,8 @@ async function validarArchivosIteraciones(params) {
           const item = isAllFiles.currentFiles[index];
           // console.log("TEST PARA VER ASYNC", item.archivo);
           const filePath = `./uploads/tmp/${item.archivo}`;
-          // console.log(fs.readedFilesync(filePath));
-          const data = fs.readedFilesync(filePath, "utf8");
+          // console.log(fs.readFileSync(filePath));
+          const data = fs.readFileSync(filePath, "utf8");
 
           let dataSplit = null;
           if (data.includes("\r\n")) {
