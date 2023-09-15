@@ -26,7 +26,7 @@ async function obtenerInformacionInicial(data, user) {
     })
   );
   let functionNameFormatFiles = { table: null, body: null };
-  if (tipo_carga === "SEGUROS_PENSIONES") {
+  if (tipo_carga === "SEGUROS" || tipo_carga === "PENSIONES") {
     functionNameFormatFiles.table = "aps_fun_archivos_pensiones_seguros";
     functionNameFormatFiles.body = {
       fecha_operacion,

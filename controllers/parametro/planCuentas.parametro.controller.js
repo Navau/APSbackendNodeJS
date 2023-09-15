@@ -4,6 +4,7 @@ const {
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  RealizarOperacionAvanzadaCRUD,
 } = require("../../utils/crud.utils");
 
 const nameTable = "APS_param_plan_cuentas";
@@ -12,6 +13,17 @@ const nameTable = "APS_param_plan_cuentas";
 async function Listar(req, res) {
   const params = { req, res, nameTable, id: undefined };
   await ListarCRUD(params);
+}
+
+async function ListarSubcuentas(req, res) {
+  const params = {
+    req,
+    res,
+    nameTable,
+    methodName: "ListarSubcuentas_PlanCuentas",
+    action: "Listar",
+  };
+  await RealizarOperacionAvanzadaCRUD(params);
 }
 
 // OBTENER UN PLAN CUENTAS, CON BUSQUEDA
@@ -44,4 +56,5 @@ module.exports = {
   Escoger,
   Insertar,
   Actualizar,
+  ListarSubcuentas,
 };

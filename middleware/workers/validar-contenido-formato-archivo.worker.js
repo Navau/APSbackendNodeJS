@@ -35,31 +35,33 @@ function validarContenidoArchivo() {
       return { validatedContentFormatFiles, errorsContentFormatFile };
 
     forEach(readedFiles, (file) => {
-      const { fileContent, fileName } = file;
+      const { fileContent, fileName, fileCode } = file;
       const fileContentSplit = verificarFormatoContenidoArchivo(
         fileContent,
         fileName,
         nuevaCarga,
         errorsContentFormatFile
       );
-      filesContentSplitByRow[fileName] = fileContentSplit;
+      filesContentSplitByRow[`${fileName}_separador_${fileCode}`] =
+        fileContentSplit;
     });
 
     if (size(errorsContentFormatFile) > 0)
       return { validatedContentFormatFiles, errorsContentFormatFile };
     validatedContentFormatFiles = {};
 
-    forEach(filesContentSplitByRow, (fileContentSplit, fileName) => {
-      const fileCode = fileName.split(".").pop();
+    forEach(filesContentSplitByRow, (fileContentSplit, fileNameAndCode) => {
+      const fileName = fileNameAndCode.split("_separador_")[0];
+      const fileCode = fileNameAndCode.split("_separador_")[1];
       const fileHeaders = headers[fileCode];
       const objectArrayFileContent = verificarCantidadColumnasArchivo(
         fileHeaders,
         fileContentSplit,
-        fileCode,
+        fileName,
         nuevaCarga,
         errorsContentFormatFile
       );
-      validatedContentFormatFiles[fileName] = objectArrayFileContent;
+      validatedContentFormatFiles[fileNameAndCode] = objectArrayFileContent;
     });
   } catch (err) {
     agregarError(

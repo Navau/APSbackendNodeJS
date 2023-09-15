@@ -51,8 +51,9 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
     const querysFiles = [];
     const keysFiles = {};
     const executedFilesQueries = {};
-    forEach(validatedContentFormatFiles, (fileContent, fileName) => {
-      const fileCode = fileName.split(".").pop();
+    forEach(validatedContentFormatFiles, (fileContent, fileNameAndCode) => {
+      const fileName = fileNameAndCode.split("_separador_")[0];
+      const fileCode = fileNameAndCode.split("_separador_")[1];
       const fileValidations = CONF_FILE_VALUE_VALIDATIONS(fileCode);
       forEach(fileValidations, (validation) => {
         const { globalFileValidations } = validation;
@@ -318,8 +319,8 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           where: [
             {
               key: "id_tipo_renta",
-              values_where_in: [136],
-              where_in: true,
+              valuesWhereIn: [136],
+              whereIn: true,
             },
             {
               key: "activo",
@@ -383,8 +384,8 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           where: [
             {
               key: "id_clasificador_comun_grupo",
-              values_where_in: [7],
-              where_in: true,
+              valuesWhereIn: [7],
+              whereIn: true,
             },
           ],
         },
@@ -396,8 +397,8 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           where: [
             {
               key: "id_clasificador_comun",
-              values_where_in: [106],
-              where_in: true,
+              valuesWhereIn: [106],
+              whereIn: true,
             },
           ],
         },
@@ -433,6 +434,297 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
         },
       },
     },
+    TD: {
+      tipo_instrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            { key: "id_tipo_mercado", value: 200 },
+            { key: "id_tipo_renta", value: 135 },
+          ],
+        },
+      },
+      emisor: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [{ key: "id_pais", value: 8 }],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            { key: "id_moneda", valuesWhereIn: [1, 2, 3, 4], whereIn: true },
+          ],
+        },
+      },
+      tipo_amortizacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [{ key: "id_clasificador_comun_grupo", value: 25 }],
+        },
+      },
+      tipo_interes: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [{ key: "id_clasificador_comun_grupo", value: 23 }],
+        },
+      },
+      tipo_tasa: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [{ key: "id_clasificador_comun_grupo", value: 16 }],
+        },
+      },
+      prepago: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun",
+              valuesWhereIn: [162, 164],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      subordinado: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 21,
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [{ key: "id_clasificador_comun_grupo", value: 6 }],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [9],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
+    TO: {
+      tipo_instrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      pais: {
+        table: "APS_param_pais",
+        queryOptions: {
+          select: ["codigo"],
+        },
+      },
+      emisor: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            { key: "id_pais", value: 8, operator: "<>" },
+            { key: "codigo_rmv", value: "TGN", operatorSQL: "OR" },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_otros_activos"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [1, 3],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 35,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [8],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
+    TV: {
+      tipo_instrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [136],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipo_accion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 28,
+            },
+          ],
+        },
+      },
+      emisor: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["sigla"],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun",
+              valuesWhereIn: [9],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
+
+    UD: {
+      tipo_instrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 200,
+            },
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        },
+      },
+    },
+    CO: {
+      tipo_instrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
   };
   try {
     return TYPES_QUERY_FILES[typeFile];
@@ -442,8 +734,6 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
 };
 
 const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
-  const defaultErrorDataTypeMessage =
-    "El campo no cumple las especificaciones de Tipo de Dato";
   const resultQueries = () => {
     const confFileQueries = CONF_FILE_QUERIES_DATABASE(typeFile);
     const keys = Object.keys(confFileQueries);
@@ -460,10 +750,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha",
@@ -471,73 +757,41 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         typeError: "format",
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "codigo_valoracion",
         pattern: /^[A-Za-z0-9]{1,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{1,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "clave_instrumento",
         pattern: /^[A-Za-z0-9\-]{5,30}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_promedio",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_negociado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_minimo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_marcacion",
         pattern: /^[A-Za-z]{2,2}$/,
         functions: ["marcacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     L: [
@@ -545,65 +799,37 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "codigo_valoracion",
         pattern: /^[A-Za-z0-9]{1,7}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_negociado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_minimo",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z]{2,2}$/,
         functions: ["tipoValoracion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     N: [
@@ -611,29 +837,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "codigo_valoracion",
         pattern: /^[A-Za-z0-9]{1,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_marcacion",
@@ -641,19 +855,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     P: [
@@ -661,38 +867,22 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoActivo"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "clave_instrumento",
         pattern: /^[A-Za-z0-9]{9,30}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "ult_fecha_disponible",
@@ -700,28 +890,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_bid",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     411: [
@@ -731,104 +909,60 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         mayBeEmpty: true,
         functions: ["lugarNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
         functions: ["tipoOperacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         unique: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         operationNotValid: "tipoOperacionCOP",
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_negociacion",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,8}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadValoresMultiplicadoPrecioNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     412: [
@@ -838,95 +972,55 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
         mayBeEmpty: true,
         functions: ["lugarNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
         functions: ["tipoOperacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         unique: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         operationNotValid: "tipoOperacionCOP",
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadValoresMultiplicadoPrecioNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     413: [
@@ -936,73 +1030,41 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cartera_origen",
         pattern: /^[A-Za-z0-9]{3,3}$/,
         functions: ["cartera"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cartera_destino",
         pattern: /^[A-Za-z0-9]{3,3}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     441: [
@@ -1010,10 +1072,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         globalFileValidations: {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
-          validateFieldWithOperationDate: [],
           formatDateFields: {
-            fecha_vencimiento: ["yyyy-MM-dd"],
-            fecha_emision: ["yyyy-MM-dd"],
+            fecha_vencimiento: "yyyy-MM-dd",
+            fecha_emision: "yyyy-MM-dd",
           },
           queries: () => resultQueries(),
         },
@@ -1021,197 +1082,117 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: ["tipoInstrumento", "tipoInstrumento2"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["emisor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_emision",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         functions: ["mayorACero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_amortizacion",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoAmortizacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_interes",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["tipoInteres"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_tasa",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["tipoTasa"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["tasaEmision"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_emision",
         pattern: [/^(0|[1-9][0-9]{1,4})$/, /^(0|[1-9][0-9]{0,2})$/],
         functions: [
-          // "operacionfechaVencimientoMenosFechaEmision",
-          "operacionMatematica",
           "plazoEmisionTiposDeDatos",
+          // "operacionfechaVencimientoMenosFechaEmision",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        mathOperation: [
+          { column: "fecha_vencimiento", isDate: true },
+          "-",
+          { column: "fecha_emision", isDate: true, operateResultBy: "days" },
+        ],
       },
       {
         columnName: "nro_pago",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         functions: ["nroPago"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]*)$/,
         functions: ["plazoCupon"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prepago",
         pattern: /^[A-Za-z0-9\-]{1,1}$/,
         functions: ["prepago"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "subordinado",
         pattern: /^[A-Za-z0-9\-]{1,1}$/,
         functions: ["subordinado"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,4}$/,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["custodio"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     442: [
@@ -1221,8 +1202,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
           validateFieldWithOperationDate: [],
           formatDateFields: {
-            fecha_vencimiento: ["yyyy-MM-dd"],
-            fecha_emision: ["yyyy-MM-dd"],
+            fecha_vencimiento: "yyyy-MM-dd",
+            fecha_emision: "yyyy-MM-dd",
           },
           queries: () => resultQueries(),
         },
@@ -1234,102 +1215,58 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => tipoInstrumento(params),
           (params) => tipoInstrumento2(params),
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "pais",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => pais(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => emisor(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{2,2}$/,
         functions: [(params) => moneda(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_emision",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,9}))$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_emision",
@@ -1338,46 +1275,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           // "fechaVencimientoMenosFechaEmision",
           (params) => operacionMatematica(params),
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_pago",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         functions: [(params) => nroPago(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]*)$/,
         functions: [(params) => plazoCupon(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-\+]{1,3}$/,
         functions: [(params) => calificacion(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z\&]{3,3}$/,
         functions: [(params) => calificadora(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     443: [
@@ -1402,109 +1319,61 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => tipoInstrumento(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_accion",
         pattern: /^[A-Za-z0-2]{1,1}$/,
         functions: [(params) => tipoAccion(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie_emision",
         pattern: /^[A-Za-z0-9]{1,1}$/,
         functions: [(params) => serieEmision(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{0,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => emisor(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => moneda(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{2,9}))$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_unitario",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_unitario_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
@@ -1514,10 +1383,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           // "calificacionConInstrumentoEstatico",
         ],
         // tiposInstrumentos: ["CFC", "ACC"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
@@ -1526,10 +1391,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => calificadora(params),
           // "calificadoraConCalificacion",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -1539,10 +1400,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           // "custodioConInstrumento"
         ],
         // tiposInstrumentos: ["ACC"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     444: [
@@ -1559,56 +1416,32 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => tipoInstrumento(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_pago",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{0,3})$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "interes",
@@ -1617,19 +1450,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => operacionMatematica(params),
           // "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorIgualACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "flujo_total",
@@ -1638,10 +1463,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => operacionMatematica(params),
           // "interesMasAmortizacion",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_capital",
@@ -1650,10 +1471,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => operacionMatematica(params),
           // "saldoCapitalMenosAmortizacionCuponAnterior",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     445: [
@@ -1670,74 +1487,42 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: [(params) => tipoInstrumento(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_pago",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_fecha_vencimiento",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: [(params) => mayorACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [(params) => mayorIgualACero(params)],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "interes",
@@ -1746,10 +1531,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => operacionMatematica(params),
           // "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "flujo_total",
@@ -1758,10 +1539,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => operacionMatematica(params),
           // "interesMasAmortizacion",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_capital",
@@ -1770,10 +1547,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           (params) => operacionMatematica(params),
           // "saldoCapitalMenosAmortizacionCuponAnterior",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     451: [
@@ -1781,65 +1554,37 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_cuenta",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoCuenta"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "entidad_financiera",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["entidadFinanciera"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cuenta",
         pattern: /^[A-Za-z0-9\-]{8,20}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuenta_contable",
         pattern: /^[0-9]{12,12}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         // functions: ["montoFinalConTipoDeCambio"], // VALIDACION PARA TIPO DE CAMBIO
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     481: [
@@ -1859,10 +1604,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_valoracion",
         pattern: /^[A-Za-z0-9\-]{7,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_relevante",
@@ -1873,76 +1614,44 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_valor",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
         functions: ["plazoValorConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_economico",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
         functions: ["plazoEconomicoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadMultiplicadoPrecioEquivalente"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         functions: ["calificacionConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         functions: ["calificadoraConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -1974,37 +1683,21 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["tasaUltimoHechoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoOperacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     482: [
@@ -2024,10 +1717,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_valoracion",
         pattern: /^[A-Za-z0-9\-]{7,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_relevante",
@@ -2038,76 +1727,44 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_valor",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
         functions: ["plazoValorConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_economico",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
         functions: ["plazoEconomicoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadMultiplicadoPrecioEquivalente"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         functions: ["calificacionConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         functions: ["calificadoraConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -2139,37 +1796,21 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["tasaUltimoHechoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoOperacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     483: [
@@ -2177,29 +1818,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z0-9\-\ ]{3,20}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{0,23}$/,
         mayBeEmpty: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "entidad_emisora",
         pattern: /^[A-Za-z0-9\.\- ]{5,50}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_adquisicion",
@@ -2208,64 +1837,36 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadMultiplicadoPrecio"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_neto_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["totalBsMenosPrevisionesInversionesBs"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     484: [
@@ -2285,28 +1886,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["tasaRendimientoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_mo",
@@ -2318,46 +1907,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,3}$/,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -2394,28 +1963,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["tasaRendimientoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_mo",
@@ -2427,46 +1984,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,3}$/,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z\&]{3,3}$/,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -2491,19 +2028,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "entidad_emisora",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["entidadEmisora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_adquisicion",
@@ -2511,64 +2040,36 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadMultiplicadoPrecio"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_neto_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["totalBsMenosPrevisionesInversionesBs"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     461: [
@@ -2576,65 +2077,37 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_cuenta",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoCuenta"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "entidad_financiera",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["entidadFinanciera"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cuenta",
         pattern: /^[A-Za-z0-9\-]{5,20}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuenta_contable",
         pattern: /^[0-9]{12,12}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         // functions: ["montoFinalConTipoDeCambio"], // VALIDACION PARA TIPO DE CAMBIO
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
     ],
     471: [
@@ -2643,30 +2116,18 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         pattern: /^[A-Za-z]{3,3}$/,
         singleGroup: true,
         functions: ["tipoActivo"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "detalle_1",
         pattern: /^[A-Za-z0-9]{3,25}$/,
         singleGroup: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "detalle_2",
         pattern: /^[A-Za-z0-9À-ÿ\u00f1\u00d1\.\- ]{5,25}$/,
         singleGroup: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuenta_contable",
@@ -2674,19 +2135,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         singleGroup: true,
         endSingleGroup: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     491: [
@@ -2694,28 +2147,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_contable",
         pattern: /^[0-9]{12,12}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "direccion",
         pattern: /^[\s\S]{15,300}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "ciudad",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["ciudad"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_compra",
@@ -2724,64 +2165,36 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "superficie",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_registro_ddrr",
         pattern: /^[A-Za-z0-9\.\-]{5,25}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_testimonio",
         pattern: /^[A-Za-z0-9\/\-]{5,15}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_anterior",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "incremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "decremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_rev_tec",
@@ -2791,28 +2204,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         notValidate: true,
         mayBeEmpty: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "altas_bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "actualizacion",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final",
@@ -2820,46 +2221,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         functions: [
           "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_anterior_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "bajas_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "actualizacion_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final_dep_acum",
@@ -2867,85 +2248,49 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         functions: [
           "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["saldoFinalMenosSaldoFinalDep"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_ufv",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_vida_util",
         pattern: /^(0|[1-9][0-9]{1,3})$/,
         range: [0, 480],
         functions: ["totalVidaUtil"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "vida_util_restante",
         pattern: /^(0|[1-9][0-9]{1,3})$/,
         range: [0, 480],
         functions: ["vidaUtilRestante"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "observaciones",
         pattern: /^[\s\S]{0,300}$/,
         mayBeEmpty: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prevision",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_bien_inmueble",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoBienInmueble"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     492: [
@@ -2953,28 +2298,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_contable",
         pattern: /^[0-9]{12,12}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "direccion",
         pattern: /^[\s\S]{15,300}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "ciudad",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["ciudad"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_compra",
@@ -2983,64 +2316,36 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "superficie",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_registro_ddrr",
         pattern: /^[A-Za-z0-9\.\-]{5,25}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_testimonio",
         pattern: /^[A-Za-z0-9\/\-]{5,15}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_anterior",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "incremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "decremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_rev_tec",
@@ -3050,28 +2355,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         notValidate: true,
         mayBeEmpty: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "altas_bajas",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "actualizacion",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final",
@@ -3079,46 +2372,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         functions: [
           "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_anterior_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "bajas_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "actualizacion_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["menorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final_dep_acum",
@@ -3126,85 +2399,49 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         functions: [
           "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["saldoFinalMenosSaldoFinalDep"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_ufv",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_vida_util",
         pattern: /^(0|[1-9][0-9]{1,3})$/,
         range: [0, 480],
         functions: ["totalVidaUtil"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "vida_util_restante",
         pattern: /^(0|[1-9][0-9]{1,3})$/,
         range: [0, 480],
         functions: ["vidaUtilRestante"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "observaciones",
         pattern: /^[\s\S]{0,300}$/,
         mayBeEmpty: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prevision",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_bien_inmueble",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoBienInmueble"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     494: [
@@ -3212,46 +2449,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "descripcion",
         pattern: /^[\s\S]{10,100}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final_mes_anterior_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "movimiento_mes_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final_mes_actual_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["saldoFinalMesAnteriorBsMasMovimientoMesBs"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     496: [
@@ -3259,28 +2476,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "descripcion",
         pattern: /^[\s\S]{20,150}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "ubicacion",
         pattern: /^[\s\S]{20,150}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "fecha_compra",
@@ -3289,127 +2494,71 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_anterior",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "incremento_revaluo_tecnico",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "decremento_revaluo_tecnico",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "altas_bajas_bienes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_anterior_depreciacion_acumulada",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "altas_bajas_depreciacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_final_depreciacion_acumulada",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["depreciacionPeriodoMasAltasBajasDepreciacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_neto_usd",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_vida_util",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "vida_util_restante",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
     ],
     497: [
@@ -3417,10 +2566,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "nombre_rentista",
         pattern: /^[\s\S]{10,50}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_prestamo",
@@ -3428,19 +2573,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_documento_prestamo",
         pattern: /^(^-?\d{1,14})(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_inicio",
@@ -3448,10 +2585,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_finalizacion",
@@ -3459,91 +2592,51 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_prestamo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_interes_mensual",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "frecuencia_pago",
         pattern: /^[A-Za-z0-9\-]{3,7}$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "cantidad_cuotas",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "cuota_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_prestamo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadCuotasMultiplicadoCuotaBs"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "amortizacion_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_actual_prestamo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "intereses_percibidos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     498: [
@@ -3551,10 +2644,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "nro_poliza",
         pattern: /^[A-Za-z0-9\-]{5,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_inicio_prestamo",
@@ -3562,10 +2651,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_finalizacion_prestamo",
@@ -3573,46 +2658,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "asegurado",
         pattern: /^[\s\S]{10,50}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plan_seguro",
         pattern: /^[\s\S]{10,18}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_asegurado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_rescate_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_prestamo",
@@ -3620,82 +2685,46 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: ["fechaOperacionMenor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_cuota_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo",
         pattern: /^[\s\S]{2,8}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "importe_cuota_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "altas_bajas_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "amortizacion_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_actual",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "sucursal",
         pattern: /^[\s\S]{5,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     DM: [
@@ -3705,85 +2734,49 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         mayBeEmpty: true,
         functions: ["lugarNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
         functions: ["tipo_operacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         unique: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_negociacion",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total",
@@ -3792,19 +2785,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           "mayorACeroDecimal",
           "cantidadValoresMultiplicadoPrecioNegociacion",
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     DR: [
@@ -3814,95 +2799,55 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
         mayBeEmpty: true,
         functions: ["lugarNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
         functions: ["tipoOperacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
         unique: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         operationNotValid: "tipoOperacionCOP",
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadValoresMultiplicadoPrecioNegociacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     UA: [
@@ -3912,46 +2857,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_cupon_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_cupon_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     UE: [
@@ -3961,243 +2886,151 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_cupon_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_cupon_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     TD: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
+          formatDateFields: {
+            fecha_vencimiento: "yyyy-MM-dd",
+            fecha_emision: "yyyy-MM-dd",
+          },
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["emisor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_emision",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_amortizacion",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoAmortizacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_interes",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["tipoInteres"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_tasa",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["tipoTasa"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_emision",
         pattern: /^(0|[1-9][0-9]{1,4})$/,
-        functions: ["fechaVencimientoMenosFechaEmision"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [],
+        mathOperation: [
+          { column: "fecha_vencimiento", isDate: true },
+          "-",
+          { column: "fecha_emision", isDate: true, operateResultBy: "days" },
+        ],
       },
       {
         columnName: "nro_pago",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         functions: ["nroPago"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]*)$/,
         functions: ["plazoCupon"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "prepago",
         pattern: /^[A-Za-z0-9\-]{1,1}$/,
         functions: ["prepago"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "subordinado",
         pattern: /^[A-Za-z0-9\-]{1,1}$/,
         functions: ["subordinado"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,3}$/,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["custodio"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     DU: [
@@ -4205,541 +3038,365 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "codigo_custodia",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["codigoCustodia"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
     ],
     UD: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: { nro_cupon: ["serie"] },
+          uniqueCombinationPerFile: [],
+          formatDateFields: { fecha_pago: "yyyy-MM-dd" },
+          mayBeEmptyFields: ["serie", "calificacion", "calificadora"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
-        singleGroup: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        // unique: true,
-        singleGroup: true,
-        endSingleGroup: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "fecha_pago",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{0,4})$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
+        functions: [],
+        mathOperation: [
+          "(",
+          { column: "saldo_capital" },
+          "*",
+          { column: "plazo_cupon" },
+          "*",
+          { column: "tasa_interes" },
+          ")",
+          { number: 36000 },
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["interesMasAmortizacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [],
+        mathOperation: [{ column: "interes" }, "+", { column: "amortizacion" }],
       },
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["saldoCapitalMenosAmortizacionCuponAnterior"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [
+          // "saldoCapitalMenosAmortizacionCuponAnterior"
+        ],
       },
     ],
     TO: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_vencimiento: "yyyy-MM-dd",
+            fecha_emision: "yyyy-MM-dd",
+          },
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "pais",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["pais"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["emisor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{2,2}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "fecha_emision",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_emision",
         pattern: /^(0|[1-9][0-9]{1,4})$/,
-        functions: ["fechaVencimientoMenosFechaEmision"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [],
+        mathOperation: [
+          { column: "fecha_vencimiento", isDate: true },
+          "-",
+          { column: "fecha_emision", isDate: true, operateResultBy: "days" },
+        ],
       },
       {
         columnName: "nro_pago",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         functions: ["nroPago"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]*)$/,
         functions: ["plazoCupon"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,3}$/,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z\&]{3,3}$/,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     CO: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: { nro_cupon: ["serie"] },
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_pago: "yyyy-MM-dd",
+          },
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
         unique: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "fecha_pago",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_fecha_vencimiento",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
-        notValidate: true,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
+        mathOperation: [
+          "(",
+          { column: "saldo_capital" },
+          "*",
+          { column: "plazo_cupon" },
+          "*",
+          { column: "tasa_interes" },
+          ")",
+          { number: 36000 },
         ],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [],
       },
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["interesMasAmortizacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [],
+        mathOperation: [{ column: "interes" }, "+", { column: "amortizacion" }],
       },
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["saldoCapitalMenosAmortizacionCuponAnterior"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: [
+          // "saldoCapitalMenosAmortizacionCuponAnterior"
+        ],
       },
     ],
     TV: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: { fecha_emision: "yyyy-MM-dd" },
+          mayBeEmptyFields: ["serie", "calificacion", "calificadora"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_emision",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_accion",
         pattern: /^[A-Za-z0-2]{1,1}$/,
         functions: ["tipoAccion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie_emision",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{0,23}$/,
-        mayBeEmpty: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["emisor"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_unitario",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_unitario_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["custodio"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     DC: [
@@ -4759,10 +3416,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_valoracion",
         pattern: /^[A-Za-z0-9\-]{7,10}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_relevante",
@@ -4773,76 +3426,44 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_valor",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
         functions: ["plazoValorConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "plazo_economico",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
         functions: ["plazoEconomicoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadMultiplicadoPrecioEquivalente"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         functions: ["calificacionConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
         mayBeEmpty: true,
         functions: ["calificadoraConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -4874,37 +3495,21 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         date: true,
         notValidate: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
         functions: ["tasaUltimoHechoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoOperacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     DO: [
@@ -4924,28 +3529,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tasa_rendimiento",
         pattern: /^(^-?(0|[1-9][0-9]{0,2}))(\.\d{8,8}){1,1}$/,
         functions: ["tasaRendimientoConInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_mo",
@@ -4957,46 +3550,26 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadMultiplicadoPrecioMO"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{1,1}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{1,3}$/,
         functions: ["calificacion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z0-9\-]{1,3}$/,
         functions: ["calificadora"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodio",
@@ -5021,37 +3594,21 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,13}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "descripcion",
         pattern: /^[\s\S]{4,80}$/,
         functions: ["codigoCuentaDescripcion"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_cuotas",
         pattern: /^(^-?(0|[1-9][0-9]{0,11}))(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     FE: [
@@ -5059,19 +3616,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
         functions: ["codigoCuenta"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     VC: [
@@ -5079,28 +3628,16 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_item",
         pattern: /^[A-Za-z0-9\-\.]{1,11}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuotas",
         pattern: /^(^-?(0|[1-9][0-9]{0,11}))(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     CD: [
@@ -5111,37 +3648,21 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         notValidate: true,
         date: true,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "valor_cuota",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,4})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     DE: [
@@ -5149,55 +3670,31 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo",
         pattern: /^[A-Za-z0-9\.]{4,5}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "concepto",
         pattern: /^[\s\S]{5,80}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuenta_a_p",
         pattern: /^[A-Za-z0-9]{5,5}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuenta_p_a",
         pattern: /^[A-Za-z0-9]{5,5}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "monto",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     FC: [
@@ -5205,19 +3702,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
         functions: ["codigoCuenta"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     LQ: [
@@ -5225,100 +3714,56 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo_fondo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["codigoFondo"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tipo_cuenta_liquidez",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoCuentaLiquidez"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "codigo_banco",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["codigoBanco"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nro_cuenta",
         pattern: /^[A-Za-z0-9\-]{10,20}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cuenta_contable",
         pattern: /^[A-Za-z]{8,8}$/,
         functions: ["cuentaContable"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["moneda"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "rango_inferior",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "rango_superior",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     TR: [
@@ -5326,136 +3771,76 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "codigo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["codigoAFP"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "nombre",
         pattern: /^[\s\S]{3,3}$/,
         functions: ["nombreAFP"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "r_nro_cuentas",
         pattern: /^(^-?(0|[1-9][0-9]{0,3}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "r_monto_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "r_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "r_rezagos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "r_rezagos_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "e_nro_cuentas",
         pattern: /^(^-?(0|[1-9][0-9]{0,3}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "e_monto_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "e_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "e_rezagos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "e_rezagos_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_recibidos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "total_enviados_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "diferencia_neta_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["totalRecibidosBs-totalEnviadosBs"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
     CC: [
@@ -5463,91 +3848,51 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "tasa_relevante",
         pattern: /^(^-?(0|[1-9][0-9]{0,1}))(\.\d{8,8}){1,1}$/,
         functions: ["mayorIgualACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_mercado_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "precio_mercado_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACeroDecimal"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        functions: ["mayorACeroEntero"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mercado_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["precioMercadoMOMultiplicadoCantidadValores"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
       {
         columnName: "custodia",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["custodio"],
-        messages: {
-          DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
-          MESSAGE_ERROR_DB: "",
-        },
       },
     ],
   };

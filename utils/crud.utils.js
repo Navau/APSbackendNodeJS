@@ -33,6 +33,7 @@ const {
   take,
   some,
   mapValues,
+  merge,
 } = require("lodash");
 const {
   ListarUtil,
@@ -4438,6 +4439,37 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         respResultadoCorrectoObjeto200(res, modalidadesArray);
       },
       CargarArchivo_Upload: async () => CargarArchivo_Upload(req, res, action),
+      ListarSubcuentas_PlanCuentas: async () => {
+        const cuentas = await EjecutarQuery(
+          isUndefined(await CampoActivoAux(nameTable))
+            ? ListarUtil(nameTable, { activo: null })
+            : ListarUtil(nameTable)
+        );
+        function crearJerarquiaCuentas(cuentas, cuentaPadre = null, nivel = 1) {
+          const cuentasNivel = cuentas.filter(
+            (cuenta) =>
+              cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel
+          );
+          if (cuentasNivel.length === 0) {
+            return null;
+          }
+          const jerarquia = {};
+          for (const cuenta of cuentasNivel) {
+            const subcuentas = crearJerarquiaCuentas(
+              cuentas,
+              cuenta.cuenta,
+              nivel + 1
+            );
+            if (subcuentas) {
+              cuenta.subcuentas = subcuentas;
+            }
+            jerarquia[cuenta.cuenta] = cuenta;
+          }
+          return jerarquia;
+        }
+        const estructuraJerarquica = crearJerarquiaCuentas(cuentas, "1");
+        respResultadoCorrectoObjeto200(res, estructuraJerarquica);
+      },
     };
 
     await OPERATION?.[methodName]();

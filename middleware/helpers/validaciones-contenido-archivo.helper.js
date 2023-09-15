@@ -90,7 +90,7 @@ const verificarFormatoContenidoArchivo = (
 const verificarCantidadColumnasArchivo = (
   fileHeaders = [],
   fileContentSplit,
-  fileCode,
+  fileName,
   nuevaCarga,
   errors
 ) => {
@@ -106,7 +106,7 @@ const verificarCantidadColumnasArchivo = (
     if (size(values) !== size(fileHeaders)) {
       const newError = {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
-        archivo: fileCode,
+        archivo: fileName,
         tipo_error: "ERROR DE FORMATO DE CONTENIDO",
         descripcion: `La cantidad de columnas del archivo ('${size(
           values

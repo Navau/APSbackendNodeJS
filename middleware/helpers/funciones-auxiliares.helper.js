@@ -19,4 +19,12 @@ function agregarError(newError, arrayErrors) {
   });
 }
 
-module.exports = { agregarError };
+const CONF_FILE_MESSAGES = () => {
+  const defaultErrorDataTypeMessage =
+    "El campo no cumple las especificaciones de Tipo de Dato";
+  return {
+    DEFAULT_ERROR_DATA_TYPE_MESSAGE: defaultErrorDataTypeMessage,
+  };
+};
+
+module.exports = { agregarError, CONF_FILE_MESSAGES };

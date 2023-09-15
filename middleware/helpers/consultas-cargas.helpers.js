@@ -91,7 +91,7 @@ const obtenerUltimaCarga = async (params) => {
       { key: "cargado", value: true },
     ];
 
-    if (id === "SEGUROS_PENSIONES")
+    if (id === "SEGUROS" || id === "PENSIONES")
       where.push({
         key: "id_periodo",
         value: tipo_periodo === "M" ? 155 : 154,

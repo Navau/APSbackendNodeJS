@@ -7,6 +7,11 @@ const { basename } = require("path");
 const api = express.Router();
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
+api.get(
+  "/ListarSubcuentas",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ListarSubcuentas
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

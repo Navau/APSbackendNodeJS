@@ -27,12 +27,13 @@ async function validacionesEntradasCargaArchivos(data) {
       .typeError("El tipo_carga debe ser una cadena de texto")
       .oneOf(
         [
-          "SEGUROS_PENSIONES",
+          "SEGUROS",
+          "PENSIONES",
           "CUSTODIO_SEGUROS",
           "CUSTODIO_PENSIONES",
           "BOLSA",
         ],
-        "El tipo_carga es inválido (valores esperados: ['SEGUROS_PENSIONES', 'CUSTODIO_SEGUROS', 'CUSTODIO_PENSIONES', 'BOLSA'])"
+        "El tipo_carga es inválido (valores esperados: ['SEGUROS', 'PENSIONES', 'CUSTODIO_SEGUROS', 'CUSTODIO_PENSIONES', 'BOLSA'])"
       )
       .required("El tipo_carga es requerido"),
     reproceso: yup

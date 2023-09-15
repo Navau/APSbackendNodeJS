@@ -42,8 +42,14 @@ const {
 const { EjecutarQuery } = require("../utils/consulta.utils");
 
 const TABLES_INFO_UPLOAD = (codInstitucion = undefined) => ({
-  SEGUROS_PENSIONES: {
-    id: "SEGUROS_PENSIONES",
+  SEGUROS: {
+    id: "SEGUROS",
+    code: codInstitucion,
+    table: "APS_aud_carga_archivos_pensiones_seguros",
+    tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
+  },
+  PENSIONES: {
+    id: "PENSIONES",
     code: codInstitucion,
     table: "APS_aud_carga_archivos_pensiones_seguros",
     tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
