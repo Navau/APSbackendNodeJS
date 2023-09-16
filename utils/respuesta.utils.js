@@ -361,6 +361,7 @@ function respArchivoErroneo200(res, err, data, msg) {
       "El tipo de archivo que se ha recibido no cumple con el formato esperado"
     ),
     errores: err,
+    sizeData: size(err),
   });
 }
 

@@ -1,4 +1,12 @@
-const { map, forEach, size, find, isArray } = require("lodash");
+const {
+  map,
+  forEach,
+  size,
+  find,
+  isArray,
+  includes,
+  isEmpty,
+} = require("lodash");
 const { parentPort, workerData } = require("worker_threads");
 const {} = require("../helpers/validaciones-contenido-archivo.helper");
 const {
@@ -34,32 +42,71 @@ function validarContenidoValoresArchivo() {
             validations,
             (validation) => validation.columnName === columnIndex
           );
-          const { pattern, functions, paramsBD, messages, mathOperation } =
-            findValidation;
+          const {
+            pattern,
+            functions,
+            paramsBD,
+            messages,
+            mathOperation,
+            mayBeEmptyFields,
+            extraFunctionsParameters,
+          } = findValidation;
 
           if (!isArray(pattern)) {
             forEach(formatDateFields, (formatDateField, dateFieldIndex) => {
               if (
                 columnIndex === dateFieldIndex &&
                 DateTime.fromISO(value).isValid
-              )
+              ) {
                 value = DateTime.fromISO(value).toFormat(formatDateField);
+              }
             });
             if (!pattern?.test(value)) {
               matchDataType = false;
-              agregarError(
-                {
-                  id_carga_archivos: nuevaCarga.id_carga_archivos,
-                  archivo: fileName,
-                  tipo_error: "TIPO DE DATO INCORRECTO",
-                  descripcion: DEFAULT_ERROR_DATA_TYPE_MESSAGE,
-                  valor: value,
-                  fila: rowIndex,
-                  columna: columnIndex,
-                },
-                errorsContentValuesFile
-              );
+              if (isEmpty(value) && !includes(mayBeEmptyFields, columnIndex)) {
+                agregarError(
+                  {
+                    id_carga_archivos: nuevaCarga.id_carga_archivos,
+                    archivo: fileName,
+                    tipo_error: "TIPO DE DATO INCORRECTO",
+                    descripcion: DEFAULT_ERROR_DATA_TYPE_MESSAGE,
+                    valor: value,
+                    fila: rowIndex,
+                    columna: columnIndex,
+                  },
+                  errorsContentValuesFile
+                );
+              }
             }
+          } else {
+            forEach(functions, (functionName) => {
+              functionResult = funcionesValidacionesContenidoValores[
+                functionName
+              ]({
+                paramsBD,
+                value,
+                fecha_operacion,
+                columnIndex,
+                row,
+                messages,
+                mayBeEmptyFields,
+                pattern,
+              });
+              if (functionResult !== true) {
+                agregarError(
+                  {
+                    id_carga_archivos: nuevaCarga.id_carga_archivos,
+                    archivo: fileName,
+                    tipo_error: "TIPO DE DATO INCORRECTO",
+                    descripcion: DEFAULT_ERROR_DATA_TYPE_MESSAGE,
+                    valor: value,
+                    fila: rowIndex,
+                    columna: columnIndex,
+                  },
+                  errorsContentValuesFile
+                );
+              }
+            });
           }
           forEach(functions, (functionName) => {
             functionResult = funcionesValidacionesContenidoValores[
@@ -71,6 +118,10 @@ function validarContenidoValoresArchivo() {
               columnIndex,
               row,
               messages,
+              mayBeEmptyFields,
+              pattern,
+              fileCode,
+              extraFunctionsParameters,
             });
             if (functionResult !== true) {
               agregarError(
@@ -87,12 +138,15 @@ function validarContenidoValoresArchivo() {
               );
             }
           });
-          if (matchDataType && size(mathOperation) > 0) {
+          if (size(mathOperation) > 0) {
             const functionResult =
               funcionesValidacionesContenidoValores.operacionMatematica({
                 value,
                 mathOperation,
                 row,
+                rowIndex,
+                fileContent,
+                pattern,
               });
             if (functionResult !== true) {
               agregarError(
@@ -126,6 +180,7 @@ function validarContenidoValoresArchivo() {
           });
         }
       }
+
       if (size(fieldsUniqueBy) > 0) {
         const functionResult = funcionesValidacionesContenidoValores.unicoPor({
           fieldsUniqueBy,

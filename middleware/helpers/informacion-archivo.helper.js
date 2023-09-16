@@ -4,30 +4,6 @@ const {
   ObtenerColumnasDeTablaUtil,
   EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
-const {
-  tipoInstrumento,
-  tipoInstrumento2,
-  moneda,
-  mayorACero,
-  tipoAmortizacion,
-  tipoInteres,
-  operacionMatematica,
-  plazoEmisionTiposDeDatos,
-  nroPago,
-  plazoCupon,
-  subordinado,
-  calificacion,
-  calificadora,
-  custodio,
-  emisor,
-  tipoAccion,
-  tipoTasa,
-  mayorIgualACero,
-  prepago,
-  pais,
-  tasaEmision,
-  serieEmision,
-} = require("./funciones-validaciones-contenido-valores-archivos.helper");
 
 async function obtenerInformacionColumnasArchivosBD(confArchivos) {
   try {
@@ -105,6 +81,7 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
 }
 
 const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
+  console.log(typeFile);
   //! IMPORTANTE: Para que una consulta se acople a una columna de validacion, se debee colocar el mismo nombre de la columna de validacion en el objeto TYPES_QUERY_FILES, por otro lado si es que se quiere aumentar otra consulta a esa misma columna de validacion, se debe colocar el mismo nombre de la columna de validacion seguido de "_VALOR", por ejemplo: "calificacion, calificacion_vacio"
   const TYPES_QUERY_FILES = {
     441: {
@@ -691,7 +668,6 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
         },
       },
     },
-
     UD: {
       tipo_instrumento: {
         table: "APS_param_tipo_instrumento",
@@ -1076,6 +1052,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
             fecha_vencimiento: "yyyy-MM-dd",
             fecha_emision: "yyyy-MM-dd",
           },
+          mayBeEmptyFields: [],
           queries: () => resultQueries(),
         },
       },
@@ -1149,10 +1126,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "plazo_emision",
         pattern: [/^(0|[1-9][0-9]{1,4})$/, /^(0|[1-9][0-9]{0,2})$/],
-        functions: [
-          "plazoEmisionTiposDeDatos",
-          // "operacionfechaVencimientoMenosFechaEmision",
-        ],
+        functions: ["plazoEmisionTiposDeDatos"],
         mathOperation: [
           { column: "fecha_vencimiento", isDate: true },
           "-",
@@ -1205,16 +1179,14 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
             fecha_vencimiento: "yyyy-MM-dd",
             fecha_emision: "yyyy-MM-dd",
           },
+          mayBeEmptyFields: [],
           queries: () => resultQueries(),
         },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [
-          (params) => tipoInstrumento(params),
-          (params) => tipoInstrumento2(params),
-        ],
+        functions: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
@@ -1224,17 +1196,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "pais",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => pais(params)],
+        functions: ["pais"],
       },
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => emisor(params)],
+        functions: ["emisor"],
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{2,2}$/,
-        functions: [(params) => moneda(params)],
+        functions: ["moneda"],
       },
       {
         columnName: "fecha_vencimiento",
@@ -1251,50 +1223,51 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_nominal",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{0,9}))$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_emision",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_emision",
         pattern: /^(0|[1-9][0-9]{1,4})$/,
-        functions: [
-          // "fechaVencimientoMenosFechaEmision",
-          (params) => operacionMatematica(params),
+        mathOperation: [
+          { column: "fecha_vencimiento", isDate: true },
+          "-",
+          { column: "fecha_emision", isDate: true, operateResultBy: "days" },
         ],
       },
       {
         columnName: "nro_pago",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: [(params) => nroPago(params)],
+        functions: ["nroPago"],
       },
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]*)$/,
-        functions: [(params) => plazoCupon(params)],
+        functions: ["plazoCupon"],
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-\+]{1,3}$/,
-        functions: [(params) => calificacion(params)],
+        functions: ["calificacion"],
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z\&]{3,3}$/,
-        functions: [(params) => calificadora(params)],
+        functions: ["calificadora"],
       },
     ],
     443: [
@@ -1304,7 +1277,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
           validateFieldWithOperationDate: [],
           formatDateFields: {
-            fecha_emision: ["yyyy-MM-dd"],
+            fecha_emision: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [
             "serie",
@@ -1312,6 +1285,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
             "calificadora",
             "custodio",
           ],
+          queries: () => resultQueries(),
         },
       },
       {
@@ -1323,17 +1297,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => tipoInstrumento(params)],
+        functions: ["tipoInstrumento"],
       },
       {
         columnName: "tipo_accion",
         pattern: /^[A-Za-z0-2]{1,1}$/,
-        functions: [(params) => tipoAccion(params)],
+        functions: ["tipoAccion"],
       },
       {
         columnName: "serie_emision",
         pattern: /^[A-Za-z0-9]{1,1}$/,
-        functions: [(params) => serieEmision(params)],
+        functions: ["serieEmision"],
       },
       {
         columnName: "serie",
@@ -1343,63 +1317,58 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "emisor",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => emisor(params)],
+        functions: ["emisor"],
       },
       {
         columnName: "moneda",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => moneda(params)],
+        functions: ["moneda"],
       },
       {
         columnName: "cantidad_valores",
         pattern: /^(^-?(0|[1-9][0-9]{2,9}))$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_unitario",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_unitario_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        functions: [
-          (params) => calificacion(params),
-          // "calificacionConInstrumentoEstatico",
-        ],
-        // tiposInstrumentos: ["CFC", "ACC"],
+        functions: ["calificacionConInstrumento"],
+        extraFunctionsParameters: {
+          tiposInstrumentos: ["CFC", "ACC"],
+        },
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        functions: [
-          (params) => calificadora(params),
-          // "calificadoraConCalificacion",
-        ],
+        functions: ["calificadoraConCalificacion"],
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [
-          (params) => custodio(params),
-          // "custodioConInstrumento"
-        ],
-        // tiposInstrumentos: ["ACC"],
+        functions: ["custodioConInstrumento"],
+        extraFunctionsParameters: {
+          tiposInstrumentos: ["ACC"],
+        },
       },
     ],
     444: [
@@ -1408,14 +1377,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
           uniqueCombinationPerFile: [],
           validateFieldWithOperationDate: [],
-          replaceFieldValue: { fecha_pago: ["yyyy-MM-dd"] },
+          replaceFieldValue: { fecha_pago: "yyyy-MM-dd" },
           mayBeEmptyFields: [],
+          queries: () => resultQueries(),
         },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => tipoInstrumento(params)],
+        functions: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
@@ -1425,7 +1395,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "fecha_pago",
@@ -1436,57 +1406,66 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{0,3})$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          (params) => operacionMatematica(params),
-          // "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
+        functions: [],
+        mathOperation: [
+          "(",
+          { column: "saldo_capital" },
+          "*",
+          { column: "plazo_cupon" },
+          "*",
+          { column: "tasa_interes" },
+          ")",
+          "/",
+          { number: 36000 },
         ],
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorIgualACero(params)],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          (params) => operacionMatematica(params),
-          // "interesMasAmortizacion",
-        ],
+        functions: [],
+        mathOperation: [{ column: "interes" }, "+", { column: "amortizacion" }],
       },
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          (params) => operacionMatematica(params),
-          // "saldoCapitalMenosAmortizacionCuponAnterior",
+        functions: [],
+        mathOperation: [
+          { column: "saldo_capital", operRow: -1 },
+          "-",
+          { column: "amortizacion" },
         ],
       },
     ],
     445: [
       {
         globalFileValidations: {
-          fieldsUniqueBy: {},
+          fieldsUniqueBy: { nro_cupon: ["serie"] },
           uniqueCombinationPerFile: [],
           validateFieldWithOperationDate: [],
-          replaceFieldValue: { fecha_pago: ["yyyy-MM-dd"] },
+          replaceFieldValue: { fecha_pago: "yyyy-MM-dd" },
           mayBeEmptyFields: [],
+          queries: () => resultQueries(),
         },
       },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: [(params) => tipoInstrumento(params)],
+        functions: ["tipoInstrumento"],
       },
       {
         columnName: "serie",
@@ -1496,7 +1475,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "fecha_pago",
@@ -1507,45 +1486,53 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo_fecha_vencimiento",
         pattern: /^(0|[1-9][0-9]{1,2})$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: [(params) => mayorACero(params)],
+        functions: ["mayorACero"],
       },
       {
         columnName: "amortizacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [(params) => mayorIgualACero(params)],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          (params) => operacionMatematica(params),
-          // "saldoCapitalMultiplicadoPlazoCuponMultiplicadoTasaInteresDividido36000",
+        functions: [],
+        mathOperation: [
+          "(",
+          { column: "saldo_capital" },
+          "*",
+          { column: "plazo_cupon" },
+          "*",
+          { column: "tasa_interes" },
+          ")",
+          "/",
+          { number: 36000 },
         ],
       },
       {
         columnName: "flujo_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          (params) => operacionMatematica(params),
-          // "interesMasAmortizacion",
-        ],
+        functions: [],
+        mathOperation: [{ column: "interes" }, "+", { column: "amortizacion" }],
       },
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          (params) => operacionMatematica(params),
-          // "saldoCapitalMenosAmortizacionCuponAnterior",
+        functions: [],
+        mathOperation: [
+          { column: "saldo_capital", operRow: -1 },
+          "-",
+          { column: "amortizacion" },
         ],
       },
     ],
@@ -3108,6 +3095,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           "*",
           { column: "tasa_interes" },
           ")",
+          "/",
           { number: 36000 },
         ],
       },
@@ -3125,8 +3113,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          // "saldoCapitalMenosAmortizacionCuponAnterior"
+        functions: [],
+        mathOperation: [
+          { column: "saldo_capital", operRow: -1 },
+          "-",
+          { column: "amortizacion" },
         ],
       },
     ],
@@ -3294,6 +3285,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           "*",
           { column: "tasa_interes" },
           ")",
+          "/",
           { number: 36000 },
         ],
         functions: [],
@@ -3307,8 +3299,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          // "saldoCapitalMenosAmortizacionCuponAnterior"
+        functions: [],
+        mathOperation: [
+          { column: "saldo_capital", operRow: -1 },
+          "-",
+          { column: "amortizacion" },
         ],
       },
     ],

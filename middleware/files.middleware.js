@@ -74,7 +74,6 @@ const {
   respArchivoErroneo200,
   respUsuarioNoAutorizado200END,
 } = require("../utils/respuesta.utils");
-const dayjs = require("dayjs");
 const {
   VerificarPermisoTablaUsuarioAuditoria,
 } = require("../utils/auditoria.utils");

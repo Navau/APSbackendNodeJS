@@ -4460,9 +4460,8 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               cuenta.cuenta,
               nivel + 1
             );
-            if (subcuentas) {
-              cuenta.subcuentas = subcuentas;
-            }
+            if (subcuentas) cuenta.subcuentas = subcuentas;
+
             jerarquia[cuenta.cuenta] = cuenta;
           }
           return jerarquia;

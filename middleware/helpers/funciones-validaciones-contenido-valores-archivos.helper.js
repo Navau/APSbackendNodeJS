@@ -23,6 +23,7 @@ const {
   differenceBy,
   difference,
   isEmpty,
+  trim,
 } = require("lodash");
 const { DateTime } = require("luxon");
 const math = require("mathjs");
@@ -55,7 +56,6 @@ const operateDates = (operations) => {
         operator = element;
       }
     });
-    if (resultFinal === null) throw new Error("Operación sin éxito");
     return { resultFinal, posInit, posEnd };
   } catch (err) {
     throw err;
@@ -71,20 +71,34 @@ const searchValueInArray = (array, value) => {
   return !isUndefined(searchResult);
 };
 
+const fixedByPattern = (value, pattern) => {
+  const indexPattern = new RegExp(pattern).toString().indexOf(".");
+  const textPattern = new RegExp(pattern).toString();
+  let fixed = undefined;
+  let newResult = value;
+  if (textPattern.slice(indexPattern, indexPattern + 4) === ".\\d{") {
+    fixed = parseInt(textPattern.slice(indexPattern + 6, indexPattern + 7));
+    if (isNumber(fixed) && fixed > 0) newResult = newResult.toFixed(fixed);
+  } else if (size(textPattern) >= 23 && size(textPattern) < 30) {
+    fixed = 2;
+    if (isNumber(fixed) && fixed > 0) newResult = newResult.toFixed(fixed);
+  }
+  return newResult;
+};
+
 const defaultValidationContentValues = (params, message) => {
   try {
-    if (!isUndefined(params?.paramsBD)) {
-      const { paramsBD, value, messages } = params;
-      const { tipo_instrumento_data_db } = paramsBD;
-      if (!searchValueInArray(tipo_instrumento_data_db, value))
-        return (
-          messages?.ERROR_MESSAGE_DB ||
-          message ||
-          "El campo no corresponde a ningún registro válido"
-        );
-      return true;
-    }
-    return params;
+    if (isUndefined(params?.paramsBD)) throw "Consultas de campo no definidas";
+    const { paramsBD, value, messages, mayBeEmptyFields, columnIndex } = params;
+    const keys = Object.keys(paramsBD);
+    if (isEmpty(value) && includes(mayBeEmptyFields, columnIndex)) return true;
+    if (!searchValueInArray(paramsBD[keys[0]], value))
+      return (
+        messages?.ERROR_MESSAGE_DB ||
+        message ||
+        "El campo no corresponde a ningún registro válido"
+      );
+    return true;
   } catch (err) {
     return `Error de servidor. ${err}`;
   }
@@ -110,15 +124,63 @@ const funcionesValidacionesContenidoValores = {
     return defaultValidationContentValues(params);
   },
   tasaEmision: (params) => {
-    return true;
-  },
-  plazoEmisionTiposDeDatos: (params) => {
-    return true;
+    const { value, row } = params;
+    const { tipo_interes } = row;
+    const tasaEmision = value;
+    try {
+      if (tipo_interes !== "R" && tipo_interes !== "D")
+        return "El Tipo de Interes debe ser 'R' o 'D'";
+      if (tipo_interes === "R" && Number(tasaEmision) <= 0)
+        return "La Tasa Emisión debe ser mayor a '0', debido a que Tipo Interes es 'R'";
+      if (tipo_interes === "D" && Number(tasaEmision) > 0)
+        return "La Tasa Emision debe ser '0', debido a que Tipo Interes es 'D'";
+      return true;
+    } catch (err) {
+      throw err;
+    }
   },
   nroPago: (params) => {
-    return true;
+    try {
+      const { value, row, pattern } = params;
+      const { plazo_cupon, plazo_emision } = row;
+      const plazoCupon = parseFloat(plazo_cupon);
+      const plazoEmision = parseFloat(plazo_emision);
+      const nroPago = parseFloat(value);
+      if (!isNumber(plazoCupon) || !isNumber(plazoEmision)) {
+        return `El campo plazo_cupon o plazo_emision no son números válidos`;
+      }
+      if (parseFloat(plazo_cupon) > 0) {
+        const resultOperation = math.evaluate(
+          `${plazo_emision}/${plazo_cupon}`
+        );
+        const resultFixed = fixedByPattern(resultOperation, pattern);
+        if (!math.deepEqual(resultFixed, value)) {
+          return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
+        }
+      } else if (parseFloat(plazo_cupon) === 0) {
+        if (nroPago !== 0)
+          return "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 0";
+      }
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
   },
   plazoCupon: (params) => {
+    const { value, row } = params;
+    const { nro_pago } = row;
+    const plazoCupon = parseFloat(value);
+    const nroPago = parseFloat(nro_pago);
+    if (!isNumber(plazoCupon) || !isNumber(nroPago))
+      return `El campo plazo_cupon (${plazoCupon}) o nro_pago (${nroPago}) no son números válidos`;
+
+    if (nroPago > 0) {
+      if (plazoCupon <= 0)
+        return `El campo nro_pago es mayor a 0 por lo tanto plazo_cupon debe ser mayor a 0`;
+    } else if (nroPago === 0) {
+      if (plazoCupon !== 0)
+        return `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0`;
+    }
     return true;
   },
   prepago: (params) => {
@@ -145,8 +207,133 @@ const funcionesValidacionesContenidoValores = {
   tipoAccion: (params) => {
     return defaultValidationContentValues(params);
   },
+  calificacionConInstrumento: (params) => {
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { calificacion_data_db, calificacion_vacio_data_db } = paramsBD;
+      const { tiposInstrumentos } = extraFunctionsParameters;
+      const calificacion = value;
+      const tipoInstrumento = row.tipo_instrumento;
+      const calificacionesMap = map(calificacion_data_db, "descripcion");
+      const calificacionesVacioMap = map(
+        calificacion_vacio_data_db,
+        "descripcion"
+      );
+      if (!includes(tiposInstrumentos, tipoInstrumento))
+        return `El Tipo de Instrumento esperado es ${tiposInstrumentos?.join(
+          " o "
+        )}`;
+      if (
+        tipoInstrumento === "CFC" &&
+        !includes(calificacionesMap, calificacion)
+      )
+        return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
+      if (tipoInstrumento === "ACC") {
+        if (isEmpty(calificacion) && includes(mayBeEmptyFields, "calificacion"))
+          return true;
+        if (!includes(calificacionesVacioMap, calificacion))
+          return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento ACC)";
+      }
+
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
+  calificadoraConCalificacion: (params) => {
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { calificadora_data_db } = paramsBD;
+      const calificadora = value;
+      const calificacion = row.calificacion;
+      const calificadoraMap = map(calificadora_data_db, "sigla");
+      if (isEmpty(calificacion)) {
+        if (isEmpty(calificadora) && includes(mayBeEmptyFields, "calificadora"))
+          return true;
+        else
+          return `La calificadora no debe tener contenido debido a que la calificación no tiene contenido`;
+      } else {
+        if (!includes(calificadoraMap, calificadora))
+          return `La calificadora no se encuentra en ninguna calificadora válida`;
+      }
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
+  custodioConInstrumento: (params) => {
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { custodio_data_db } = paramsBD;
+      const { tiposInstrumentos } = extraFunctionsParameters;
+      const custodio = value;
+      const tipoInstrumento = row.tipo_instrumento;
+      const custodioMap = map(custodio_data_db, "sigla");
+      if (includes(tiposInstrumentos, tipoInstrumento)) {
+        if (isEmpty(custodio) && includes(mayBeEmptyFields, "custodio"))
+          return true;
+        else {
+          if (!includes(custodioMap, custodio))
+            return `El custodio no es válido debido a que el tipo de instrumento es ${tiposInstrumentos?.join()}`;
+        }
+      } else {
+        if (!includes(custodioMap, custodio))
+          return `El campo no corresponde a ninguna sigla de Custodio definida (instrumento: '${tipoInstrumento}')`;
+      }
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
   serieEmision: (params) => {
-    return defaultValidationContentValues(params);
+    const { value, row } = params;
+    const { tipo_instrumento } = row;
+    const serieEmisionValues1 = ["U", "A"];
+    const serieEmisionValues2 = ["1", "A", "B"];
+    if (tipo_instrumento === "ACC" && !includes(serieEmisionValues1, value))
+      return "La Serie de Emision debe ser 'U' o 'A', debido a que Tipo Instrumento es 'ACC'";
+    if (tipo_instrumento === "CFC" && !includes(serieEmisionValues2, value))
+      return "La Serie de Emision debe ser '1', 'A' o 'B', debido a que Tipo Instrumento es 'CFC'";
+    return true;
+  },
+  plazoEmisionTiposDeDatos: (params) => {
+    try {
+      const { value, pattern } = params;
+      const pattern1 = pattern[0];
+      const pattern2 = pattern[1];
+      const lastValue = value?.[size(value) - 1];
+      if (lastValue === "Q") return !pattern2.test(value);
+      else return !pattern1.test(value);
+    } catch (err) {
+      throw err;
+    }
   },
   mayorACero: (params) => {
     try {
@@ -171,21 +358,20 @@ const funcionesValidacionesContenidoValores = {
     }
   },
   operacionMatematica: (params) => {
+    const { value, mathOperation, fileContent, row, rowIndex, pattern } =
+      params;
+    const OPERATION_OPTIONS = {
+      operationWithValues: [],
+      messageFields: [],
+    };
     try {
-      const { value, mathOperation, row } = params;
-      const OPERATION_OPTIONS = {
-        operationWithValues: [],
-        messageFields: [],
-      };
-
       OPERATION_OPTIONS.operationWithValues = map(
         mathOperation,
         (operation) => {
           let valueAux = operation;
           if (isObject(operation)) {
-            const { column, number, isDate } = operation;
+            const { column, number, isDate, operRow } = operation;
             if (!isUndefined(column)) {
-              OPERATION_OPTIONS.messageFields.push(column);
               const columnValue = row[column];
               if (isDate) {
                 valueAux = {
@@ -195,8 +381,16 @@ const funcionesValidacionesContenidoValores = {
                 };
                 if (operation?.operateResultBy)
                   valueAux.operateResultBy = operation.operateResultBy;
+                OPERATION_OPTIONS.messageFields.push(column);
+              } else if (!isUndefined(operRow)) {
+                valueAux =
+                  trim(fileContent?.[rowIndex + operRow]?.[column]) || 0;
+                OPERATION_OPTIONS.messageFields.push(
+                  `${column} (fila ${rowIndex + operRow})`
+                );
               } else {
-                valueAux = columnValue;
+                valueAux = columnValue || 0;
+                OPERATION_OPTIONS.messageFields.push(column);
               }
             } else {
               OPERATION_OPTIONS.messageFields.push(number);
@@ -224,14 +418,16 @@ const funcionesValidacionesContenidoValores = {
       const resultOperation = math.evaluate(
         OPERATION_OPTIONS.operationWithValues.join("")
       );
-
-      if (parseFloat(resultOperation) !== parseFloat(value))
+      const newResult = fixedByPattern(resultOperation, pattern);
+      if (!math.deepEqual(newResult, value))
         return `El resultado de la operación (${OPERATION_OPTIONS.messageFields.join(
           ""
-        )}) no es igual a ${value}`;
+        )} = ${newResult}) no es igual a ${value}`;
       return true;
     } catch (err) {
-      return `La operación no se pudo concluir correctamente. ${err}`;
+      const messages = OPERATION_OPTIONS.messageFields.join("");
+      const operation = OPERATION_OPTIONS.operationWithValues.join("");
+      return `Error en ${messages} - ${operation}. ${err}`;
     }
   },
   combinacionUnicaPorArchivo: (params) => {
