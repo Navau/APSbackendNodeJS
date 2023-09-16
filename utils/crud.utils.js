@@ -4453,8 +4453,12 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           query: { limit, offset },
         } = req;
         const body = req.body;
+        const cuentaPadre = !isUndefined(body?.cuenta_padre)
+          ? body.cuenta_padre
+          : "1";
         delete body?.login;
         delete body?.key;
+        delete body?.cuenta_padre;
         if (size(body) === 0) {
           respDatosNoRecibidos200END(res);
           return;
@@ -4474,7 +4478,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         if (!isUndefined(limit)) params.limit = limit;
         if (!isUndefined(offset)) params.offset = offset;
         const cuentas = await EjecutarQuery(EscogerUtil(nameTable, params));
-        const estructuraJerarquica = crearJerarquiaCuentas(cuentas, "1");
+        const estructuraJerarquica = crearJerarquiaCuentas(
+          cuentas,
+          cuentaPadre
+        );
         respResultadoCorrectoObjeto200(res, estructuraJerarquica);
       },
     };
@@ -4490,7 +4497,7 @@ function crearJerarquiaCuentas(cuentas, cuentaPadre = null, nivel = 1) {
     (cuenta) => cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel
   );
   if (cuentasNivel.length === 0) {
-    return null;
+    return [];
   }
   const jerarquia = {};
   for (const cuenta of cuentasNivel) {
