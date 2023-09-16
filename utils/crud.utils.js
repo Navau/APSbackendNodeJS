@@ -4445,27 +4445,35 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             ? ListarUtil(nameTable, { activo: null })
             : ListarUtil(nameTable)
         );
-        function crearJerarquiaCuentas(cuentas, cuentaPadre = null, nivel = 1) {
-          const cuentasNivel = cuentas.filter(
-            (cuenta) =>
-              cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel
-          );
-          if (cuentasNivel.length === 0) {
-            return null;
-          }
-          const jerarquia = {};
-          for (const cuenta of cuentasNivel) {
-            const subcuentas = crearJerarquiaCuentas(
-              cuentas,
-              cuenta.cuenta,
-              nivel + 1
-            );
-            if (subcuentas) cuenta.subcuentas = subcuentas;
-
-            jerarquia[cuenta.cuenta] = cuenta;
-          }
-          return jerarquia;
+        const estructuraJerarquica = crearJerarquiaCuentas(cuentas, "1");
+        respResultadoCorrectoObjeto200(res, estructuraJerarquica);
+      },
+      EscogerSubcuentas_PlanCuentas: async () => {
+        const {
+          query: { limit, offset },
+        } = req;
+        const body = req.body;
+        delete body?.login;
+        delete body?.key;
+        if (size(body) === 0) {
+          respDatosNoRecibidos200END(res);
+          return;
         }
+        const validateData = await ValidarDatosValidacion({
+          nameTable,
+          data: body,
+          action,
+        });
+        if (validateData.ok === false) {
+          respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
+          return;
+        }
+        const params = { body };
+        const activoAux = await CampoActivoAux(nameTable);
+        if (isUndefined(activoAux)) params.activo = null;
+        if (!isUndefined(limit)) params.limit = limit;
+        if (!isUndefined(offset)) params.offset = offset;
+        const cuentas = await EjecutarQuery(EscogerUtil(nameTable, params));
         const estructuraJerarquica = crearJerarquiaCuentas(cuentas, "1");
         respResultadoCorrectoObjeto200(res, estructuraJerarquica);
       },
@@ -4475,6 +4483,23 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
   } catch (err) {
     respErrorServidor500END(res, err);
   }
+}
+
+function crearJerarquiaCuentas(cuentas, cuentaPadre = null, nivel = 1) {
+  const cuentasNivel = cuentas.filter(
+    (cuenta) => cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel
+  );
+  if (cuentasNivel.length === 0) {
+    return null;
+  }
+  const jerarquia = {};
+  for (const cuenta of cuentasNivel) {
+    const subcuentas = crearJerarquiaCuentas(cuentas, cuenta.cuenta, nivel + 1);
+    if (subcuentas) cuenta.subcuentas = subcuentas;
+
+    jerarquia[cuenta.cuenta] = cuenta;
+  }
+  return jerarquia;
 }
 
 async function CargarArchivo_Upload(req, res, action, id = undefined) {

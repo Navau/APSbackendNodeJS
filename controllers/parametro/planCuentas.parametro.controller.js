@@ -26,6 +26,17 @@ async function ListarSubcuentas(req, res) {
   await RealizarOperacionAvanzadaCRUD(params);
 }
 
+async function EscogerSubcuentas(req, res) {
+  const params = {
+    req,
+    res,
+    nameTable,
+    methodName: "EscogerSubcuentas_PlanCuentas",
+    action: "Escoger",
+  };
+  await RealizarOperacionAvanzadaCRUD(params);
+}
+
 // OBTENER UN PLAN CUENTAS, CON BUSQUEDA
 async function Buscar(req, res) {
   const params = { req, res, nameTable, id: undefined };
@@ -57,4 +68,5 @@ module.exports = {
   Insertar,
   Actualizar,
   ListarSubcuentas,
+  EscogerSubcuentas,
 };

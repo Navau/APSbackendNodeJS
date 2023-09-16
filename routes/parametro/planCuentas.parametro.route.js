@@ -19,6 +19,11 @@ api.post(
   controller.Escoger
 );
 api.post(
+  "/EscogerSubcuentas",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.EscogerSubcuentas
+);
+api.post(
   "/Insertar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Insertar
