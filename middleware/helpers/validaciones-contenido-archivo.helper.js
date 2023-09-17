@@ -7,8 +7,18 @@ const {
   filter,
   isNull,
   pull,
+  find,
+  includes,
+  isArray,
 } = require("lodash");
-const { agregarError } = require("./funciones-auxiliares.helper");
+const {
+  agregarError,
+  CONF_FILE_MESSAGES,
+} = require("./funciones-auxiliares.helper");
+const { DateTime } = require("luxon");
+const {
+  funcionesValidacionesContenidoValores,
+} = require("./funciones-validaciones-contenido-valores-archivos.helper");
 
 const quitarCaracteresExtrañosContenidoArchivo = (fileContent) => {
   forEach(fileContent, (value, index) => {
@@ -131,13 +141,13 @@ const verificarCantidadColumnasArchivo = (
   return objectArrayFileContent;
 };
 
-function encontrarErroresPorFilaDeArchivo(
+const encontrarErroresPorFilaDeArchivo = (
   row,
   fileName,
   indexRow,
   contextLength = 10,
   nuevaCarga
-) {
+) => {
   try {
     const errorPositions = [];
     let insideQuotes = false;
@@ -203,11 +213,371 @@ function encontrarErroresPorFilaDeArchivo(
   } catch (err) {
     throw err;
   }
-}
+};
+
+const validarContenidoValoresDeArchivo = (params) => {
+  const {
+    fileContent,
+    validations,
+    nuevaCarga,
+    fileName,
+    fileCode,
+    formatDateFields,
+    matchDataType,
+    fecha_operacion,
+    informacionEntreArchivos,
+    errorsContentValuesFile,
+  } = params;
+  const OPTIONS_VALUES = {
+    value: undefined,
+    matchDataType,
+  };
+  forEach(fileContent, (row, rowIndex) => {
+    let columnCounter = 0;
+    forEach(row, (value, columnIndex) => {
+      OPTIONS_VALUES.value = value;
+      columnCounter++;
+      const findValidation = find(
+        validations,
+        (validation) => validation.columnName === columnIndex
+      );
+
+      const {
+        pattern,
+        functions,
+        paramsBD,
+        messages,
+        mathOperation,
+        mayBeEmptyFields,
+        extraFunctionsParameters,
+      } = findValidation;
+
+      validarTiposDeDatos({
+        OPTIONS_VALUES,
+        pattern,
+        columnIndex,
+        row,
+        rowIndex,
+        functions,
+        paramsBD,
+        messages,
+        mayBeEmptyFields,
+        formatDateFields,
+        errorsContentValuesFile,
+        nuevaCarga,
+        fecha_operacion,
+        fileName,
+      });
+
+      validarFuncionesDeColumnas({
+        OPTIONS_VALUES,
+        pattern,
+        row,
+        rowIndex,
+        columnIndex,
+        paramsBD,
+        messages,
+        functions,
+        mayBeEmptyFields,
+        nuevaCarga,
+        extraFunctionsParameters,
+        errorsContentValuesFile,
+        fileCode,
+        fileName,
+        fecha_operacion,
+      });
+
+      validarOperacionesMatematicasDeColumnas({
+        OPTIONS_VALUES,
+        pattern,
+        row,
+        rowIndex,
+        columnIndex,
+        mathOperation,
+        nuevaCarga,
+        errorsContentValuesFile,
+        fileContent,
+        fileName,
+      });
+
+      validarOperacionesEntreArchivos({
+        OPTIONS_VALUES,
+        row,
+        rowIndex,
+        columnCounter,
+        columnIndex,
+        nuevaCarga,
+        fileCode,
+        fileName,
+        fileContent,
+        informacionEntreArchivos,
+        errorsContentValuesFile,
+      });
+    });
+  });
+};
+
+const validarTiposDeDatos = (params) => {
+  const {
+    OPTIONS_VALUES,
+    pattern,
+    columnIndex,
+    row,
+    rowIndex,
+    functions,
+    paramsBD,
+    messages,
+    mayBeEmptyFields,
+    formatDateFields,
+    errorsContentValuesFile,
+    nuevaCarga,
+    fecha_operacion,
+    fileName,
+  } = params;
+  const { DEFAULT_ERROR_DATA_TYPE_MESSAGE } = CONF_FILE_MESSAGES();
+  if (!isArray(pattern)) {
+    forEach(formatDateFields, (formatDateField, dateFieldIndex) => {
+      if (
+        columnIndex === dateFieldIndex &&
+        DateTime.fromISO(OPTIONS_VALUES.value).isValid
+      ) {
+        OPTIONS_VALUES.value = DateTime.fromISO(OPTIONS_VALUES.value).toFormat(
+          formatDateField
+        );
+      }
+    });
+    if (!pattern?.test(OPTIONS_VALUES.value)) {
+      OPTIONS_VALUES.matchDataType = false;
+      if (
+        isEmpty(OPTIONS_VALUES.value) &&
+        !includes(mayBeEmptyFields, columnIndex)
+      ) {
+        agregarError(
+          {
+            id_carga_archivos: nuevaCarga.id_carga_archivos,
+            archivo: fileName,
+            tipo_error: "TIPO DE DATO INCORRECTO",
+            descripcion: messages?.DATA_TYPE || DEFAULT_ERROR_DATA_TYPE_MESSAGE,
+            valor: OPTIONS_VALUES.value,
+            fila: rowIndex,
+            columna: columnIndex,
+          },
+          errorsContentValuesFile
+        );
+      }
+    }
+  } else {
+    const { value } = OPTIONS_VALUES;
+    forEach(functions, (functionName) => {
+      functionResult = funcionesValidacionesContenidoValores[functionName]({
+        paramsBD,
+        value,
+        fecha_operacion,
+        columnIndex,
+        row,
+        messages,
+        mayBeEmptyFields,
+        pattern,
+      });
+      if (functionResult !== true) {
+        agregarError(
+          {
+            id_carga_archivos: nuevaCarga.id_carga_archivos,
+            archivo: fileName,
+            tipo_error: "TIPO DE DATO INCORRECTO",
+            descripcion: messages?.DATA_TYPE || DEFAULT_ERROR_DATA_TYPE_MESSAGE,
+            valor: value,
+            fila: rowIndex,
+            columna: columnIndex,
+          },
+          errorsContentValuesFile
+        );
+      }
+    });
+  }
+};
+
+const validarFuncionesDeColumnas = (params) => {
+  const {
+    OPTIONS_VALUES,
+    pattern,
+    row,
+    rowIndex,
+    columnIndex,
+    paramsBD,
+    messages,
+    functions,
+    mayBeEmptyFields,
+    nuevaCarga,
+    extraFunctionsParameters,
+    errorsContentValuesFile,
+    fileCode,
+    fileName,
+    fecha_operacion,
+  } = params;
+  const { value } = OPTIONS_VALUES;
+  forEach(functions, (functionName) => {
+    functionResult = funcionesValidacionesContenidoValores[functionName]({
+      paramsBD,
+      value,
+      fecha_operacion,
+      columnIndex,
+      row,
+      messages,
+      mayBeEmptyFields,
+      pattern,
+      fileCode,
+      extraFunctionsParameters,
+    });
+    if (functionResult !== true) {
+      agregarError(
+        {
+          id_carga_archivos: nuevaCarga.id_carga_archivos,
+          archivo: fileName,
+          tipo_error: "VALOR INCORRECTO",
+          descripcion: functionResult,
+          valor: value,
+          fila: rowIndex,
+          columna: columnIndex,
+        },
+        errorsContentValuesFile
+      );
+    }
+  });
+};
+
+const validarOperacionesMatematicasDeColumnas = (params) => {
+  const {
+    OPTIONS_VALUES,
+    pattern,
+    row,
+    rowIndex,
+    columnIndex,
+    mathOperation,
+    nuevaCarga,
+    errorsContentValuesFile,
+    fileContent,
+    fileName,
+  } = params;
+  const { value } = OPTIONS_VALUES;
+  if (size(mathOperation) > 0) {
+    const functionResult =
+      funcionesValidacionesContenidoValores.operacionMatematica({
+        value,
+        mathOperation,
+        row,
+        rowIndex,
+        fileContent,
+        pattern,
+      });
+    if (functionResult !== true) {
+      agregarError(
+        {
+          id_carga_archivos: nuevaCarga.id_carga_archivos,
+          archivo: fileName,
+          tipo_error: "VALOR INCORRECTO OPERACIÓN NO VÁLIDA",
+          descripcion: functionResult,
+          valor: value,
+          fila: rowIndex,
+          columna: columnIndex,
+        },
+        errorsContentValuesFile
+      );
+    }
+  }
+};
+
+const validarOperacionesEntreArchivos = (params) => {
+  const {
+    OPTIONS_VALUES,
+    row,
+    rowIndex,
+    columnCounter,
+    columnIndex,
+    nuevaCarga,
+    fileCode,
+    fileName,
+    fileContent,
+    informacionEntreArchivos,
+    errorsContentValuesFile,
+  } = params;
+  const { value, matchDataType } = OPTIONS_VALUES;
+  const functionResult =
+    funcionesValidacionesContenidoValores.validacionesEntreArchivos({
+      value,
+      row,
+      rowIndex,
+      columnIndex,
+      columnCounter,
+      matchDataType,
+      nuevaCarga,
+      informacionEntreArchivos,
+      fileName,
+      fileCode,
+      fileContent,
+    });
+  if (functionResult !== true) {
+    forEach(functionResult, (error) => {
+      agregarError(error, errorsContentValuesFile);
+    });
+  }
+};
+
+const validarCombinacionesUnicasPorArchivo = (params) => {
+  const {
+    uniqueCombinationPerFile,
+    nuevaCarga,
+    fileContent,
+    fileCode,
+    fileName,
+    errorsContentValuesFile,
+  } = params;
+  if (size(uniqueCombinationPerFile) > 0) {
+    const functionResult =
+      funcionesValidacionesContenidoValores.combinacionUnicaPorArchivo({
+        uniqueCombinationPerFile,
+        fileContent,
+        fileCode,
+        nuevaCarga,
+        fileName,
+      });
+    if (functionResult !== true) {
+      forEach(functionResult, (error) => {
+        agregarError(error, errorsContentValuesFile);
+      });
+    }
+  }
+};
+
+const validarValoresUnicosPorArchivo = (params) => {
+  const {
+    fieldsUniqueBy,
+    fileContent,
+    nuevaCarga,
+    fileName,
+    errorsContentValuesFile,
+  } = params;
+  if (size(fieldsUniqueBy) > 0) {
+    const functionResult = funcionesValidacionesContenidoValores.unicoPor({
+      fieldsUniqueBy,
+      fileContent,
+      nuevaCarga,
+      fileName,
+    });
+    if (functionResult !== true) {
+      forEach(functionResult, (error) => {
+        agregarError(error, errorsContentValuesFile);
+      });
+    }
+  }
+};
 
 module.exports = {
   quitarCaracteresExtrañosContenidoArchivo,
   verificarArchivoVacio,
   verificarFormatoContenidoArchivo,
   verificarCantidadColumnasArchivo,
+  validarContenidoValoresDeArchivo,
+  validarCombinacionesUnicasPorArchivo,
+  validarValoresUnicosPorArchivo,
 };

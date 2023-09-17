@@ -318,7 +318,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
     );
 
     WORKER_OPTIONS.data.optionsValidationsFiles = optionsValidationsFiles;
-    WORKER_OPTIONS.data.objectArrayFileContent = validatedContentFormatFiles;
+    WORKER_OPTIONS.data.objectArrayFilesContent = validatedContentFormatFiles;
 
     const worker = new Worker(
       "./middleware/workers/validar-contenido-valores-archivo.worker.js",

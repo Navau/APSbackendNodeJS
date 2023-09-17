@@ -723,6 +723,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
   const TYPE_FILES = {
     K: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
@@ -731,8 +740,10 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        typeError: "format",
-        functions: [],
+        functions: ["fechaOperacionIgual"],
+        messages: {
+          DATA_TYPE: "El campo no cumple el formato establecido",
+        },
       },
       {
         columnName: "codigo_valoracion",
@@ -752,17 +763,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_promedio",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_negociado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_minimo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_marcacion",
@@ -772,6 +783,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     L: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
@@ -780,7 +800,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "codigo_valoracion",
@@ -790,17 +810,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "monto_negociado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_minimo",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "tipo_valoracion",
@@ -810,6 +830,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     N: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["bolsa"],
@@ -818,7 +847,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "codigo_valoracion",
@@ -829,16 +858,24 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_marcacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        notValidate: true,
         functions: [],
       },
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     P: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "bolsa",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -848,7 +885,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "tipo_activo",
@@ -864,44 +901,50 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "ult_fecha_disponible",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        notValidate: true,
         functions: [],
       },
       {
         columnName: "tasa",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "precio_bid",
         pattern: /^(0|[1-9][0-9]{0,11})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
     ],
     411: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: { correlativo: [] },
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_operacion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["lugar_negociacion"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
-        mayBeEmpty: true,
         functions: ["lugarNegociacion"],
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
-        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
-        functions: ["tipoOperacion"],
+        functions: ["tipoOperacion", "operacionValida"],
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        unique: true,
         functions: ["mayorACero"],
       },
       {
@@ -912,7 +955,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
-        operationNotValid: "tipoOperacionCOP",
         functions: [],
       },
       {
@@ -923,48 +965,60 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_negociacion",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,8}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadValoresMultiplicadoPrecioNegociacion"],
+        functions: [],
+        mathOperation: [
+          { column: "cantidad_valores" },
+          "*",
+          { column: "precio_negociacion" },
+        ],
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     412: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: { correlativo: [] },
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_operacion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["lugar_negociacion"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["lugarNegociacion"],
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
-        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
-        functions: ["tipoOperacion"],
+        functions: ["tipoOperacion", "operacionValida"],
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        unique: true,
         functions: ["mayorACero"],
       },
       {
@@ -975,7 +1029,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
-        operationNotValid: "tipoOperacionCOP",
         functions: [],
       },
       {
@@ -986,25 +1039,39 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadValoresMultiplicadoPrecioNegociacion"],
+        mathOperation: [
+          { column: "cantidad_valores" },
+          "*",
+          { column: "precio_negociacion" },
+        ],
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     413: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_operacion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
@@ -1035,12 +1102,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "monto_total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     441: [
@@ -1538,6 +1605,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     451: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_cuenta",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoCuenta"],
@@ -1565,27 +1641,45 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        // functions: ["montoFinalConTipoDeCambio"], // VALIDACION PARA TIPO DE CAMBIO
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     481: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            [
+              "tipo_instrumento",
+              "serie",
+              "tasa_relevante",
+              "custodio",
+              "fecha_adquisicion",
+              "tipo_valoracion",
+            ],
+          ],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+            fecha_ultimo_hecho: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["calificacion", "calificadora", "custodio"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        singleGroup: true,
       },
       {
         columnName: "codigo_valoracion",
@@ -1596,7 +1690,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
         functions: ["tasaRelevanteConInstrumento"],
-        singleGroup: true,
       },
       {
         columnName: "cantidad",
@@ -1616,59 +1709,53 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadMultiplicadoPrecioEquivalente"],
+        functions: [],
+        mathOperation: [
+          { column: "cantidad" },
+          "*",
+          { column: "precio_equivalente" },
+        ],
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
-        mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         functions: ["calificacionConInstrumento"],
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["calificadoraConInstrumento"],
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        singleGroup: true,
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z0-9\-]{2,3}$/,
         functions: ["tipoValoracionConsultaMultiple"],
-        singleGroup: true,
-        endSingleGroup: true,
       },
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
       },
       {
@@ -1679,7 +1766,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_operacion",
@@ -1689,16 +1776,35 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     482: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            [
+              "tipo_instrumento",
+              "serie",
+              "tasa_relevante",
+              "custodio",
+              "fecha_adquisicion",
+              "tipo_valoracion",
+            ],
+          ],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+            fecha_ultimo_hecho: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["calificacion", "calificadora", "custodio"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        singleGroup: true,
       },
       {
         columnName: "codigo_valoracion",
@@ -1709,7 +1815,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
         functions: ["tasaRelevanteConInstrumento"],
-        singleGroup: true,
       },
       {
         columnName: "cantidad",
@@ -1729,59 +1834,53 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadMultiplicadoPrecioEquivalente"],
+        functions: [],
+        mathOperation: [
+          { column: "cantidad" },
+          "*",
+          { column: "precio_equivalente" },
+        ],
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
-        mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
         functions: ["calificacionConInstrumento"],
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["calificadoraConInstrumento"],
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        singleGroup: true,
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z0-9\-]{2,3}$/,
         functions: ["tipoValoracionConsultaMultiple"],
-        singleGroup: true,
-        endSingleGroup: true,
       },
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
       },
       {
@@ -1792,7 +1891,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_operacion",
@@ -1802,6 +1901,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     483: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["serie"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z0-9\-\ ]{3,20}$/,
         functions: [],
@@ -1809,7 +1919,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{0,23}$/,
-        mayBeEmpty: true,
         functions: [],
       },
       {
@@ -1821,8 +1930,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
       },
       {
@@ -1833,41 +1940,64 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadMultiplicadoPrecio"],
+        functions: [],
+        mathOperation: [{ column: "cantidad" }, "*", { column: "precio" }],
       },
       {
         columnName: "total_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "total_neto_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["totalBsMenosPrevisionesInversionesBs"],
+        functions: [],
+        mathOperation: [
+          { column: "total_bs" },
+          "-",
+          { column: "prevision_inversiones_bs" },
+        ],
       },
     ],
     484: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            [
+              "tipo_activo",
+              "serie",
+              "precio_mo",
+              "custodio",
+              "fecha_adquisicion",
+            ],
+          ],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["custodio"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoActivo"],
-        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         functions: [],
-        singleGroup: true,
       },
       {
         columnName: "tasa_rendimiento",
@@ -1887,13 +2017,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        singleGroup: true,
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "moneda",
@@ -1903,7 +2032,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
@@ -1918,33 +2047,44 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        singleGroup: true,
-        endSingleGroup: true,
       },
     ],
     485: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            [
+              "tipo_activo",
+              "serie",
+              "precio_mo",
+              "custodio",
+              "fecha_adquisicion",
+            ],
+          ],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["custodio"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoActivo"],
-        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         functions: [],
-        singleGroup: true,
       },
       {
         columnName: "tasa_rendimiento",
@@ -1964,13 +2104,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
-        singleGroup: true,
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "moneda",
@@ -1980,7 +2119,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
@@ -1995,22 +2134,25 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        singleGroup: true,
-        endSingleGroup: true,
       },
     ],
     486: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -2025,8 +2167,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "cantidad",
@@ -2036,30 +2177,45 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadMultiplicadoPrecio"],
+        functions: [],
+        mathOperation: [{ column: "cantidad" }, "*", { column: "precio" }],
       },
       {
         columnName: "total_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "prevision_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_neto_inversiones_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["totalBsMenosPrevisionesInversionesBs"],
+        functions: [],
+        mathOperation: [
+          { column: "total_bs" },
+          "-",
+          { column: "prevision_inversiones_bs" },
+        ],
       },
     ],
     461: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "tipo_cuenta",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -2093,34 +2249,39 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        // functions: ["montoFinalConTipoDeCambio"], // VALIDACION PARA TIPO DE CAMBIO
         functions: ["mayorACero"],
       },
     ],
     471: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            ["tipo_activo", "detalle_1", "detalle_2", "cuenta_contable"],
+          ],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
-        singleGroup: true,
         functions: ["tipoActivo"],
       },
       {
         columnName: "detalle_1",
         pattern: /^[A-Za-z0-9]{3,25}$/,
-        singleGroup: true,
         functions: [],
       },
       {
         columnName: "detalle_2",
         pattern: /^[A-Za-z0-9À-ÿ\u00f1\u00d1\.\- ]{5,25}$/,
-        singleGroup: true,
         functions: [],
       },
       {
         columnName: "cuenta_contable",
         pattern: /^[0-9]{12,12}$/,
-        singleGroup: true,
-        endSingleGroup: true,
         functions: [],
       },
       {
@@ -2131,6 +2292,18 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     491: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_compra: "yyyy-MM-dd",
+            fecha_rev_tec: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["fecha_rev_tec", "observaciones"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "codigo_contable",
         pattern: /^[0-9]{12,12}$/,
         functions: [],
@@ -2149,14 +2322,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_compra",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
       },
       {
         columnName: "superficie",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "nro_registro_ddrr",
@@ -2171,25 +2342,22 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_anterior",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "incremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "decremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "fecha_rev_tec",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
-        mayBeEmpty: true,
         functions: [],
       },
       {
@@ -2205,51 +2373,72 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_final",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: [
-          "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion",
+        functions: [],
+        mathOperation: [
+          { column: "saldo_anterior" },
+          "+",
+          { column: "incremento_rev_tec" },
+          "+",
+          { column: "decremento_rev_tec" },
+          "+",
+          { column: "altas_bajas" },
+          "+",
+          { column: "actualizacion" },
         ],
       },
       {
         columnName: "saldo_anterior_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "bajas_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "actualizacion_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "saldo_final_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: [
-          "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo",
+        functions: [],
+        mathOperation: [
+          { column: "saldo_anterior_dep_acum" },
+          "+",
+          { column: "bajas_dep_acum" },
+          "+",
+          { column: "actualizacion_dep_acum" },
+          "+",
+          { column: "depreciacion_periodo" },
         ],
       },
       {
         columnName: "valor_neto_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["saldoFinalMenosSaldoFinalDep"],
+        mathOperation: [
+          { column: "saldo_final" },
+          "-",
+          { column: "saldo_final_dep_acum" },
+        ],
       },
       {
         columnName: "valor_neto_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "valor_neto_ufv",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "total_vida_util",
@@ -2266,13 +2455,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "observaciones",
         pattern: /^[\s\S]{0,300}$/,
-        mayBeEmpty: true,
         functions: [],
       },
       {
         columnName: "prevision",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "tipo_bien_inmueble",
@@ -2282,6 +2470,18 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     492: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_compra: "yyyy-MM-dd",
+            fecha_rev_tec: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["fecha_rev_tec", "observaciones"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "codigo_contable",
         pattern: /^[0-9]{12,12}$/,
         functions: [],
@@ -2300,14 +2500,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_compra",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
       },
       {
         columnName: "superficie",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "nro_registro_ddrr",
@@ -2322,25 +2520,22 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_anterior",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "incremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "decremento_rev_tec",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "fecha_rev_tec",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
-        mayBeEmpty: true,
         functions: [],
       },
       {
@@ -2356,51 +2551,72 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_final",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: [
-          "saldoAnt+incrementoRevTec+decrementoRevTec+altasBajas+Actualizacion",
+        functions: [],
+        mathOperation: [
+          { column: "saldo_anterior" },
+          "+",
+          { column: "incremento_rev_tec" },
+          "+",
+          { column: "decremento_rev_tec" },
+          "+",
+          { column: "altas_bajas" },
+          "+",
+          { column: "actualizacion" },
         ],
       },
       {
         columnName: "saldo_anterior_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "bajas_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "actualizacion_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["menorIgualACeroDecimal"],
+        functions: ["menorIgualACero"],
       },
       {
         columnName: "saldo_final_dep_acum",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: [
-          "saldoAntDepAcum+bajasDepAcum+actualizacionDepAcum+depreciacionPeriodo",
+        functions: [],
+        mathOperation: [
+          { column: "saldo_anterior_dep_acum" },
+          "+",
+          { column: "bajas_dep_acum" },
+          "+",
+          { column: "actualizacion_dep_acum" },
+          "+",
+          { column: "depreciacion_periodo" },
         ],
       },
       {
         columnName: "valor_neto_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["saldoFinalMenosSaldoFinalDep"],
+        functions: [],
+        mathOperation: [
+          { column: "saldo_final" },
+          "-",
+          { column: "saldo_final_dep_acum" },
+        ],
       },
       {
         columnName: "valor_neto_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "valor_neto_ufv",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "total_vida_util",
@@ -2417,13 +2633,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "observaciones",
         pattern: /^[\s\S]{0,300}$/,
-        mayBeEmpty: true,
         functions: [],
       },
       {
         columnName: "prevision",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "tipo_bien_inmueble",
@@ -2433,6 +2648,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     494: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "descripcion",
         pattern: /^[\s\S]{10,100}$/,
         functions: [],
@@ -2440,25 +2664,41 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_final_mes_anterior_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "movimiento_mes_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_final_mes_actual_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["saldoFinalMesAnteriorBsMasMovimientoMesBs"],
+        functions: [],
+        mathOperation: [
+          { column: "saldo_final_mes_anterior_bs" },
+          "+",
+          { column: "movimiento_mes_bs" },
+        ],
       },
       {
         columnName: "total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     496: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_compra: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "descripcion",
         pattern: /^[\s\S]{20,150}$/,
@@ -2467,7 +2707,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "ubicacion",
         pattern: /^[\s\S]{20,150}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "cantidad",
@@ -2478,64 +2718,67 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_compra",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "saldo_anterior",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "incremento_revaluo_tecnico",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "decremento_revaluo_tecnico",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "altas_bajas_bienes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_final",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_anterior_depreciacion_acumulada",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "depreciacion_periodo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "altas_bajas_depreciacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_final_depreciacion_acumulada",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["depreciacionPeriodoMasAltasBajasDepreciacion"],
+        functions: [],
+        mathOperation: [
+          { column: "depreciacion_periodo" },
+          "+",
+          { column: "altas_bajas_depreciacion" },
+        ],
       },
       {
         columnName: "valor_neto_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "valor_neto_usd",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_vida_util",
@@ -2550,6 +2793,19 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     497: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_prestamo: "yyyy-MM-dd",
+            fecha_inicio: "yyyy-MM-dd",
+            fecha_finalizacion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "nombre_rentista",
         pattern: /^[\s\S]{10,50}$/,
         functions: [],
@@ -2558,7 +2814,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_prestamo",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -2570,14 +2825,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_inicio",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "fecha_finalizacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -2588,7 +2841,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_interes_mensual",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "frecuencia_pago",
@@ -2603,30 +2856,48 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "cuota_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total_prestamo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadCuotasMultiplicadoCuotaBs"],
+        functions: [],
+        mathOperation: [
+          { column: "cantidad_cuotas" },
+          "*",
+          { column: "cuota_bs" },
+        ],
       },
       {
         columnName: "amortizacion_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_actual_prestamo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "intereses_percibidos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     498: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_inicio_prestamo: "yyyy-MM-dd",
+            fecha_finalizacion_prestamo: "yyyy-MM-dd",
+            fecha_prestamo: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "nro_poliza",
         pattern: /^[A-Za-z0-9\-]{5,10}$/,
@@ -2636,14 +2907,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_inicio_prestamo",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "fecha_finalizacion_prestamo",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -2659,29 +2928,28 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "monto_total_asegurado",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "valor_rescate_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "fecha_prestamo",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_cuota_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "plazo",
@@ -2691,22 +2959,22 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "importe_cuota_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "altas_bajas_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "amortizacion_da",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "saldo_actual",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "sucursal",
@@ -2716,28 +2984,36 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     DM: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: { correlativo: [] },
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_operacion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["lugar_negociacion"],
+          queries: () => resultQueries(),
+        },
+      },
+
+      {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
-        mayBeEmpty: true,
         functions: ["lugarNegociacion"],
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
-        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
-        functions: ["tipo_operacion"],
+        functions: ["tipo_operacion", "operacionValida"],
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        unique: true,
         functions: ["mayorACero"],
       },
       {
@@ -2758,25 +3034,27 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_negociacion",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [
-          "mayorACeroDecimal",
-          "cantidadValoresMultiplicadoPrecioNegociacion",
+        functions: ["mayorACero"],
+        mathOperation: [
+          { column: "cantidad_valores" },
+          "*",
+          { column: "precio_negociacion" },
         ],
       },
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     DR: [
@@ -2824,7 +3102,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_negociacion",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "monto_total_mo",
@@ -2834,7 +3112,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "monto_total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     UA: [
@@ -3436,7 +3714,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_equivalente",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_mo",
@@ -3446,7 +3724,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
@@ -3499,7 +3777,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "tipo_operacion",
@@ -3538,7 +3816,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "precio_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
         singleGroup: true,
       },
       {
@@ -3554,7 +3832,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "total_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "calificacion",
@@ -3598,12 +3876,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "saldo_cuotas",
         pattern: /^(^-?(0|[1-9][0-9]{0,11}))(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
     ],
     FE: [
@@ -3615,7 +3893,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
     ],
     VC: [
@@ -3627,12 +3905,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "cuotas",
         pattern: /^(^-?(0|[1-9][0-9]{0,11}))(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
     ],
     CD: [
@@ -3647,17 +3925,17 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "valor_cuota",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,4})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     DE: [
@@ -3684,12 +3962,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "monto",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
     ],
     FC: [
@@ -3701,7 +3979,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
     ],
     LQ: [
@@ -3738,27 +4016,27 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "saldo_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "saldo_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "rango_inferior",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "rango_superior",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "tasa_interes",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
     ],
     TR: [
@@ -3780,22 +4058,22 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "r_monto_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "r_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "r_rezagos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "r_rezagos_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "e_nro_cuentas",
@@ -3805,32 +4083,32 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "e_monto_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "e_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "e_rezagos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "e_rezagos_nro_cuotas",
         pattern: /^(0|[1-9][0-9]{0,3})(\.\d{4,4}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "total_recibidos_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "total_enviados_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "diferencia_neta_bs",
@@ -3852,27 +4130,27 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_relevante",
         pattern: /^(^-?(0|[1-9][0-9]{0,1}))(\.\d{8,8}){1,1}$/,
-        functions: ["mayorIgualACeroDecimal"],
+        functions: ["mayorIgualACero"],
       },
       {
         columnName: "precio_nominal_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_nominal_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_mercado_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "precio_mercado_bs",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["mayorACeroDecimal"],
+        functions: ["mayorACero"],
       },
       {
         columnName: "cantidad_valores",

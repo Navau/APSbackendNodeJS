@@ -323,6 +323,28 @@ const funcionesValidacionesContenidoValores = {
       return "La Serie de Emision debe ser '1', 'A' o 'B', debido a que Tipo Instrumento es 'CFC'";
     return true;
   },
+  operacionValida: (params) => {
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { operacionValida_data_db } = paramsBD;
+      const { lugar_negociacion, tipo_operacion, tipo_instrumento } = row;
+      const validation = `${lugar_negociacion}${tipo_operacion}${tipo_instrumento}`;
+      if (!includes(operacionValida_data_db, validation))
+        return `lugar_negociacion+tipo_operacion+tipo_instrumento (${validation}) no se encuentra en una operación válida`;
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
   plazoEmisionTiposDeDatos: (params) => {
     try {
       const { value, pattern } = params;
@@ -587,6 +609,186 @@ const funcionesValidacionesContenidoValores = {
     } catch (err) {
       return `Error de servidor. ${err}`;
     }
+  },
+  validacionesEntreArchivos: (params) => {
+    const {
+      value,
+      row,
+      rowIndex,
+      columnIndex,
+      columnCounter,
+      matchDataType,
+      nuevaCarga,
+      informacionEntreArchivos,
+      fileName,
+      fileCode,
+      fileContent,
+    } = params;
+
+    const errors = [];
+    try {
+      const {
+        tipo_tasa,
+        tasa_emision,
+        tipo_instrumento,
+        serie,
+        tipo_operacion,
+      } = row;
+      if (
+        fileCode === "441" ||
+        fileCode === "442" ||
+        fileCode === "TD" ||
+        fileCode === "TO"
+      ) {
+        if (columnIndex === "nro_pago" && matchDataType === true) {
+          if (parseFloat(value) > 1) {
+            const TASA_OPTIONS = {};
+            if (fileCode === "441" || fileCode === "TD") {
+              TASA_OPTIONS.tipo_tasa = tipo_tasa === "F" ? tipo_tasa : null;
+              TASA_OPTIONS.tasa_emision =
+                tipo_tasa === "F" ? tasa_emision : null;
+            } else if (codeCurrentFile === "442" || codeCurrentFile === "TO") {
+              TASA_OPTIONS.tasa_emision = tasa_emision;
+            }
+            const instrumentoSerie = `${tipo_instrumento}${serie}`;
+            informacionEntreArchivos.push({
+              fileNameFrom: fileName,
+              fileCodeFrom: fileCode,
+              value: {
+                instrumentoSerie,
+                [columnIndex]: value,
+                TASA_OPTIONS,
+              },
+              rowInfoIndex: rowIndex,
+              columnInfo: columnIndex,
+            });
+          }
+        }
+      }
+      if (
+        fileCode === "411" ||
+        fileCode === "412" ||
+        fileCode === "DM" ||
+        fileCode === "DR"
+      ) {
+        if (columnIndex === "serie") {
+          if (tipo_operacion === "COP") {
+            const instrumentoSerie = `${tipo_instrumento}${serie}`;
+            informacionEntreArchivos.push({
+              fileNameFrom: fileName,
+              fileCodeFrom: fileCode,
+              value: { instrumentoSerie },
+              rowInfoIndex: rowIndex,
+              columnInfo: columnIndex,
+            });
+          }
+        }
+      }
+
+      if (
+        fileCode === "441" ||
+        fileCode === "443" ||
+        fileCode === "CR" ||
+        fileCode === "CV"
+      ) {
+        const instrumentoSerie = `${tipo_instrumento}${serie}`;
+        forEach(informacionEntreArchivos, (info) => {
+          const { fileCodeFrom, value, rowInfoIndex, columnInfo } = info;
+          if (
+            instrumentoSerie !== value?.instrumentoSerie &&
+            ((fileCodeFrom === "411" && fileCode === "441") ||
+              (fileCodeFrom === "413" && fileCode === "443") ||
+              (fileCodeFrom === "DM" && fileCode === "CR") ||
+              (fileCodeFrom === "DR" && fileCode === "CV"))
+          ) {
+            errors.push({
+              id_carga_archivos: nuevaCarga.id_carga_archivos,
+              archivo: `${fileName}`,
+              tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+              descripcion: `El tipo_instrumento+serie del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' no debe ser igual a el tipo_instrumento+serie del archivo '${fileCode} (fila ${rowIndex})', debido a que el tipo_operacion en el archivo ${fileCodeFrom} es igual a "COP".`,
+              valor: `${fileCode}: ${value.instrumentoSerie} - ${fileCodeFrom}: ${instrumentoSerie}`,
+              columna: columnInfo,
+              fila: rowIndex,
+            });
+          }
+        });
+      }
+
+      if (
+        (fileCode === "444" ||
+          fileCode === "445" ||
+          fileCode === "UD" ||
+          fileCode === "CO") &&
+        rowIndex === size(fileContent) - 1 &&
+        columnCounter === size(row) - 1
+      ) {
+        forEach(informacionEntreArchivos, (info) => {
+          const { fileCodeFrom, value, rowInfoIndex, columnInfo } = info;
+          if (
+            (fileCodeFrom === "441" && fileCode === "444") ||
+            (fileCodeFrom === "442" && fileCode === "445") ||
+            (fileCodeFrom === "TD" && fileCode === "UD") ||
+            (fileCodeFrom === "TO" && fileCode === "CO")
+          ) {
+            if (columnInfo === "nro_pago") {
+              const { nro_pago, TASA_OPTIONS, instrumentoSerie } = value;
+              const { tipo_tasa, tasa_emision } = TASA_OPTIONS;
+              const nroPagoInfo = nro_pago;
+              const instrumentoSerieInfo = instrumentoSerie;
+              const tipoTasaInfo = tipo_tasa;
+              const tasaEmisionInfo = tasa_emision;
+              let counterInstrumentoSerie = 0;
+
+              forEach(fileContent, (contentRow, contentRowIndex) => {
+                const instrumentoSerie = `${contentRow.tipo_instrumento}${contentRow.serie}`;
+                if (instrumentoSerieInfo === instrumentoSerie) {
+                  if (tasaEmisionInfo !== null) {
+                    if (
+                      Number(tasaEmisionInfo) !==
+                      Number(contentRow.tasa_interes)
+                    ) {
+                      errors.push({
+                        id_carga_archivos: nuevaCarga.id_carga_archivos,
+                        archivo: fileName,
+                        tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+                        descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${contentRowIndex})' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' por tipoinstrumento+serie (${instrumentoSerie})`,
+                        valor: `tipoinstrumento+serie: ${instrumentoSerie}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
+                        columna: "tasa_interes",
+                        fila: contentRowIndex,
+                      });
+                    }
+                  }
+                  counterInstrumentoSerie++;
+                }
+              });
+
+              if (parseInt(counterInstrumentoSerie) !== parseInt(nroPagoInfo)) {
+                errors.push({
+                  id_carga_archivos: nuevaCarga.id_carga_archivos,
+                  archivo: fileName,
+                  tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+                  descripcion: `El Archivo ${fileCodeFrom} tiene el valor de '${nroPagoInfo}' en '${columnInfo}', por lo que el archivo ${fileCode} debe tener '${nroPagoInfo}' y no '${countCurrentInstrumentoSerie}' registros con el mismo instrumento+serie`,
+                  valor: `instrumento+serie (${fileCodeFrom}): ${instrumentoSerieInfo} - nro_pago (${fileCodeFrom}): ${nroPagoInfo}, cantidad de registros por instrumento+serie (${fileCode}): ${counterInstrumentoSerie}`,
+                  columna: `${fileCodeFrom}: ${columnInfo}`,
+                  fila: rowInfoIndex,
+                });
+              }
+            }
+          }
+        });
+      }
+    } catch (err) {
+      errors.push({
+        id_carga_archivos: nuevaCarga.id_carga_archivos,
+        archivo: "",
+        tipo_error: "ERROR DE SERVIDOR",
+        descripcion: `Error de servidor al formatear los archivos. ${
+          err?.message ? err.message : err
+        }`,
+      });
+    }
+
+    return size(errors) > 0 ? errors : true;
   },
 };
 
