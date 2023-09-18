@@ -86,13 +86,12 @@ const fixedByPattern = (value, pattern) => {
   return newResult;
 };
 
-const defaultValidationContentValues = (params, message) => {
+const defaultValidationContentValues = (params, message, key) => {
   try {
     if (isUndefined(params?.paramsBD)) throw "Consultas de campo no definidas";
     const { paramsBD, value, messages, mayBeEmptyFields, columnIndex } = params;
-    const keys = Object.keys(paramsBD);
     if (isEmpty(value) && includes(mayBeEmptyFields, columnIndex)) return true;
-    if (!searchValueInArray(paramsBD[keys[0]], value))
+    if (!searchValueInArray(paramsBD[`${key}DataDB`], value))
       return (
         messages?.ERROR_MESSAGE_DB ||
         message ||
@@ -105,11 +104,194 @@ const defaultValidationContentValues = (params, message) => {
 };
 
 const funcionesValidacionesContenidoValores = {
+  bolsa: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados por el RMV",
+      params.functionName
+    );
+  },
+  tipoMarcacion: (params) => {
+    const { value, row } = params;
+    const { monto_negociado, monto_minimo } = row;
+    const tipoMarcacion = value;
+    const montoNegociado = parseFloat(monto_negociado);
+    const montoMinimo = parseFloat(monto_minimo);
+    if (!isNumber(montoNegociado) || !isNumber(montoMinimo))
+      return `El campo monto_negociado o monto_minimo no son números validos`;
+    if (montoNegociado !== 0 && montoNegociado >= montoMinimo) {
+      if (!includes(["AC, NA"], tipoMarcacion))
+        return `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe ser [AC, NA]`;
+    }
+    if (monto_negociado !== 0 && monto_negociado < monto_minimo) {
+      if (!includes(["NM"], tipoMarcacion))
+        return `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe ser [NM]`;
+    }
+
+    return true;
+  },
+  tipoValoracion: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El contenido del archivo no coincide con alguna sigla de Tipo de Valoración",
+      params.functionName
+    );
+  },
+  tipoActivo: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados",
+      params.functionName
+    );
+  },
   tipoInstrumento: (params) => {
     return defaultValidationContentValues(
       params,
-      "El campo no corresponde a ninguno de los autorizados por el RMV"
+      "El campo no corresponde a ninguno de los autorizados por el RMV",
+      params.functionName
     );
+  },
+  lugarNegociacion: (params) => {
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { lugarNegociacionDataDB, lugarNegociacionVacioDataDB } = paramsBD;
+      const lugarNegociacionValue = value;
+      const tipoOperacion = row.tipo_operacion;
+      const lugarNegociacionMap = map(lugarNegociacionDataDB, "codigo_rmv");
+      const tiposOperacionesMap = map(
+        lugarNegociacionVacioDataDB,
+        "codigo_rmv"
+      );
+      if (includes(tiposOperacionesMap, tipoOperacion)) {
+        if (
+          isEmpty(lugarNegociacionValue) &&
+          includes(mayBeEmptyFields, "lugar_negociacion")
+        )
+          return true;
+        else
+          return `El lugar de negociacion debe ser vacio debido a que el tipo de operación es ${tipoOperacion}`;
+      } else {
+        if (!includes(lugarNegociacionMap, lugarNegociacionValue))
+          return `El lugar de negociación no es válido debido a que el tipo de operación es ${tipoOperacion}`;
+      }
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
+  cartera: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { cartera_destino } = row;
+      const carteraOrigenValue = value;
+      const carterDestino = cartera_destino;
+
+      const ALLOWED_VALUES_1 = {
+        cartera_origen: ["481", "482", "483"],
+        cartera_destino: ["481", "482", "483"],
+      };
+      const ALLOWED_VALUES_2 = {
+        cartera_origen: ["484", "485", "486"],
+        cartera_destino: ["484", "485", "486"],
+      };
+
+      if (carteraOrigenValue === carterDestino)
+        return `El campo cartera_origen no puede ser igual al campo cartera_destino`;
+
+      const carteraOrigenAllowedValues1 =
+        ALLOWED_VALUES_1.cartera_origen.indexOf(carteraOrigenValue);
+      const carteraOrigenAllowedValues2 =
+        ALLOWED_VALUES_2.cartera_origen.indexOf(carteraOrigenValue);
+      const carteraDestinoAllowedValues1 =
+        ALLOWED_VALUES_1.cartera_origen.indexOf(carterDestino);
+      const carteraDestinoAllowedValues2 =
+        ALLOWED_VALUES_2.cartera_origen.indexOf(carterDestino);
+      if (carteraOrigenAllowedValues1 !== -1) {
+        if (carteraDestinoAllowedValues1 === -1) {
+          return `El campo cartera_destino no se encuentra entre los valores permitidos: [${ALLOWED_VALUES_1.cartera_destino.join(
+            ", "
+          )}]`;
+        }
+      } else if (carteraOrigenAllowedValues2 !== -1) {
+        if (carteraDestinoAllowedValues2 === -1) {
+          return `El campo cartera_destino no se encuentra entre los valores permitidos: [${ALLOWED_VALUES_2.cartera_destino.join(
+            ", "
+          )}]`;
+        }
+      } else {
+        return `El campo cartera_origen no se encuentra entre los valores permitidos: [${ALLOWED_VALUES_1.cartera_origen.join(
+          ", "
+        )}], [${ALLOWED_VALUES_2.cartera_origen.join(", ")}]`;
+      }
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  },
+  tipoCuenta: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El contenido del archivo no coincide con alguna sigla de tipo de cuenta",
+      params.functionName
+    );
+  },
+  entidadFinanciera: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguna entidad financiera activa",
+      params.functionName
+    );
+  },
+  tasaRelevanteConTipoInstrumento: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const tasaRelevante = value;
+      const { tipo_instrumento } = row;
+      const {
+        tasaRelevanteConTipoInstrumentoDataBD,
+        tasaRelevanteConTipoInstrumentoDiferenteDataBD,
+      } = paramsBD;
+      const instrumentosMap = map(
+        tasaRelevanteConTipoInstrumentoDataBD,
+        "sigla"
+      );
+      const instrumentosDiferentesMap = map(
+        tasaRelevanteConTipoInstrumentoDiferenteDataBD,
+        "sigla"
+      );
+      if (includes(instrumentosMap, tipo_instrumento)) {
+        if (parseFloat(tasaRelevante) !== 0)
+          return `El valor de tasa_relevante debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      } else if (includes(instrumentosDiferentesMap, tipo_instrumento)) {
+        if (parseFloat(tasaRelevante) < 0)
+          return `El valor de tasa_relevante debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      }
+    } catch (err) {
+      throw err;
+    }
   },
   moneda: (params) => {
     return defaultValidationContentValues(params);
@@ -207,7 +389,7 @@ const funcionesValidacionesContenidoValores = {
   tipoAccion: (params) => {
     return defaultValidationContentValues(params);
   },
-  calificacionConInstrumento: (params) => {
+  calificacionConTipoInstrumento: (params) => {
     try {
       if (isUndefined(params?.paramsBD))
         throw "Consultas de campo no definidas";
@@ -219,13 +401,13 @@ const funcionesValidacionesContenidoValores = {
         row,
         mayBeEmptyFields,
       } = params;
-      const { calificacion_data_db, calificacion_vacio_data_db } = paramsBD;
+      const { calificacionDataDB, calificacionVacioDataDB } = paramsBD;
       const { tiposInstrumentos } = extraFunctionsParameters;
       const calificacion = value;
       const tipoInstrumento = row.tipo_instrumento;
-      const calificacionesMap = map(calificacion_data_db, "descripcion");
+      const calificacionesMap = map(calificacionDataDB, "descripcion");
       const calificacionesVacioMap = map(
-        calificacion_vacio_data_db,
+        calificacionVacioDataDB,
         "descripcion"
       );
       if (!includes(tiposInstrumentos, tipoInstrumento))
@@ -261,10 +443,10 @@ const funcionesValidacionesContenidoValores = {
         row,
         mayBeEmptyFields,
       } = params;
-      const { calificadora_data_db } = paramsBD;
+      const { calificadoraDataDB } = paramsBD;
       const calificadora = value;
       const calificacion = row.calificacion;
-      const calificadoraMap = map(calificadora_data_db, "sigla");
+      const calificadoraMap = map(calificadoraDataDB, "sigla");
       if (isEmpty(calificacion)) {
         if (isEmpty(calificadora) && includes(mayBeEmptyFields, "calificadora"))
           return true;
@@ -279,7 +461,7 @@ const funcionesValidacionesContenidoValores = {
       return `Error de servidor. ${err}`;
     }
   },
-  custodioConInstrumento: (params) => {
+  custodioConTipoInstrumento: (params) => {
     try {
       if (isUndefined(params?.paramsBD))
         throw "Consultas de campo no definidas";
@@ -291,11 +473,11 @@ const funcionesValidacionesContenidoValores = {
         row,
         mayBeEmptyFields,
       } = params;
-      const { custodio_data_db } = paramsBD;
+      const { custodioDataDB } = paramsBD;
       const { tiposInstrumentos } = extraFunctionsParameters;
       const custodio = value;
       const tipoInstrumento = row.tipo_instrumento;
-      const custodioMap = map(custodio_data_db, "sigla");
+      const custodioMap = map(custodioDataDB, "sigla");
       if (includes(tiposInstrumentos, tipoInstrumento)) {
         if (isEmpty(custodio) && includes(mayBeEmptyFields, "custodio"))
           return true;
@@ -335,10 +517,10 @@ const funcionesValidacionesContenidoValores = {
         row,
         mayBeEmptyFields,
       } = params;
-      const { operacionValida_data_db } = paramsBD;
+      const { operacionValidaDataDB } = paramsBD;
       const { lugar_negociacion, tipo_operacion, tipo_instrumento } = row;
       const validation = `${lugar_negociacion}${tipo_operacion}${tipo_instrumento}`;
-      if (!includes(operacionValida_data_db, validation))
+      if (!includes(operacionValidaDataDB, validation))
         return `lugar_negociacion+tipo_operacion+tipo_instrumento (${validation}) no se encuentra en una operación válida`;
       return true;
     } catch (err) {

@@ -428,6 +428,7 @@ const validarFuncionesDeColumnas = (params) => {
       pattern,
       fileCode,
       extraFunctionsParameters,
+      functionName,
     });
     if (functionResult !== true) {
       agregarError(

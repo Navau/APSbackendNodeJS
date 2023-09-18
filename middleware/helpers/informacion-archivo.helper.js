@@ -1,4 +1,4 @@
-const { size, forEach, map, find, set, filter } = require("lodash");
+const { size, forEach, map, find, set, filter, isNull } = require("lodash");
 const {
   EjecutarQuery,
   ObtenerColumnasDeTablaUtil,
@@ -21,6 +21,10 @@ async function obtenerInformacionColumnasArchivosBD(confArchivos) {
   }
 }
 
+function camelToSnakeCase(inputString) {
+  return inputString.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
+}
+
 async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
   try {
     const optionsValidationsFiles = {};
@@ -30,7 +34,7 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
     forEach(validatedContentFormatFiles, (fileContent, fileNameAndCode) => {
       const fileName = fileNameAndCode.split("_separador_")[0];
       const fileCode = fileNameAndCode.split("_separador_")[1];
-      const fileValidations = CONF_FILE_VALUE_VALIDATIONS(fileCode);
+      const fileValidations = CONF_FILE_VALUE_VALIDATIONS(fileCode, fileName);
       forEach(fileValidations, (validation) => {
         const { globalFileValidations } = validation;
         if (globalFileValidations?.queries) {
@@ -51,13 +55,13 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
         let counter = 0;
         forEach(keysFiles, (keys, fileCode) => {
           forEach(keys, (key) => {
-            executedFilesQueries[fileCode][key] = response[counter];
+            executedFilesQueries[fileCode][camelToSnakeCase(key)] =
+              response[counter];
             counter++;
           });
         });
         forEach(executedFilesQueries, (executedQuerys, fileCode) => {
           const validationsFile = optionsValidationsFiles[fileCode];
-          // console.log(fileCode, executedQuerys);
           forEach(executedQuerys, (executedQuery, columnKeyQuery) => {
             const validations = filter(validationsFile, (validation) =>
               columnKeyQuery.includes(validation.columnName)
@@ -65,7 +69,7 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
             forEach(validations, (validation) => {
               validation.paramsBD = {
                 ...validation?.paramsBD,
-                [`${columnKeyQuery}_data_db`]: executedQuery,
+                [`${columnKeyQuery}DataDB`]: executedQuery,
               };
             });
           });
@@ -80,12 +84,342 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
   }
 }
 
-const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
+const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
   console.log(typeFile);
-  //! IMPORTANTE: Para que una consulta se acople a una columna de validacion, se debee colocar el mismo nombre de la columna de validacion en el objeto TYPES_QUERY_FILES, por otro lado si es que se quiere aumentar otra consulta a esa misma columna de validacion, se debe colocar el mismo nombre de la columna de validacion seguido de "_VALOR", por ejemplo: "calificacion, calificacion_vacio"
+  const FILES_QUERIES = {};
+  if (typeFile === "BG") {
+    const validIdFondo = fileName.includes("FCI")
+      ? 201
+      : fileName.includes("CBP")
+      ? 259
+      : fileName.includes("CRC")
+      ? 206
+      : fileName.includes("CRL")
+      ? 205
+      : fileName.includes("CRP")
+      ? 204
+      : fileName.includes("MVV")
+      ? 203
+      : fileName.includes("FCC")
+      ? 202
+      : null;
+    FILES_QUERIES[typeFile].codigoCuentaDescripcion = {
+      table: "APS_param_plan_cuentas",
+      queryOptions: {
+        select: ["cuenta|| ' ' ||descripcion as valor", "valida"],
+        where: { key: "id_fondo", value: validIdFondo },
+      },
+    };
+    if (isNull(validIdFondo)) delete queryFileBG.queryOptions.where;
+  }
+
+  //! IMPORTANTE: Para que una consulta se acople a una columna de validacion, se debee colocar el mismo nombre de la columna de validacion en el objeto TYPES_QUERY_FILES, por otro lado si es que se quiere aumentar otra consulta a esa misma columna de validacion, se debe colocar el mismo nombre de la columna de validacion seguido de "funcionVALOR", por ejemplo: "calificacion, calificacionVacio"
   const TYPES_QUERY_FILES = {
+    K: {
+      bolsa: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 1,
+            },
+          ],
+        },
+      },
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135, 137],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
+    L: {
+      bolsa: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 1,
+            },
+          ],
+        },
+      },
+      tipoValoracion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 31,
+            },
+          ],
+        },
+      },
+    },
+    N: {
+      bolsa: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 1,
+            },
+          ],
+        },
+      },
+    },
+    P: {
+      bolsa: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 1,
+            },
+          ],
+        },
+      },
+      tipoActivo: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138, 214],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
+    411: {
+      lugarNegociacion: {
+        table: "APS_param_lugar_negociacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_tipo_lugar_negociacion",
+              value: 145,
+              operator: "<>",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      lugarNegociacionVacio: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+              operator: "<>",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_operacion",
+              value: false,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+              operator: "<>",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135, 138],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      operacionValida: {
+        table: "APS_param_operacion_valida",
+        queryOptions: {
+          select: [
+            "lugar_negociacion || tipo_operacion || tipo_instrumento as siglaCombinada",
+          ],
+          where: [
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_rf",
+              value: true,
+            },
+          ],
+        },
+      },
+    },
+    412: {
+      lugarNegociacion: {
+        table: "APS_param_lugar_negociacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_tipo_lugar_negociacion",
+              valuesWhereIn: [145, 147, 148],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      lugarNegociacionVacio: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_operacion",
+              value: false,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+            },
+            {
+              block: [
+                {
+                  key: "es_operacion",
+                  value: true,
+                  operatorSQL: "OR",
+                },
+                {
+                  key: "tipo",
+                  value: "DIS",
+                },
+              ],
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [136],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      operacionValida: {
+        table: "APS_param_operacion_valida",
+        queryOptions: {
+          select: [
+            "lugar_negociacion || tipo_operacion || tipo_instrumento as siglacombinada",
+          ],
+          where: [
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_rf",
+              value: false,
+            },
+          ],
+        },
+      },
+    },
+    413: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+    },
     441: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -114,21 +448,21 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           ],
         },
       },
-      tipo_amortizacion: {
+      tipoAmortizacion: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
           where: [{ key: "id_clasificador_comun_grupo", value: 25 }],
         },
       },
-      tipo_interes: {
+      tipoInteres: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
           where: [{ key: "id_clasificador_comun_grupo", value: 23 }],
         },
       },
-      tipo_tasa: {
+      tipoTasa: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
@@ -172,7 +506,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           ],
         },
       },
-      calificacion_vacio: {
+      calificacionVacio: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["descripcion"],
@@ -212,7 +546,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     442: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -289,7 +623,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     443: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -306,7 +640,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           ],
         },
       },
-      tipo_accion: {
+      tipoAccion: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
@@ -342,7 +676,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           ],
         },
       },
-      calificacion_vacio: {
+      calificacionVacio: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["descripcion"],
@@ -382,7 +716,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     444: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -397,7 +731,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     445: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -411,8 +745,1380 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
         },
       },
     },
+    451: {
+      tipoCuenta: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 15,
+            },
+          ],
+        },
+      },
+      entidadFinanciera: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_sector_economico",
+              value: 6,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [1, 2, 3],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tipoCambio: {
+        table: "APS_oper_tipo_cambio",
+        queryOptions: {
+          select: ["fecha", "sigla", "compra"],
+          innerjoin: [
+            {
+              table: "APS_param_moneda",
+              on: [
+                {
+                  table: "APS_oper_tipo_cambio",
+                  key: "id_moneda",
+                },
+                {
+                  table: "APS_param_moneda",
+                  key: "id_moneda",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+    481: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135, 136],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tasaRelevanteConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tasaRelevanteConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      plazoValorConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      plazoValorConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      plazoEconomicoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      plazoEconomicoConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              value: 5,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+          ],
+        },
+      },
+      calificacionVacio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 5,
+            },
+          ],
+        },
+      },
+      calificacionConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificadoraConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [9],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento1: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              value: 1,
+            },
+          ],
+        },
+      },
+      tipoInstrumento25: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              value: 25,
+            },
+          ],
+        },
+      },
+      tipoValoracion22: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 22,
+            },
+          ],
+        },
+      },
+      tipoValoracion31: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 31,
+            },
+            {
+              key: "id_clasificador_comun",
+              valuesWhereIn: [210],
+              whereIn: true,
+              searchCriteriaWhereIn: "NOT IN",
+            },
+          ],
+        },
+      },
+      tipoValoracion210: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun",
+              value: 210,
+            },
+          ],
+        },
+      },
+      tasaUltimoHechoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 32,
+            },
+          ],
+        },
+      },
+    },
+    482: {
+      tipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tasaRelevanteConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tasaRelevanteConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      plazoValorConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      plazoValorConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      plazoEconomicoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      plazoEconomicoConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              value: 5,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+          ],
+        },
+      },
+      calificacionVacio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 5,
+            },
+          ],
+        },
+      },
+      calificacionConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificadoraConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [9],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento1: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              value: 1,
+            },
+          ],
+        },
+      },
+      tipoInstrumento25: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              value: 25,
+            },
+          ],
+        },
+      },
+      tipoValoracion22: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 22,
+            },
+          ],
+        },
+      },
+      tipoValoracion31: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 31,
+            },
+            {
+              key: "id_clasificador_comun",
+              valuesWhereIn: [210],
+              whereIn: true,
+              searchCriteriaWhereIn: "NOT IN",
+            },
+          ],
+        },
+      },
+      tipoValoracion210: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun",
+              value: 210,
+            },
+          ],
+        },
+      },
+      tasaUltimoHechoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 32,
+            },
+          ],
+        },
+      },
+      tasaUltimoHechoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 32,
+            },
+          ],
+        },
+      },
+    },
+    483: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135, 136],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+    },
+    484: {
+      tipoActivo: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138, 139],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tasaRendimientoConTipoInstrumento139: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 139,
+            },
+          ],
+        },
+      },
+      tasaRendimientoConTipoInstrumento138: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 138,
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [1, 3],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 35,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7, 8],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 9,
+            },
+          ],
+        },
+      },
+    },
+    485: {
+      tipoActivo: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138, 139],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tasaRendimientoConTipoInstrumento139: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 139,
+            },
+          ],
+        },
+      },
+      tasaRendimientoConTipoInstrumento138: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 138,
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [1, 3],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 35,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7, 8],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 9,
+            },
+          ],
+        },
+      },
+    },
+    486: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138, 139],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      entidadEmisora: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_pais",
+              value: 8,
+              operator: "<>",
+            },
+            {
+              key: "id_emisor",
+              value: 13,
+              operatorSQL: "OR",
+            },
+          ],
+        },
+      },
+    },
+    461: {
+      tipoCuenta: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 15,
+            },
+          ],
+        },
+      },
+      entidadFinanciera: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_sector_economico",
+              value: 6,
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["sigla"],
+        },
+      },
+      tipoCambio: {
+        table: "APS_oper_tipo_cambio",
+        queryOptions: {
+          select: ["fecha", "sigla", "compra"],
+          innerjoin: [
+            {
+              table: "APS_param_moneda",
+              on: [
+                {
+                  table: "APS_oper_tipo_cambio",
+                  key: "id_moneda",
+                },
+                {
+                  table: "APS_param_moneda",
+                  key: "id_moneda",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+    471: {
+      tipoActivo: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 30,
+            },
+          ],
+        },
+      },
+    },
+    491: {
+      ciudad: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 34,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoBienInmueble: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 33,
+            },
+          ],
+        },
+      },
+      totalVidaUtil: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+            },
+          ],
+        },
+      },
+      totalVidaUtilDiferente: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      vidaUtilRestante: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+            },
+          ],
+        },
+      },
+      vidaUtilRestanteDiferente: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+    },
+    492: {
+      ciudad: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 34,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoBienInmueble: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 33,
+            },
+          ],
+        },
+      },
+      totalVidaUtil: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+            },
+          ],
+        },
+      },
+      totalVidaUtilDiferente: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      vidaUtilRestante: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+            },
+          ],
+        },
+      },
+      vidaUtilRestanteDiferente: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 255,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+    },
+    494: {},
+    496: {},
+    497: {},
+    498: {},
+    DM: {
+      lugarNegociacion: {
+        table: "APS_param_lugar_negociacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_tipo_lugar_negociacion",
+              value: 145,
+              operator: "<>",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      lugarNegociacionVacio: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+              operator: "<>",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_operacion",
+              value: false,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+              operator: "<>",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 200,
+            },
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        },
+      },
+      operacionValida: {
+        table: "APS_param_operacion_valida",
+        queryOptions: {
+          select: [
+            "lugar_negociacion || tipo_operacion || tipo_instrumento as siglaCombinada",
+          ],
+          where: [
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_rf",
+              value: true,
+            },
+          ],
+        },
+      },
+    },
+    DR: {
+      lugarNegociacion: {
+        table: "APS_param_lugar_negociacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_tipo_lugar_negociacion",
+              valuesWhereIn: [145, 147, 148],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      lugarNegociacionVacio: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_operacion",
+              value: false,
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_tipo_operacion",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "tipo",
+              value: "VAR",
+            },
+            {
+              block: [
+                {
+                  key: "es_operacion",
+                  value: true,
+                  operatorSQL: "OR",
+                },
+                {
+                  key: "tipo",
+                  value: "DIS",
+                },
+              ],
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 200,
+            },
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      operacionValida: {
+        table: "APS_param_operacion_valida",
+        queryOptions: {
+          select: [
+            "lugar_negociacion || tipo_operacion || tipo_instrumento as siglacombinada",
+          ],
+          where: [
+            {
+              key: "activo",
+              value: true,
+            },
+            {
+              key: "es_rf",
+              value: false,
+            },
+          ],
+        },
+      },
+    },
+    UA: {
+      tipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 200,
+            },
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        },
+      },
+    },
+    UE: {
+      tipoInstrumento138: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 200,
+            },
+            {
+              key: "id_tipo_renta",
+              value: 138,
+            },
+          ],
+        },
+      },
+    },
+    DU: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 200,
+            },
+          ],
+        },
+      },
+      codigoCustodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 9,
+            },
+          ],
+        },
+      },
+    },
     TD: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -438,21 +2144,21 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           ],
         },
       },
-      tipo_amortizacion: {
+      tipoAmortizacion: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
           where: [{ key: "id_clasificador_comun_grupo", value: 25 }],
         },
       },
-      tipo_interes: {
+      tipoInteres: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
           where: [{ key: "id_clasificador_comun_grupo", value: 23 }],
         },
       },
-      tipo_tasa: {
+      tipoTasa: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
@@ -519,7 +2225,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     TO: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -588,7 +2294,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     TV: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -605,7 +2311,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
           ],
         },
       },
-      tipo_accion: {
+      tipoAccion: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
@@ -669,7 +2375,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     UD: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -687,7 +2393,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
       },
     },
     CO: {
-      tipo_instrumento: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -701,6 +2407,561 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
         },
       },
     },
+    DC: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135, 136],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tasaRelevanteConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tasaRelevanteConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      plazoValorConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      plazoValorConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      plazoEconomicoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      plazoEconomicoConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              value: 5,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 6,
+            },
+          ],
+        },
+      },
+      calificacionVacio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 5,
+            },
+          ],
+        },
+      },
+      calificacionConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificadoraConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [9],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tipoInstrumento1: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              value: 1,
+            },
+          ],
+        },
+      },
+      tipoInstrumento25: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              value: 25,
+            },
+          ],
+        },
+      },
+      tipoValoracion22: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 22,
+            },
+          ],
+        },
+      },
+      tipoValoracion31: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 31,
+            },
+            {
+              key: "id_clasificador_comun",
+              valuesWhereIn: [210],
+              whereIn: true,
+              searchCriteriaWhereIn: "NOT IN",
+            },
+          ],
+        },
+      },
+      tipoValoracion210: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun",
+              value: 210,
+            },
+          ],
+        },
+      },
+      tasaUltimoHechoConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+            },
+          ],
+        },
+      },
+      tasaUltimoHechoConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
+      tipoOperacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 32,
+            },
+          ],
+        },
+      },
+    },
+    DO: {
+      tipoActivo: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [138, 139],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tasaRendimientoConTipoInstrumento138: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 138,
+            },
+          ],
+        },
+      },
+      tasaRendimientoConTipoInstrumento139: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 139,
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [1, 3],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      calificacion: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["descripcion"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 35,
+            },
+          ],
+        },
+      },
+      calificadora: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              valuesWhereIn: [7, 8],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 9,
+            },
+          ],
+        },
+      },
+    },
+    BG: {
+      codigoCuentaDescripcion:
+        FILES_QUERIES?.[typeFile]?.codigoCuentaDescripcion || {},
+    },
+    FE: {
+      codigoCuenta: {
+        table: "APS_param_cuentas_flujo_efectivo",
+        queryOptions: {
+          select: ["cuenta"],
+          where: [
+            {
+              key: "id_fondo",
+              value: 201,
+            },
+          ],
+        },
+      },
+    },
+    VC: {
+      codigoCuenta: {
+        table: "APS_param_plan_cuentas",
+        queryOptions: {
+          select: ["cuenta"],
+        },
+      },
+    },
+    CD: {},
+    DE: {},
+    LQ: {
+      codigoFondo: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun",
+              valuesWhereIn: [201, 202],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      tipoCuentaLiquidez: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 36,
+            },
+          ],
+        },
+      },
+      cuentaContable: {
+        table: "APS_param_plan_cuentas",
+        queryOptions: {
+          select: ["cuenta"],
+          where: [
+            {
+              key: "valida",
+              value: true,
+            },
+            {
+              key: "id_fondo",
+              valuesWhereIn: [201, 202],
+              whereIn: true,
+            },
+          ],
+        },
+      },
+      codigoBanco: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_sector_economico",
+              value: 6,
+            },
+          ],
+        },
+      },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [2, 5, 6],
+              whereIn: true,
+              searchCriteriaWhereIn: "NOT IN",
+            },
+          ],
+        },
+      },
+    },
+    TR: {
+      codigoAfp: {
+        table: "APS_seg_institucion",
+        queryOptions: {
+          select: ["codigo"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 109,
+            },
+          ],
+        },
+      },
+      nombreAfp: {
+        table: "APS_seg_institucion",
+        queryOptions: {
+          select: ["institucion"],
+          where: [
+            {
+              key: "id_tipo_mercado",
+              value: 109,
+            },
+          ],
+        },
+      },
+    },
+    FC: {
+      codigoCuenta: {
+        table: "APS_param_cuentas_flujo_efectivo",
+        queryOptions: {
+          select: ["cuenta"],
+          where: [
+            {
+              key: "id_fondo",
+              value: 202,
+            },
+          ],
+        },
+      },
+    },
+    CC: {
+      tipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              valuesWhereIn: [135, 136],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      custodio: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_clasificador_comun_grupo",
+              value: 19,
+            },
+          ],
+        },
+      },
+    },
   };
   try {
     return TYPES_QUERY_FILES[typeFile];
@@ -709,9 +2970,9 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile) => {
   }
 };
 
-const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
+const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
   const resultQueries = () => {
-    const confFileQueries = CONF_FILE_QUERIES_DATABASE(typeFile);
+    const confFileQueries = CONF_FILE_QUERIES_DATABASE(typeFile, fileName);
     const keys = Object.keys(confFileQueries);
     return {
       keys,
@@ -778,7 +3039,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tipo_marcacion",
         pattern: /^[A-Za-z]{2,2}$/,
-        functions: ["marcacion"],
+        functions: ["tipoMarcacion"],
       },
     ],
     L: [
@@ -930,7 +3191,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "lugar_negociacion",
@@ -1004,7 +3265,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "lugar_negociacion",
@@ -1419,7 +3680,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        functions: ["calificacionConInstrumento"],
+        functions: ["calificacionConTipoInstrumento"],
         extraFunctionsParameters: {
           tiposInstrumentos: ["CFC", "ACC"],
         },
@@ -1432,7 +3693,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: ["custodioConInstrumento"],
+        functions: ["custodioConTipoInstrumento"],
         extraFunctionsParameters: {
           tiposInstrumentos: ["ACC"],
         },
@@ -1689,7 +3950,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
-        functions: ["tasaRelevanteConInstrumento"],
+        functions: ["tasaRelevanteConTipoInstrumento"],
       },
       {
         columnName: "cantidad",
@@ -1729,7 +3990,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
-        functions: ["calificacionConInstrumento"],
+        functions: ["calificacionConTipoInstrumento"],
       },
       {
         columnName: "calificadora",
@@ -1854,7 +4115,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "calificacion",
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
-        functions: ["calificacionConInstrumento"],
+        functions: ["calificacionConTipoInstrumento"],
       },
       {
         columnName: "calificadora",
@@ -2994,12 +5255,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
           queries: () => resultQueries(),
         },
       },
-
       {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "lugar_negociacion",
@@ -3059,28 +5319,35 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     DR: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: { correlativo: [] },
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_operacion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["lugar_negociacion"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_operacion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
         columnName: "lugar_negociacion",
         pattern: /^[A-Za-z0-9\-]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["lugarNegociacion"],
       },
       {
         columnName: "tipo_operacion",
         pattern: /^[A-Za-z]{3,3}$/,
-        operationNotValid: "cadenaCombinadalugarNegTipoOperTipoInstrum",
-        functions: ["tipoOperacion"],
+        functions: ["tipoOperacion", "operacionValida"],
       },
       {
         columnName: "correlativo",
         pattern: /^(^-?(0|[1-9][0-9]{0,6}))$/,
-        unique: true,
         functions: ["mayorACero"],
       },
       {
@@ -3091,7 +5358,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
-        operationNotValid: "tipoOperacionCOP",
         functions: [],
       },
       {
@@ -3108,6 +5374,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "monto_total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["cantidadValoresMultiplicadoPrecioNegociacion"],
+        mathOperation: [
+          { column: "cantidad_valores" },
+          "*",
+          { column: "precio_negociacion" },
+        ],
       },
       {
         columnName: "monto_total_bs",
@@ -3117,10 +5388,20 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     UA: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_vencimiento: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
@@ -3146,10 +5427,20 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     UE: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {
+            fecha_vencimiento: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha_vencimiento",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
         functions: [],
       },
       {
@@ -3182,6 +5473,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
             fecha_vencimiento: "yyyy-MM-dd",
             fecha_emision: "yyyy-MM-dd",
           },
+          mayBeEmptyFields: [],
           queries: () => resultQueries(),
         },
       },
@@ -3299,6 +5591,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       },
     ],
     DU: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -3523,7 +5824,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "nro_cupon",
         pattern: /^(0|[1-9][0-9]{0,2})$/,
-        unique: true,
         functions: ["mayorACero"],
       },
       {
@@ -3674,16 +5974,35 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     DC: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            [
+              "tipo_instrumento",
+              "serie",
+              "tasa_relevante",
+              "custodio",
+              "fecha_adquisicion",
+              "tipo_valoracion",
+            ],
+          ],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+            fecha_ultimo_hecho: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["calificacion", "calificadora", "custodio"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
-        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        singleGroup: true,
       },
       {
         columnName: "codigo_valoracion",
@@ -3694,7 +6013,6 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
         functions: ["tasaRelevanteConInstrumento"],
-        singleGroup: true,
       },
       {
         columnName: "cantidad",
@@ -3719,7 +6037,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadMultiplicadoPrecioEquivalente"],
+        functions: [],
+        mathOperation: [
+          { column: "cantidad" },
+          "*",
+          { column: "precio_equivalente" },
+        ],
       },
       {
         columnName: "total_bs",
@@ -3728,45 +6051,34 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       },
       {
         columnName: "calificacion",
-        mayBeEmpty: true,
         pattern: /^[A-Za-z0-9\-]{0,4}$/,
-        functions: ["calificacionConInstrumento"],
+        functions: ["calificacionConTipoInstrumento"],
       },
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["calificadoraConInstrumento"],
       },
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        singleGroup: true,
       },
       {
         columnName: "tipo_valoracion",
         pattern: /^[A-Za-z0-9\-]{2,3}$/,
         functions: ["tipoValoracionConsultaMultiple"],
-        singleGroup: true,
-        endSingleGroup: true,
       },
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: [],
       },
       {
@@ -3787,16 +6099,33 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     DO: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [
+            [
+              "tipo_activo",
+              "serie",
+              "precio_mo",
+              "custodio",
+              "fecha_adquisicion",
+            ],
+          ],
+          formatDateFields: {
+            fecha_adquisicion: "yyyy-MM-dd",
+          },
+          mayBeEmptyFields: ["custodio"],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoActivo"],
-        singleGroup: true,
       },
       {
         columnName: "serie",
         pattern: /^[A-Za-z0-9\-]{5,23}$/,
         functions: [],
-        singleGroup: true,
       },
       {
         columnName: "tasa_rendimiento",
@@ -3817,12 +6146,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "precio_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["mayorACero"],
-        singleGroup: true,
       },
       {
         columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: ["cantidadMultiplicadoPrecioMO"],
+        functions: [],
+        mathOperation: [{ column: "cantidad" }, "*", { column: "precio_mo" }],
       },
       {
         columnName: "moneda",
@@ -3847,22 +6176,25 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       {
         columnName: "custodio",
         pattern: /^[A-Za-z]{0,3}$/,
-        mayBeEmpty: true,
         functions: ["custodio"],
-        singleGroup: true,
       },
       {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        date: true,
-        notValidate: true,
         functions: ["fechaOperacionMenorAlArchivo"],
-        singleGroup: true,
-        endSingleGroup: true,
       },
     ],
     BG: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,13}$/,
@@ -3886,6 +6218,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     FE: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
         functions: ["codigoCuenta"],
@@ -3897,6 +6238,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       },
     ],
     VC: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "codigo_item",
         pattern: /^[A-Za-z0-9\-\.]{1,11}$/,
@@ -3915,11 +6265,18 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     CD: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "fecha",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        notValidate: true,
-        date: true,
         functions: [],
       },
       {
@@ -3939,6 +6296,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       },
     ],
     DE: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "codigo",
         pattern: /^[A-Za-z0-9\.]{4,5}$/,
@@ -3972,6 +6338,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
     ],
     FC: [
       {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
+      {
         columnName: "codigo_cuenta",
         pattern: /^[A-Za-z0-9\-\.]{1,9}$/,
         functions: ["codigoCuenta"],
@@ -3983,6 +6358,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       },
     ],
     LQ: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "codigo_fondo",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -4040,6 +6424,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
       },
     ],
     TR: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "codigo",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -4114,9 +6507,23 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "diferencia_neta_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["totalRecibidosBs-totalEnviadosBs"],
+        mathOperation: [
+          { column: "total_recibidos_bs" },
+          "-",
+          { column: "total_enviados_bs" },
+        ],
       },
     ],
     CC: [
+      {
+        globalFileValidations: {
+          fieldsUniqueBy: {},
+          uniqueCombinationPerFile: [[]],
+          formatDateFields: {},
+          mayBeEmptyFields: [],
+          queries: () => resultQueries(),
+        },
+      },
       {
         columnName: "tipo_instrumento",
         pattern: /^[A-Za-z]{3,3}$/,
@@ -4161,6 +6568,11 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile) => {
         columnName: "total_mercado_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
         functions: ["precioMercadoMOMultiplicadoCantidadValores"],
+        mathOperation: [
+          { column: "precio_mercado_mo" },
+          "*",
+          { column: "cantidad_valores" },
+        ],
       },
       {
         columnName: "custodia",

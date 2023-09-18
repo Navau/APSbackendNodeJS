@@ -316,6 +316,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
     const optionsValidationsFiles = await obtenerValidacionesArchivos(
       validatedContentFormatFiles
     );
+    // console.log("optionsValidationsFiles", optionsValidationsFiles);
 
     WORKER_OPTIONS.data.optionsValidationsFiles = optionsValidationsFiles;
     WORKER_OPTIONS.data.objectArrayFilesContent = validatedContentFormatFiles;
