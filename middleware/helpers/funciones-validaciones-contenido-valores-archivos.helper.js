@@ -71,17 +71,21 @@ const searchValueInArray = (array, value) => {
   return !isUndefined(searchResult);
 };
 
-const fixedByPattern = (value, pattern) => {
+const fixedByPattern = (value, pattern, columnIndex) => {
   const indexPattern = new RegExp(pattern).toString().indexOf(".");
   const textPattern = new RegExp(pattern).toString();
   let fixed = undefined;
   let newResult = value;
-  if (textPattern.slice(indexPattern, indexPattern + 4) === ".\\d{") {
-    fixed = parseInt(textPattern.slice(indexPattern + 6, indexPattern + 7));
-    if (isNumber(fixed) && fixed > 0) newResult = newResult.toFixed(fixed);
-  } else if (size(textPattern) >= 23 && size(textPattern) < 30) {
-    fixed = 2;
-    if (isNumber(fixed) && fixed > 0) newResult = newResult.toFixed(fixed);
+  if (columnIndex === "interes") {
+    newResult = parseFloat(newResult.toFixed(8)).toFixed(2);
+  } else {
+    if (textPattern.slice(indexPattern, indexPattern + 4) === ".\\d{") {
+      fixed = parseInt(textPattern.slice(indexPattern + 6, indexPattern + 7));
+      if (isNumber(fixed) && fixed > 0) newResult = newResult.toFixed(fixed);
+    } else if (size(textPattern) >= 23 && size(textPattern) < 30) {
+      fixed = 2;
+      if (isNumber(fixed) && fixed > 0) newResult = newResult.toFixed(fixed);
+    }
   }
   return newResult;
 };
@@ -150,18 +154,6 @@ const funcionesValidacionesContenidoValores = {
     );
   },
   tipoOperacion: (params) => {
-    return defaultValidationContentValues(
-      params,
-      "El campo no corresponde a ninguno de los autorizados por el RMV"
-    );
-  },
-  plazoValorConTipoInstrumento: (params) => {
-    return defaultValidationContentValues(
-      params,
-      "El campo no corresponde a ninguno de los autorizados por el RMV"
-    );
-  },
-  plazoEconomicoConTipoInstrumento: (params) => {
     return defaultValidationContentValues(
       params,
       "El campo no corresponde a ninguno de los autorizados por el RMV"
@@ -303,7 +295,7 @@ const funcionesValidacionesContenidoValores = {
         "sigla"
       );
       if (includes(instrumentosMap, tipo_instrumento)) {
-        if (parseFloat(tasaRelevante) !== 0)
+        if (parseFloat(tasaRelevante) > 0)
           return `El valor de tasa_relevante debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
       } else if (includes(instrumentosDiferentesMap, tipo_instrumento)) {
         if (parseFloat(tasaRelevante) < 0)
@@ -312,6 +304,152 @@ const funcionesValidacionesContenidoValores = {
     } catch (err) {
       throw err;
     }
+  },
+  plazoValorConTipoInstrumento: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const plazoValor = value;
+      const { tipo_instrumento } = row;
+      const {
+        plazoValorConTipoInstrumentoDataBD,
+        plazoValorConTipoInstrumentoDiferenteDataBD,
+      } = paramsBD;
+      const instrumentosMap = map(plazoValorConTipoInstrumentoDataBD, "sigla");
+      const instrumentosDiferentesMap = map(
+        plazoValorConTipoInstrumentoDiferenteDataBD,
+        "sigla"
+      );
+      if (includes(instrumentosMap, tipo_instrumento)) {
+        if (parseFloat(plazoValor) !== 0)
+          return `El valor de plazo_valor debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      } else if (includes(instrumentosDiferentesMap, tipo_instrumento)) {
+        if (parseFloat(plazoValor) < 0)
+          return `El valor de plazo_valor debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      }
+    } catch (err) {
+      throw err;
+    }
+  },
+  plazoEconomicoConTipoInstrumento: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const plazoEconomico = value;
+      const { tipo_instrumento } = row;
+      const {
+        plazoEconomicoConTipoInstrumentoDataBD,
+        plazoEconomicoConTipoInstrumentoDiferenteDataBD,
+      } = paramsBD;
+      const instrumentosMap = map(
+        plazoEconomicoConTipoInstrumentoDataBD,
+        "sigla"
+      );
+      const instrumentosDiferentesMap = map(
+        plazoEconomicoConTipoInstrumentoDiferenteDataBD,
+        "sigla"
+      );
+      if (includes(instrumentosMap, tipo_instrumento)) {
+        if (parseFloat(plazoEconomico) !== 0)
+          return `El valor de plazo_economico debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      } else if (includes(instrumentosDiferentesMap, tipo_instrumento)) {
+        if (parseFloat(plazoEconomico) < 0)
+          return `El valor de plazo_economico debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      }
+    } catch (err) {
+      throw err;
+    }
+  },
+  tasaUltimoHechoConTipoInstrumento: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const tasaUltimoHecho = value;
+      const { tipo_instrumento } = row;
+      const {
+        tasaUltimoHechoConTipoInstrumentoDataBD,
+        tasaUltimoHechoConTipoInstrumentoDiferenteDataBD,
+      } = paramsBD;
+      const instrumentosMap = map(
+        tasaUltimoHechoConTipoInstrumentoDataBD,
+        "sigla"
+      );
+      const instrumentosDiferentesMap = map(
+        tasaUltimoHechoConTipoInstrumentoDiferenteDataBD,
+        "sigla"
+      );
+      if (includes(instrumentosMap, tipo_instrumento)) {
+        if (parseFloat(tasaUltimoHecho) > 0)
+          return `El valor de tasa_ultimo_hecho debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      } else if (includes(instrumentosDiferentesMap, tipo_instrumento)) {
+        if (parseFloat(tasaUltimoHecho) < 0)
+          return `El valor de tasa_ultimo_hecho debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      }
+    } catch (err) {
+      throw err;
+    }
+  },
+  tasaRendimientoConInstrumento: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const tasaRendmiento = value;
+      const { tipo_instrumento } = row;
+      const {
+        tasaRendimientoConTipoInstrumento139DataBD,
+        tasaRendimientoConTipoInstrumento138DataBD,
+      } = paramsBD;
+      const instrumentos139Map = map(
+        tasaRendimientoConTipoInstrumento139DataBD,
+        "sigla"
+      );
+      const instrumentos138Map = map(
+        tasaRendimientoConTipoInstrumento138DataBD,
+        "sigla"
+      );
+      if (includes(instrumentos139Map, tipo_instrumento)) {
+        if (parseFloat(tasaRendmiento) > 0)
+          return `El valor de tasa_rendimiento debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      } else if (includes(instrumentos138Map, tipo_instrumento)) {
+        if (parseFloat(tasaRendmiento) < 0)
+          return `El valor de tasa_rendimiento debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+      }
+    } catch (err) {
+      throw err;
+    }
+  },
+  entidadEmisora: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El contenido del archivo no coincide con alguna entidad emisora"
+    );
+  },
+  totalVidaUtil: (params) => {
+    return true;
   },
   moneda: (params) => {
     return defaultValidationContentValues(
@@ -459,7 +597,11 @@ const funcionesValidacionesContenidoValores = {
         row,
         mayBeEmptyFields,
       } = params;
-      const { calificacionDataDB, calificacionVacioDataDB } = paramsBD;
+      const {
+        calificacionDataDB,
+        calificacionVacioDataDB,
+        calificacionConTipoInstrumento,
+      } = paramsBD;
       const { tiposInstrumentos } = extraFunctionsParameters;
       const calificacion = value;
       const tipoInstrumento = row.tipo_instrumento;
@@ -468,20 +610,42 @@ const funcionesValidacionesContenidoValores = {
         calificacionVacioDataDB,
         "descripcion"
       );
-      if (!includes(tiposInstrumentos, tipoInstrumento))
-        return `El Tipo de Instrumento esperado es ${tiposInstrumentos?.join(
-          " o "
-        )}`;
-      if (
-        (tipoInstrumento === "ACC" || tipoInstrumento === "CFC") &&
-        !includes(calificacionesMap, calificacion)
-      )
-        return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
-      if (tipoInstrumento === "ACC") {
-        if (isEmpty(calificacion) && includes(mayBeEmptyFields, "calificacion"))
-          return true;
-        if (!includes(calificacionesVacioMap, calificacion))
-          return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento ACC)";
+      const calificacionConTipoInstrumentoMap = map(
+        calificacionConTipoInstrumento,
+        "sigla"
+      );
+      if (size(calificacionConTipoInstrumentoMap) > 0) {
+        if (includes(calificacionConTipoInstrumentoMap, tipoInstrumento)) {
+          if (
+            isEmpty(calificacion) &&
+            includes(mayBeEmptyFields, "calificacion")
+          )
+            return true;
+          if (!includes(calificacionesVacioMap, calificacion))
+            return `La calificación no se encuentra en ninguna calificación válida (tipo instrumento ${tipoInstrumento})`;
+        } else {
+          if (!includes(calificacionDataDB, calificacion))
+            return `La calificación no se encuentra en ninguna calificación válida`;
+        }
+      } else {
+        if (!includes(tiposInstrumentos, tipoInstrumento))
+          return `El Tipo de Instrumento esperado es ${tiposInstrumentos?.join(
+            " o "
+          )}`;
+        if (
+          (tipoInstrumento === "ACC" || tipoInstrumento === "CFC") &&
+          !includes(calificacionesMap, calificacion)
+        )
+          return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
+        if (tipoInstrumento === "ACC") {
+          if (
+            isEmpty(calificacion) &&
+            includes(mayBeEmptyFields, "calificacion")
+          )
+            return true;
+          if (!includes(calificacionesVacioMap, calificacion))
+            return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento ACC)";
+        }
       }
 
       return true;
@@ -520,14 +684,83 @@ const funcionesValidacionesContenidoValores = {
     }
   },
   calificadoraConTipoInstrumento: (params) => {
-    return true;
-    // return defaultValidationContentValues(
-    //   params,
-    //   "La calificadora no se encuentra en ninguna calificadora válida"
-    // );
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { calificadoraDataDB, calificadoraConTipoInstrumentoDataDB } =
+        paramsBD;
+      const calificadora = value;
+      const tipoInstrumento = row.tipo_instrumento;
+      const calificadoraMap = map(calificadoraDataDB, "sigla");
+      const calificadoraConTipoInstrumentoMap = map(
+        calificadoraConTipoInstrumentoDataDB,
+        "sigla"
+      );
+      if (includes(calificadoraConTipoInstrumentoMap, tipoInstrumento)) {
+        if (isEmpty(calificadora) && includes(mayBeEmptyFields, "calificacion"))
+          return true;
+      } else {
+        if (!includes(calificadoraMap, calificadora))
+          return `La calificación no se encuentra en ninguna calificación válida`;
+      }
+
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
   },
   tipoValoracionConsultaMultiple: (params) => {
-    return true;
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const {
+        instrumento135DataDB,
+        instrumento1DataDB,
+        instrumento25DataDB,
+        tipoValoracion22DataDB,
+        tipoValoracion31DataDB,
+        tipoValoracion210DataDB,
+      } = paramsBD;
+      const tipoValoracion = value;
+      const tipoInstrumento = row.tipo_instrumento;
+      const instrumento135Map = map(instrumento135DataDB, "sigla");
+      const instrumento1Map = map(instrumento1DataDB, "sigla");
+      const instrumento25Map = map(instrumento25DataDB, "sigla");
+      const tipoValoracion22Map = map(tipoValoracion22DataDB, "sigla");
+      const tipoValoracion31Map = map(tipoValoracion31DataDB, "sigla");
+      const tipoValoracion210Map = map(tipoValoracion210DataDB, "sigla");
+      if (includes(instrumento135Map, tipoInstrumento)) {
+        if (!includes(tipoValoracion22Map, tipoValoracion))
+          return "El tipo_valoracion no coincide con ninguna sigla válida";
+      } else if (includes(instrumento1Map, tipoInstrumento)) {
+        if (!includes(tipoValoracion31Map, tipoValoracion))
+          return "El tipo_valoracion no coincide con ninguna sigla válida";
+      } else if (includes(instrumento25Map, tipoInstrumento)) {
+        if (!includes(tipoValoracion210Map, tipoValoracion))
+          return "El tipo_valoracion no coincide con ninguna sigla válida";
+      } else
+        return "El tipo_instrumento no se encuentra en ninguna sigla válida para poder validar el tipo_valoracion";
+
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
   },
   tasaUltimoHechoConTipoInstrumento: (params) => {
     return true;
@@ -718,7 +951,7 @@ const funcionesValidacionesContenidoValores = {
       const resultOperation = math.evaluate(
         OPERATION_OPTIONS.operationWithValues.join("")
       );
-      const newResult = fixedByPattern(resultOperation, pattern);
+      const newResult = fixedByPattern(resultOperation, pattern, columnIndex);
       if (!math.deepEqual(newResult, value))
         return `El resultado de la operación (${OPERATION_OPTIONS.messageFields.join(
           " "
@@ -810,7 +1043,7 @@ const funcionesValidacionesContenidoValores = {
     });
 
     if (size(duplicates) > 0) {
-      //TODO: codeCurrentFile === "481" ||codeCurrentFile === "482" ||codeCurrentFile === "DC"? "Un valor seriado con idénticas características, no puede estar desagrupado en varios registros"
+      //TODO: fileCode === "481" ||fileCode === "482" ||fileCode === "DC"? "Un valor seriado con idénticas características, no puede estar desagrupado en varios registros"
       const errors = [];
       forEach(duplicates, (values, key) => {
         forEach(values, (rows, value) => {
@@ -937,7 +1170,7 @@ const funcionesValidacionesContenidoValores = {
               TASA_OPTIONS.tipo_tasa = tipo_tasa === "F" ? tipo_tasa : null;
               TASA_OPTIONS.tasa_emision =
                 tipo_tasa === "F" ? tasa_emision : null;
-            } else if (codeCurrentFile === "442" || codeCurrentFile === "TO") {
+            } else if (fileCode === "442" || fileCode === "TO") {
               TASA_OPTIONS.tasa_emision = tasa_emision;
             }
             const instrumentoSerie = `${tipo_instrumento}${serie}`;
@@ -1057,7 +1290,7 @@ const funcionesValidacionesContenidoValores = {
                   id_carga_archivos: nuevaCarga.id_carga_archivos,
                   archivo: fileName,
                   tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-                  descripcion: `El Archivo ${fileCodeFrom} tiene el valor de '${nroPagoInfo}' en '${columnInfo}', por lo que el archivo ${fileCode} debe tener '${nroPagoInfo}' y no '${countCurrentInstrumentoSerie}' registros con el mismo instrumento+serie`,
+                  descripcion: `El Archivo ${fileCodeFrom} tiene el valor de '${nroPagoInfo}' en '${columnInfo}', por lo que el archivo ${fileCode} debe tener '${nroPagoInfo}' y no '${counterInstrumentoSerie}' registros con el mismo instrumento+serie`,
                   valor: `instrumento+serie (${fileCodeFrom}): ${instrumentoSerieInfo} - nro_pago (${fileCodeFrom}): ${nroPagoInfo}, cantidad de registros por instrumento+serie (${fileCode}): ${counterInstrumentoSerie}`,
                   columna: `${fileCodeFrom}: ${columnInfo}`,
                   fila: rowInfoIndex,

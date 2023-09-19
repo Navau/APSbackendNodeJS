@@ -1099,6 +1099,19 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
+      tasaUltimoHechoConTipoInstrumentoDiferente: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 136,
+              operator: "<>",
+            },
+          ],
+        },
+      },
       tipoOperacion: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
