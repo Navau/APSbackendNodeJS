@@ -750,7 +750,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
       },
     },
     445: {
-      tipoInstrumento: {
+      tipoActivo: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -3766,7 +3766,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         functions: [],
         mathOperation: [
           "(",
-          { column: "saldo_capital" },
+          { column: "saldo_capital", operRow: -1 },
           "*",
           { column: "plazo_cupon" },
           "*",
@@ -3812,7 +3812,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: ["tipoInstrumento"],
+        functions: ["tipoActivo"],
       },
       {
         columnName: "serie",
@@ -3856,7 +3856,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         functions: [],
         mathOperation: [
           "(",
-          { column: "saldo_capital" },
+          { column: "saldo_capital", operRow: -1 },
           "*",
           { column: "plazo_cupon" },
           "*",
@@ -3979,12 +3979,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "plazo_valor",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
-        functions: ["plazoValorConInstrumento"],
+        functions: ["plazoValorConTipoInstrumento"],
       },
       {
         columnName: "plazo_economico",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
-        functions: ["plazoEconomicoConInstrumento"],
+        functions: ["plazoEconomicoConTipoInstrumento"],
       },
       {
         columnName: "precio_equivalente",
@@ -4014,7 +4014,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        functions: ["calificadoraConInstrumento"],
+        functions: ["calificadoraConTipoInstrumento"],
       },
       {
         columnName: "custodio",
@@ -4025,7 +4025,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "tipo_valoracion",
@@ -4041,7 +4041,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["tasaUltimoHechoConInstrumento"],
+        functions: ["tasaUltimoHechoConTipoInstrumento"],
       },
       {
         columnName: "precio_ultimo_hecho",
@@ -4094,7 +4094,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
-        functions: ["tasaRelevanteConInstrumento"],
+        functions: ["tasaRelevanteConTipoInstrumento"],
       },
       {
         columnName: "cantidad",
@@ -4104,12 +4104,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "plazo_valor",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
-        functions: ["plazoValorConInstrumento"],
+        functions: ["plazoValorConTipoInstrumento"],
       },
       {
         columnName: "plazo_economico",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
-        functions: ["plazoEconomicoConInstrumento"],
+        functions: ["plazoEconomicoConTipoInstrumento"],
       },
       {
         columnName: "precio_equivalente",
@@ -4139,7 +4139,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        functions: ["calificadoraConInstrumento"],
+        functions: ["calificadoraConTipoInstrumento"],
       },
       {
         columnName: "custodio",
@@ -4150,7 +4150,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "tipo_valoracion",
@@ -4166,7 +4166,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["tasaUltimoHechoConInstrumento"],
+        functions: ["tasaUltimoHechoConTipoInstrumento"],
       },
       {
         columnName: "precio_ultimo_hecho",
@@ -4210,7 +4210,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "cantidad",
@@ -4282,7 +4282,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["tasaRendimientoConInstrumento"],
+        functions: ["tasaRendimientoConTipoInstrumento"],
       },
       {
         columnName: "cantidad",
@@ -4333,7 +4333,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
     ],
     485: [
@@ -4369,7 +4369,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_rendimiento",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["tasaRendimientoConInstrumento"],
+        functions: ["tasaRendimientoConTipoInstrumento"],
       },
       {
         columnName: "cantidad",
@@ -4420,7 +4420,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
     ],
     486: [
@@ -6031,7 +6031,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_relevante",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{8,8})$/,
-        functions: ["tasaRelevanteConInstrumento"],
+        functions: ["tasaRelevanteConTipoInstrumento"],
       },
       {
         columnName: "cantidad",
@@ -6041,12 +6041,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "plazo_valor",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
-        functions: ["plazoValorConInstrumento"],
+        functions: ["plazoValorConTipoInstrumento"],
       },
       {
         columnName: "plazo_economico",
         pattern: /^(0|[1-9][0-9]{0,6})$/,
-        functions: ["plazoEconomicoConInstrumento"],
+        functions: ["plazoEconomicoConTipoInstrumento"],
       },
       {
         columnName: "precio_equivalente",
@@ -6076,7 +6076,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "calificadora",
         pattern: /^[A-Za-z]{0,3}$/,
-        functions: ["calificadoraConInstrumento"],
+        functions: ["calificadoraConTipoInstrumento"],
       },
       {
         columnName: "custodio",
@@ -6087,7 +6087,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "tipo_valoracion",
@@ -6103,7 +6103,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_ultimo_hecho",
         pattern: /^(0|[1-9][0-9]{0,2})(\.\d{4,4}){1,1}$/,
-        functions: ["tasaUltimoHechoConInstrumento"],
+        functions: ["tasaUltimoHechoConTipoInstrumento"],
       },
       {
         columnName: "precio_ultimo_hecho",
@@ -6149,7 +6149,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "tasa_rendimiento",
         pattern: /^(^-?(0|[1-9][0-9]{0,2}))(\.\d{8,8}){1,1}$/,
-        functions: ["tasaRendimientoConInstrumento"],
+        functions: ["tasaRendimientoConTipoInstrumento"],
       },
       {
         columnName: "cantidad",
@@ -6201,7 +6201,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "fecha_adquisicion",
         pattern:
           /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: ["fechaOperacionMenorAlArchivo"],
+        functions: ["fechaOperacionMenor"],
       },
     ],
     BG: [

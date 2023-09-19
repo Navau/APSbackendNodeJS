@@ -38,8 +38,12 @@ function validarContenidoValoresArchivo() {
       const fileCode = fileNameAndCode.split("_separador_")[1];
 
       const validations = optionsValidationsFiles[fileCode];
-      const { fieldsUniqueBy, uniqueCombinationPerFile, formatDateFields } =
-        validations[0].globalFileValidations;
+      const {
+        fieldsUniqueBy,
+        uniqueCombinationPerFile,
+        formatDateFields,
+        mayBeEmptyFields,
+      } = validations[0].globalFileValidations;
       const matchDataType = true;
 
       validarContenidoValoresDeArchivo({
@@ -49,6 +53,7 @@ function validarContenidoValoresArchivo() {
         fileName,
         fileCode,
         formatDateFields,
+        mayBeEmptyFields,
         matchDataType,
         fecha_operacion,
         informacionEntreArchivos,
@@ -86,6 +91,10 @@ function validarContenidoValoresArchivo() {
       errorsContentValuesFile
     );
   }
-  return { validatedContentValuesFiles, errorsContentValuesFile };
+  return {
+    objectArrayFilesContent,
+    validatedContentValuesFiles,
+    errorsContentValuesFile,
+  };
 }
 parentPort.postMessage(validarContenidoValoresArchivo());

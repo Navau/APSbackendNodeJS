@@ -226,6 +226,7 @@ const validarContenidoValoresDeArchivo = (params) => {
     formatDateFields,
     matchDataType,
     fecha_operacion,
+    mayBeEmptyFields,
     informacionEntreArchivos,
     errorsContentValuesFile,
   } = params;
@@ -255,7 +256,6 @@ const validarContenidoValoresDeArchivo = (params) => {
         paramsBD,
         messages,
         mathOperation,
-        mayBeEmptyFields,
         extraFunctionsParameters,
       } = findValidation;
 
@@ -305,6 +305,7 @@ const validarContenidoValoresDeArchivo = (params) => {
         errorsContentValuesFile,
         fileContent,
         fileName,
+        fileCode,
       });
 
       validarOperacionesEntreArchivos({
@@ -466,6 +467,7 @@ const validarOperacionesMatematicasDeColumnas = (params) => {
     errorsContentValuesFile,
     fileContent,
     fileName,
+    fileCode,
   } = params;
   const { value } = OPTIONS_VALUES;
   if (size(mathOperation) > 0) {
@@ -477,6 +479,8 @@ const validarOperacionesMatematicasDeColumnas = (params) => {
         rowIndex,
         fileContent,
         pattern,
+        fileCode,
+        columnIndex,
       });
     if (functionResult !== true) {
       agregarError(

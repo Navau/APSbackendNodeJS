@@ -149,6 +149,24 @@ const funcionesValidacionesContenidoValores = {
       "El campo no corresponde a ninguno de los autorizados"
     );
   },
+  tipoOperacion: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
+    );
+  },
+  plazoValorConTipoInstrumento: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
+    );
+  },
+  plazoEconomicoConTipoInstrumento: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
+    );
+  },
   tipoInstrumento: (params) => {
     return defaultValidationContentValues(
       params,
@@ -347,20 +365,20 @@ const funcionesValidacionesContenidoValores = {
         return `El campo plazo_cupon o plazo_emision no son números válidos`;
       }
       if (parseFloat(plazo_cupon) > 0) {
-        if (fileCode === "441") {
-          if (parseFloat(plazoCupon) > 0) return true;
-          else
-            return "El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0";
-        } else {
-          const resultOperation = math.evaluate(
-            `${plazo_emision}/${plazo_cupon}`
-          );
-          const resultFixed = fixedByPattern(resultOperation, pattern);
-          if (!math.deepEqual(resultFixed, value)) {
-            return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0`;
-            // return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
-          }
-        }
+        // if (fileCode === "441" || fileCode === "442") {
+        if (parseFloat(plazoCupon) > 0) return true;
+        else
+          return "El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0";
+        // } else {
+        //   const resultOperation = math.evaluate(
+        //     `${plazo_emision}/${plazo_cupon}`
+        //   );
+        //   const resultFixed = fixedByPattern(resultOperation, pattern);
+        //   if (!math.deepEqual(resultFixed, value)) {
+        //     return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0`;
+        //     // return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
+        //   }
+        // }
       } else if (parseFloat(plazo_cupon) === 0) {
         if (nroPago !== 0)
           return "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 0";
@@ -501,6 +519,19 @@ const funcionesValidacionesContenidoValores = {
       return `Error de servidor. ${err}`;
     }
   },
+  calificadoraConTipoInstrumento: (params) => {
+    return true;
+    // return defaultValidationContentValues(
+    //   params,
+    //   "La calificadora no se encuentra en ninguna calificadora válida"
+    // );
+  },
+  tipoValoracionConsultaMultiple: (params) => {
+    return true;
+  },
+  tasaUltimoHechoConTipoInstrumento: (params) => {
+    return true;
+  },
   custodioConTipoInstrumento: (params) => {
     try {
       if (isUndefined(params?.paramsBD))
@@ -603,12 +634,27 @@ const funcionesValidacionesContenidoValores = {
     }
   },
   operacionMatematica: (params) => {
-    const { value, mathOperation, fileContent, row, rowIndex, pattern } =
-      params;
+    const {
+      value,
+      mathOperation,
+      fileContent,
+      row,
+      rowIndex,
+      pattern,
+      fileCode,
+      columnIndex,
+    } = params;
     const OPERATION_OPTIONS = {
       operationWithValues: [],
       messageFields: [],
     };
+    const { nro_cupon } = row;
+    if (
+      includes(["444", "445", "UD", "CO"], fileCode) &&
+      parseFloat(nro_cupon) === 1 &&
+      includes(["saldo_capital", "interes"], columnIndex)
+    )
+      return true;
     try {
       OPERATION_OPTIONS.operationWithValues = map(
         mathOperation,
@@ -837,6 +883,18 @@ const funcionesValidacionesContenidoValores = {
       const newFechaOperacion = DateTime.fromISO(fecha_operacion);
       if (!newValue.equals(newFechaOperacion))
         return "La fecha debe ser igual a la fecha de operación del nombre de archivo";
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
+  fechaOperacionMenor: (params) => {
+    try {
+      const { value, fecha_operacion } = params;
+      const newValue = DateTime.fromISO(value);
+      const newFechaOperacion = DateTime.fromISO(fecha_operacion);
+      if (newValue > newFechaOperacion)
+        return "La fecha debe ser menor a la fecha de operación del nombre de archivo";
       return true;
     } catch (err) {
       return `Error de servidor. ${err}`;

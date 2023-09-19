@@ -333,7 +333,11 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
     });
     worker.on("message", (params) => {
       try {
-        const { validatedContentValuesFiles, errorsContentValuesFile } = params;
+        const {
+          objectArrayFilesContent,
+          validatedContentValuesFiles,
+          errorsContentValuesFile,
+        } = params;
         WORKER_OPTIONS.validatedContentValuesFiles =
           validatedContentValuesFiles;
         if (size(errorsContentValuesFile) > 0)
