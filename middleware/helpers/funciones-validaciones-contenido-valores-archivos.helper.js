@@ -86,10 +86,18 @@ const fixedByPattern = (value, pattern) => {
   return newResult;
 };
 
-const defaultValidationContentValues = (params, message, key) => {
+const defaultValidationContentValues = (params, message) => {
   try {
     if (isUndefined(params?.paramsBD)) throw "Consultas de campo no definidas";
-    const { paramsBD, value, messages, mayBeEmptyFields, columnIndex } = params;
+    const {
+      paramsBD,
+      value,
+      messages,
+      mayBeEmptyFields,
+      columnIndex,
+      functionName,
+    } = params;
+    const key = functionName;
     if (isEmpty(value) && includes(mayBeEmptyFields, columnIndex)) return true;
     if (!searchValueInArray(paramsBD[`${key}DataDB`], value))
       return (
@@ -107,8 +115,7 @@ const funcionesValidacionesContenidoValores = {
   bolsa: (params) => {
     return defaultValidationContentValues(
       params,
-      "El campo no corresponde a ninguno de los autorizados por el RMV",
-      params.functionName
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
     );
   },
   tipoMarcacion: (params) => {
@@ -133,22 +140,19 @@ const funcionesValidacionesContenidoValores = {
   tipoValoracion: (params) => {
     return defaultValidationContentValues(
       params,
-      "El contenido del archivo no coincide con alguna sigla de Tipo de Valoración",
-      params.functionName
+      "El contenido del archivo no coincide con alguna sigla de Tipo de Valoración"
     );
   },
   tipoActivo: (params) => {
     return defaultValidationContentValues(
       params,
-      "El campo no corresponde a ninguno de los autorizados",
-      params.functionName
+      "El campo no corresponde a ninguno de los autorizados"
     );
   },
   tipoInstrumento: (params) => {
     return defaultValidationContentValues(
       params,
-      "El campo no corresponde a ninguno de los autorizados por el RMV",
-      params.functionName
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
     );
   },
   lugarNegociacion: (params) => {
@@ -247,15 +251,13 @@ const funcionesValidacionesContenidoValores = {
   tipoCuenta: (params) => {
     return defaultValidationContentValues(
       params,
-      "El contenido del archivo no coincide con alguna sigla de tipo de cuenta",
-      params.functionName
+      "El contenido del archivo no coincide con alguna sigla de tipo de cuenta"
     );
   },
   entidadFinanciera: (params) => {
     return defaultValidationContentValues(
       params,
-      "El campo no corresponde a ninguna entidad financiera activa",
-      params.functionName
+      "El campo no corresponde a ninguna entidad financiera activa"
     );
   },
   tasaRelevanteConTipoInstrumento: (params) => {
@@ -294,16 +296,29 @@ const funcionesValidacionesContenidoValores = {
     }
   },
   moneda: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
+    );
   },
   tipoAmortizacion: (params) => {
-    return defaultValidationContentValues(params);
+    // console.log(params?.paramsBD, params.row, params.functionName);
+    return defaultValidationContentValues(
+      params,
+      "El contenido del archivo no coincide con algún tipo de amortizacion"
+    );
   },
   tipoInteres: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ningún Tipo de Interés definido"
+    );
   },
   tipoTasa: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ningún Tipo de Tasa definido"
+    );
   },
   tasaEmision: (params) => {
     const { value, row } = params;
@@ -337,7 +352,8 @@ const funcionesValidacionesContenidoValores = {
         );
         const resultFixed = fixedByPattern(resultOperation, pattern);
         if (!math.deepEqual(resultFixed, value)) {
-          return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
+          return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0`;
+          // return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
         }
       } else if (parseFloat(plazo_cupon) === 0) {
         if (nroPago !== 0)
@@ -372,22 +388,40 @@ const funcionesValidacionesContenidoValores = {
     return defaultValidationContentValues(params);
   },
   calificacion: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "La calificación no se encuentra en ninguna calificación válida"
+    );
   },
   calificadora: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "La calificadora no se encuentra en ninguna calificadora válida"
+    );
   },
   custodio: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguna sigla de Custodio definida"
+    );
   },
   pais: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados por el RMV"
+    );
   },
   emisor: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "Solicitar el Registro de Emisor a la APS (Autorización RMV)"
+    );
   },
   tipoAccion: (params) => {
-    return defaultValidationContentValues(params);
+    return defaultValidationContentValues(
+      params,
+      "El contenido del archivo no coincide con alguna sigla de Tipo de Acción"
+    );
   },
   calificacionConTipoInstrumento: (params) => {
     try {
@@ -415,7 +449,7 @@ const funcionesValidacionesContenidoValores = {
           " o "
         )}`;
       if (
-        tipoInstrumento === "CFC" &&
+        (tipoInstrumento === "ACC" || tipoInstrumento === "CFC") &&
         !includes(calificacionesMap, calificacion)
       )
         return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
@@ -529,12 +563,13 @@ const funcionesValidacionesContenidoValores = {
   },
   plazoEmisionTiposDeDatos: (params) => {
     try {
-      const { value, pattern } = params;
+      const { value, pattern, row } = params;
       const pattern1 = pattern[0];
       const pattern2 = pattern[1];
-      const lastValue = value?.[size(value) - 1];
-      if (lastValue === "Q") return !pattern2.test(value);
-      else return !pattern1.test(value);
+      const { serie } = row;
+      const lastValue = serie?.[size(serie) - 1];
+      if (lastValue === "Q") return pattern2.test(value);
+      else return pattern1.test(value);
     } catch (err) {
       throw err;
     }
@@ -571,7 +606,7 @@ const funcionesValidacionesContenidoValores = {
     try {
       OPERATION_OPTIONS.operationWithValues = map(
         mathOperation,
-        (operation) => {
+        (operation, indexOperation) => {
           let valueAux = operation;
           if (isObject(operation)) {
             const { column, number, isDate, operRow } = operation;
@@ -585,20 +620,31 @@ const funcionesValidacionesContenidoValores = {
                 };
                 if (operation?.operateResultBy)
                   valueAux.operateResultBy = operation.operateResultBy;
-                OPERATION_OPTIONS.messageFields.push(column);
+                OPERATION_OPTIONS.messageFields.push(`${column}(${valueAux})`);
               } else if (!isUndefined(operRow)) {
-                valueAux =
-                  trim(fileContent?.[rowIndex + operRow]?.[column]) || 0;
+                valueAux = trim(fileContent?.[rowIndex + operRow]?.[column]);
+                if (isEmpty(valueAux)) {
+                  if (
+                    mathOperation[indexOperation + 1] === "*" ||
+                    mathOperation[indexOperation + 1] === "/"
+                  ) {
+                    valueAux = 1;
+                    console.log(column, valueAux);
+                  } else {
+                    valueAux = 0;
+                    console.log(column, valueAux);
+                  }
+                }
                 OPERATION_OPTIONS.messageFields.push(
-                  `${column} (fila ${rowIndex + operRow})`
+                  `${column}(${valueAux})(fila ${rowIndex + operRow})`
                 );
               } else {
                 valueAux = columnValue || 0;
-                OPERATION_OPTIONS.messageFields.push(column);
+                OPERATION_OPTIONS.messageFields.push(`${column}(${valueAux})`);
               }
             } else {
-              OPERATION_OPTIONS.messageFields.push(number);
               valueAux = number;
+              OPERATION_OPTIONS.messageFields.push(`${number}(${valueAux})`);
             }
           } else {
             OPERATION_OPTIONS.messageFields.push(operation);
@@ -625,8 +671,8 @@ const funcionesValidacionesContenidoValores = {
       const newResult = fixedByPattern(resultOperation, pattern);
       if (!math.deepEqual(newResult, value))
         return `El resultado de la operación (${OPERATION_OPTIONS.messageFields.join(
-          ""
-        )} = ${newResult}) no es igual a ${value}`;
+          " "
+        )}=${newResult}) no es igual a ${value}`;
       return true;
     } catch (err) {
       const messages = OPERATION_OPTIONS.messageFields.join("");

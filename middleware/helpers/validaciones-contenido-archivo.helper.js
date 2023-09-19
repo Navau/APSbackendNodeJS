@@ -10,6 +10,7 @@ const {
   find,
   includes,
   isArray,
+  isUndefined,
 } = require("lodash");
 const {
   agregarError,
@@ -241,6 +242,12 @@ const validarContenidoValoresDeArchivo = (params) => {
         validations,
         (validation) => validation.columnName === columnIndex
       );
+
+      if (isUndefined(findValidation)) {
+        throw new Error(
+          `No se encontró la columna '${columnIndex}' en el archivo '${fileCode}'`
+        );
+      }
 
       const {
         pattern,

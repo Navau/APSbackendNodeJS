@@ -1,4 +1,13 @@
-const { size, forEach, map, find, set, filter, isNull } = require("lodash");
+const {
+  size,
+  forEach,
+  map,
+  find,
+  set,
+  filter,
+  isNull,
+  includes,
+} = require("lodash");
 const {
   EjecutarQuery,
   ObtenerColumnasDeTablaUtil,
@@ -55,23 +64,33 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
         let counter = 0;
         forEach(keysFiles, (keys, fileCode) => {
           forEach(keys, (key) => {
-            executedFilesQueries[fileCode][camelToSnakeCase(key)] =
-              response[counter];
+            // console.log({ key, transform: camelToSnakeCase(key) });
+            executedFilesQueries[fileCode][key] = response[counter];
             counter++;
           });
         });
         forEach(executedFilesQueries, (executedQuerys, fileCode) => {
           const validationsFile = optionsValidationsFiles[fileCode];
           forEach(executedQuerys, (executedQuery, columnKeyQuery) => {
-            const validations = filter(validationsFile, (validation) =>
-              columnKeyQuery.includes(validation.columnName)
-            );
+            const validations = filter(validationsFile, (validation) => {
+              // console.log(
+              //   fileCode,
+              //   columnKeyQuery,
+              //   camelToSnakeCase(columnKeyQuery),
+              //   validation
+              // );
+              return camelToSnakeCase(columnKeyQuery).includes(
+                validation.columnName
+              );
+            });
             forEach(validations, (validation) => {
               validation.paramsBD = {
                 ...validation?.paramsBD,
                 [`${columnKeyQuery}DataDB`]: executedQuery,
               };
             });
+            // console.log(fileCode, validations);
+            // console.log(validations);
           });
         });
         return optionsValidationsFiles;
@@ -3453,7 +3472,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "plazo_emision",
-        pattern: [/^(0|[1-9][0-9]{1,4})$/, /^(0|[1-9][0-9]{0,2})$/],
+        pattern: [/^(0|[1-9][0-9]{1,4})$/, /^(0|[1-9][0-9]{0,1})$/],
         functions: ["plazoEmisionTiposDeDatos"],
         mathOperation: [
           { column: "fecha_vencimiento", isDate: true },
@@ -3791,7 +3810,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         },
       },
       {
-        columnName: "tipo_instrumento",
+        columnName: "tipo_activo",
         pattern: /^[A-Za-z]{3,3}$/,
         functions: ["tipoInstrumento"],
       },
