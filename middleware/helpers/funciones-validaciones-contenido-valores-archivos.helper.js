@@ -338,7 +338,7 @@ const funcionesValidacionesContenidoValores = {
   },
   nroPago: (params) => {
     try {
-      const { value, row, pattern } = params;
+      const { value, row, pattern, fileCode } = params;
       const { plazo_cupon, plazo_emision } = row;
       const plazoCupon = parseFloat(plazo_cupon);
       const plazoEmision = parseFloat(plazo_emision);
@@ -347,13 +347,19 @@ const funcionesValidacionesContenidoValores = {
         return `El campo plazo_cupon o plazo_emision no son números válidos`;
       }
       if (parseFloat(plazo_cupon) > 0) {
-        const resultOperation = math.evaluate(
-          `${plazo_emision}/${plazo_cupon}`
-        );
-        const resultFixed = fixedByPattern(resultOperation, pattern);
-        if (!math.deepEqual(resultFixed, value)) {
-          return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0`;
-          // return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
+        if (fileCode === "441") {
+          if (parseFloat(plazoCupon) > 0) return true;
+          else
+            return "El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0";
+        } else {
+          const resultOperation = math.evaluate(
+            `${plazo_emision}/${plazo_cupon}`
+          );
+          const resultFixed = fixedByPattern(resultOperation, pattern);
+          if (!math.deepEqual(resultFixed, value)) {
+            return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser mayor a 0`;
+            // return `El campo plazo_cupon es mayor a 0 por lo tanto el valor de nro_pago debe ser igual a (plazo_emision (${plazoEmision})/plazo_cupon (${plazoCupon})) = ${resultFixed})`;
+          }
         }
       } else if (parseFloat(plazo_cupon) === 0) {
         if (nroPago !== 0)
@@ -629,10 +635,8 @@ const funcionesValidacionesContenidoValores = {
                     mathOperation[indexOperation + 1] === "/"
                   ) {
                     valueAux = 1;
-                    console.log(column, valueAux);
                   } else {
                     valueAux = 0;
-                    console.log(column, valueAux);
                   }
                 }
                 OPERATION_OPTIONS.messageFields.push(
