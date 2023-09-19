@@ -3767,6 +3767,15 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         columnName: "plazo_cupon",
         pattern: /^(0|[1-9][0-9]{0,3})$/,
         functions: ["mayorACero"],
+        mathOperation: [
+          {
+            column: "fecha_pago",
+            isDate: true,
+            operRow: -1,
+          },
+          "-",
+          { column: "fecha_pago", isDate: true, operateResultBy: "days" },
+        ],
       },
       {
         columnName: "tasa_interes",

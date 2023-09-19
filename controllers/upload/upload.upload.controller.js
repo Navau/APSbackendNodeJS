@@ -6,6 +6,9 @@ const {
   ActualizarCRUD,
   RealizarOperacionAvanzadaCRUD,
 } = require("../../utils/crud.utils");
+const {
+  respResultadoIncorrectoObjeto200,
+} = require("../../utils/respuesta.utils");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
 
@@ -18,6 +21,14 @@ async function CargarArchivo(req, res) {
     action: "Insertar",
   };
   await RealizarOperacionAvanzadaCRUD(params);
+}
+async function CargarArchivo2(req, res) {
+  respResultadoIncorrectoObjeto200(
+    res,
+    null,
+    [],
+    "Falta implementar la carga definitiva"
+  );
 }
 
 // OBTENER TODOS LOS ACTIVIDAD ECONOMICA DE SEGURIDAD
@@ -57,4 +68,5 @@ module.exports = {
   Insertar,
   Actualizar,
   CargarArchivo,
+  CargarArchivo2,
 };

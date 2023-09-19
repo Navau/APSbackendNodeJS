@@ -703,10 +703,10 @@ const funcionesValidacionesContenidoValores = {
             " o "
           )}`;
         if (
-          (tipoInstrumento === "ACC" || tipoInstrumento === "CFC") &&
+          tipoInstrumento === "CFC" &&
           !includes(calificacionesMap, calificacion)
         )
-          return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento CFC)";
+          return `La calificación no se encuentra en ninguna calificación válida (tipo instrumento ${tipoInstrumento})`;
         if (tipoInstrumento === "ACC") {
           if (
             isEmpty(calificacion) &&
@@ -714,7 +714,7 @@ const funcionesValidacionesContenidoValores = {
           )
             return true;
           if (!includes(calificacionesVacioMap, calificacion))
-            return "La calificación no se encuentra en ninguna calificación válida (tipo instrumento ACC)";
+            return `La calificación no se encuentra en ninguna calificación válida (tipo instrumento ${tipoInstrumento})`;
         }
       }
 
@@ -958,6 +958,12 @@ const funcionesValidacionesContenidoValores = {
       includes(["saldo_capital", "interes"], columnIndex)
     )
       return true;
+    if (
+      includes(["444"], fileCode) &&
+      parseFloat(nro_cupon) === 1 &&
+      includes(["plazo_cupon"], columnIndex)
+    )
+      return true;
     try {
       OPERATION_OPTIONS.operationWithValues = map(
         mathOperation,
@@ -968,14 +974,19 @@ const funcionesValidacionesContenidoValores = {
             if (!isUndefined(column)) {
               const columnValue = row[column];
               if (isDate) {
+                const dateAux = !isUndefined(operRow)
+                  ? fileContent?.[rowIndex + operRow]?.[column]
+                  : columnValue;
                 valueAux = {
                   date: new Date(
-                    DateTime.fromISO(columnValue).toFormat("yyyy-MM-dd")
+                    DateTime.fromISO(dateAux).toFormat("yyyy-MM-dd")
                   ).getTime(),
                 };
                 if (operation?.operateResultBy)
                   valueAux.operateResultBy = operation.operateResultBy;
-                OPERATION_OPTIONS.messageFields.push(`${column}(${valueAux})`);
+                OPERATION_OPTIONS.messageFields.push(
+                  `${column} (${isUndefined(dateAux) ? 0 : dateAux})`
+                );
               } else if (!isUndefined(operRow)) {
                 valueAux = trim(fileContent?.[rowIndex + operRow]?.[column]);
                 if (isEmpty(valueAux)) {
@@ -1333,26 +1344,27 @@ const funcionesValidacionesContenidoValores = {
               let counterInstrumentoSerie = 0;
 
               forEach(fileContent, (contentRow, contentRowIndex) => {
-                const instrumentoSerie = `${contentRow.tipo_instrumento}${contentRow.serie}`;
-                if (instrumentoSerieInfo === instrumentoSerie) {
-                  if (tasaEmisionInfo !== null) {
-                    if (
-                      Number(tasaEmisionInfo) !==
-                      Number(contentRow.tasa_interes)
-                    ) {
-                      errors.push({
-                        id_carga_archivos: nuevaCarga.id_carga_archivos,
-                        archivo: fileName,
-                        tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-                        descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${contentRowIndex})' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' por tipoinstrumento+serie (${instrumentoSerie})`,
-                        valor: `tipoinstrumento+serie: ${instrumentoSerie}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
-                        columna: "tasa_interes",
-                        fila: contentRowIndex,
-                      });
+                const instrumentoSerie = `${contentRow.tipo_activo}${contentRow.serie}`;
+                if (fileCode === "445")
+                  if (instrumentoSerieInfo === instrumentoSerie) {
+                    if (tasaEmisionInfo !== null) {
+                      if (
+                        Number(tasaEmisionInfo) !==
+                        Number(contentRow.tasa_interes)
+                      ) {
+                        errors.push({
+                          id_carga_archivos: nuevaCarga.id_carga_archivos,
+                          archivo: fileName,
+                          tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+                          descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${contentRowIndex})' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' por tipoinstrumento+serie (${instrumentoSerie})`,
+                          valor: `tipoinstrumento+serie: ${instrumentoSerie}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
+                          columna: "tasa_interes",
+                          fila: contentRowIndex,
+                        });
+                      }
                     }
+                    counterInstrumentoSerie++;
                   }
-                  counterInstrumentoSerie++;
-                }
               });
 
               if (parseInt(counterInstrumentoSerie) !== parseInt(nroPagoInfo)) {

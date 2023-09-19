@@ -18,13 +18,17 @@ api.post(
   controller.CargarArchivo
 );
 
-api.post("/CargarArchivo2", [
-  md_auth.AsegurarAutenticacionConToken,
-  md_files2.subirArchivos,
-  md_files2.formatearArchivos,
-  md_files2.validarFormatoContenidoDeArchivos,
-  md_files2.validarValoresContenidoDeArchivos,
-]);
+api.post(
+  "/CargarArchivo2",
+  [
+    md_auth.AsegurarAutenticacionConToken,
+    md_files2.subirArchivos,
+    md_files2.formatearArchivos,
+    md_files2.validarFormatoContenidoDeArchivos,
+    md_files2.validarValoresContenidoDeArchivos,
+  ],
+  controller.CargarArchivo2
+);
 
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);

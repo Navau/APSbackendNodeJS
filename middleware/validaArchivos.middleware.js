@@ -340,6 +340,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
         } = params;
         WORKER_OPTIONS.validatedContentValuesFiles =
           validatedContentValuesFiles;
+        // console.log(objectArrayFilesContent);
         if (size(errorsContentValuesFile) > 0)
           WORKER_OPTIONS.errorsFiles = errorsContentValuesFile;
       } catch (err) {
@@ -366,12 +367,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
       } else {
         WORKER_OPTIONS.isValidatedContentValuesFiles = true;
         req.WORKER_OPTIONS = WORKER_OPTIONS;
-        // next();
-        respResultadoCorrectoObjeto200(
-          res,
-          optionsValidationsFiles,
-          "Archivo formateado"
-        );
+        next();
       }
     });
   } catch (err) {
