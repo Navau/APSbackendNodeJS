@@ -366,7 +366,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
         respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles);
         // WORKER_OPTIONS.isValidatedContentValuesFiles = true;
         // req.WORKER_OPTIONS = WORKER_OPTIONS;
-        next();
+        // next();
       } else {
         WORKER_OPTIONS.isValidatedContentValuesFiles = true;
         req.WORKER_OPTIONS = WORKER_OPTIONS;

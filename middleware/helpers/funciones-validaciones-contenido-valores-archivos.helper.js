@@ -78,6 +78,8 @@ const fixedByPattern = (value, pattern, columnIndex) => {
   let newResult = value;
   if (columnIndex === "interes") {
     newResult = parseFloat(newResult.toFixed(8)).toFixed(2);
+  } else if (columnIndex === "plazo_cupon") {
+    newResult = newResult.toFixed(0);
   } else {
     if (textPattern.slice(indexPattern, indexPattern + 4) === ".\\d{") {
       fixed = parseInt(textPattern.slice(indexPattern + 6, indexPattern + 7));
