@@ -449,7 +449,77 @@ const funcionesValidacionesContenidoValores = {
     );
   },
   totalVidaUtil: (params) => {
-    return true;
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const totalVidaUtilValue = value;
+      const { tipo_bien_inmueble } = row;
+      const { totalVidaUtilDataBD, totalVidaUtilDiferenteDataBD } = paramsBD;
+      const totalVidaUtilMap = map(totalVidaUtilDataBD, "sigla");
+      const totalVidaUtilDiferenteMap = map(
+        totalVidaUtilDiferenteDataBD,
+        "sigla"
+      );
+      if (includes(totalVidaUtilMap, tipo_bien_inmueble)) {
+        if (
+          parseFloat(totalVidaUtilValue) >= 0 &&
+          parseFloat(totalVidaUtilValue) <= 480
+        )
+          return `El valor de total_vida_util debe estar entre 0 y 480, debido a que el tipo_bien_inmueble es ${tipo_bien_inmueble}`;
+      } else if (includes(totalVidaUtilDiferenteMap, tipo_bien_inmueble)) {
+        if (parseFloat(totalVidaUtilValue) < 0)
+          return `El valor de total_vida_util debe mayor o igual a 0, debido a que el tipo_bien_inmueble es ${tipo_bien_inmueble}`;
+      }
+    } catch (err) {
+      throw err;
+    }
+  },
+  vidaUtilRestante: (params) => {
+    try {
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const vidaUtilRestanteValue = value;
+      const { tipo_bien_inmueble } = row;
+      const {
+        vidaUtilRestanteValueDataBD,
+        vidaUtilRestanteValueDiferenteDataBD,
+      } = paramsBD;
+      const totalVidaUtilMap = map(vidaUtilRestanteValueDataBD, "sigla");
+      const totalVidaUtilDiferenteMap = map(
+        vidaUtilRestanteValueDiferenteDataBD,
+        "sigla"
+      );
+      if (includes(totalVidaUtilMap, tipo_bien_inmueble)) {
+        if (
+          parseFloat(vidaUtilRestanteValue) >= 0 &&
+          parseFloat(vidaUtilRestanteValue) <= 480
+        )
+          return `El valor de vida_util_restante debe estar entre 0 y 480, debido a que el tipo_bien_inmueble es ${tipo_bien_inmueble}`;
+      } else if (includes(totalVidaUtilDiferenteMap, tipo_bien_inmueble)) {
+        if (parseFloat(vidaUtilRestanteValue) < 0)
+          return `El valor de vida_util_restante debe mayor o igual a 0, debido a que el tipo_bien_inmueble es ${tipo_bien_inmueble}`;
+      }
+    } catch (err) {
+      throw err;
+    }
+  },
+  tipoBienInmueble: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguno de los autorizados"
+    );
   },
   moneda: (params) => {
     return defaultValidationContentValues(
