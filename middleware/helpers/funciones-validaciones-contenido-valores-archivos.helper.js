@@ -1344,27 +1344,30 @@ const funcionesValidacionesContenidoValores = {
               let counterInstrumentoSerie = 0;
 
               forEach(fileContent, (contentRow, contentRowIndex) => {
-                const instrumentoSerie = `${contentRow.tipo_activo}${contentRow.serie}`;
-                if (fileCode === "445")
-                  if (instrumentoSerieInfo === instrumentoSerie) {
-                    if (tasaEmisionInfo !== null) {
-                      if (
-                        Number(tasaEmisionInfo) !==
-                        Number(contentRow.tasa_interes)
-                      ) {
-                        errors.push({
-                          id_carga_archivos: nuevaCarga.id_carga_archivos,
-                          archivo: fileName,
-                          tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-                          descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${contentRowIndex})' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' por tipoinstrumento+serie (${instrumentoSerie})`,
-                          valor: `tipoinstrumento+serie: ${instrumentoSerie}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
-                          columna: "tasa_interes",
-                          fila: contentRowIndex,
-                        });
-                      }
+                const instrumentoSerie = `${
+                  fileCode === "444"
+                    ? contentRow.tipo_instrumento
+                    : contentRow.tipo_activo
+                }${contentRow.serie}`;
+                if (instrumentoSerieInfo === instrumentoSerie) {
+                  if (tasaEmisionInfo !== null) {
+                    if (
+                      Number(tasaEmisionInfo) !==
+                      Number(contentRow.tasa_interes)
+                    ) {
+                      errors.push({
+                        id_carga_archivos: nuevaCarga.id_carga_archivos,
+                        archivo: fileName,
+                        tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+                        descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${contentRowIndex})' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' por tipoinstrumento+serie (${instrumentoSerie})`,
+                        valor: `tipoinstrumento+serie: ${instrumentoSerie}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
+                        columna: "tasa_interes",
+                        fila: contentRowIndex,
+                      });
                     }
-                    counterInstrumentoSerie++;
                   }
+                  counterInstrumentoSerie++;
+                }
               });
 
               if (parseInt(counterInstrumentoSerie) !== parseInt(nroPagoInfo)) {
