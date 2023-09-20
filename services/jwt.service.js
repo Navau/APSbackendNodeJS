@@ -24,7 +24,7 @@ exports.createAccessTokenWithRol = function (user) {
     id_rol: user.id_rol,
     token_api: user.tokenAPI,
     nbf: moment().unix(),
-    exp: moment().add(1, "hours").unix(), //Cambiar a 1
+    exp: moment().add(2, "years").unix(), //Cambiar a 1
     iat: moment().unix(),
   };
 

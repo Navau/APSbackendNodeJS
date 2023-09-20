@@ -283,11 +283,13 @@ async function CargarArchivo2(req, res) {
       //#endregion
 
       //#region CREANDO Y EJECUTANDO LOS QUERYS PARA INSERTAR LA INFORMACION A CADA TABLA SEGUN EL TIPO DE ARCHIVO
-      const queryInsertFiles = InsertarVariosUtil(fileTableName, {
-        body: objectArrayFileContent,
-        returnValue: [primaryKey],
-      });
-      const fileInserted = await EjecutarQuery(queryInsertFiles);
+      if (size(objectArrayFileContent) > 0) {
+        const queryInsertFiles = InsertarVariosUtil(fileTableName, {
+          body: objectArrayFileContent,
+          returnValue: [primaryKey],
+        });
+        const fileInserted = await EjecutarQuery(queryInsertFiles);
+      }
       //#endregion
       uploadedFilesResult.push({
         archivo: fileName,

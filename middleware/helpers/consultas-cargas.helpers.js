@@ -156,7 +156,6 @@ async function eliminarArchivosCargados(
       idsSequencesArray.push(parseInt(maxId) + 1);
       index++;
     }
-    console.log({ idsSequencesArray, sequences, primaryKeys });
     const querySequences = AlterarSequenciaMultiplesTablasUtil2(sequences, {
       restartValue: idsSequencesArray,
     });
