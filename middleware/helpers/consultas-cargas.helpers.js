@@ -6,7 +6,15 @@ const {
   InsertarUtil,
   ActualizarUtil,
   InsertarVariosUtil,
+  EliminarMultiplesTablasUtil,
+  ValorMaximoDeCampoUtil,
+  AlterarSequenciaUtil,
+  AlterarSequencia2Util,
+  EjecutarFuncionSQL,
+  AlterarSequenciaMultiplesTablasUtil,
+  AlterarSequenciaMultiplesTablasUtil2,
 } = require("../../utils/consulta.utils");
+const { DateTime } = require("luxon");
 
 async function insertarNuevaCargaArchivo(params) {
   try {
@@ -19,7 +27,7 @@ async function insertarNuevaCargaArchivo(params) {
       fecha_operacion,
     } = params;
     const { id_rol, id_usuario } = user;
-    const { table, code } = TABLE_INFO;
+    const { table, codeInst } = TABLE_INFO;
 
     const ultimaCarga = await obtenerUltimaCarga(params);
     if (isUndefined(ultimaCarga))
@@ -35,7 +43,7 @@ async function insertarNuevaCargaArchivo(params) {
     if (ultimaCarga?.reprocesado) whereCarga["reprocesado"] = false;
     if (ultimaCarga?.reproceso) whereCarga["reproceso"] = reproceso;
     if (ultimaCarga?.fecha_entrega) whereCarga["fecha_entrega"] = fecha_entrega;
-    if (ultimaCarga?.cod_institucion) whereCarga["cod_institucion"] = code;
+    if (ultimaCarga?.cod_institucion) whereCarga["cod_institucion"] = codeInst;
     if (ultimaCarga?.id_periodo) whereCarga["id_periodo"] = tipo_periodo;
     // console.log({ ultimaCarga, whereCarga, params });
 
@@ -53,16 +61,109 @@ async function insertarNuevaCargaArchivo(params) {
 }
 
 async function modificarNuevaCargaArchivo(params) {
-  const { nuevaCarga, table, cargado } = params;
+  const {
+    nuevaCarga,
+    cargado,
+    table,
+    id,
+    reproceso,
+    reprocesado = true,
+    id_rol,
+    fecha_operacion,
+  } = params;
+  try {
+    const body = { cargado };
+    if (
+      id === "BOLSA" &&
+      nuevaCarga?.cargado === false &&
+      nuevaCarga?.reproceso === true &&
+      reproceso === true
+    )
+      body.reprocesado = reprocesado;
+    const nuevaCargaActualizada = await EjecutarQuery(
+      ActualizarUtil(table, {
+        body,
+        idKey: "id_carga_archivos",
+        idValue: nuevaCarga.id_carga_archivos,
+        returnValue: ["*"],
+      })
+    );
 
-  return await EjecutarQuery(
-    ActualizarUtil(table, {
-      body: { cargado },
-      idKey: "id_carga_archivos",
-      idValue: nuevaCarga.id_carga_archivos,
-      returnValue: ["*"],
-    })
-  );
+    if (id === "BOLSA" && reproceso === true) {
+      const ultimaCargaConReproceso = await EjecutarQuery(
+        EscogerInternoUtil(table, {
+          select: ["*"],
+          where: [
+            { key: "id_rol", value: id_rol },
+            { key: "reproceso", value: true },
+            { key: "reprocesado", value: false },
+          ],
+        })
+      );
+
+      const cargaMenor = minBy(ultimaCargaConReproceso, "fecha_operacion");
+      if (isUndefined(cargaMenor))
+        throw new Error(
+          "No existe una fecha válida, para actualizar el reprocesado en BOLSA"
+        );
+
+      let dayOfMonth = cargaMenor.fecha_operacion?.getDate();
+      dayOfMonth--;
+      cargaMenor.fecha_operacion.setDate(dayOfMonth);
+
+      const ultimaCargaReprocesada = cargaMenor;
+
+      if (
+        fecha_operacion !==
+        DateTime.fromISO(ultimaCargaReprocesada.fecha_operacion).toFormat(
+          "yyyy-MM-dd"
+        )
+      ) {
+        const queryUpdateCargaReprocesado = ActualizarUtil(table, {
+          body: { reprocesado: true },
+          idKey: "id_carga_archivos",
+          idValue: ultimaCargaReprocesada.id_carga_archivos,
+        });
+        await EjecutarQuery(queryUpdateCargaReprocesado);
+      }
+    }
+
+    return nuevaCargaActualizada;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function eliminarArchivosCargados(
+  tables,
+  sequences,
+  primaryKeys,
+  nuevaCarga
+) {
+  try {
+    const idsSequencesArray = [];
+    const { id_carga_archivos } = nuevaCarga;
+    const queryDeleteUploadedFiles = EliminarMultiplesTablasUtil(tables, {
+      where: [{ key: "id_carga_archivos", value: id_carga_archivos }],
+    });
+    await EjecutarQuery(queryDeleteUploadedFiles);
+    let index = 0;
+    for await (const table of tables) {
+      const primaryKey = primaryKeys[index];
+      const queryMax = ValorMaximoDeCampoUtil(table, { fieldMax: primaryKey });
+      const maxIdTable = await EjecutarQuery(queryMax);
+      const maxId = maxIdTable?.[0]?.max === null ? 0 : maxIdTable[0].max;
+      idsSequencesArray.push(parseInt(maxId) + 1);
+      index++;
+    }
+    console.log({ idsSequencesArray, sequences, primaryKeys });
+    const querySequences = AlterarSequenciaMultiplesTablasUtil2(sequences, {
+      restartValue: idsSequencesArray,
+    });
+    await EjecutarQuery(querySequences);
+  } catch (err) {
+    throw err;
+  }
 }
 
 async function obtenerArchivosSubidos(formattedFiles) {
@@ -79,6 +180,67 @@ async function obtenerArchivosSubidos(formattedFiles) {
   });
 }
 
+async function eliminarInformacionDuplicada(
+  table,
+  where,
+  sequence,
+  primaryKey
+) {
+  await EjecutarQuery(EliminarMultiplesTablasUtil([table], { where }));
+  const maxIdTable = await EjecutarQuery(
+    ValorMaximoDeCampoUtil(table, { fieldMax: primaryKey })
+  );
+  const maxId = maxIdTable?.[0]?.max === null ? 0 : maxIdTable[0].max;
+  const idRestartValue = parseInt(maxId) + 1;
+  await EjecutarQuery(
+    AlterarSequencia2Util(sequence, { restartValue: idRestartValue })
+  );
+}
+
+async function funcionesPensiones(fecha, id_rol) {
+  try {
+    const params = { body: { fecha, id_rol } };
+    const querys = [
+      EjecutarFuncionSQL("aps_ins_renta_fija_td", params),
+      EjecutarFuncionSQL("aps_ins_renta_fija_cupon_ud", params),
+      EjecutarFuncionSQL("aps_ins_otros_activos_to", params),
+      EjecutarFuncionSQL("aps_ins_otros_activos_cupon_co", params),
+      EjecutarFuncionSQL("aps_ins_renta_variable_tv", params),
+    ];
+    return await Promise.all(map(querys, (query) => EjecutarQuery(query)))
+      .then((response) => {
+        return response;
+      })
+      .catch((err) => {
+        throw err;
+      });
+  } catch (err) {
+    throw new Error("Error al ejecutar las funciones de pensiones");
+  }
+}
+
+async function funcionesSeguros(fecha, id_usuario, codInst) {
+  try {
+    const params = { body: { fecha, id_usuario, codInst } };
+    const querys = [
+      EjecutarFuncionSQL("aps_ins_renta_fija", params),
+      EjecutarFuncionSQL("aps_ins_otros_activos", params),
+      EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params),
+      EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params),
+      EjecutarFuncionSQL("aps_ins_renta_variable", params),
+    ];
+    return await Promise.all(map(querys, (query) => EjecutarQuery(query)))
+      .then((response) => {
+        return response;
+      })
+      .catch((err) => {
+        throw err;
+      });
+  } catch (err) {
+    throw new Error("Error al ejecutar las funciones de seguros");
+  }
+}
+
 const obtenerUltimaCarga = async (params) => {
   try {
     const { TABLE_INFO, user, tipo_periodo } = params;
@@ -86,7 +248,7 @@ const obtenerUltimaCarga = async (params) => {
     const { id, table } = TABLE_INFO;
     const where = [
       { key: "id_rol", value: id_rol },
-      { key: "cod_institucion", value: TABLE_INFO.code },
+      { key: "cod_institucion", value: TABLE_INFO.codeInst },
       { key: "id_usuario", value: id_usuario },
       { key: "cargado", value: true },
     ];
@@ -112,5 +274,9 @@ const obtenerUltimaCarga = async (params) => {
 module.exports = {
   insertarNuevaCargaArchivo,
   modificarNuevaCargaArchivo,
+  eliminarInformacionDuplicada,
+  eliminarArchivosCargados,
   obtenerArchivosSubidos,
+  funcionesPensiones,
+  funcionesSeguros,
 };

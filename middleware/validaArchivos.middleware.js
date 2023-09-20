@@ -44,25 +44,31 @@ const { EjecutarQuery } = require("../utils/consulta.utils");
 const TABLES_INFO_UPLOAD = (codInstitucion = undefined) => ({
   SEGUROS: {
     id: "SEGUROS",
-    code: codInstitucion,
+    codeInst: codInstitucion,
     table: "APS_aud_carga_archivos_pensiones_seguros",
     tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
   },
   PENSIONES: {
     id: "PENSIONES",
-    code: codInstitucion,
+    codeInst: codInstitucion,
     table: "APS_aud_carga_archivos_pensiones_seguros",
     tableErrors: "APS_aud_errores_carga_archivos_pensiones_seguros",
   },
-  CUSTODIO: {
-    id: "CUSTODIO",
-    code: codInstitucion,
+  CUSTODIO_SEGUROS: {
+    id: "CUSTODIO_SEGUROS",
+    codeInst: codInstitucion,
+    table: "APS_aud_carga_archivos_custodio",
+    tableErrors: "APS_aud_errores_carga_archivos_custodio",
+  },
+  CUSTODIO_PENSIONES: {
+    id: "CUSTODIO_PENSIONES",
+    codeInst: codInstitucion,
     table: "APS_aud_carga_archivos_custodio",
     tableErrors: "APS_aud_errores_carga_archivos_custodio",
   },
   BOLSA: {
     id: "BOLSA",
-    code: codInstitucion,
+    codeInst: codInstitucion,
     table: "APS_aud_carga_archivos_bolsa",
     tableErrors: "APS_aud_errores_carga_archivos_bolsa",
   },
@@ -333,14 +339,9 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
     });
     worker.on("message", (params) => {
       try {
-        const {
-          objectArrayFilesContent,
-          validatedContentValuesFiles,
-          errorsContentValuesFile,
-        } = params;
+        const { validatedContentValuesFiles, errorsContentValuesFile } = params;
         WORKER_OPTIONS.validatedContentValuesFiles =
           validatedContentValuesFiles;
-        // console.log(objectArrayFilesContent);
         if (size(errorsContentValuesFile) > 0)
           WORKER_OPTIONS.errorsFiles = errorsContentValuesFile;
       } catch (err) {
@@ -395,14 +396,14 @@ const workerInsertarErrores = (WORKER_OPTIONS, type) => {
   workerErrors.on("online", () => {
     console.log("==============================");
     console.log(`INICIO CARGA ERRORES DE CONTENIDO`);
-    console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+    console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.codeInst}')`);
     console.log("==============================");
   });
   workerErrors.on("message", (params) => {});
   workerErrors.on("error", (err) => {
     console.error("==============================");
     console.error(`ERROR EN CARGA ERRORES DE CONTENIDO A BASE DE DATOS`);
-    console.error(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+    console.error(`('${WORKER_OPTIONS.data.TABLE_INFO.codeInst}')`);
     console.error(err);
     console.error("==============================");
     //TODO: AVISAR AL USUARIO QUE NO SE REGISTRARON LOS ERRORES EN LA BASE DE DATOS, POR MEDIO DE SOCKET IO
@@ -411,7 +412,7 @@ const workerInsertarErrores = (WORKER_OPTIONS, type) => {
     console.log("============================================");
     console.log(`FIN CARGA ERRORES DE CONTENIDO`);
     console.log("PROCESO TERMINADO CON ", exitCode === 0 ? "EXITO" : "ERROR");
-    console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.code}')`);
+    console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.codeInst}')`);
     console.log("============================================");
   });
 };

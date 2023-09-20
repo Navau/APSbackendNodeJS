@@ -1174,8 +1174,42 @@ function AlterarSequenciaMultiplesTablasUtil(sequences, params) {
   return queryFinal;
 }
 
+function AlterarSequenciaMultiplesTablasUtil2(sequences, params) {
+  let querys = [];
+  let queryFinal = "";
+
+  map(sequences, (sequence, index) => {
+    let query = `ALTER SEQUENCE "${sequence}"`;
+    if (params?.restartValue) {
+      query += ` RESTART WITH ${params.restartValue[index]}`;
+    }
+    query && (query = query + ";");
+    querys.push(query);
+  });
+
+  map(querys, (item, index) => {
+    queryFinal += `${item} \r\n`;
+  });
+
+  // console.log(querys);
+  console.log(queryFinal);
+  return queryFinal;
+}
+
 function AlterarSequenciaUtil(sequence, params) {
   let query = `ALTER SEQUENCE "${sequence.table}_${sequence.id}_seq"`;
+  if (params?.restartValue) {
+    query += ` RESTART WITH ${params.restartValue}`;
+  }
+  query && (query = query + ";");
+
+  // console.log(querys);
+  console.log(query);
+  return query;
+}
+
+function AlterarSequencia2Util(sequence, params) {
+  let query = `ALTER SEQUENCE "${sequence}"`;
   if (params?.restartValue) {
     query += ` RESTART WITH ${params.restartValue}`;
   }
@@ -1665,6 +1699,7 @@ module.exports = {
   VerificarPermisoUtil,
   EliminarMultiplesTablasUtil,
   AlterarSequenciaMultiplesTablasUtil,
+  AlterarSequenciaMultiplesTablasUtil2,
   AlterarSequenciaUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
   ObtenerInstitucion,
@@ -1677,4 +1712,5 @@ module.exports = {
   EjecutarQuerysReportes,
   EjecutarQuery,
   VerificarUsuarioSegurosPensiones,
+  AlterarSequencia2Util,
 };

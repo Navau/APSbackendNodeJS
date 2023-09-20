@@ -1,3 +1,4 @@
+const { sortBy } = require("lodash");
 const {
   EjecutarQuery,
   EscogerInternoUtil,
@@ -54,7 +55,7 @@ async function obtenerInformacionInicial(data, user) {
   return {
     ...codigosSegurosPensiones,
     confArchivos,
-    formatoArchivosRequeridos,
+    formatoArchivosRequeridos: sortBy(formatoArchivosRequeridos, "archivo"),
   };
 }
 
