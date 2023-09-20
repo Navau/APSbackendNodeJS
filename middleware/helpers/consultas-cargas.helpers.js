@@ -215,7 +215,7 @@ async function funcionesPensiones(fecha, id_rol) {
       });
   } catch (err) {
     console.log(err);
-    throw new Error("Error al ejecutar las funciones de pensiones");
+    throw new Error("Error al ejecutar las funciones de pensiones", err);
   }
 }
 
@@ -225,20 +225,28 @@ async function funcionesSeguros(fecha, id_usuario, codInst) {
     const querys = [
       EjecutarFuncionSQL("aps_ins_renta_fija", params),
       EjecutarFuncionSQL("aps_ins_otros_activos", params),
-      EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params),
-      EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params),
       EjecutarFuncionSQL("aps_ins_renta_variable", params),
     ];
+    const querys2 = [
+      EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params),
+      EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params),
+    ];
     return await Promise.all(map(querys, (query) => EjecutarQuery(query)))
-      .then((response) => {
-        return response;
+      .then(async (response) => {
+        return await Promise.all(map(querys2, (query) => EjecutarQuery(query)))
+          .then((response2) => {
+            return response2;
+          })
+          .catch((err) => {
+            throw err;
+          });
       })
       .catch((err) => {
         throw err;
       });
   } catch (err) {
     console.log(err);
-    throw new Error("Error al ejecutar las funciones de seguros");
+    throw new Error("Error al ejecutar las funciones de seguros", err);
   }
 }
 

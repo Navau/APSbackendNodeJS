@@ -291,6 +291,7 @@ async function CargarArchivo2(req, res) {
         const fileInserted = await EjecutarQuery(queryInsertFiles);
       }
       //#endregion
+
       uploadedFilesResult.push({
         archivo: fileName,
         cargado: true,

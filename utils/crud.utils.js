@@ -1050,9 +1050,14 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             where: [{ key: "id_rol", value: id_rol }],
           })
         );
+        const acciones = await EjecutarQuery(EscogerInternoUtil("APS_seg_accion"));
         //#endregion
 
+        //TODO: Registrar cada una de las acciones con los ID de tablas
         const nuevosPermisos = [];
+        const idsTablas = map(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
+          return submodulo.id_tabla
+        });
         forEach(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
           forEach(submodulo.data_tabla_accion, (DTA) => {
             if (
