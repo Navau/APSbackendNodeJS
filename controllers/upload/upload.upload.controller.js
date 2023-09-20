@@ -22,6 +22,7 @@ const {
   respResultadoIncorrectoObjeto200,
   respResultadoDinamicoEND,
   respErrorServidor500END,
+  respResultadoCorrectoObjeto200,
 } = require("../../utils/respuesta.utils");
 const {
   EscogerInternoUtil,

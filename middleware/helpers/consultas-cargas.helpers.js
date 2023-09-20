@@ -215,6 +215,7 @@ async function funcionesPensiones(fecha, id_rol) {
         throw err;
       });
   } catch (err) {
+    console.log(err);
     throw new Error("Error al ejecutar las funciones de pensiones");
   }
 }
@@ -237,6 +238,7 @@ async function funcionesSeguros(fecha, id_usuario, codInst) {
         throw err;
       });
   } catch (err) {
+    console.log(err);
     throw new Error("Error al ejecutar las funciones de seguros");
   }
 }
