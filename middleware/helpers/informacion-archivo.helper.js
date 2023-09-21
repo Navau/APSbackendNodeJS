@@ -73,12 +73,6 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
           const validationsFile = optionsValidationsFiles[fileCode];
           forEach(executedQuerys, (executedQuery, columnKeyQuery) => {
             const validations = filter(validationsFile, (validation) => {
-              // console.log(
-              //   fileCode,
-              //   columnKeyQuery,
-              //   camelToSnakeCase(columnKeyQuery),
-              //   validation
-              // );
               return camelToSnakeCase(columnKeyQuery).includes(
                 validation.columnName
               );
@@ -1008,7 +1002,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      tipoInstrumento135: {
+      tipoValoracionConTipoInstrumento135: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1021,7 +1015,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      tipoInstrumento1: {
+      tipoValoracionConTipoInstrumento1: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1033,7 +1027,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      tipoInstrumento25: {
+      tipoValoracionConTipoInstrumento25: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1133,7 +1127,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           where: [
             {
               key: "id_tipo_renta",
-              valuesWhereIn: [135],
+              valuesWhereIn: [135, 136],
               whereIn: true,
             },
           ],
@@ -1305,7 +1299,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      tipoInstrumento135: {
+      tipoValoracionConTipoInstrumento135: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1318,7 +1312,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      tipoInstrumento1: {
+      tipoValoracionConTipoInstrumento1: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1330,7 +1324,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      tipoInstrumento25: {
+      tipoValoracionConTipoInstrumento25: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],

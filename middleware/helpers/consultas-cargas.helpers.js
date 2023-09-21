@@ -252,14 +252,14 @@ async function funcionesSeguros(fecha, id_usuario, codInst) {
 
 const obtenerUltimaCarga = async (params) => {
   try {
-    const { TABLE_INFO, user, tipo_periodo } = params;
+    const { TABLE_INFO, user, tipo_periodo, fecha_operacion } = params;
     const { id_rol, id_usuario } = user;
     const { id, table } = TABLE_INFO;
     const where = [
       { key: "id_rol", value: id_rol },
       { key: "cod_institucion", value: TABLE_INFO.codeInst },
       { key: "id_usuario", value: id_usuario },
-      { key: "cargado", value: true },
+      { key: "fecha_operacion", value: fecha_operacion },
     ];
 
     if (id === "SEGUROS" || id === "PENSIONES")

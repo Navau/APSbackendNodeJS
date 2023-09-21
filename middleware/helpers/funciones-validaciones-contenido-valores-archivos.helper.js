@@ -71,13 +71,13 @@ const searchValueInArray = (array, value) => {
   return !isUndefined(searchResult);
 };
 
-const fixedByPattern = (value, pattern, columnIndex) => {
+const fixedByPattern = (value, pattern, columnIndex, rowIndex, realResult) => {
   const indexPattern = new RegExp(pattern).toString().indexOf(".");
   const textPattern = new RegExp(pattern).toString();
   let fixed = undefined;
   let newResult = value;
   if (columnIndex === "interes") {
-    newResult = parseFloat(newResult.toFixed(8)).toFixed(2);
+    newResult = math.ceil(math.ceil(newResult, 8), 2);
   } else if (columnIndex === "plazo_cupon") {
     newResult = newResult.toFixed(0);
   } else {
@@ -269,7 +269,7 @@ const funcionesValidacionesContenidoValores = {
   entidadFinanciera: (params) => {
     return defaultValidationContentValues(
       params,
-      "El campo no corresponde a ninguna entidad financiera activa"
+      "El campo no corresponde a ninguna entidad financiera activa registrada en el RMV"
     );
   },
   tasaRelevanteConTipoInstrumento: (params) => {
@@ -285,15 +285,15 @@ const funcionesValidacionesContenidoValores = {
       const tasaRelevante = value;
       const { tipo_instrumento } = row;
       const {
-        tasaRelevanteConTipoInstrumentoDataBD,
-        tasaRelevanteConTipoInstrumentoDiferenteDataBD,
+        tasaRelevanteConTipoInstrumentoDataDB,
+        tasaRelevanteConTipoInstrumentoDiferenteDataDB,
       } = paramsBD;
       const instrumentosMap = map(
-        tasaRelevanteConTipoInstrumentoDataBD,
+        tasaRelevanteConTipoInstrumentoDataDB,
         "sigla"
       );
       const instrumentosDiferentesMap = map(
-        tasaRelevanteConTipoInstrumentoDiferenteDataBD,
+        tasaRelevanteConTipoInstrumentoDiferenteDataDB,
         "sigla"
       );
       if (includes(instrumentosMap, tipo_instrumento)) {
@@ -303,6 +303,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(tasaRelevante) < 0)
           return `El valor de tasa_relevante debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -320,12 +321,12 @@ const funcionesValidacionesContenidoValores = {
       const plazoValor = value;
       const { tipo_instrumento } = row;
       const {
-        plazoValorConTipoInstrumentoDataBD,
-        plazoValorConTipoInstrumentoDiferenteDataBD,
+        plazoValorConTipoInstrumentoDataDB,
+        plazoValorConTipoInstrumentoDiferenteDataDB,
       } = paramsBD;
-      const instrumentosMap = map(plazoValorConTipoInstrumentoDataBD, "sigla");
+      const instrumentosMap = map(plazoValorConTipoInstrumentoDataDB, "sigla");
       const instrumentosDiferentesMap = map(
-        plazoValorConTipoInstrumentoDiferenteDataBD,
+        plazoValorConTipoInstrumentoDiferenteDataDB,
         "sigla"
       );
       if (includes(instrumentosMap, tipo_instrumento)) {
@@ -335,6 +336,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(plazoValor) < 0)
           return `El valor de plazo_valor debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -352,15 +354,15 @@ const funcionesValidacionesContenidoValores = {
       const plazoEconomico = value;
       const { tipo_instrumento } = row;
       const {
-        plazoEconomicoConTipoInstrumentoDataBD,
-        plazoEconomicoConTipoInstrumentoDiferenteDataBD,
+        plazoEconomicoConTipoInstrumentoDataDB,
+        plazoEconomicoConTipoInstrumentoDiferenteDataDB,
       } = paramsBD;
       const instrumentosMap = map(
-        plazoEconomicoConTipoInstrumentoDataBD,
+        plazoEconomicoConTipoInstrumentoDataDB,
         "sigla"
       );
       const instrumentosDiferentesMap = map(
-        plazoEconomicoConTipoInstrumentoDiferenteDataBD,
+        plazoEconomicoConTipoInstrumentoDiferenteDataDB,
         "sigla"
       );
       if (includes(instrumentosMap, tipo_instrumento)) {
@@ -370,6 +372,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(plazoEconomico) < 0)
           return `El valor de plazo_economico debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -387,15 +390,15 @@ const funcionesValidacionesContenidoValores = {
       const tasaUltimoHecho = value;
       const { tipo_instrumento } = row;
       const {
-        tasaUltimoHechoConTipoInstrumentoDataBD,
-        tasaUltimoHechoConTipoInstrumentoDiferenteDataBD,
+        tasaUltimoHechoConTipoInstrumentoDataDB,
+        tasaUltimoHechoConTipoInstrumentoDiferenteDataDB,
       } = paramsBD;
       const instrumentosMap = map(
-        tasaUltimoHechoConTipoInstrumentoDataBD,
+        tasaUltimoHechoConTipoInstrumentoDataDB,
         "sigla"
       );
       const instrumentosDiferentesMap = map(
-        tasaUltimoHechoConTipoInstrumentoDiferenteDataBD,
+        tasaUltimoHechoConTipoInstrumentoDiferenteDataDB,
         "sigla"
       );
       if (includes(instrumentosMap, tipo_instrumento)) {
@@ -405,6 +408,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(tasaUltimoHecho) < 0)
           return `El valor de tasa_ultimo_hecho debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -422,15 +426,15 @@ const funcionesValidacionesContenidoValores = {
       const tasaRendmiento = value;
       const { tipo_instrumento } = row;
       const {
-        tasaRendimientoConTipoInstrumento139DataBD,
-        tasaRendimientoConTipoInstrumento138DataBD,
+        tasaRendimientoConTipoInstrumento139DataDB,
+        tasaRendimientoConTipoInstrumento138DataDB,
       } = paramsBD;
       const instrumentos139Map = map(
-        tasaRendimientoConTipoInstrumento139DataBD,
+        tasaRendimientoConTipoInstrumento139DataDB,
         "sigla"
       );
       const instrumentos138Map = map(
-        tasaRendimientoConTipoInstrumento138DataBD,
+        tasaRendimientoConTipoInstrumento138DataDB,
         "sigla"
       );
       if (includes(instrumentos139Map, tipo_instrumento)) {
@@ -440,6 +444,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(tasaRendmiento) < 0)
           return `El valor de tasa_rendimiento debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -462,10 +467,10 @@ const funcionesValidacionesContenidoValores = {
       } = params;
       const totalVidaUtilValue = value;
       const { tipo_bien_inmueble } = row;
-      const { totalVidaUtilDataBD, totalVidaUtilDiferenteDataBD } = paramsBD;
-      const totalVidaUtilMap = map(totalVidaUtilDataBD, "sigla");
+      const { totalVidaUtilDataDB, totalVidaUtilDiferenteDataDB } = paramsBD;
+      const totalVidaUtilMap = map(totalVidaUtilDataDB, "sigla");
       const totalVidaUtilDiferenteMap = map(
-        totalVidaUtilDiferenteDataBD,
+        totalVidaUtilDiferenteDataDB,
         "sigla"
       );
       if (includes(totalVidaUtilMap, tipo_bien_inmueble)) {
@@ -478,6 +483,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(totalVidaUtilValue) < 0)
           return `El valor de total_vida_util debe mayor o igual a 0, debido a que el tipo_bien_inmueble es ${tipo_bien_inmueble}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -495,12 +501,12 @@ const funcionesValidacionesContenidoValores = {
       const vidaUtilRestanteValue = value;
       const { tipo_bien_inmueble } = row;
       const {
-        vidaUtilRestanteValueDataBD,
-        vidaUtilRestanteValueDiferenteDataBD,
+        vidaUtilRestanteValueDataDB,
+        vidaUtilRestanteValueDiferenteDataDB,
       } = paramsBD;
-      const totalVidaUtilMap = map(vidaUtilRestanteValueDataBD, "sigla");
+      const totalVidaUtilMap = map(vidaUtilRestanteValueDataDB, "sigla");
       const totalVidaUtilDiferenteMap = map(
-        vidaUtilRestanteValueDiferenteDataBD,
+        vidaUtilRestanteValueDiferenteDataDB,
         "sigla"
       );
       if (includes(totalVidaUtilMap, tipo_bien_inmueble)) {
@@ -513,6 +519,7 @@ const funcionesValidacionesContenidoValores = {
         if (parseFloat(vidaUtilRestanteValue) < 0)
           return `El valor de vida_util_restante debe mayor o igual a 0, debido a que el tipo_bien_inmueble es ${tipo_bien_inmueble}`;
       }
+      return true;
     } catch (err) {
       throw err;
     }
@@ -608,10 +615,10 @@ const funcionesValidacionesContenidoValores = {
 
     if (nroPago > 0) {
       if (plazoCupon <= 0)
-        return `El campo nro_pago es mayor a 0 por lo tanto plazo_cupon debe ser mayor a 0`;
+        return `El campo nro_pago(${nroPago}) es mayor a 0 por lo tanto plazo_cupon(${plazoCupon}) debe ser mayor a 0`;
     } else if (nroPago === 0) {
       if (plazoCupon !== 0)
-        return `El campo nro_pago es igual a 1 por lo tanto plazo_cupon debe ser igual a 0`;
+        return `El campo nro_pago(${nroPago}) es igual a 0 por lo tanto plazo_cupon(${plazoCupon}) debe ser igual a 0`;
     }
     return true;
   },
@@ -674,7 +681,7 @@ const funcionesValidacionesContenidoValores = {
         calificacionVacioDataDB,
         calificacionConTipoInstrumento,
       } = paramsBD;
-      const { tiposInstrumentos } = extraFunctionsParameters;
+      const tiposInstrumentos = extraFunctionsParameters?.tiposInstrumentos;
       const calificacion = value;
       const tipoInstrumento = row.tipo_instrumento;
       const calificacionesMap = map(calificacionDataDB, "descripcion");
@@ -802,18 +809,24 @@ const funcionesValidacionesContenidoValores = {
         mayBeEmptyFields,
       } = params;
       const {
-        instrumento135DataDB,
-        instrumento1DataDB,
-        instrumento25DataDB,
+        tipoValoracionConTnstrumento135DataDB,
+        tipoValoracionConTnstrumento1DataDB,
+        tipoValoracionConTnstrumento25DataDB,
         tipoValoracion22DataDB,
         tipoValoracion31DataDB,
         tipoValoracion210DataDB,
       } = paramsBD;
       const tipoValoracion = value;
       const tipoInstrumento = row.tipo_instrumento;
-      const instrumento135Map = map(instrumento135DataDB, "sigla");
-      const instrumento1Map = map(instrumento1DataDB, "sigla");
-      const instrumento25Map = map(instrumento25DataDB, "sigla");
+      const instrumento135Map = map(
+        tipoValoracionConTnstrumento135DataDB,
+        "sigla"
+      );
+      const instrumento1Map = map(tipoValoracionConTnstrumento1DataDB, "sigla");
+      const instrumento25Map = map(
+        tipoValoracionConTnstrumento25DataDB,
+        "sigla"
+      );
       const tipoValoracion22Map = map(tipoValoracion22DataDB, "sigla");
       const tipoValoracion31Map = map(tipoValoracion31DataDB, "sigla");
       const tipoValoracion210Map = map(tipoValoracion210DataDB, "sigla");
@@ -1010,7 +1023,7 @@ const funcionesValidacionesContenidoValores = {
               }
             } else {
               valueAux = number;
-              OPERATION_OPTIONS.messageFields.push(`${number}(${valueAux})`);
+              OPERATION_OPTIONS.messageFields.push(`${number}`);
             }
           } else {
             OPERATION_OPTIONS.messageFields.push(operation);
@@ -1034,7 +1047,13 @@ const funcionesValidacionesContenidoValores = {
       const resultOperation = math.evaluate(
         OPERATION_OPTIONS.operationWithValues.join("")
       );
-      const newResult = fixedByPattern(resultOperation, pattern, columnIndex);
+      const newResult = fixedByPattern(
+        resultOperation,
+        pattern,
+        columnIndex,
+        rowIndex,
+        value
+      );
       if (!math.deepEqual(newResult, value))
         return `El resultado de la operación (${OPERATION_OPTIONS.messageFields.join(
           " "

@@ -225,12 +225,13 @@ exports.formatearArchivos = async (req, res, next) => {
       console.log("==============================");
       if (!isUndefined(WORKER_OPTIONS.error)) {
         respErrorServidor500END(res, WORKER_OPTIONS.error);
-      } else if (size(WORKER_OPTIONS.formattedFiles) !== size(files))
-        respErrorServidor500END(
-          res,
-          null,
-          "La cantidad de archivos de salida no es igual a la cantidad de archivos de entrada."
-        );
+      }
+      //  else if (size(WORKER_OPTIONS.formattedFiles) !== size(files))
+      //   respErrorServidor500END(
+      //     res,
+      //     null,
+      //     "La cantidad de archivos de salida no es igual a la cantidad de archivos de entrada."
+      //   );
       else if (size(WORKER_OPTIONS.errorsFiles) > 0) {
         const type = "formatearArchivos";
         workerInsertarErrores(WORKER_OPTIONS, type);

@@ -35,11 +35,12 @@ function validarContenidoArchivo() {
       return { validatedContentFormatFiles, errorsContentFormatFile };
 
     forEach(readedFiles, (file) => {
-      const { fileContent, fileName, fileCode } = file;
+      const { fileContent, fileName, fileCode, fileIsEmpty } = file;
       const fileContentSplit = verificarFormatoContenidoArchivo(
         fileContent,
         fileName,
         nuevaCarga,
+        fileIsEmpty,
         errorsContentFormatFile
       );
       filesContentSplitByRow[`${fileName}_separador_${fileCode}`] =

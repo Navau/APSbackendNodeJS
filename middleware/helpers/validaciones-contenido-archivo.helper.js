@@ -11,6 +11,7 @@ const {
   includes,
   isArray,
   isUndefined,
+  trim,
 } = require("lodash");
 const {
   agregarError,
@@ -58,9 +59,11 @@ const verificarFormatoContenidoArchivo = (
   fileContent,
   fileName,
   nuevaCarga,
+  fileIsEmpty,
   errors
 ) => {
   try {
+    if (fileIsEmpty === true && trim(fileContent) === "") return null;
     const splitByRow = fileContent.split(/[\r\n]+/);
     const fileContentSplitByRow = map(splitByRow, (row) => {
       if (!isEmpty(row)) return row;
