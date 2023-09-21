@@ -365,16 +365,6 @@ const validarTiposDeDatos = (params) => {
       }
     });
     if (!pattern?.test(OPTIONS_VALUES.value)) {
-      if (columnIndex === "fecha_pago" && fileCode === "444") {
-        // console.log({
-        //   pattern,
-        //   OPTIONS_VALUES,
-        //   test: pattern.test(OPTIONS_VALUES.value),
-        //   mayBeEmptyFields,
-        //   isEmpty: isEmpty(OPTIONS_VALUES.value),
-        //   includes: includes(mayBeEmptyFields, columnIndex),
-        // });
-      }
       OPTIONS_VALUES.matchDataType = false;
       if (
         isEmpty(OPTIONS_VALUES.value) &&
