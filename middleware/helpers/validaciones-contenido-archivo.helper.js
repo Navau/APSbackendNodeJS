@@ -232,6 +232,7 @@ const validarContenidoValoresDeArchivo = (params) => {
     mayBeEmptyFields,
     informacionEntreArchivos,
     errorsContentValuesFile,
+    replaceFieldValue,
   } = params;
   const OPTIONS_VALUES = {
     value: undefined,
@@ -240,6 +241,10 @@ const validarContenidoValoresDeArchivo = (params) => {
   forEach(fileContent, (row, rowIndex) => {
     let columnCounter = 0;
     forEach(row, (value, columnIndex) => {
+      forEach(replaceFieldValue, (replaceValue, replaceColumnIndex) => {
+        if (columnIndex === replaceColumnIndex)
+          value = DateTime.fromISO(value).toFormat(replaceValue);
+      });
       OPTIONS_VALUES.value = value;
       columnCounter++;
       const findValidation = find(
@@ -277,6 +282,7 @@ const validarContenidoValoresDeArchivo = (params) => {
         nuevaCarga,
         fecha_operacion,
         fileName,
+        fileCode,
       });
 
       validarFuncionesDeColumnas({
@@ -344,6 +350,7 @@ const validarTiposDeDatos = (params) => {
     nuevaCarga,
     fecha_operacion,
     fileName,
+    fileCode,
   } = params;
   const { DEFAULT_ERROR_DATA_TYPE_MESSAGE } = CONF_FILE_MESSAGES();
   if (!isArray(pattern)) {
@@ -358,11 +365,22 @@ const validarTiposDeDatos = (params) => {
       }
     });
     if (!pattern?.test(OPTIONS_VALUES.value)) {
+      if (columnIndex === "fecha_pago" && fileCode === "444") {
+        // console.log({
+        //   pattern,
+        //   OPTIONS_VALUES,
+        //   test: pattern.test(OPTIONS_VALUES.value),
+        //   mayBeEmptyFields,
+        //   isEmpty: isEmpty(OPTIONS_VALUES.value),
+        //   includes: includes(mayBeEmptyFields, columnIndex),
+        // });
+      }
       OPTIONS_VALUES.matchDataType = false;
       if (
         isEmpty(OPTIONS_VALUES.value) &&
         !includes(mayBeEmptyFields, columnIndex)
       ) {
+      } else {
         agregarError(
           {
             id_carga_archivos: nuevaCarga.id_carga_archivos,

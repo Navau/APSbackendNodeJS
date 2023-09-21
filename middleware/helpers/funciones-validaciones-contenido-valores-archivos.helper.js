@@ -77,7 +77,7 @@ const fixedByPattern = (value, pattern, columnIndex, rowIndex, realResult) => {
   let fixed = undefined;
   let newResult = value;
   if (columnIndex === "interes") {
-    newResult = math.ceil(math.ceil(newResult, 8), 2);
+    newResult = math.round(math.round(newResult, 8), 2);
   } else if (columnIndex === "plazo_cupon") {
     newResult = newResult.toFixed(0);
   } else {
@@ -1341,7 +1341,7 @@ const funcionesValidacionesContenidoValores = {
 
       if (
         (fileCode === "444" ||
-          fileCode === "445" ||
+          // fileCode === "445" ||
           fileCode === "UD" ||
           fileCode === "CO") &&
         rowIndex === size(fileContent) - 1 &&
@@ -1351,7 +1351,7 @@ const funcionesValidacionesContenidoValores = {
           const { fileCodeFrom, value, rowInfoIndex, columnInfo } = info;
           if (
             (fileCodeFrom === "441" && fileCode === "444") ||
-            (fileCodeFrom === "442" && fileCode === "445") ||
+            // (fileCodeFrom === "442" && fileCode === "445") ||
             (fileCodeFrom === "TD" && fileCode === "UD") ||
             (fileCodeFrom === "TO" && fileCode === "CO")
           ) {

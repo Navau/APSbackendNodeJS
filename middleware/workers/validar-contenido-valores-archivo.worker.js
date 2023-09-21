@@ -43,6 +43,7 @@ function validarContenidoValoresArchivo() {
         uniqueCombinationPerFile,
         formatDateFields,
         mayBeEmptyFields,
+        replaceFieldValue,
       } = validations[0].globalFileValidations;
       const matchDataType = true;
 
@@ -58,6 +59,7 @@ function validarContenidoValoresArchivo() {
         fecha_operacion,
         informacionEntreArchivos,
         errorsContentValuesFile,
+        replaceFieldValue,
       });
 
       validarCombinacionesUnicasPorArchivo({
