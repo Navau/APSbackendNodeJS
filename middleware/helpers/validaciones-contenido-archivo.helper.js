@@ -378,7 +378,7 @@ const validarTiposDeDatos = (params) => {
       OPTIONS_VALUES.matchDataType = false;
       if (
         isEmpty(OPTIONS_VALUES.value) &&
-        !includes(mayBeEmptyFields, columnIndex)
+        includes(mayBeEmptyFields, columnIndex)
       ) {
       } else {
         agregarError(
