@@ -1050,14 +1050,19 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             where: [{ key: "id_rol", value: id_rol }],
           })
         );
-        const acciones = await EjecutarQuery(EscogerInternoUtil("APS_seg_accion"));
+        const acciones = await EjecutarQuery(
+          EscogerInternoUtil("APS_seg_accion")
+        );
         //#endregion
 
         //TODO: Registrar cada una de las acciones con los ID de tablas
         const nuevosPermisos = [];
-        const idsTablas = map(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
-          return submodulo.id_tabla
-        });
+        const idsTablas = map(
+          flatMap(permisosFiltrados, "submodulos"),
+          (submodulo) => {
+            return submodulo.id_tabla;
+          }
+        );
         forEach(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
           forEach(submodulo.data_tabla_accion, (DTA) => {
             if (
@@ -1212,6 +1217,216 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               accion: itemTA?.accion,
             }));
             submodulo.data_tabla_accion = resultTablaAccion;
+            const dataIntersection = intersectionBy(
+              permisos,
+              resultTablaAccion,
+              "id_tabla_accion"
+            ).filter((item) => item.id_rol === id_rol);
+            submodulo.esCompleto = size(dataIntersection) > 0;
+          });
+        });
+        forEach(resultModulos, (modulo) => {
+          forEach(modulo.submodulos, (submodulo) => {
+            if (submodulo.esCompleto === false) {
+              modulo.esCompleto = false;
+              modulo.esTodoCompleto = false;
+              return;
+            }
+          });
+        });
+        respResultadoCorrectoObjeto200(res, resultModulos);
+      },
+      CambiarPermisos2_Permiso: async () => {
+        const { permisos, id_rol } = req.body;
+        const permisosFiltrados = sortBy(
+          filter(permisos, (permiso) => {
+            return every(
+              permiso.submodulos,
+              (submodulo) =>
+                !isNull(submodulo.id_submodulo) && !isNull(submodulo.id_tabla)
+            );
+          }),
+          "id_modulo"
+        );
+        const idsTablas = map(
+          flatMap(permisosFiltrados, "submodulos"),
+          (submodulo) => {
+            return submodulo.id_tabla;
+          }
+        );
+
+        const resultPermisosActualizados = {
+          inserciones: [],
+          actualizaciones: [],
+        };
+        //#region PERMISOS ACTUALES DEL ID_ROL
+        const permisosBD = await EjecutarQuery(
+          EscogerInternoUtil("APS_seg_permiso", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          })
+        );
+        const acciones = await EjecutarQuery(
+          EscogerInternoUtil("APS_seg_accion")
+        );
+        //#endregion
+
+        //TODO: Registrar cada una de las acciones con los ID de tablas
+        const nuevosPermisos = [];
+        // forEach(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
+        //   forEach(submodulo.data_tabla_accion, (DTA) => {
+        //     if (
+        //       !isNull(submodulo?.id_submodulo) &&
+        //       !isNull(DTA?.id_tabla_accion)
+        //     )
+        //       nuevosPermisos.push({
+        //         id_tabla_accion: DTA?.id_tabla_accion,
+        //         accion: DTA?.accion,
+        //         submodulo: submodulo?.submodulo,
+        //         esCompleto: submodulo?.esCompleto,
+        //       });
+        //   });
+        // });
+        // const nuevosPermisosTrue = filter(
+        //   nuevosPermisos,
+        //   (nuevoPermiso) => nuevoPermiso.esCompleto === true
+        // );
+        // const diferenciaPermisosParaInsertar = filter(
+        //   nuevosPermisosTrue,
+        //   (nuevoPermiso) => {
+        //     const permisoBDFind = find(permisosBD, (permisoBD) => {
+        //       const permisoTextAux = `${nuevoPermiso.accion} ${nuevoPermiso.submodulo}`;
+        //       return (
+        //         permisoBD.id_tabla_accion === nuevoPermiso.id_tabla_accion &&
+        //         permisoBD.permiso === permisoTextAux
+        //       );
+        //     });
+        //     return isUndefined(permisoBDFind);
+        //   }
+        // );
+
+        // if (size(diferenciaPermisosParaInsertar) > 0) {
+        //   const queryInsertarPermisos = InsertarVariosUtil(nameTable, {
+        //     body: map(diferenciaPermisosParaInsertar, (itemInsert) => ({
+        //       id_rol,
+        //       id_tabla_accion: itemInsert.id_tabla_accion,
+        //       permiso: `${itemInsert.accion} ${itemInsert.submodulo}`,
+        //       activo: true,
+        //     })),
+        //     returnValue: ["*"],
+        //   });
+        //   resultPermisosActualizados.inserciones = await EjecutarQuery(
+        //     queryInsertarPermisos
+        //   );
+        // }
+
+        // const diferenciaPermisos = intersectionWith(
+        //   permisosBD,
+        //   nuevosPermisos,
+        //   (value1, value2) => {
+        //     const permisoTextAux = `${value2.accion} ${value2.submodulo}`;
+        //     return (
+        //       value1.id_tabla_accion === value2.id_tabla_accion &&
+        //       value1.permiso === permisoTextAux &&
+        //       value1.activo !== value2.esCompleto
+        //     );
+        //   }
+        // );
+
+        // const diferenciasPermisosFinal = map(
+        //   diferenciaPermisos,
+        //   (diferenciaPermiso) => {
+        //     const nuevoPermisoItem = find(nuevosPermisos, (nuevoPermiso) => {
+        //       const permisoTextAux = `${nuevoPermiso.accion} ${nuevoPermiso.submodulo}`;
+        //       return (
+        //         nuevoPermiso.id_tabla_accion ===
+        //           diferenciaPermiso.id_tabla_accion &&
+        //         permisoTextAux === diferenciaPermiso.permiso
+        //       );
+        //     });
+        //     if (isUndefined(nuevoPermisoItem)) return null;
+        //     return {
+        //       ...diferenciaPermiso,
+        //       ...nuevoPermisoItem,
+        //     };
+        //   }
+        // ).filter((value) => !isNull(value));
+
+        // for await (const permiso of diferenciasPermisosFinal) {
+        //   const queryActualizarPermiso = ActualizarUtil(nameTable, {
+        //     body: {
+        //       id_rol,
+        //       id_tabla_accion: permiso.id_tabla_accion,
+        //       permiso: `${permiso.accion} ${permiso.submodulo}`,
+        //       activo: permiso.esCompleto,
+        //     },
+        //     idKey: "id_permiso",
+        //     idValue: permiso.id_permiso,
+        //     returnValue: ["*"],
+        //   });
+        //   const actualizacion =
+        //     (await EjecutarQuery(queryActualizarPermiso))?.[0] || undefined;
+        //   resultPermisosActualizados.actualizaciones.push(actualizacion);
+        // }
+        // resultPermisosActualizados.actualizaciones = filter(
+        //   resultPermisosActualizados.actualizaciones,
+        //   (item) => !isUndefined(item)
+        // );
+
+        respResultadoCorrectoObjeto200(
+          res,
+          idsTablas,
+          "Permisos actualizados correctamente"
+        );
+      },
+      ListarPermisos2_Permiso: async () => {
+        const { id_rol } = req.body;
+        const queryModulos = EscogerInternoUtil("APS_seg_view_listar_modulos");
+        const queryTablaAccion = EscogerInternoUtil(
+          "APS_seg_view_listar_tabla_accion"
+        );
+        const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
+          select: ["*"],
+          where: [{ key: "activo", value: true }],
+        });
+        const modulosPrincipales = await EjecutarQuery(queryModulos);
+        const tablaAccion = await EjecutarQuery(queryTablaAccion);
+        const permisos = await EjecutarQuery(queryPermisos);
+
+        const resultModulos = chain(modulosPrincipales)
+          .groupBy("id_modulo")
+          .map((modulos) => ({
+            id_modulo: modulos[0].id_modulo,
+            modulo: modulos[0].modulo,
+            descripcion_modulo: modulos[0].descripcion_modulo,
+            esCompleto: true,
+            esTodoCompleto: true,
+            submodulos: chain(modulos)
+              .groupBy("id_submodulo")
+              .map((submodulos) => ({
+                id_submodulo: submodulos[0].id_submodulo,
+                submodulo: submodulos[0].submodulo,
+                id_tabla: submodulos[0].id_tabla,
+                tabla: submodulos[0].tabla,
+                descripcion_tabla: submodulos[0].descripcion_tabla,
+                esCompleto: false,
+                // data_tabla_accion: [],
+              }))
+              .value(),
+          }))
+          .value();
+        forEach(resultModulos, (modulo) => {
+          forEach(modulo.submodulos, (submodulo) => {
+            const resultTablaAccion = filter(
+              tablaAccion,
+              (itemTA) => itemTA.id_tabla === submodulo.id_tabla
+            ).map((itemTA) => ({
+              id_tabla_accion: itemTA?.id_tabla_accion,
+              id_tabla: itemTA?.id_tabla,
+              id_accion: itemTA?.id_accion,
+              accion: itemTA?.accion,
+            }));
+            // submodulo.data_tabla_accion = resultTablaAccion;
             const dataIntersection = intersectionBy(
               permisos,
               resultTablaAccion,
@@ -1921,6 +2136,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   cod_institucion: "BBV",
                   descripcion: "La información esta correcta",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -2731,6 +2947,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   cod_institucion: item.cod_institucion,
                   descripcion: "La información fue validada correctamente",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -2955,6 +3172,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   cod_institucion: "EDV",
                   descripcion: "La información esta correcta",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -4085,6 +4303,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   cod_institucion: item.cod_institucion,
                   descripcion: "La información fue valorada correctamente",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );

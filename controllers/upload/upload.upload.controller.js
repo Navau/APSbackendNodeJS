@@ -283,7 +283,6 @@ async function CargarArchivo2(req, res) {
       //#endregion
 
       //#region CREANDO Y EJECUTANDO LOS QUERYS PARA INSERTAR LA INFORMACION A CADA TABLA SEGUN EL TIPO DE ARCHIVO
-      console.log({ fileCode });
       if (size(objectArrayFileContent) > 0) {
         const queryInsertFiles = InsertarVariosUtil(fileTableName, {
           body: objectArrayFileContent,
@@ -298,6 +297,7 @@ async function CargarArchivo2(req, res) {
         cargado: true,
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envió satisfactorio`,
+        fecha_carga: nuevaCarga.fecha_carga,
         fecha_operacion,
       });
     }
