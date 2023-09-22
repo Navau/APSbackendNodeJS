@@ -299,7 +299,7 @@ async function CargarArchivo2(req, res) {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envió satisfactorio`,
         fecha_operacion,
-        fecha_carga: DateTime.fromJSDate(nuevaCarga.fecha_carga).toFormat(
+        fecha_carga: DateTime.fromJSDate(nuevaCarga.fecha_carga, { zone: 'America/La_Paz' }).toFormat(
           "yyyy-MM-dd | HH:mm:ss"
         )
       });
