@@ -17,16 +17,6 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.CambiarPermisos
 );
-api.post(
-  "/ListarPermisos2",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.ListarPermisos2
-);
-api.post(
-  "/CambiarPermisos2",
-  [md_auth.AsegurarAutenticacionConToken],
-  controller.CambiarPermisos2
-);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

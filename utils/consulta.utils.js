@@ -137,18 +137,18 @@ function ObtenerColumnasDeTablaUtil(table, params) {
   return query;
 }
 
-function FormatearObtenerMenuAngUtil(menu, menudet) {
-  const menuPartial = map(menu, (itemMenu, indexMenu) => {
-    let text = itemMenu.text;
+function FormatearObtenerMenuAngUtil(modulos, submodulos) {
+  const menuPartial = map(modulos, (modulo) => {
+    let text = modulo.text;
     text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     text = text.replace(/\s+/g, "");
     const arrayChildren = [];
-    forEach(menudet, (itemMenudet, indexMenudet) => {
-      if (itemMenudet.routerlink.split("/")[1] === text)
-        arrayChildren.push(itemMenudet);
+    forEach(submodulos, (submodulo) => {
+      if (submodulo.routerlink.split("/")[1] === text)
+        arrayChildren.push(submodulo);
     });
     return {
-      ...itemMenu,
+      ...modulo,
       children: arrayChildren,
     };
   });
@@ -650,8 +650,7 @@ function EjecutarFuncionSQL(functionName, params) {
     query = format(query, ...valuesWhereAuxArray);
     valuesWhereAuxArray = [];
   };
-
-  map(params.body, (item, index) => {
+  forEach(params?.body, (item, index) => {
     if (item instanceof Date) {
       query += `'${moment(item).format("YYYY-MM-DD")}, '`;
     } else if (typeof item === "string") {
@@ -662,7 +661,9 @@ function EjecutarFuncionSQL(functionName, params) {
       query += `${item}, `;
     }
   });
-  query = query.substring(0, query.length - 2);
+  if(params?.body){
+    query = query.substring(0, query.length - 2);
+  }
   query && (query = query + ")");
 
   if (params?.innerjoin) {
