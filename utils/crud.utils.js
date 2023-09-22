@@ -1248,17 +1248,72 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           }),
           "id_modulo"
         );
-        const idsTablas = map(
-          flatMap(permisosFiltrados, "submodulos"),
-          (submodulo) => {
-            return submodulo.id_tabla;
-          }
-        );
-
+        const submodulos = [];
         const resultPermisosActualizados = {
           inserciones: [],
           actualizaciones: [],
         };
+        //#region ACTUALIZAR LOS PERMISOS DE LOS MENUS DE UN ID_ROL
+        forEach(permisosFiltrados, (permiso) => submodulos.push(...permiso.submodulos));
+        const queryPermisoMenu = EscogerInternoUtil(
+          "APS_seg_permiso_menu_rol", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          }
+        );
+        const permisosMenus = await EjecutarQuery(queryPermisoMenu);
+        const diferenciasSubmodulosMenus = differenceBy(
+          submodulos,
+          permisosMenus,
+          "id_submodulo"
+        );
+        //? INSERTAR REGISTROS SI ES QUE NO EXISTEN EN LA TABLA APS_seg_permiso_menu_rol
+        if(size(diferenciasSubmodulosMenus) > 0){
+          const queryInsertNuevosPermisosMenus = InsertarVariosUtil(
+            "APS_seg_permiso_menu_rol",
+            {
+              body: map(diferenciasSubmodulosMenus, (submodulo) => ({
+                id_rol,
+                id_submodulo: submodulo.id_submodulo,
+                permiso: submodulo.esCompleto,
+              })),
+              returnValue: ["*"],
+            }
+            )
+            const permisosNuevos = await EjecutarQuery(queryInsertNuevosPermisosMenus);
+            resultPermisosActualizados.inserciones = permisosNuevos
+        }
+
+        //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO
+          const diferenciasPermisosMenus = differenceWith(
+            permisosMenus,
+            submodulos,
+            (value1, value2) => {
+              return value1.permiso === value2.esCompleto && value1.id_submodulo === value2.id_submodulo
+            }
+          )
+          const querysUpdate = map(diferenciasPermisosMenus, (permisoMenu) => {
+            return ActualizarUtil("APS_seg_permiso_menu_rol", {
+              body: {permiso: !permisoMenu.permiso},
+              idKey: "id_permiso_menu",
+              idValue: permisoMenu.id_permiso_menu,
+              returnValue: ["*"],
+            })
+          })
+          await Promise.all(map(querysUpdate, async (query) => await EjecutarQuery(query))).then((response) => {
+            resultPermisosActualizados.actualizaciones = map(response, (item) => item[0])
+          }).catch((err) => {
+            throw err
+          });
+        //#endregion
+        
+
+        const idsTablas = map(
+          map(permisosFiltrados, "submodulos"),
+          (submodulo) => {
+            return submodulo.id_tabla;
+          }
+        );
         //#region PERMISOS ACTUALES DEL ID_ROL
         const permisosBD = await EjecutarQuery(
           EscogerInternoUtil("APS_seg_permiso", {
@@ -1375,23 +1430,21 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
 
         respResultadoCorrectoObjeto200(
           res,
-          idsTablas,
+          resultPermisosActualizados,
           "Permisos actualizados correctamente"
         );
       },
       ListarPermisos2_Permiso: async () => {
         const { id_rol } = req.body;
         const queryModulos = EscogerInternoUtil("APS_seg_view_listar_modulos");
-        const queryTablaAccion = EscogerInternoUtil(
-          "APS_seg_view_listar_tabla_accion"
+        const queryPermisoMenu = EscogerInternoUtil(
+          "APS_seg_permiso_menu_rol", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }, { key: "permiso", value: true }],
+          }
         );
-        const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
         const modulosPrincipales = await EjecutarQuery(queryModulos);
-        const tablaAccion = await EjecutarQuery(queryTablaAccion);
-        const permisos = await EjecutarQuery(queryPermisos);
+        const permisosMenus = await EjecutarQuery(queryPermisoMenu);
 
         const resultModulos = chain(modulosPrincipales)
           .groupBy("id_modulo")
@@ -1410,29 +1463,14 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 tabla: submodulos[0].tabla,
                 descripcion_tabla: submodulos[0].descripcion_tabla,
                 esCompleto: false,
-                // data_tabla_accion: [],
               }))
               .value(),
           }))
           .value();
         forEach(resultModulos, (modulo) => {
           forEach(modulo.submodulos, (submodulo) => {
-            const resultTablaAccion = filter(
-              tablaAccion,
-              (itemTA) => itemTA.id_tabla === submodulo.id_tabla
-            ).map((itemTA) => ({
-              id_tabla_accion: itemTA?.id_tabla_accion,
-              id_tabla: itemTA?.id_tabla,
-              id_accion: itemTA?.id_accion,
-              accion: itemTA?.accion,
-            }));
-            // submodulo.data_tabla_accion = resultTablaAccion;
-            const dataIntersection = intersectionBy(
-              permisos,
-              resultTablaAccion,
-              "id_tabla_accion"
-            ).filter((item) => item.id_rol === id_rol);
-            submodulo.esCompleto = size(dataIntersection) > 0;
+            const menuDataIntersection = find(permisosMenus, (permisoMenu) => permisoMenu.id_submodulo === submodulo.id_submodulo);
+            submodulo.esCompleto = !isUndefined(menuDataIntersection);
           });
         });
         forEach(resultModulos, (modulo) => {
@@ -2134,7 +2172,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               map(result.rows, (item) => {
                 return {
                   cod_institucion: "BBV",
-                  descripcion: "La información esta correcta",
+                  descripcion: "La información está correcta",
                   fecha_carga: item.fecha_carga,
                   fecha_operacion: item.fecha_operacion,
                 };
@@ -3170,7 +3208,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               map(result.rows, (item) => {
                 return {
                   cod_institucion: "EDV",
-                  descripcion: "La información esta correcta",
+                  descripcion: "La información está correcta",
                   fecha_carga: item.fecha_carga,
                   fecha_operacion: item.fecha_operacion,
                 };

@@ -297,7 +297,6 @@ async function CargarArchivo2(req, res) {
         cargado: true,
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envió satisfactorio`,
-        fecha_carga: nuevaCarga.fecha_carga,
         fecha_operacion,
       });
     }
