@@ -9,6 +9,7 @@ const {
   respResultadoIncorrectoObjeto200,
   respResultadoDinamicoEND,
   respArchivoErroneo200,
+  respUsuarioNoAutorizado200END,
 } = require("../utils/respuesta.utils");
 const {
   size,
