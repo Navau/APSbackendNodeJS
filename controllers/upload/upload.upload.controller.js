@@ -298,6 +298,7 @@ async function CargarArchivo2(req, res) {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envió satisfactorio`,
         fecha_operacion,
+        fecha_carga: nuevaCarga.fecha_carga
       });
     }
     if (includes(map(codigosSeguros, "codigo"), codeInst)) {
