@@ -293,15 +293,14 @@ async function CargarArchivo2(req, res) {
         const fileInserted = await EjecutarQuery(queryInsertFiles);
       }
       //#endregion
-      console.log({nuevaCarga});
       uploadedFilesResult.push({
         archivo: fileName,
         cargado: true,
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envió satisfactorio`,
         fecha_operacion,
-        fecha_carga: DateTime.fromISO(nuevaCarga.fecha_carga).toFormat(
-          "yyyy-MM-dd | hh:mm:ss"
+        fecha_carga: DateTime.fromJSDate(nuevaCarga.fecha_carga).toFormat(
+          "yyyy-MM-dd | HH:mm:ss"
         )
       });
     }
