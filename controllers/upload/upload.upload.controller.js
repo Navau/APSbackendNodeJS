@@ -40,6 +40,7 @@ const {
   eliminarArchivosCargados,
 } = require("../../middleware/helpers/consultas-cargas.helpers");
 const { fs } = require("mz");
+const { DateTime } = require("luxon");
 
 var nameTable = "APS_aud_carga_archivos_bolsa";
 
@@ -299,7 +300,9 @@ async function CargarArchivo2(req, res) {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envió satisfactorio`,
         fecha_operacion,
-        fecha_carga: nuevaCarga.fecha_carga
+        fecha_carga: DateTime.fromISO(nuevaCarga.fecha_carga).toFormat(
+          "yyyy-MM-dd | hh:mm:ss"
+        )
       });
     }
     if (includes(map(codigosSeguros, "codigo"), codeInst)) {
