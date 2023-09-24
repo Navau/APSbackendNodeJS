@@ -1020,14 +1020,18 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
       },
       ObtenerMenuAng_Rol: async () => {
         const { id_rol } = req.user;
-        const modulos = await EjecutarQuery(EscogerInternoUtil("APS_view_modulos_menu", {
-          select: ["*"],
-          where: [{ key: "id_rol", value: id_rol }],
-        }));
-        const submodulos = await EjecutarQuery(EscogerInternoUtil("APS_view_submodulos_menu", {
-          select: ["*"],
-          where: [{ key: "id_rol", value: id_rol }],
-        }));
+        const modulos = await EjecutarQuery(
+          EscogerInternoUtil("APS_view_modulos_menu", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          })
+        );
+        const submodulos = await EjecutarQuery(
+          EscogerInternoUtil("APS_view_submodulos_menu", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          })
+        );
         const menuFinal = FormatearObtenerMenuAngUtil(modulos, submodulos);
         respResultadoCorrectoObjeto200(res, menuFinal);
       },
@@ -1052,11 +1056,14 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           actualizacionesPermisos: [],
         };
         //#endregion
-        
+
         //*#region ACTUALIZAR LOS PERMISOS DE LOS MENUS DE UN ID_ROL
-        forEach(permisosFiltrados, (permiso) => submodulos.push(...permiso.submodulos));
+        forEach(permisosFiltrados, (permiso) =>
+          submodulos.push(...permiso.submodulos)
+        );
         const queryPermisoMenu = EscogerInternoUtil(
-          "APS_seg_permiso_menu_rol", {
+          "APS_seg_permiso_menu_rol",
+          {
             select: ["*"],
             where: [{ key: "id_rol", value: id_rol }],
           }
@@ -1068,7 +1075,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           "id_submodulo"
         );
         //? INSERTAR REGISTROS SI ES QUE NO EXISTEN EN LA TABLA APS_seg_permiso_menu_rol
-        if(size(diferenciasSubmodulosMenus) > 0){
+        if (size(diferenciasSubmodulosMenus) > 0) {
           const queryInsertNuevosPermisosMenus = InsertarVariosUtil(
             "APS_seg_permiso_menu_rol",
             {
@@ -1079,36 +1086,50 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               })),
               returnValue: ["*"],
             }
-            )
-            const permisosNuevos = await EjecutarQuery(queryInsertNuevosPermisosMenus);
-            permisosFinales.insercionesMenus = permisosNuevos
+          );
+          const permisosNuevos = await EjecutarQuery(
+            queryInsertNuevosPermisosMenus
+          );
+          permisosFinales.insercionesMenus = permisosNuevos;
         }
 
         //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO
-          const diferenciasPermisosMenus = differenceWith(
-            permisosMenus,
-            submodulos,
-            (value1, value2) => {
-              return value1.permiso === value2.esCompleto && value1.id_submodulo === value2.id_submodulo
-            }
-          )
-          const querysUpdate = map(diferenciasPermisosMenus, (permisoMenu) => {
-            return ActualizarUtil("APS_seg_permiso_menu_rol", {
-              body: {permiso: !permisoMenu.permiso},
-              idKey: "id_permiso_menu",
-              idValue: permisoMenu.id_permiso_menu,
-              returnValue: ["*"],
-            })
+        const diferenciasPermisosMenus = differenceWith(
+          permisosMenus,
+          submodulos,
+          (value1, value2) => {
+            return (
+              value1.permiso === value2.esCompleto &&
+              value1.id_submodulo === value2.id_submodulo
+            );
+          }
+        );
+        const querysUpdate = map(diferenciasPermisosMenus, (permisoMenu) => {
+          return ActualizarUtil("APS_seg_permiso_menu_rol", {
+            body: { permiso: !permisoMenu.permiso },
+            idKey: "id_permiso_menu",
+            idValue: permisoMenu.id_permiso_menu,
+            returnValue: ["*"],
+          });
+        });
+        await Promise.all(
+          map(querysUpdate, async (query) => await EjecutarQuery(query))
+        )
+          .then((response) => {
+            permisosFinales.actualizacionesMenus = map(
+              response,
+              (item) => item[0]
+            );
           })
-          await Promise.all(map(querysUpdate, async (query) => await EjecutarQuery(query))).then((response) => {
-            permisosFinales.actualizacionesMenus = map(response, (item) => item[0])
-          }).catch((err) => {
-            throw err
+          .catch((err) => {
+            throw err;
           });
         //#endregion
-        
+
         //*#region INSERTAR REGISTROS EN LA TABLA APS_seg_tabla_accion
-        await EjecutarQuery(EjecutarFuncionSQL("insertar_registros_tabla_accion"));
+        await EjecutarQuery(
+          EjecutarFuncionSQL("insertar_registros_tabla_accion")
+        );
         //#endregion
 
         //*#region CONSULTAS DE PERMISOS Y TABLAS ACCIONES
@@ -1125,7 +1146,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const tablasAcciones = await EjecutarQuery(
           EscogerInternoUtil("APS_view_tabla_accion_descripcion", {
             select: ["*"],
-            where: [{ key: "id_tabla", valuesWhereIn: idsTablas, whereIn: true }],
+            where: [
+              { key: "id_tabla", valuesWhereIn: idsTablas, whereIn: true },
+            ],
           })
         );
         //#endregion
@@ -1146,69 +1169,82 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               ...itemTA,
               esCompleto: submoduloFind?.esCompleto || false,
               tabla: submoduloFind?.tabla,
-            }
+            };
           }
         );
 
         const insertarNuevosPermisos = [];
         const actualizarNuevosPermisos = [];
 
-        forEach(
-          tablasAccionesConEspecificaciones,
-          (itemTA) => {
-            const permiso = find(
-              permisosBD,
-              (permisoBD) => permisoBD.id_tabla_accion === itemTA.id_tabla_accion
-            );
+        forEach(tablasAccionesConEspecificaciones, (itemTA) => {
+          const permiso = find(
+            permisosBD,
+            (permisoBD) => permisoBD.id_tabla_accion === itemTA.id_tabla_accion
+          );
 
-            const objectToPush = {
-              id_rol,
-              id_tabla_accion: itemTA?.id_tabla_accion,
-              permiso: `${itemTA?.accion} ${itemTA?.tabla}`,
-              activo: itemTA?.esCompleto,
+          const objectToPush = {
+            id_rol,
+            id_tabla_accion: itemTA?.id_tabla_accion,
+            permiso: `${itemTA?.accion} ${itemTA?.tabla}`,
+            activo: itemTA?.esCompleto,
+          };
+
+          if (isUndefined(permiso)) {
+            if (itemTA.esCompleto === true) {
+              insertarNuevosPermisos.push(objectToPush);
             }
-
-            if (isUndefined(permiso)) {
-              if(itemTA.esCompleto === true){
-                insertarNuevosPermisos.push(objectToPush)
-              };
-            } else {
-              if(itemTA.esCompleto !== permiso.activo){
-                actualizarNuevosPermisos.push({...objectToPush, id_permiso: permiso.id_permiso})
-              };
+          } else {
+            if (itemTA.esCompleto !== permiso.activo) {
+              actualizarNuevosPermisos.push({
+                ...objectToPush,
+                id_permiso: permiso.id_permiso,
+              });
             }
           }
-        )
+        });
         // console.log("insertarNuevosPermisos", insertarNuevosPermisos);
         // console.log("actualizarNuevosPermisos", actualizarNuevosPermisos);
         //? INSERTAR REGISTROS SI ES QUE NO EXISTEN EN LA TABLA APS_seg_permiso
-        if(size(insertarNuevosPermisos) > 0){
+        if (size(insertarNuevosPermisos) > 0) {
           const queryInsertNuevosPermisos = InsertarVariosUtil(
             "APS_seg_permiso",
             {
               body: insertarNuevosPermisos,
               returnValue: ["*"],
             }
-            )
-            const permisosNuevos = await EjecutarQuery(queryInsertNuevosPermisos);
-            permisosFinales.insercionesPermisos = permisosNuevos
+          );
+          const permisosNuevos = await EjecutarQuery(queryInsertNuevosPermisos);
+          permisosFinales.insercionesPermisos = permisosNuevos;
         }
 
         //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO
-        if(size(actualizarNuevosPermisos) > 0){
-          const queryActualizarPermisos = map(actualizarNuevosPermisos, (permiso) => {
-            return ActualizarUtil("APS_seg_permiso", {
-              body: permiso,
-              idKey: "id_permiso",
-              idValue: permiso.id_permiso,
-              returnValue: ["*"],
+        if (size(actualizarNuevosPermisos) > 0) {
+          const queryActualizarPermisos = map(
+            actualizarNuevosPermisos,
+            (permiso) => {
+              return ActualizarUtil("APS_seg_permiso", {
+                body: permiso,
+                idKey: "id_permiso",
+                idValue: permiso.id_permiso,
+                returnValue: ["*"],
+              });
+            }
+          );
+          await Promise.all(
+            map(
+              queryActualizarPermisos,
+              async (query) => await EjecutarQuery(query)
+            )
+          )
+            .then((response) => {
+              permisosFinales.actualizacionesPermisos = map(
+                response,
+                (item) => item[0]
+              );
             })
-          })
-          await Promise.all(map(queryActualizarPermisos, async (query) => await EjecutarQuery(query))).then((response) => {
-            permisosFinales.actualizacionesPermisos = map(response, (item) => item[0]);
-          }).catch((err) => {
-            throw err;
-          })
+            .catch((err) => {
+              throw err;
+            });
         }
 
         //#endregion
@@ -1223,9 +1259,13 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         const { id_rol } = req.body;
         const queryModulos = EscogerInternoUtil("APS_seg_view_listar_modulos");
         const queryPermisoMenu = EscogerInternoUtil(
-          "APS_seg_permiso_menu_rol", {
+          "APS_seg_permiso_menu_rol",
+          {
             select: ["*"],
-            where: [{ key: "id_rol", value: id_rol }, { key: "permiso", value: true }],
+            where: [
+              { key: "id_rol", value: id_rol },
+              { key: "permiso", value: true },
+            ],
           }
         );
         const modulosPrincipales = await EjecutarQuery(queryModulos);
@@ -1254,7 +1294,11 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           .value();
         forEach(resultModulos, (modulo) => {
           forEach(modulo.submodulos, (submodulo) => {
-            const menuDataIntersection = find(permisosMenus, (permisoMenu) => permisoMenu.id_submodulo === submodulo.id_submodulo);
+            const menuDataIntersection = find(
+              permisosMenus,
+              (permisoMenu) =>
+                permisoMenu.id_submodulo === submodulo.id_submodulo
+            );
             submodulo.esCompleto = !isUndefined(menuDataIntersection);
           });
         });
@@ -3200,7 +3244,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           auth: {
             user: "contactojosegutierrez10@gmail.com",
             // user: "admin-jose-aps",
-            pass: "svslrhedrsdtwlar",
+            pass: "vlkrtlywrworfckj",
           },
         });
 
