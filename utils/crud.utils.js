@@ -34,6 +34,7 @@ const {
   some,
   mapValues,
   merge,
+  isInteger,
 } = require("lodash");
 const {
   ListarUtil,
@@ -4584,20 +4585,18 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
 }
 
 function crearJerarquiaCuentas(cuentas, cuentaPadre = null, nivel = 1) {
-  const cuentasNivel = cuentas.filter(
-    (cuenta) => cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel
-  );
-  if (cuentasNivel.length === 0) {
-    return [];
-  }
+  const cuentasNivel = filter(cuentas, (cuenta) => {
+    if (isEmpty(cuenta.cuenta_padre)) return cuenta.id_nivel === nivel;
+    return cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel;
+  });
+  if (size(cuentasNivel) === 0) return [];
   const jerarquia = {};
   for (const cuenta of cuentasNivel) {
     const subcuentas = crearJerarquiaCuentas(cuentas, cuenta.cuenta, nivel + 1);
     if (subcuentas) cuenta.subcuentas = subcuentas;
-
     jerarquia[cuenta.cuenta] = cuenta;
   }
-  return jerarquia;
+  return map(jerarquia, (cuenta) => cuenta);
 }
 
 async function CargarArchivo_Upload(req, res, action, id = undefined) {
