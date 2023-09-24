@@ -931,9 +931,10 @@ const funcionesValidacionesContenidoValores = {
   },
   mayorACero: (params) => {
     try {
-      const { value } = params;
+      const { value, columnIndex, row } = params;
       const newValue = parseFloat(value);
       if (!isNumber(newValue)) return "No es un número válido";
+      if(columnIndex === "saldo_capital" && row?.nro_cupon === 1 && value > 0) return true
       if (value <= 0) return "El valor debe ser mayor a 0";
       return true;
     } catch (err) {

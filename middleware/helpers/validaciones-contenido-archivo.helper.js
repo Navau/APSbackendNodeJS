@@ -267,6 +267,7 @@ const validarContenidoValoresDeArchivo = (params) => {
         extraFunctionsParameters,
       } = findValidation;
 
+
       validarTiposDeDatos({
         OPTIONS_VALUES,
         pattern,
