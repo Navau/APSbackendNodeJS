@@ -934,7 +934,8 @@ const funcionesValidacionesContenidoValores = {
       const { value, columnIndex, row } = params;
       const newValue = parseFloat(value);
       if (!isNumber(newValue)) return "No es un número válido";
-      if(columnIndex === "saldo_capital" && row?.nro_cupon === 1 && value > 0) return true
+      if (columnIndex === "saldo_capital" && row?.nro_cupon === 1 && value > 0)
+        return true;
       if (value <= 0) return "El valor debe ser mayor a 0";
       return true;
     } catch (err) {
@@ -1016,7 +1017,7 @@ const funcionesValidacionesContenidoValores = {
                   }
                 }
                 OPERATION_OPTIONS.messageFields.push(
-                  `${column}(${valueAux})(fila ${rowIndex + operRow})`
+                  `${column}(${valueAux})(fila ${rowIndex + 1 + operRow})`
                 );
               } else {
                 valueAux = columnValue || 0;
@@ -1266,6 +1267,7 @@ const funcionesValidacionesContenidoValores = {
         fileCode === "TD" ||
         fileCode === "TO"
       ) {
+        const instrumentoSerie = `${tipo_instrumento}${serie}`;
         if (columnIndex === "nro_pago" && matchDataType === true) {
           if (parseFloat(value) > 1) {
             const TASA_OPTIONS = {};
@@ -1276,7 +1278,6 @@ const funcionesValidacionesContenidoValores = {
             } else if (fileCode === "442" || fileCode === "TO") {
               TASA_OPTIONS.tasa_emision = tasa_emision;
             }
-            const instrumentoSerie = `${tipo_instrumento}${serie}`;
             informacionEntreArchivos.push({
               fileNameFrom: fileName,
               fileCodeFrom: fileCode,
@@ -1284,6 +1285,19 @@ const funcionesValidacionesContenidoValores = {
                 instrumentoSerie,
                 [columnIndex]: value,
                 TASA_OPTIONS,
+              },
+              rowInfoIndex: rowIndex,
+              columnInfo: columnIndex,
+            });
+          }
+        } else if (columnIndex === "precio_nominal" && matchDataType === true) {
+          if (fileCode === "441" || fileCode === "442") {
+            informacionEntreArchivos.push({
+              fileNameFrom: fileName,
+              fileCodeFrom: fileCode,
+              value: {
+                instrumentoSerie,
+                [columnIndex]: value,
               },
               rowInfoIndex: rowIndex,
               columnInfo: columnIndex,
@@ -1331,7 +1345,9 @@ const funcionesValidacionesContenidoValores = {
               id_carga_archivos: nuevaCarga.id_carga_archivos,
               archivo: `${fileName}`,
               tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-              descripcion: `El tipo_instrumento+serie del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' no debe ser igual a el tipo_instrumento+serie del archivo '${fileCode} (fila ${rowIndex})', debido a que el tipo_operacion en el archivo ${fileCodeFrom} es igual a "COP".`,
+              descripcion: `El tipo_instrumento+serie del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' no debe ser igual a el tipo_instrumento+serie del archivo '${fileCode} (fila ${
+                rowIndex + 1
+              })', debido a que el tipo_operacion en el archivo ${fileCodeFrom} es igual a "COP".`,
               valor: `${fileCode}: ${value.instrumentoSerie} - ${fileCodeFrom}: ${instrumentoSerie}`,
               columna: columnInfo,
               fila: rowIndex,
@@ -1342,7 +1358,7 @@ const funcionesValidacionesContenidoValores = {
 
       if (
         (fileCode === "444" ||
-          // fileCode === "445" ||
+          fileCode === "445" ||
           fileCode === "UD" ||
           fileCode === "CO") &&
         rowIndex === size(fileContent) - 1 &&
@@ -1352,11 +1368,12 @@ const funcionesValidacionesContenidoValores = {
           const { fileCodeFrom, value, rowInfoIndex, columnInfo } = info;
           if (
             (fileCodeFrom === "441" && fileCode === "444") ||
-            // (fileCodeFrom === "442" && fileCode === "445") ||
+            (fileCodeFrom === "442" && fileCode === "445") ||
             (fileCodeFrom === "TD" && fileCode === "UD") ||
             (fileCodeFrom === "TO" && fileCode === "CO")
           ) {
             if (columnInfo === "nro_pago") {
+              if (fileCode === "445") return;
               const { nro_pago, TASA_OPTIONS, instrumentoSerie } = value;
               const { tipo_tasa, tasa_emision } = TASA_OPTIONS;
               const nroPagoInfo = nro_pago;
@@ -1366,12 +1383,12 @@ const funcionesValidacionesContenidoValores = {
               let counterInstrumentoSerie = 0;
 
               forEach(fileContent, (contentRow, contentRowIndex) => {
-                const instrumentoSerie = `${
+                const instrumentoSerieActual = `${
                   fileCode === "444"
                     ? contentRow.tipo_instrumento
                     : contentRow.tipo_activo
                 }${contentRow.serie}`;
-                if (instrumentoSerieInfo === instrumentoSerie) {
+                if (instrumentoSerieInfo === instrumentoSerieActual) {
                   if (tasaEmisionInfo !== null) {
                     if (
                       Number(tasaEmisionInfo) !==
@@ -1381,8 +1398,12 @@ const funcionesValidacionesContenidoValores = {
                         id_carga_archivos: nuevaCarga.id_carga_archivos,
                         archivo: fileName,
                         tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-                        descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${contentRowIndex})' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' por tipoinstrumento+serie (${instrumentoSerie})`,
-                        valor: `tipoinstrumento+serie: ${instrumentoSerie}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
+                        descripcion: `La tasa_interes del archivo '${fileCode} (fila: ${
+                          contentRowIndex + 1
+                        })' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${
+                          rowInfoIndex + 1
+                        })' por tipoinstrumento+serie (${instrumentoSerieActual})`,
+                        valor: `tipoinstrumento+serie: ${instrumentoSerieActual}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
                         columna: "tasa_interes",
                         fila: contentRowIndex,
                       });
@@ -1403,6 +1424,38 @@ const funcionesValidacionesContenidoValores = {
                   fila: rowInfoIndex,
                 });
               }
+            } else if (columnInfo === "precio_nominal") {
+              const { precio_nominal, instrumentoSerie } = value;
+              const instrumentoSerieInfo = instrumentoSerie;
+              const precioNominalInfo = precio_nominal;
+              forEach(fileContent, (contentRow, contentRowIndex) => {
+                const instrumentoSerieActual = `${
+                  fileCode === "444"
+                    ? contentRow.tipo_instrumento
+                    : contentRow.tipo_activo
+                }${contentRow.serie}`;
+                if (instrumentoSerieInfo === instrumentoSerieActual) {
+                  if (
+                    Number(precioNominalInfo) !==
+                      Number(contentRow.saldo_capital) &&
+                    Number(contentRow.nro_cupon) === 1
+                  ) {
+                    errors.push({
+                      id_carga_archivos: nuevaCarga.id_carga_archivos,
+                      archivo: fileName,
+                      tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+                      descripcion: `El saldo_capital del archivo '${fileCode} (fila: ${
+                        contentRowIndex + 1
+                      })' debe ser igual a el precio_nominal del archivo '${fileCodeFrom} (fila ${
+                        rowInfoIndex + 1
+                      })' por tipoinstrumento+serie (${instrumentoSerieActual})`,
+                      valor: `tipoinstrumento+serie: ${instrumentoSerieActual}, saldo_capital (${fileCode}): ${contentRow.saldo_capital} - precio_nominal (${fileCodeFrom}): ${precioNominalInfo}`,
+                      columna: "saldo_capital",
+                      fila: contentRowIndex,
+                    });
+                  }
+                }
+              });
             }
           }
         });
