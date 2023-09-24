@@ -2204,7 +2204,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             return;
           }
           // VALIDACION PRELIMINAR
-          const aux = map(instituciones.result, (item) => {
+          const aux = map(instituciones, (item) => {
             return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
               body: {
                 fecha,
@@ -2364,7 +2364,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             return;
           }
           // VALIDACION PRELIMINAR
-          const aux = map(instituciones.result, (item) => {
+          const aux = map(instituciones, (item) => {
             return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
               body: {
                 fecha,
