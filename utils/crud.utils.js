@@ -553,19 +553,22 @@ async function EscogerClasificadorCRUD(paramsF) {
 async function InsertarCRUD(paramsF) {
   const { req, res, nameTable, newID = undefined, id = undefined } = paramsF;
   const action = "Insertar";
-
+  const { key } = req.body;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
+    delete req.body?.key;
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
@@ -614,19 +617,23 @@ async function ActualizarCRUD(paramsF) {
   const { req, res, nameTable, id = undefined, newID } = paramsF;
   let registroAnterior = undefined;
   let idInfo = undefined;
+  const { key } = req.body;
   try {
     const action = "Actualizar";
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
+    delete req.body?.key;
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
