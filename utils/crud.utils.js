@@ -4537,7 +4537,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             ? ListarUtil(nameTable, { activo: null })
             : ListarUtil(nameTable)
         );
-        const estructuraJerarquica = crearJerarquiaCuentas(cuentas, "1");
+        const estructuraJerarquica = crearJerarquiaCuentas(cuentas);
         respResultadoCorrectoObjeto200(res, estructuraJerarquica);
       },
       EscogerSubcuentas_PlanCuentas: async () => {
@@ -4570,10 +4570,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         if (!isUndefined(limit)) params.limit = limit;
         if (!isUndefined(offset)) params.offset = offset;
         const cuentas = await EjecutarQuery(EscogerUtil(nameTable, params));
-        const estructuraJerarquica = crearJerarquiaCuentas(
-          cuentas,
-          cuentaPadre
-        );
+        const estructuraJerarquica = crearJerarquiaCuentas(cuentas);
         respResultadoCorrectoObjeto200(res, estructuraJerarquica);
       },
     };
