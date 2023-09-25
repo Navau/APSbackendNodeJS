@@ -1330,59 +1330,20 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           respDatosNoRecibidos400(res, "ID usuario y ID rol requeridos");
           return;
         }
-        const values = [
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          periodicidad,
-          id_usuario,
-          id_rol,
-        ];
-        const query = formatearQuery(
-          `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
-            "APS_param_archivos_pensiones_seguros".nombre::text, 
-            'nnn'::text, "APS_seg_institucion".codigo::text),
-            'aaaa'::text, EXTRACT(year FROM TIMESTAMP %L)::text),
-            'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'AA'::text, substring(EXTRACT(year FROM TIMESTAMP %L)::text from 3 for 2)),
-            'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'nntt'::text, "APS_seg_institucion".codigo::text ||
-            "APS_param_archivos_pensiones_seguros".codigo::text),
-            'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
-            "APS_seg_usuario".id_usuario,
-            "APS_param_archivos_pensiones_seguros".archivo_vacio 
-            FROM "APS_param_archivos_pensiones_seguros" 
-            JOIN "APS_param_clasificador_comun" 
-            ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
-            JOIN "APS_seg_usuario_rol" 
-            ON "APS_seg_usuario_rol".id_rol = "APS_param_archivos_pensiones_seguros".id_rol 
-            JOIN "APS_seg_usuario" 
-            ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
-            JOIN "APS_seg_institucion" 
-            ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-            WHERE "APS_param_clasificador_comun".id_clasificador_comun = %L 
-            AND "APS_seg_usuario".id_usuario = %L 
-            AND "APS_seg_usuario_rol".id_rol = %L 
-            AND "APS_param_archivos_pensiones_seguros".activo = true;`,
-          values
-        );
-
-        await pool
-          .query(query)
-          .then((result) => {
-            const resultArray = sortBy(result.rows, (row) =>
-              toLower(row.archivo)
-            );
-            respResultadoCorrectoObjeto200(res, resultArray);
+        const archivosRequeridos = await EjecutarQuery(
+          EjecutarFuncionSQL("aps_fun_archivos_pensiones_seguros", {
+            body: {
+              fecha_operacion,
+              id_rol,
+              id_usuario,
+              periodicidad,
+            },
           })
-          .catch((err) => {
-            throw err;
-          });
+        );
+        const resultArray = sortBy(archivosRequeridos, (row) =>
+          toLower(row.archivo)
+        );
+        respResultadoCorrectoObjeto200(res, resultArray);
       },
       SeleccionarArchivosBolsa_ArchivosPensionesSeguros: async () => {
         const { fecha_operacion } = req.body;
@@ -1401,68 +1362,25 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         );
         const workingDay = await EjecutarQuery(queryFeriado);
 
-        let periodicidad = [154]; //VALOR POR DEFECTO
+        const periodicidad = [154]; //VALOR POR DEFECTO
 
-        if (parseInt(workingDay?.[0].case) === 0) {
-          periodicidad = [154]; // DIARIOS
-        } else {
-          periodicidad = [154, 219]; // DIAS HABILES
-        }
+        if (parseInt(workingDay?.[0].case) === 0) periodicidad; // DIARIOS
+        else periodicidad.push(219); // DIAS HABILES
 
-        const values = [
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          periodicidad,
-          id_usuario,
-          id_rol,
-        ];
-
-        const query = formatearQuery(
-          `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
-          "APS_param_archivos_pensiones_seguros".nombre::text, 
-          'nnn'::text, "APS_seg_institucion".codigo::text),
-          'aaaa'::text, EXTRACT(year FROM TIMESTAMP %L)::text),
-          'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'AA'::text, substring(EXTRACT(year FROM TIMESTAMP %L)::text from 3 for 2)),
-          'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'nntt'::text, "APS_seg_institucion".codigo::text ||
-          "APS_param_archivos_pensiones_seguros".codigo::text),
-          'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
-          "APS_seg_usuario".id_usuario,
-          "APS_param_archivos_pensiones_seguros".archivo_vacio 
-          FROM "APS_param_archivos_pensiones_seguros" 
-          JOIN "APS_param_clasificador_comun" 
-          ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
-          JOIN "APS_seg_usuario_rol" 
-          ON "APS_seg_usuario_rol".id_rol = "APS_param_archivos_pensiones_seguros".id_rol 
-          JOIN "APS_seg_usuario" 
-          ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
-          JOIN "APS_seg_institucion" 
-          ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-          WHERE "APS_param_clasificador_comun".id_clasificador_comun in (%L) 
-          AND "APS_seg_usuario".id_usuario = %L 
-          AND "APS_seg_usuario_rol".id_rol = %L 
-          AND "APS_param_archivos_pensiones_seguros".activo = true;`,
-          values
-        );
-
-        await pool
-          .query(query)
-          .then((result) => {
-            const resultArray = sortBy(result.rows, (row) =>
-              toLower(row.archivo)
-            );
-            respResultadoCorrectoObjeto200(res, resultArray);
+        const archivosRequeridos = await EjecutarQuery(
+          EjecutarFuncionSQL("aps_fun_archivos_bolsa", {
+            body: {
+              fecha_operacion,
+              id_rol,
+              id_usuario,
+              periodicidad: periodicidad.join(","),
+            },
           })
-          .catch((err) => {
-            throw err;
-          });
+        );
+        const resultArray = sortBy(archivosRequeridos, (row) =>
+          toLower(row.archivo)
+        );
+        respResultadoCorrectoObjeto200(res, resultArray);
       },
       SeleccionarArchivosCustodio_ArchivosPensionesSeguros: async () => {
         const { fecha_operacion, tipo } = req.body;

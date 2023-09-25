@@ -3680,7 +3680,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(^-?(0|[1-9][0-9]{2,9}))$/,
+        pattern: /^(^-?(0|[1-9][0-9]{2,10}))$/,
         functions: ["mayorACero"],
       },
       {

@@ -235,7 +235,7 @@ async function funcionesSeguros(fecha, id_usuario, codInst) {
       .then(async (response) => {
         console.log("PRIMEROS QUERYS");
         return await Promise.all(map(querys2, (query) => EjecutarQuery(query)))
-        .then((response2) => {
+          .then((response2) => {
             console.log("SEGUNDOS QUERYS");
             return response2;
           })
@@ -260,8 +260,7 @@ const obtenerUltimaCarga = async (params) => {
     const where = [
       { key: "id_rol", value: id_rol },
       { key: "cod_institucion", value: TABLE_INFO.codeInst },
-      { key: "id_usuario", value: id_usuario },
-      { key: "fecha_operacion", value: fecha_operacion },
+      { key: "cargado", value: true },
     ];
 
     if (id === "SEGUROS" || id === "PENSIONES")

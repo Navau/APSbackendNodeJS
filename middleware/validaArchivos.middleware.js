@@ -244,11 +244,7 @@ exports.formatearArchivos = async (req, res, next) => {
       }
     });
   } catch (err) {
-    if (err?.type === "unauthorized")
-      respUsuarioNoAutorizado200END(res, null, err.action, err.table);
-    else if (isNumber(err?.myCode))
-      respResultadoDinamicoEND(res, err.myCode, [], [], err.message);
-    else respErrorServidor500END(res, err);
+    handleErrors(err, res);
   }
 };
 
@@ -310,9 +306,7 @@ exports.validarFormatoContenidoDeArchivos = async (req, res, next) => {
       }
     });
   } catch (err) {
-    if (isNumber(err?.myCode))
-      respResultadoDinamicoEND(res, err.myCode, [], [], err.message);
-    else respErrorServidor500END(res, err);
+    handleErrors(err, res);
   }
 };
 
@@ -377,11 +371,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
       }
     });
   } catch (err) {
-    if (err?.type === "errores_archivos")
-      respArchivoErroneo200(res, err.errors);
-    else if (isNumber(err?.myCode))
-      respResultadoDinamicoEND(res, err.myCode, [], [], err.message);
-    else respErrorServidor500END(res, err);
+    handleErrors(err, res);
   }
 };
 
@@ -417,4 +407,13 @@ const workerInsertarErrores = (WORKER_OPTIONS, type) => {
     console.log(`('${WORKER_OPTIONS.data.TABLE_INFO.codeInst}')`);
     console.log("============================================");
   });
+};
+
+const handleErrors = (err, res) => {
+  if (err?.type === "errores_archivos") respArchivoErroneo200(res, err.errors);
+  else if (err?.type === "unauthorized")
+    respUsuarioNoAutorizado200END(res, null, err.action, err.table);
+  else if (isNumber(err?.myCode))
+    respResultadoDinamicoEND(res, err.myCode, 0, [], err.message);
+  else respErrorServidor500END(res, err);
 };
