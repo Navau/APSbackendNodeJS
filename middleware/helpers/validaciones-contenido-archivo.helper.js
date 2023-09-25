@@ -237,16 +237,29 @@ const validarContenidoValoresDeArchivo = (params) => {
   const OPTIONS_VALUES = {
     value: undefined,
     matchDataType,
+    isLastRow: false,
+    isLastColumn: false,
+    isLastNroCupon: false,
   };
   forEach(fileContent, (row, rowIndex) => {
     let columnCounter = 0;
+    OPTIONS_VALUES.isLastRow = false;
+    OPTIONS_VALUES.isLastColumn = false;
+    if (rowIndex === size(fileContent) - 1) OPTIONS_VALUES.isLastRow = true;
+    if (
+      fileContent?.[rowIndex + 1]?.nro_cupon === "1" ||
+      rowIndex === size(fileContent) - 1
+    )
+      OPTIONS_VALUES.isLastNroCupon = true;
+
     forEach(row, (value, columnIndex) => {
+      columnCounter++;
+      if (columnCounter === size(row) - 1) OPTIONS_VALUES.isLastColumn = true;
       forEach(replaceFieldValue, (replaceValue, replaceColumnIndex) => {
         if (columnIndex === replaceColumnIndex)
           value = DateTime.fromISO(value).toFormat(replaceValue);
       });
       OPTIONS_VALUES.value = value;
-      columnCounter++;
       const findValidation = find(
         validations,
         (validation) => validation.columnName === columnIndex
@@ -266,7 +279,6 @@ const validarContenidoValoresDeArchivo = (params) => {
         mathOperation,
         extraFunctionsParameters,
       } = findValidation;
-
 
       validarTiposDeDatos({
         OPTIONS_VALUES,
@@ -325,6 +337,7 @@ const validarContenidoValoresDeArchivo = (params) => {
         columnCounter,
         columnIndex,
         nuevaCarga,
+        validations,
         fileCode,
         fileName,
         fileContent,
@@ -435,13 +448,16 @@ const validarFuncionesDeColumnas = (params) => {
     fileName,
     fecha_operacion,
   } = params;
-  const { value } = OPTIONS_VALUES;
+  const { value, isLastColumn, isLastRow, isLastNroCupon } = OPTIONS_VALUES;
   forEach(functions, (functionName) => {
     functionResult = funcionesValidacionesContenidoValores[functionName]({
       paramsBD,
       value,
       fecha_operacion,
       columnIndex,
+      isLastNroCupon,
+      isLastRow,
+      isLastColumn,
       row,
       messages,
       mayBeEmptyFields,
@@ -519,6 +535,7 @@ const validarOperacionesEntreArchivos = (params) => {
     columnCounter,
     columnIndex,
     nuevaCarga,
+    validations,
     fileCode,
     fileName,
     fileContent,
@@ -534,6 +551,7 @@ const validarOperacionesEntreArchivos = (params) => {
       columnIndex,
       columnCounter,
       matchDataType,
+      validations,
       nuevaCarga,
       informacionEntreArchivos,
       fileName,

@@ -931,12 +931,18 @@ const funcionesValidacionesContenidoValores = {
   },
   mayorACero: (params) => {
     try {
-      const { value, columnIndex, row } = params;
+      const { value, columnIndex, row, isLastNroCupon } = params;
       const newValue = parseFloat(value);
       if (!isNumber(newValue)) return "No es un número válido";
-      if (columnIndex === "saldo_capital" && row?.nro_cupon === 1 && value > 0)
+      if (
+        columnIndex === "saldo_capital" &&
+        row?.nro_cupon === 1 &&
+        newValue > 0
+      )
         return true;
-      if (value <= 0) return "El valor debe ser mayor a 0";
+      if (columnIndex === "saldo_capital" && isLastNroCupon && newValue !== 0)
+        return "El valor debe ser igual a 0";
+      if (newValue <= 0) return "El valor debe ser mayor a 0";
       return true;
     } catch (err) {
       return `Error de servidor. ${err}`;
@@ -947,7 +953,7 @@ const funcionesValidacionesContenidoValores = {
       const { value } = params;
       const newValue = parseFloat(value);
       if (!isNumber(newValue)) return "No es un número válido";
-      if (value < 0) return "El valor debe ser mayor o igual a 0";
+      if (newValue < 0) return "El valor debe ser mayor o igual a 0";
       return true;
     } catch (err) {
       return `Error de servidor. ${err}`;
@@ -1245,6 +1251,7 @@ const funcionesValidacionesContenidoValores = {
       columnIndex,
       columnCounter,
       matchDataType,
+      validations,
       nuevaCarga,
       informacionEntreArchivos,
       fileName,
@@ -1434,9 +1441,24 @@ const funcionesValidacionesContenidoValores = {
                     ? contentRow.tipo_instrumento
                     : contentRow.tipo_activo
                 }${contentRow.serie}`;
+                const operationPrecioNominalAmortizacion = math.evaluate(
+                  `(${precioNominalInfo} - ${contentRow.amortizacion})`
+                );
+                const findValidation = find(
+                  validations,
+                  (validation) => validation.columnName === "saldo_capital"
+                );
+                if (isUndefined(findValidation))
+                  throw new Error(
+                    `No se encontró la columna '${contentRowIndex}' en el archivo '${fileCode}'`
+                  );
+                const precioNominalAmortizacion = fixedByPattern(
+                  operationPrecioNominalAmortizacion,
+                  findValidation.pattern
+                );
                 if (instrumentoSerieInfo === instrumentoSerieActual) {
                   if (
-                    Number(precioNominalInfo) !==
+                    Number(precioNominalAmortizacion) !==
                       Number(contentRow.saldo_capital) &&
                     Number(contentRow.nro_cupon) === 1
                   ) {
@@ -1446,10 +1468,10 @@ const funcionesValidacionesContenidoValores = {
                       tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
                       descripcion: `El saldo_capital del archivo '${fileCode} (fila: ${
                         contentRowIndex + 1
-                      })' debe ser igual a el precio_nominal del archivo '${fileCodeFrom} (fila ${
+                      })' debe ser igual al precio_nominal del archivo '${fileCodeFrom} (fila ${
                         rowInfoIndex + 1
-                      })' por tipoinstrumento+serie (${instrumentoSerieActual})`,
-                      valor: `tipoinstrumento+serie: ${instrumentoSerieActual}, saldo_capital (${fileCode}): ${contentRow.saldo_capital} - precio_nominal (${fileCodeFrom}): ${precioNominalInfo}`,
+                      })' - amortizacion (${fileCode}) por tipoinstrumento+serie (${instrumentoSerieActual})`,
+                      valor: `tipoinstrumento+serie: ${instrumentoSerieActual}, saldo_capital (${fileCode}): ${contentRow.saldo_capital}, (precio_nominal (${fileCodeFrom})(${precioNominalInfo}) - amortizacion (${fileCode})(${contentRow.amortizacion})): ${precioNominalAmortizacion}`,
                       columna: "saldo_capital",
                       fila: contentRowIndex,
                     });
