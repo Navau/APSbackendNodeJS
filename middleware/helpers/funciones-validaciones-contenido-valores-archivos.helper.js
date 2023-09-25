@@ -679,7 +679,8 @@ const funcionesValidacionesContenidoValores = {
       const {
         calificacionDataDB,
         calificacionVacioDataDB,
-        calificacionConTipoInstrumentoDataDB,
+        calificacionConTipoInstrumento135DataDB,
+        calificacionConTipoInstrumento136DataDB,
       } = paramsBD;
       const tiposInstrumentos = extraFunctionsParameters?.tiposInstrumentos;
       const calificacion = value;
@@ -689,12 +690,24 @@ const funcionesValidacionesContenidoValores = {
         calificacionVacioDataDB,
         "descripcion"
       );
-      const calificacionConTipoInstrumentoMap = map(
-        calificacionConTipoInstrumentoDataDB,
+      const calificacionConTipoInstrumento135Map = map(
+        calificacionConTipoInstrumento135DataDB,
         "sigla"
       );
-      if (size(calificacionConTipoInstrumentoMap) > 0) {
-        if (includes(calificacionConTipoInstrumentoMap, tipoInstrumento)) {
+      const calificacionConTipoInstrumento136Map = map(
+        calificacionConTipoInstrumento136DataDB,
+        "sigla"
+      );
+      if (
+        size(calificacionConTipoInstrumento135Map) > 0 ||
+        size(calificacionConTipoInstrumento136Map) > 0
+      ) {
+        if (includes(calificacionConTipoInstrumento135Map, tipoInstrumento)) {
+          if (!includes(calificacionesMap, calificacion))
+            return `La calificación no se encuentra en ninguna calificación válida (tipo instrumento ${tipoInstrumento})`;
+        } else if (
+          includes(calificacionConTipoInstrumento136Map, tipoInstrumento)
+        ) {
           if (
             isEmpty(calificacion) &&
             includes(mayBeEmptyFields, "calificacion")
@@ -703,8 +716,7 @@ const funcionesValidacionesContenidoValores = {
           if (!includes(calificacionesVacioMap, calificacion))
             return `La calificación no se encuentra en ninguna calificación válida (tipo instrumento ${tipoInstrumento})`;
         } else {
-          if (!includes(calificacionDataDB, calificacion))
-            return `La calificación no se encuentra en ninguna calificación válida`;
+          return `El tipo_instrumento '${tipoInstrumento}' no se encuentra en ninguna sigla válida para poder validar la calificación`;
         }
       } else {
         if (!includes(tiposInstrumentos, tipoInstrumento))

@@ -948,7 +948,19 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      calificacionConTipoInstrumento: {
+      calificacionConTipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        },
+      },
+      calificacionConTipoInstrumento136: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1245,7 +1257,19 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      calificacionConTipoInstrumento: {
+      calificacionConTipoInstrumento135: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_renta",
+              value: 135,
+            },
+          ],
+        },
+      },
+      calificacionConTipoInstrumento136: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -2559,7 +2583,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      calificacionConTipoInstrumento: {
+      calificacionConTipoInstrumento136: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
