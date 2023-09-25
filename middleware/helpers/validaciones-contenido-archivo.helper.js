@@ -12,6 +12,7 @@ const {
   isArray,
   isUndefined,
   trim,
+  set,
 } = require("lodash");
 const {
   agregarError,
@@ -23,13 +24,32 @@ const {
 } = require("./funciones-validaciones-contenido-valores-archivos.helper");
 
 const quitarCaracteresExtrañosContenidoArchivo = (fileContent) => {
-  forEach(fileContent, (value, index) => {
-    if (value?.charCodeAt(index) === 65279) {
-      console.log("VALUE", value, "INDEX", index, 65279);
-      value = value.replace(value.slice(index, 1), "");
-      console.log("VALUE", value, "INDEX", index, 65279);
-    }
-  });
+  try {
+    let result = "";
+    forEach(fileContent, (char, index) => {
+      if (char?.charCodeAt(index) === 65279) {
+        console.log({
+          char,
+          index,
+          typeOF: typeof char,
+          size: char.length,
+          charCode: char.charCodeAt(index),
+        });
+        char = char.replace(char.slice(index, index + 1), "");
+        console.log({
+          char,
+          index,
+          typeOF: typeof char,
+          size: char.length,
+          charCode: char.charCodeAt(index),
+        });
+      }
+      result += char;
+    });
+    return result;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const verificarArchivoVacio = (
@@ -48,7 +68,7 @@ const verificarArchivoVacio = (
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         archivo: fileName,
         tipo_error: "CONTENIDO DE ARCHIVO VACIO",
-        descripcion: `El contenido del archivo no puede estar sin información o vació`,
+        descripcion: `El contenido del archivo no puede estar sin información o vacío`,
       };
       agregarError(newError, errors);
     }
@@ -160,6 +180,7 @@ const encontrarErroresPorFilaDeArchivo = (
         row[0] === " " || row[size(row) - 1] === " "
           ? "El formato del archivo no debe contener espacios en blanco al inicio ni al final"
           : "El formato del archivo no contiene los campos entre comillas correctamente";
+      console.log({ row, 0: row[0], last: row[size(row) - 1] });
       errorPositions.push({
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         archivo: fileName,

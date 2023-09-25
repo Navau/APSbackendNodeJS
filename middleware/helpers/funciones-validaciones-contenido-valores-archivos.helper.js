@@ -413,7 +413,7 @@ const funcionesValidacionesContenidoValores = {
       throw err;
     }
   },
-  tasaRendimientoConInstrumento: (params) => {
+  tasaRendimientoConTipoInstrumento: (params) => {
     try {
       const {
         paramsBD,
@@ -679,7 +679,7 @@ const funcionesValidacionesContenidoValores = {
       const {
         calificacionDataDB,
         calificacionVacioDataDB,
-        calificacionConTipoInstrumento,
+        calificacionConTipoInstrumentoDataDB,
       } = paramsBD;
       const tiposInstrumentos = extraFunctionsParameters?.tiposInstrumentos;
       const calificacion = value;
@@ -690,7 +690,7 @@ const funcionesValidacionesContenidoValores = {
         "descripcion"
       );
       const calificacionConTipoInstrumentoMap = map(
-        calificacionConTipoInstrumento,
+        calificacionConTipoInstrumentoDataDB,
         "sigla"
       );
       if (size(calificacionConTipoInstrumentoMap) > 0) {
@@ -807,11 +807,12 @@ const funcionesValidacionesContenidoValores = {
         extraFunctionsParameters,
         row,
         mayBeEmptyFields,
+        fileCode,
       } = params;
       const {
-        tipoValoracionConTnstrumento135DataDB,
-        tipoValoracionConTnstrumento1DataDB,
-        tipoValoracionConTnstrumento25DataDB,
+        tipoValoracionConTipoInstrumento135DataDB,
+        tipoValoracionConTipoInstrumento1DataDB,
+        tipoValoracionConTipoInstrumento25DataDB,
         tipoValoracion22DataDB,
         tipoValoracion31DataDB,
         tipoValoracion210DataDB,
@@ -819,12 +820,15 @@ const funcionesValidacionesContenidoValores = {
       const tipoValoracion = value;
       const tipoInstrumento = row.tipo_instrumento;
       const instrumento135Map = map(
-        tipoValoracionConTnstrumento135DataDB,
+        tipoValoracionConTipoInstrumento135DataDB,
         "sigla"
       );
-      const instrumento1Map = map(tipoValoracionConTnstrumento1DataDB, "sigla");
+      const instrumento1Map = map(
+        tipoValoracionConTipoInstrumento1DataDB,
+        "sigla"
+      );
       const instrumento25Map = map(
-        tipoValoracionConTnstrumento25DataDB,
+        tipoValoracionConTipoInstrumento25DataDB,
         "sigla"
       );
       const tipoValoracion22Map = map(tipoValoracion22DataDB, "sigla");
@@ -840,7 +844,7 @@ const funcionesValidacionesContenidoValores = {
         if (!includes(tipoValoracion210Map, tipoValoracion))
           return "El tipo_valoracion no coincide con ninguna sigla válida";
       } else
-        return "El tipo_instrumento no se encuentra en ninguna sigla válida para poder validar el tipo_valoracion";
+        return `El tipo_instrumento '${tipoInstrumento}' no se encuentra en ninguna sigla válida para poder validar el tipo_valoracion`;
 
       return true;
     } catch (err) {

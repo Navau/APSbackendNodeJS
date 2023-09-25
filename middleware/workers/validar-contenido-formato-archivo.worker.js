@@ -21,9 +21,11 @@ function validarContenidoArchivo() {
   try {
     forEach(readedFiles, (file) => {
       const { fileContent, fileIsEmpty, fileName } = file;
-      quitarCaracteresExtrañosContenidoArchivo(fileContent);
+      const newFileContent =
+        quitarCaracteresExtrañosContenidoArchivo(fileContent);
+      file.fileContent = newFileContent;
       verificarArchivoVacio(
-        fileContent,
+        newFileContent,
         fileIsEmpty,
         fileName,
         nuevaCarga,
