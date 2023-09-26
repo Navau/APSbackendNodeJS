@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { maxBy, forEach, map, size, isUndefined } = require("lodash");
+const { maxBy, forEach, map, size, isUndefined, includes } = require("lodash");
 const {
   EjecutarQuery,
   EscogerInternoUtil,
@@ -13,6 +13,7 @@ const {
   EjecutarFuncionSQL,
   AlterarSequenciaMultiplesTablasUtil,
   AlterarSequenciaMultiplesTablasUtil2,
+  ObtenerColumnasDeTablaUtil,
 } = require("../../utils/consulta.utils");
 const { DateTime } = require("luxon");
 
@@ -30,8 +31,10 @@ async function insertarNuevaCargaArchivo(params) {
     const { table, codeInst } = TABLE_INFO;
 
     const ultimaCarga = await obtenerUltimaCarga(params);
-    if (isUndefined(ultimaCarga))
-      throw { myCode: 500, message: "La carga anterior no fue encontrada" };
+    const infoCarga = await EjecutarQuery(ObtenerColumnasDeTablaUtil(table));
+    const columnasCarga = map(infoCarga, "column_name");
+    // if (isUndefined(ultimaCarga))
+    //   throw { myCode: 500, message: "La carga anterior no fue encontrada" };
     const maxCarga =
       ultimaCarga?.cargado === true ? 0 : ultimaCarga?.nro_carga || 0;
     const whereCarga = {
@@ -41,12 +44,16 @@ async function insertarNuevaCargaArchivo(params) {
       id_usuario,
       cargado: false,
     };
-    if (ultimaCarga?.reprocesado) whereCarga["reprocesado"] = false;
-    if (ultimaCarga?.reproceso) whereCarga["reproceso"] = reproceso;
-    if (ultimaCarga?.fecha_entrega) whereCarga["fecha_entrega"] = fecha_entrega;
-    if (ultimaCarga?.cod_institucion) whereCarga["cod_institucion"] = codeInst;
-    if (ultimaCarga?.id_periodo) whereCarga["id_periodo"] = tipo_periodo;
-    // console.log({ ultimaCarga, whereCarga, params });
+    if (includes(columnasCarga, "reprocesado"))
+      whereCarga["reprocesado"] = false;
+    if (includes(columnasCarga, "reproceso") && reproceso === true)
+      whereCarga["reproceso"] = reproceso;
+    if (includes(columnasCarga, "fecha_entrega"))
+      whereCarga["fecha_entrega"] = fecha_entrega;
+    if (includes(columnasCarga, "cod_institucion"))
+      whereCarga["cod_institucion"] = codeInst;
+    if (includes(columnasCarga, "id_periodo"))
+      whereCarga["id_periodo"] = tipo_periodo;
 
     const nuevaCarga = await EjecutarQuery(
       InsertarUtil(table, {
@@ -261,6 +268,7 @@ const obtenerUltimaCarga = async (params) => {
     const where = [
       { key: "id_rol", value: id_rol },
       { key: "cod_institucion", value: TABLE_INFO.codeInst },
+      { key: "cargado", value: false },
     ];
 
     if (id === "SEGUROS" || id === "PENSIONES")

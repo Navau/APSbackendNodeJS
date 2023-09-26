@@ -2715,9 +2715,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               cod_institucion: item.cod_institucion,
               fecha_operacion: item.fecha_operacion,
               nro_carga: item.nro_carga,
-              fecha_carga: DateTime.fromJSDate(item.fecha_carga, {
-                zone: "America/La_Paz",
-              }).toFormat("yyyy-MM-dd HH:mm"),
+              fecha_carga: DateTime.fromJSDate(item.fecha_carga).toFormat(
+                "yyyy-MM-dd HH:mm"
+              ),
               usuario: find(
                 usuarios.data,
                 (itemF) => item.id_usuario === itemF.id_usuario
