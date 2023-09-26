@@ -297,12 +297,11 @@ async function CargarArchivo2(req, res) {
         archivo: fileName,
         cargado: true,
         id_carga_archivos: nuevaCarga.id_carga_archivos,
-        mensaje: `Envió satisfactorio`,
+        mensaje: `Envío satisfactorio`,
         fecha_operacion,
-        fecha_carga: DateTime.fromJSDate(nuevaCarga.fecha_carga, 
-          { zone: 'America/La_Paz' }).toFormat(
-          "yyyy-MM-dd | HH:mm:ss"
-        )
+        fecha_carga: DateTime.fromJSDate(nuevaCarga.fecha_carga, {
+          zone: "America/La_Paz",
+        }).toFormat("yyyy-MM-dd | HH:mm:ss"),
       });
     }
     if (includes(map(codigosSeguros, "codigo"), codeInst)) {

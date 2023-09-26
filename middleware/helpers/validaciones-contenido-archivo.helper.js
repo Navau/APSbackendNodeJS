@@ -266,6 +266,7 @@ const validarContenidoValoresDeArchivo = (params) => {
     let columnCounter = 0;
     OPTIONS_VALUES.isLastRow = false;
     OPTIONS_VALUES.isLastColumn = false;
+    OPTIONS_VALUES.isLastNroCupon = false;
     if (rowIndex === size(fileContent) - 1) OPTIONS_VALUES.isLastRow = true;
     if (
       fileContent?.[rowIndex + 1]?.nro_cupon === "1" ||
@@ -480,6 +481,7 @@ const validarFuncionesDeColumnas = (params) => {
       isLastRow,
       isLastColumn,
       row,
+      rowIndex,
       messages,
       mayBeEmptyFields,
       pattern,

@@ -3833,7 +3833,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "saldo_capital",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
-        functions: [],
+        functions: ["mayorACero"],
         mathOperation: [
           { column: "saldo_capital", operRow: -1 },
           "-",

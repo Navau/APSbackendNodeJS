@@ -5356,7 +5356,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               archivo: item,
               cargado: true,
               id_carga_archivos: idCargaArchivos,
-              mensaje: `Envió satisfactorio`,
+              mensaje: `Envío satisfactorio`,
               fecha_operacion: fechaInicialOperacion,
             });
           });
