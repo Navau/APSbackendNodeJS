@@ -202,7 +202,7 @@ const encontrarErroresPorFilaDeArchivo = (
           id_carga_archivos: nuevaCarga.id_carga_archivos,
           archivo: fileName,
           tipo_error: "ERROR DE FORMATO DE CONTENIDO",
-          descripcion: `El formato de archivo debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerda de '${errorContext}')`,
+          descripcion: `El formato de archivo debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerca de '${errorContext}')`,
           fila: indexRow,
         });
         return errorPositions;
@@ -212,7 +212,7 @@ const encontrarErroresPorFilaDeArchivo = (
             id_carga_archivos: nuevaCarga.id_carga_archivos,
             archivo: fileName,
             tipo_error: "ERROR DE FORMATO DE CONTENIDO",
-            descripcion: `El formato de archivo debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerda de '${errorContext}')`,
+            descripcion: `El formato de archivo debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerca de '${errorContext}')`,
             fila: indexRow,
           });
           i += row.indexOf('"', i - 2);
@@ -220,8 +220,8 @@ const encontrarErroresPorFilaDeArchivo = (
         }
         if (char === "," && row[i + 1] !== '"') {
           const message = isEmpty(row[i + 1])
-            ? `El formato de archivo no debe contener espacios en blanco y debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerda de '${errorContext}')`
-            : `El formato de archivo debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerda de '${errorContext}')`;
+            ? `El formato de archivo no debe contener espacios en blanco y debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerca de '${errorContext}')`
+            : `El formato de archivo debe estar separado correctamente por comas (,) y comillas dobles ("") (error cerca de '${errorContext}')`;
           i += row.indexOf('"', i - 2);
           insideQuotes = !insideQuotes;
           errorPositions.push({
