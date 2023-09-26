@@ -295,7 +295,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      operacionValida: {
+      tipoOperacionOperacionValida: {
         table: "APS_param_operacion_valida",
         queryOptions: {
           select: [
@@ -398,7 +398,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      operacionValida: {
+      tipoOperacionOperacionValida: {
         table: "APS_param_operacion_valida",
         queryOptions: {
           select: [
@@ -1133,7 +1133,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
       },
     },
     482: {
-      tipoInstrumento135: {
+      tipoInstrumento: {
         table: "APS_param_tipo_instrumento",
         queryOptions: {
           select: ["sigla"],
@@ -1981,7 +1981,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      operacionValida: {
+      tipoOperacionOperacionValida: {
         table: "APS_param_operacion_valida",
         queryOptions: {
           select: [
@@ -2087,7 +2087,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      operacionValida: {
+      tipoOperacionOperacionValida: {
         table: "APS_param_operacion_valida",
         queryOptions: {
           select: [

@@ -637,7 +637,7 @@ const funcionesValidacionesContenidoValores = {
   calificadora: (params) => {
     return defaultValidationContentValues(
       params,
-      "La calificadora no se encuentra en ninguna calificadora válida"
+      "La sigla de la Calificadora no es válida"
     );
   },
   custodio: (params) => {
@@ -767,7 +767,7 @@ const funcionesValidacionesContenidoValores = {
           return `La calificadora no debe tener contenido debido a que la calificación no tiene contenido`;
       } else {
         if (!includes(calificadoraMap, calificadora))
-          return `La calificadora no se encuentra en ninguna calificadora válida`;
+          return `La sigla de la Calificadora no es válida`;
       }
       return true;
     } catch (err) {
@@ -950,10 +950,14 @@ const funcionesValidacionesContenidoValores = {
         row,
         mayBeEmptyFields,
       } = params;
-      const { operacionValidaDataDB } = paramsBD;
+      const { tipoOperacionOperacionValidaDataDB } = paramsBD;
       const { lugar_negociacion, tipo_operacion, tipo_instrumento } = row;
+      const siglasCombinadas = map(
+        tipoOperacionOperacionValidaDataDB,
+        "siglacombinada"
+      );
       const validation = `${lugar_negociacion}${tipo_operacion}${tipo_instrumento}`;
-      if (!includes(operacionValidaDataDB, validation))
+      if (!includes(siglasCombinadas, validation))
         return `lugar_negociacion+tipo_operacion+tipo_instrumento (${validation}) no se encuentra en una operación válida`;
       return true;
     } catch (err) {
@@ -1324,14 +1328,14 @@ const funcionesValidacionesContenidoValores = {
       ) {
         const instrumentoSerie = `${tipo_instrumento}${serie}`;
         if (columnIndex === "nro_pago" && matchDataType === true) {
-          if (parseFloat(value) > 1) {
+          if (parseFloat(value) > 0) {
             const TASA_OPTIONS = {};
             if (fileCode === "441" || fileCode === "TD") {
               TASA_OPTIONS.tipo_tasa = tipo_tasa === "F" ? tipo_tasa : null;
               TASA_OPTIONS.tasa_emision =
                 tipo_tasa === "F" ? tasa_emision : null;
             } else if (fileCode === "442" || fileCode === "TO") {
-              TASA_OPTIONS.tasa_emision = tasa_emision;
+              TASA_OPTIONS.tasa_emision = null;
             }
             informacionEntreArchivos.push({
               fileNameFrom: fileName,
@@ -1427,31 +1431,29 @@ const funcionesValidacionesContenidoValores = {
             (fileCodeFrom === "TD" && fileCode === "UD") ||
             (fileCodeFrom === "TO" && fileCode === "CO")
           ) {
-            //TODO: Optimizar
+            const serieID =
+              fileCode === "444"
+                ? `tipoinstrumento+serie`
+                : `tipo_activo+serie`;
+            const { instrumentoSerie } = value;
+            const instrumentoSerieInfo = instrumentoSerie;
             if (columnInfo === "nro_pago") {
-              if (fileCode === "445") return;
-              const { nro_pago, TASA_OPTIONS, instrumentoSerie } = value;
+              const { nro_pago, TASA_OPTIONS } = value;
               const { tipo_tasa, tasa_emision } = TASA_OPTIONS;
               const nroPagoInfo = nro_pago;
-              const instrumentoSerieInfo = instrumentoSerie;
               const tipoTasaInfo = tipo_tasa;
               const tasaEmisionInfo = tasa_emision;
               let counterInstrumentoSerie = 0;
               const fileContentFiltered = filter(fileContent, (contentRow) => {
-                const instrumentoSerieRow = `${
-                  fileCode === "444"
-                    ? contentRow.tipo_instrumento
-                    : contentRow.tipo_activo
-                }${contentRow.serie}`;
-                return instrumentoSerieInfo === instrumentoSerieRow;
+                const id = serieIDValue(fileCode, contentRow);
+                return instrumentoSerieInfo === id;
               });
 
               forEach(fileContentFiltered, (contentRow, contentRowIndex) => {
-                const instrumentoSerieActual = `${
-                  fileCode === "444"
-                    ? contentRow.tipo_instrumento
-                    : contentRow.tipo_activo
-                }${contentRow.serie}`;
+                const instrumentoSerieActual = serieIDValue(
+                  fileCode,
+                  contentRow
+                );
                 if (tasaEmisionInfo !== null) {
                   if (
                     Number(tasaEmisionInfo) !== Number(contentRow.tasa_interes)
@@ -1464,8 +1466,8 @@ const funcionesValidacionesContenidoValores = {
                         contentRowIndex + 1
                       })' debe ser igual a la tasa_emision del archivo '${fileCodeFrom} (fila ${
                         rowInfoIndex + 1
-                      })' por tipoinstrumento+serie (${instrumentoSerieActual})`,
-                      valor: `tipoinstrumento+serie: ${instrumentoSerieActual}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
+                      })' por ${serieID} (${instrumentoSerieActual})`,
+                      valor: `${serieID}: ${instrumentoSerieActual}, tasa_interes (${fileCode}): ${contentRow.tasa_interes} - tasa_emision (${fileCodeFrom}): ${tasaEmisionInfo}`,
                       columna: "tasa_interes",
                       fila: contentRowIndex,
                     });
@@ -1479,23 +1481,18 @@ const funcionesValidacionesContenidoValores = {
                   id_carga_archivos: nuevaCarga.id_carga_archivos,
                   archivo: fileName,
                   tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-                  descripcion: `El Archivo ${fileCodeFrom} tiene el valor de '${nroPagoInfo}' en '${columnInfo}', por lo que el archivo ${fileCode} debe tener '${nroPagoInfo}' y no '${counterInstrumentoSerie}' registros con el mismo instrumento+serie`,
-                  valor: `instrumento+serie (${fileCodeFrom}): ${instrumentoSerieInfo} - nro_pago (${fileCodeFrom}): ${nroPagoInfo}, cantidad de registros por instrumento+serie (${fileCode}): ${counterInstrumentoSerie}`,
+                  descripcion: `El Archivo ${fileCodeFrom} tiene el valor de '${nroPagoInfo}' en '${columnInfo}', por lo que el archivo ${fileCode} debe tener '${nroPagoInfo}' y no '${counterInstrumentoSerie}' registros con el mismo ${serieID}`,
+                  valor: `${serieID} (${fileCodeFrom}): ${instrumentoSerieInfo} - nro_pago (${fileCodeFrom}): ${nroPagoInfo}, cantidad de registros por ${serieID} (${fileCode}): ${counterInstrumentoSerie}`,
                   columna: `${fileCodeFrom}: ${columnInfo}`,
                   fila: rowInfoIndex,
                 });
               }
             } else if (columnInfo === "precio_nominal") {
-              const { precio_nominal, instrumentoSerie } = value;
-              const instrumentoSerieInfo = instrumentoSerie;
+              const { precio_nominal } = value;
               const precioNominalInfo = precio_nominal;
               const fileContentFiltered = filter(fileContent, (contentRow) => {
-                const instrumentoSerieRow = `${
-                  fileCode === "444"
-                    ? contentRow.tipo_instrumento
-                    : contentRow.tipo_activo
-                }${contentRow.serie}`;
-                return instrumentoSerieInfo === instrumentoSerieRow;
+                const id = serieIDValue(fileCode, contentRow);
+                return instrumentoSerieInfo === id;
               });
               const findValidation = find(
                 validations,
@@ -1506,11 +1503,10 @@ const funcionesValidacionesContenidoValores = {
                   `No se encontró la columna 'saldo_capital' en el archivo '${fileCode}'`
                 );
               forEach(fileContentFiltered, (contentRow, contentRowIndex) => {
-                const instrumentoSerieActual = `${
-                  fileCode === "444"
-                    ? contentRow.tipo_instrumento
-                    : contentRow.tipo_activo
-                }${contentRow.serie}`;
+                const instrumentoSerieActual = serieIDValue(
+                  fileCode,
+                  contentRow
+                );
                 const operationPrecioNominalAmortizacion = math.evaluate(
                   `(${precioNominalInfo} - ${contentRow.amortizacion})`
                 );
@@ -1531,14 +1527,32 @@ const funcionesValidacionesContenidoValores = {
                       contentRowIndex + 1
                     })' debe ser igual al precio_nominal del archivo '${fileCodeFrom} (fila ${
                       rowInfoIndex + 1
-                    })' - amortizacion (${fileCode}) por tipoinstrumento+serie (${instrumentoSerieActual})`,
-                    valor: `tipoinstrumento+serie: ${instrumentoSerieActual}, saldo_capital (${fileCode}): ${contentRow.saldo_capital}, (precio_nominal (${fileCodeFrom})(${precioNominalInfo}) - amortizacion (${fileCode})(${contentRow.amortizacion})): ${precioNominalAmortizacion}`,
+                    })' - amortizacion (${fileCode}) por ${serieID} (${instrumentoSerieActual})`,
+                    valor: `${serieID}: ${instrumentoSerieActual}, saldo_capital (${fileCode}): ${contentRow.saldo_capital}, (precio_nominal (${fileCodeFrom})(${precioNominalInfo}) - amortizacion (${fileCode})(${contentRow.amortizacion})): ${precioNominalAmortizacion}`,
                     columna: "saldo_capital",
                     fila: contentRowIndex,
                   });
                 }
               });
             }
+
+            // const fileInvalidContent = filter(fileContent, (contentRow) => {
+            //   const id = serieIDValue(fileCode, contentRow);
+            //   return instrumentoSerieInfo === id;
+            // });
+
+            // forEach(fileInvalidContent, (contentRow, contentRowIndex) => {
+            //   const instrumentoSerieActual = serieIDValue(fileCode, contentRow);
+            //   errors.push({
+            //     id_carga_archivos: nuevaCarga.id_carga_archivos,
+            //     archivo: fileName,
+            //     tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+            //     descripcion: `Según el archivo '${fileCodeFrom}' el '${serieID}' no tiene cupones, por lo tanto, no es válido informar en este archivo '${fileCode}'`,
+            //     valor: `${serieID}: ${instrumentoSerieActual}`,
+            //     columna: columnInfo,
+            //     fila: contentRowIndex + 1,
+            //   });
+            // });
           }
         });
       }
@@ -1555,6 +1569,12 @@ const funcionesValidacionesContenidoValores = {
 
     return size(errors) > 0 ? errors : true;
   },
+};
+
+const serieIDValue = (fileCode, row) => {
+  return `${fileCode === "444" ? row.tipo_instrumento : row.tipo_activo}${
+    row.serie
+  }`;
 };
 
 module.exports = {
