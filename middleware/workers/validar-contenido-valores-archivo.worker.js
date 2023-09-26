@@ -86,7 +86,7 @@ function validarContenidoValoresArchivo() {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         archivo: "",
         tipo_error: "ERROR DE SERVIDOR",
-        descripcion: `Error de servidor al formatear los archivos. ${
+        descripcion: `Error de servidor al formatear los valores de los archivos. ${
           err?.message ? err.message : err
         }`,
       },

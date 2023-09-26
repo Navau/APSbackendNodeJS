@@ -864,7 +864,35 @@ const funcionesValidacionesContenidoValores = {
     }
   },
   tasaUltimoHechoConTipoInstrumento: (params) => {
-    return true;
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+        fileCode,
+      } = params;
+      const { tasaUltimoHechoConTipoInstrumentoDataDB } = paramsBD;
+      const tasaUltimoHecho = parseFloat(value);
+      const tipoInstrumento = row.tipo_instrumento;
+      const tiposInstrumentosMap = map(
+        tasaUltimoHechoConTipoInstrumentoDataDB,
+        "sigla"
+      );
+      if (includes(tiposInstrumentosMap, tipoInstrumento)) {
+        if (tasaUltimoHecho !== 0)
+          return `La tasa_ultimo_hecho debe ser 0 debido a que Tipo Instrumento es '${tipoInstrumento}'`;
+      } else {
+        if (tasaUltimoHecho < 0)
+          return `La tasa_ultimo_hecho debe ser mayor o igual a 0 porque Tipo Instrumento es '${tipoInstrumento}'`;
+      }
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
   },
   custodioConTipoInstrumento: (params) => {
     try {
@@ -1395,6 +1423,17 @@ const funcionesValidacionesContenidoValores = {
             (fileCodeFrom === "TD" && fileCode === "UD") ||
             (fileCodeFrom === "TO" && fileCode === "CO")
           ) {
+            //TODO: Optimizar
+            // console.log(
+            //   "fileCodeFrom",
+            //   fileCodeFrom,
+            //   "fileCode",
+            //   fileCode,
+            //   rowIndex,
+            //   columnCounter,
+            //   size(row),
+            //   size(fileContent)
+            // );
             if (columnInfo === "nro_pago") {
               if (fileCode === "445") return;
               const { nro_pago, TASA_OPTIONS, instrumentoSerie } = value;

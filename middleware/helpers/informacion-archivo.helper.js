@@ -778,7 +778,8 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           where: [
             {
               key: "id_sector_economico",
-              value: 6,
+              valuesWhereIn: [6, 27],
+              whereIn: true,
             },
             {
               key: "activo",
@@ -3231,7 +3232,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: { correlativo: [] },
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_operacion: "yyyy-MM-dd",
+            // fecha_operacion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["lugar_negociacion"],
           queries: () => resultQueries(),
@@ -3240,7 +3241,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionIgual"],
       },
       {
@@ -3305,7 +3306,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: { correlativo: [] },
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_operacion: "yyyy-MM-dd",
+            // fecha_operacion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["lugar_negociacion"],
           queries: () => resultQueries(),
@@ -3314,7 +3315,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionIgual"],
       },
       {
@@ -3373,7 +3374,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_operacion: "yyyy-MM-dd",
+            // fecha_operacion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3382,8 +3383,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
-        functions: [],
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
+        functions: ["fechaOperacionIgual"],
       },
       {
         columnName: "cartera_origen",
@@ -3427,8 +3428,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
           formatDateFields: {
-            fecha_vencimiento: "yyyy-MM-dd",
-            fecha_emision: "yyyy-MM-dd",
+            // fecha_vencimiento: "yyyy-MM-dd",
+            // fecha_emision: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3457,13 +3458,13 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -3554,8 +3555,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
           validateFieldWithOperationDate: [],
           formatDateFields: {
-            fecha_vencimiento: "yyyy-MM-dd",
-            fecha_emision: "yyyy-MM-dd",
+            // fecha_vencimiento: "yyyy-MM-dd",
+            // fecha_emision: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3589,13 +3590,13 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -3655,7 +3656,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           uniqueCombinationPerFile: [["tipo_instrumento", "serie"]],
           validateFieldWithOperationDate: [],
           formatDateFields: {
-            fecha_emision: "yyyy-MM-dd",
+            // fecha_emision: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [
             "serie",
@@ -3669,7 +3670,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(18|19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(18|19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -3704,7 +3705,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "cantidad_valores",
-        pattern: /^(^-?(0|[1-9][0-9]{2,10}))$/,
+        pattern: /^(^-?(0|[1-9][0-9]{1,9}))$/,
         functions: ["mayorACero"],
       },
       {
@@ -3755,7 +3756,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
           uniqueCombinationPerFile: [],
           validateFieldWithOperationDate: [],
-          replaceFieldValue: { fecha_pago: "yyyy-MM-dd" },
+          replaceFieldValue: {
+            // fecha_pago: "yyyy-MM-dd"
+          },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
         },
@@ -3778,7 +3781,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_pago",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -3844,7 +3847,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
           uniqueCombinationPerFile: [],
           validateFieldWithOperationDate: [],
-          replaceFieldValue: { fecha_pago: "yyyy-MM-dd" },
+          replaceFieldValue: {
+            // fecha_pago: "yyyy-MM-dd"
+          },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
         },
@@ -3867,7 +3872,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_pago",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -3984,8 +3989,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
             ],
           ],
           formatDateFields: {
-            fecha_adquisicion: "yyyy-MM-dd",
-            fecha_ultimo_hecho: "yyyy-MM-dd",
+            // fecha_adquisicion: "yyyy-MM-dd",
+            // fecha_ultimo_hecho: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["calificacion", "calificadora", "custodio"],
           queries: () => resultQueries(),
@@ -4067,7 +4072,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -4078,7 +4083,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -4112,8 +4117,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
             ],
           ],
           formatDateFields: {
-            fecha_adquisicion: "yyyy-MM-dd",
-            fecha_ultimo_hecho: "yyyy-MM-dd",
+            // fecha_adquisicion: "yyyy-MM-dd",
+            // fecha_ultimo_hecho: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["calificacion", "calificadora", "custodio"],
           queries: () => resultQueries(),
@@ -4192,7 +4197,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -4203,7 +4208,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_ultimo_hecho",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -4228,7 +4233,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_adquisicion: "yyyy-MM-dd",
+            // fecha_adquisicion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["serie"],
           queries: () => resultQueries(),
@@ -4252,7 +4257,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -4306,7 +4311,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
             ],
           ],
           formatDateFields: {
-            fecha_adquisicion: "yyyy-MM-dd",
+            // fecha_adquisicion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["custodio"],
           queries: () => resultQueries(),
@@ -4375,7 +4380,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
     ],
@@ -4393,7 +4398,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
             ],
           ],
           formatDateFields: {
-            fecha_adquisicion: "yyyy-MM-dd",
+            // fecha_adquisicion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["custodio"],
           queries: () => resultQueries(),
@@ -4462,7 +4467,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_adquisicion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
     ],
@@ -4619,8 +4624,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_compra: "yyyy-MM-dd",
-            fecha_rev_tec: "yyyy-MM-dd",
+            // fecha_compra: "yyyy-MM-dd",
+            // fecha_rev_tec: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["fecha_rev_tec", "observaciones"],
           queries: () => resultQueries(),
@@ -4644,7 +4649,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_compra",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -4680,7 +4685,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_rev_tec",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -4797,8 +4802,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_compra: "yyyy-MM-dd",
-            fecha_rev_tec: "yyyy-MM-dd",
+            // fecha_compra: "yyyy-MM-dd",
+            // fecha_rev_tec: "yyyy-MM-dd",
           },
           mayBeEmptyFields: ["fecha_rev_tec", "observaciones"],
           queries: () => resultQueries(),
@@ -4822,7 +4827,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_compra",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -4858,7 +4863,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_rev_tec",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: [],
       },
       {
@@ -5016,7 +5021,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_compra: "yyyy-MM-dd",
+            // fecha_compra: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -5040,7 +5045,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_compra",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -5120,9 +5125,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_prestamo: "yyyy-MM-dd",
-            fecha_inicio: "yyyy-MM-dd",
-            fecha_finalizacion: "yyyy-MM-dd",
+            // fecha_prestamo: "yyyy-MM-dd",
+            // fecha_inicio: "yyyy-MM-dd",
+            // fecha_finalizacion: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -5136,7 +5141,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_prestamo",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -5147,13 +5152,13 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_inicio",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "fecha_finalizacion",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -5213,9 +5218,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [],
           formatDateFields: {
-            fecha_inicio_prestamo: "yyyy-MM-dd",
-            fecha_finalizacion_prestamo: "yyyy-MM-dd",
-            fecha_prestamo: "yyyy-MM-dd",
+            // fecha_inicio_prestamo: "yyyy-MM-dd",
+            // fecha_finalizacion_prestamo: "yyyy-MM-dd",
+            // fecha_prestamo: "yyyy-MM-dd",
           },
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -5229,13 +5234,13 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_inicio_prestamo",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
         columnName: "fecha_finalizacion_prestamo",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -5261,7 +5266,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "fecha_prestamo",
         pattern:
-          /^(19|20|21|22)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
         functions: ["fechaOperacionMenor"],
       },
       {
@@ -5305,6 +5310,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         functions: [],
       },
     ],
+    //TODO: Cambiar las fechas a: /^(19|20|21|22)(((([02468][048])|([13579][26]))0229)|(\d{2})((02((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))31)))$/,
     DM: [
       {
         globalFileValidations: {

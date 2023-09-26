@@ -27,16 +27,6 @@ async function obtenerInformacionInicial(data, user) {
       orderby: { field: "codigo" },
     })
   );
-  const valuesFeriado = [fecha_operacion, fecha_operacion];
-
-  const queryFeriado = formatearQuery(
-    `SELECT CASE WHEN EXTRACT (DOW FROM TIMESTAMP %L) IN (6,0) OR (SELECT COUNT(*) FROM public."APS_param_feriado" WHERE fecha = %L) > 0 THEN 0 ELSE 1 END;`,
-    valuesFeriado
-  );
-  const workingDay = await EjecutarQuery(queryFeriado);
-  const periodicidadBolsa = [154]; //VALOR POR DEFECTO
-  if (parseInt(workingDay?.[0].case) === 0) periodicidadBolsa; // DIARIOS
-  else periodicidadBolsa.push(219); // DIAS HABILES
   let functionNameFormatFiles = { table: null, body: null };
   if (tipo_carga === "SEGUROS" || tipo_carga === "PENSIONES") {
     functionNameFormatFiles.table = "aps_fun_archivos_pensiones_seguros";
@@ -53,6 +43,15 @@ async function obtenerInformacionInicial(data, user) {
     functionNameFormatFiles.table = "aps_fun_archivos_custodio_pensiones";
     functionNameFormatFiles.body = { fecha_operacion };
   } else if (tipo_carga === "BOLSA") {
+    const valuesFeriado = [fecha_operacion, fecha_operacion];
+    const queryFeriado = formatearQuery(
+      `SELECT CASE WHEN EXTRACT (DOW FROM TIMESTAMP %L) IN (6,0) OR (SELECT COUNT(*) FROM public."APS_param_feriado" WHERE fecha = %L) > 0 THEN 0 ELSE 1 END;`,
+      valuesFeriado
+    );
+    const workingDay = await EjecutarQuery(queryFeriado);
+    const periodicidadBolsa = [154]; //VALOR POR DEFECTO
+    if (parseInt(workingDay?.[0].case) === 0) periodicidadBolsa; // DIARIOS
+    else periodicidadBolsa.push(219); // DIAS HABILES
     functionNameFormatFiles.table = "aps_fun_archivos_bolsa";
     functionNameFormatFiles.body = {
       fecha_operacion,
