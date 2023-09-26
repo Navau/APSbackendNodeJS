@@ -598,7 +598,7 @@ const funcionesValidacionesContenidoValores = {
         // }
       } else if (parseFloat(plazo_cupon) === 0) {
         if (nroPago !== 0)
-          return "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago debe ser igual a 0";
+          return "El campo plazo_cupon es igual a 0 por lo tanto el valor de nro_pago no debe ser mayor a 0";
       }
       return true;
     } catch (err) {

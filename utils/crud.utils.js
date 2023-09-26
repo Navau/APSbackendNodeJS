@@ -466,17 +466,18 @@ async function EscogerCRUD(paramsF) {
     await pool
       .query(query)
       .then((result) => {
+        const newResult = map(result.rows, (row) => {
+          if (!isUndefined(row?.fecha_carga)) {
+            return {
+              ...row,
+              fecha_carga: DateTime.fromJSDate(row.fecha_carga).toFormat(
+                "yyyy-MM-dd HH:mm"
+              ),
+            };
+          } else return row;
+        });
         respResultadoCorrectoObjeto200(res, {
-          result: map(result.rows, (row) => {
-            if (!isUndefined(row?.fecha_carga)) {
-              return {
-                ...row,
-                fecha_carga: DateTime.fromJSDate(row.fecha_carga, {
-                  zone: "America/La_Paz",
-                }).toFormat("yyyy-MM-dd HH:mm"),
-              };
-            } else return row;
-          }),
+          result: newResult,
           sizeData: size(totalData),
         });
       })
