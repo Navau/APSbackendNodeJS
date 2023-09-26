@@ -223,7 +223,9 @@ async function funcionesPensiones(fecha, id_rol) {
       });
   } catch (err) {
     console.log(err);
-    throw new Error("Error al ejecutar las funciones de pensiones", err);
+    let message = "Error al ejecutar las funciones de pensiones";
+    if (err?.detail) message = `${err?.detail} en ${err?.where}`;
+    throw new Error(message);
   }
 }
 
@@ -256,7 +258,9 @@ async function funcionesSeguros(fecha, id_usuario, codInst) {
       });
   } catch (err) {
     console.log(err);
-    throw new Error("Error al ejecutar las funciones de seguros", err);
+    let message = "Error al ejecutar las funciones de seguros";
+    if (err?.detail) message = `${err?.detail} en ${err?.where}`;
+    throw new Error(message);
   }
 }
 

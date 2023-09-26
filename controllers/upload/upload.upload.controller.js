@@ -322,12 +322,12 @@ async function CargarArchivo2(req, res) {
     respResultadoCorrectoObjeto200(res, uploadedFilesResult);
   } catch (err) {
     try {
-      await eliminarArchivosCargados(
-        map(infoPreparedToInsertInDB, "fileTableName"),
-        map(infoPreparedToInsertInDB, "sequence"),
-        map(infoPreparedToInsertInDB, "primaryKey"),
-        nuevaCarga
-      );
+      // await eliminarArchivosCargados(
+      //   map(infoPreparedToInsertInDB, "fileTableName"),
+      //   map(infoPreparedToInsertInDB, "sequence"),
+      //   map(infoPreparedToInsertInDB, "primaryKey"),
+      //   nuevaCarga
+      // );
       await modificarNuevaCargaArchivo({
         nuevaCarga,
         cargado: false,
