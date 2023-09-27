@@ -270,17 +270,16 @@ const obtenerUltimaCarga = async (params) => {
     const { id, table } = TABLE_INFO;
     const where = [
       { key: "id_rol", value: id_rol },
+      { key: "cod_institucion", value: TABLE_INFO.codeInst },
       { key: "cargado", value: false },
       { key: "fecha_operacion", value: fecha_operacion },
     ];
 
-    if (id === "SEGUROS" || id === "PENSIONES") {
+    if (id === "SEGUROS" || id === "PENSIONES")
       where.push({
         key: "id_periodo",
         value: tipo_periodo === "M" ? 155 : 154,
       });
-      where.push({ key: "cod_institucion", value: TABLE_INFO.codeInst });
-    }
 
     const cargas = await EjecutarQuery(
       EscogerInternoUtil(table, {

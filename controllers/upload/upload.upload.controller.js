@@ -9,7 +9,6 @@ const {
   isUndefined,
   size,
   groupBy,
-  toLower,
 } = require("lodash");
 const {
   ListarCRUD,
@@ -86,8 +85,7 @@ async function CargarArchivo2(req, res) {
         const { column_name, column_default, table_name } = columnInfo;
         if (
           column_default !== null &&
-          (column_name === `id_archivo_${fileCode}` ||
-            column_name === `id_archivo_${toLower(fileCode)}`)
+          column_name === `id_archivo_${fileCode}`
         ) {
           const regex = /"(.*?)"/g;
           const matches = column_default.match(regex);
@@ -99,10 +97,7 @@ async function CargarArchivo2(req, res) {
           } else sequence = matches[0].replace(/"/g, "");
         }
         fileTableName = table_name;
-        if (
-          column_name !== `id_archivo_${fileCode}` &&
-          column_name !== `id_archivo_${toLower(fileCode)}`
-        )
+        if (column_name !== `id_archivo_${fileCode}`)
           auxColumns.push(column_name);
         else primaryKey = column_name;
       });
@@ -176,25 +171,27 @@ async function CargarArchivo2(req, res) {
       const fieldsMessage = [];
 
       if (id === "BOLSA") {
-        // isUndefined(uniquenessFields?.cod_institucion) &&
-        //   fieldsMessage.push("cod_institucion");
-        // isUndefined(uniquenessFields?.fecha) && fieldsMessage.push("fecha");
-        // if (size(fieldsMessage) > 0)
-        //   throw {
-        //     myCode: 404,
-        //     message: `No existe el campo '${fieldsMessage.join(
-        //       ", "
-        //     )}' para poder validar unicidad en la tabla '${fileTableName}'`,
-        //   };
-        // else {
-        // }
-        const where = [{ key: uniquenessFields.fecha, value: fecha_operacion }];
-        await eliminarInformacionDuplicada(
-          fileTableName,
-          where,
-          sequence,
-          primaryKey
-        );
+        isUndefined(uniquenessFields?.cod_institucion) &&
+          fieldsMessage.push("cod_institucion");
+        isUndefined(uniquenessFields?.fecha) && fieldsMessage.push("fecha");
+        if (size(fieldsMessage) > 0)
+          throw {
+            myCode: 404,
+            message: `No existe el campo '${fieldsMessage.join(
+              ", "
+            )}' para poder validar unicidad en la tabla '${fileTableName}'`,
+          };
+        else {
+          const where = [
+            { key: uniquenessFields.fecha, value: fecha_operacion },
+          ];
+          await eliminarInformacionDuplicada(
+            fileTableName,
+            where,
+            sequence,
+            primaryKey
+          );
+        }
       } else if (isCustodio) {
         isUndefined(uniquenessFields?.cod_institucion) &&
           fieldsMessage.push("cod_institucion");
