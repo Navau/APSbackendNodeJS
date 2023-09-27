@@ -35,8 +35,7 @@ async function insertarNuevaCargaArchivo(params) {
     const columnasCarga = map(infoCarga, "column_name");
     // if (isUndefined(ultimaCarga))
     //   throw { myCode: 500, message: "La carga anterior no fue encontrada" };
-    const maxCarga =
-      ultimaCarga?.cargado === true ? 0 : ultimaCarga?.nro_carga || 0;
+    const maxCarga = ultimaCarga?.nro_carga || 0;
     const whereCarga = {
       id_rol,
       fecha_operacion,
@@ -272,6 +271,7 @@ const obtenerUltimaCarga = async (params) => {
     const where = [
       { key: "id_rol", value: id_rol },
       { key: "cargado", value: false },
+      { key: "fecha_operacion", value: fecha_operacion },
     ];
 
     if (id === "SEGUROS" || id === "PENSIONES") {
