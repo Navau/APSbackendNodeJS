@@ -29,7 +29,7 @@ async function obtenerInformacionInicial(data, user) {
   where.push({
     key: "id_periodicidad",
     valuesWhereIn:
-      size(periodicidadBolsa) > 0 ? periodicidadBolsa : tipo_periodo,
+      size(periodicidadBolsa) > 0 ? periodicidadBolsa : [tipo_periodo],
     whereIn: true,
   });
   const confArchivos = await EjecutarQuery(
