@@ -145,12 +145,6 @@ exports.formatearArchivos = async (req, res, next) => {
       confArchivos,
       formatoArchivosRequeridos,
     } = await obtenerInformacionInicial(dataInitial, req.user);
-    console.log({
-      codigosSeguros,
-      codigosPensiones,
-      confArchivos,
-      formatoArchivosRequeridos,
-    });
 
     let COD_INSTITUCION = null;
     size(codigosSeguros) > 0
