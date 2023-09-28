@@ -87,7 +87,7 @@ async function CargarArchivo2(req, res) {
         if (
           column_default !== null &&
           (column_name === `id_archivo_${fileCode}` ||
-            column_name !== `id_archivo_${toLower(fileCode)}`)
+            column_name === `id_archivo_${toLower(fileCode)}`)
         ) {
           const regex = /"(.*?)"/g;
           const matches = column_default.match(regex);
