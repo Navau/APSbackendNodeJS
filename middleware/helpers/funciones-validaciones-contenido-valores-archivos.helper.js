@@ -1444,12 +1444,18 @@ const funcionesValidacionesContenidoValores = {
               const tipoTasaInfo = tipo_tasa;
               const tasaEmisionInfo = tasa_emision;
               let counterInstrumentoSerie = 0;
-              const fileContentFiltered = filter(fileContent, (contentRow) => {
-                const id = serieIDValue(fileCode, contentRow);
-                return instrumentoSerieInfo === id;
-              });
+              const fileContentFiltered = map(
+                fileContent,
+                (contentRow, contentRowIndex) => {
+                  const id = serieIDValue(fileCode, contentRow);
+                  if (instrumentoSerieInfo === id)
+                    return { ...contentRow, contentRowIndex };
+                  else return null;
+                }
+              ).filter((row) => !isNull(row));
 
-              forEach(fileContentFiltered, (contentRow, contentRowIndex) => {
+              forEach(fileContentFiltered, (contentRow) => {
+                const contentRowIndex = contentRow.contentRowIndex;
                 const instrumentoSerieActual = serieIDValue(
                   fileCode,
                   contentRow
@@ -1490,10 +1496,15 @@ const funcionesValidacionesContenidoValores = {
             } else if (columnInfo === "precio_nominal") {
               const { precio_nominal } = value;
               const precioNominalInfo = precio_nominal;
-              const fileContentFiltered = filter(fileContent, (contentRow) => {
-                const id = serieIDValue(fileCode, contentRow);
-                return instrumentoSerieInfo === id;
-              });
+              const fileContentFiltered = map(
+                fileContent,
+                (contentRow, contentRowIndex) => {
+                  const id = serieIDValue(fileCode, contentRow);
+                  if (instrumentoSerieInfo === id)
+                    return { ...contentRow, contentRowIndex };
+                  else return null;
+                }
+              ).filter((row) => !isNull(row));
               const findValidation = find(
                 validations,
                 (validation) => validation.columnName === "saldo_capital"
@@ -1502,7 +1513,8 @@ const funcionesValidacionesContenidoValores = {
                 throw new Error(
                   `No se encontró la columna 'saldo_capital' en el archivo '${fileCode}'`
                 );
-              forEach(fileContentFiltered, (contentRow, contentRowIndex) => {
+              forEach(fileContentFiltered, (contentRow) => {
+                const contentRowIndex = contentRow.contentRowIndex;
                 const instrumentoSerieActual = serieIDValue(
                   fileCode,
                   contentRow
