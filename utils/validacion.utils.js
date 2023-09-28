@@ -197,9 +197,8 @@ async function ValidarDatosValidacion(params) {
             textMessage,
             (val, options) => {
               const { originalValue } = options;
-              if (val !== undefined) {
-                return typeof originalValue === "string";
-              }
+              if (isNull(val) && isNullable) return true;
+              if (val !== undefined) return typeof originalValue === "string";
               return true;
             }
           );
@@ -217,6 +216,7 @@ async function ValidarDatosValidacion(params) {
               decimalMessage,
               (val, options) => {
                 const { originalValue } = options;
+                if (isNull(val) && isNullable) return true;
                 if (val !== undefined) {
                   const intAux = "(0|[1-9][0-9]{0," + (precision - 1) + "})";
                   const decimalAux = "(\\.\\d{1," + scale + "})";
@@ -286,7 +286,6 @@ async function ValidarDatosValidacion(params) {
           validationSchema = !isUndefined(validacionAvanzada)
             ? validacionAvanzada(value, action, isNullable, columnDefault)
             : validationSchema;
-          if (isNullable) validationSchema = validationSchema.nullable();
           if (!isNullable && columnDefault === null && action === "Insertar") {
             validationSchema = validationSchema.required(requiredMessage);
             validationSchema = isUndefined(value)
@@ -312,6 +311,17 @@ async function ValidarDatosValidacion(params) {
             validationSchema = isUndefined(value)
               ? validationSchema.required(requiredMessage)
               : validationSchema.required(defaultMessage);
+          }
+          if (isNullable) {
+            validationSchema = validationSchema.nullable();
+            console.log({
+              isNullable,
+              columnDefault,
+              action,
+              value,
+              columnName,
+              validationSchema,
+            });
           }
         }
       }

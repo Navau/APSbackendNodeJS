@@ -1,5 +1,6 @@
 const API_VERSION = "v1";
-const IP_SERVER_API_EXTERNA = "https://testsau.aps.gob.bo";
+const IP_SERVER_API_EXTERNA =
+  process.env.IP_SERVER_API_EXTERNA || "https://testsau.aps.gob.bo";
 const MAX_INTENTOS_LOGIN = 5;
 const CONFIG_PASSWORD = {
   minLength: 8,
