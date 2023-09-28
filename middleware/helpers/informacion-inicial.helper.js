@@ -1,4 +1,4 @@
-const { sortBy } = require("lodash");
+const { sortBy, size } = require("lodash");
 const {
   EjecutarQuery,
   EscogerInternoUtil,
@@ -41,11 +41,7 @@ async function obtenerInformacionInicial(data, user) {
         "id_periodicidad",
         "archivo_vacio",
       ],
-      where: [
-        { key: "id_rol", value: id_rol },
-        { key: "activo", value: true },
-        { key: "id_periodicidad", value: tipo_periodo },
-      ],
+      where,
       orderby: { field: "codigo" },
     })
   );
@@ -79,7 +75,7 @@ async function obtenerInformacionInicial(data, user) {
       fecha_operacion,
       id_rol,
       id_usuario,
-      periodicidadBolsa,
+      periodicidadBolsa: periodicidadBolsa.join(","),
     };
   }
 

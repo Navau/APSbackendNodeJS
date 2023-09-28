@@ -146,12 +146,15 @@ exports.formatearArchivos = async (req, res, next) => {
       formatoArchivosRequeridos,
     } = await obtenerInformacionInicial(dataInitial, req.user);
 
-    const COD_INSTITUCION =
-      size(codigosSeguros) > 0
-        ? codigosSeguros[0].codigo
-        : size(codigosPensiones) > 0
-        ? codigosPensiones[0].codigo
-        : null;
+    let COD_INSTITUCION = null;
+    size(codigosSeguros) > 0
+      ? (COD_INSTITUCION = codigosSeguros[0].codigo)
+      : size(codigosPensiones) > 0
+      ? (COD_INSTITUCION = codigosPensiones[0].codigo)
+      : null;
+
+    if (tipo_carga === "BOLSA") COD_INSTITUCION = "BOLSA";
+
     if (COD_INSTITUCION === null)
       throw {
         myCode: 500,
