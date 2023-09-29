@@ -105,7 +105,7 @@ const verificarFormatoContenidoArchivo = (
             archivo: fileName,
             tipo_error: "ERROR DE FORMATO DE CONTENIDO",
             descripcion:
-              "El formato del archivo no contiene los campos entre comillas correctamente",
+              "El formato del archivo no contiene todos los campos entre comillas correctamente",
             fila: indexRow,
           };
           agregarError(newError, errors);
@@ -179,7 +179,7 @@ const encontrarErroresPorFilaDeArchivo = (
       const message =
         row[0] === " " || row[size(row) - 1] === " "
           ? "El formato del archivo no debe contener espacios en blanco al inicio ni al final"
-          : "El formato del archivo no contiene los campos entre comillas correctamente";
+          : "El formato del archivo no contiene todos los campos entre comillas correctamente";
       // console.log({ row, 0: row[0], last: row[size(row) - 1] });
       errorPositions.push({
         id_carga_archivos: nuevaCarga.id_carga_archivos,
