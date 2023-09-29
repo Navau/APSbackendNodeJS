@@ -180,7 +180,7 @@ const encontrarErroresPorFilaDeArchivo = (
         row[0] === " " || row[size(row) - 1] === " "
           ? "El formato del archivo no debe contener espacios en blanco al inicio ni al final"
           : "El formato del archivo no contiene los campos entre comillas correctamente";
-      console.log({ row, 0: row[0], last: row[size(row) - 1] });
+      // console.log({ row, 0: row[0], last: row[size(row) - 1] });
       errorPositions.push({
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         archivo: fileName,
@@ -520,8 +520,8 @@ const validarOperacionesMatematicasDeColumnas = (params) => {
     fileName,
     fileCode,
   } = params;
-  const { value } = OPTIONS_VALUES;
-  if (size(mathOperation) > 0) {
+  const { value, matchDataType } = OPTIONS_VALUES;
+  if (size(mathOperation) > 0 && matchDataType === true) {
     const functionResult =
       funcionesValidacionesContenidoValores.operacionMatematica({
         value,

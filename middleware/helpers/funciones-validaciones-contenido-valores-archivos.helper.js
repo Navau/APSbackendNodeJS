@@ -133,12 +133,12 @@ const funcionesValidacionesContenidoValores = {
     if (!isNumber(montoNegociado) || !isNumber(montoMinimo))
       return `El campo monto_negociado o monto_minimo no son números validos`;
     if (montoNegociado !== 0 && montoNegociado >= montoMinimo) {
-      if (!includes(["AC, NA"], tipoMarcacion))
-        return `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe ser [AC, NA]`;
+      if (!includes(["AC", "NA"], tipoMarcacion))
+        return `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe estar entre [AC, NA]`;
     }
     if (monto_negociado !== 0 && monto_negociado < monto_minimo) {
       if (!includes(["NM"], tipoMarcacion))
-        return `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe ser [NM]`;
+        return `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe estar entre [NM]`;
     }
 
     return true;
@@ -637,7 +637,7 @@ const funcionesValidacionesContenidoValores = {
   calificadora: (params) => {
     return defaultValidationContentValues(
       params,
-      "La sigla de la Calificadora no es válida"
+      "La sigla de la Calificadora no es válida"
     );
   },
   custodio: (params) => {
@@ -767,7 +767,7 @@ const funcionesValidacionesContenidoValores = {
           return `La calificadora no debe tener contenido debido a que la calificación no tiene contenido`;
       } else {
         if (!includes(calificadoraMap, calificadora))
-          return `La sigla de la Calificadora no es válida`;
+          return `La sigla de la Calificadora no es válida`;
       }
       return true;
     } catch (err) {
@@ -785,9 +785,11 @@ const funcionesValidacionesContenidoValores = {
         extraFunctionsParameters,
         row,
         mayBeEmptyFields,
+        fileCode,
       } = params;
       const { calificadoraDataDB, calificadoraConTipoInstrumentoDataDB } =
         paramsBD;
+      fileCode === "481" && console.log(paramsBD);
       const calificadora = value;
       const tipoInstrumento = row.tipo_instrumento;
       const calificadoraMap = map(calificadoraDataDB, "sigla");
@@ -1122,7 +1124,14 @@ const funcionesValidacionesContenidoValores = {
     } catch (err) {
       const messages = OPERATION_OPTIONS.messageFields.join("");
       const operation = OPERATION_OPTIONS.operationWithValues.join("");
-      return `Error en ${messages} - ${operation}. ${err}`;
+      if (err instanceof SyntaxError || err instanceof TypeError)
+        return `La expresión matemática de ${messages} tiene un formato incorrecto.`;
+      else if (err?.toString().includes("Cannot convert")) {
+        const stringErr = err.toString();
+        const valueErr = stringErr.replace(/[^0-9.]/g, "");
+        return `El valor '${valueErr}' en la operación ${messages} no es un número válido`;
+      }
+      return `No es posible realizar la operación en: ${messages}`;
     }
   },
   combinacionUnicaPorArchivo: (params) => {

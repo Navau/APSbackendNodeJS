@@ -18,9 +18,9 @@ async function obtenerInformacionInicial(data, user) {
       valuesFeriado
     );
     const workingDay = await EjecutarQuery(queryFeriado);
-    if (parseInt(workingDay?.[0].case) === 0)
-      periodicidadBolsa.push(154); // DIARIOS
-    else periodicidadBolsa.push(219); // DIAS HABILES
+    periodicidadBolsa.push(154); // DIARIOS
+    if (parseInt(workingDay?.[0].case) === 0) periodicidadBolsa; // DIARIOS 154
+    else periodicidadBolsa.push(219); // DIAS HABILES 154,219
   }
   const where = [
     { key: "id_rol", value: id_rol },

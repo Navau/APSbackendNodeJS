@@ -1112,7 +1112,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           permisosFinales.insercionesMenus = permisosNuevos;
         }
 
-        //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO
+        //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO EN LA TABLA APS_seg_permiso_menu_rol
         const diferenciasPermisosMenus = differenceWith(
           permisosMenus,
           submodulos,
@@ -1173,24 +1173,26 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         //#endregion
 
         //*#region ACTUALIZAR LOS PERMISOS DE LAS ACCIONES
-        const submodulosAux = map(
+        const submodulosFlatMap = map(
           flatMap(permisosFiltrados, "submodulos"),
           (submodulo) => submodulo
         );
-        const tablasAccionesConEspecificaciones = map(
-          tablasAcciones,
-          (itemTA) => {
-            const submoduloFind = find(
-              submodulosAux,
-              (submodulo) => submodulo.id_tabla === itemTA.id_tabla
-            );
-            return {
+        const tablasAccionesConEspecificaciones = [];
+        forEach(tablasAcciones, (itemTA) => {
+          const submodulosFilter = filter(
+            submodulosFlatMap,
+            (submodulo) => submodulo.id_tabla === itemTA.id_tabla
+          );
+          // if (itemTA.id_tabla === 1)
+          //   console.log("submoduloFind", submoduloFind);
+          forEach(submodulosFilter, (submoduloFilter) => {
+            tablasAccionesConEspecificaciones.push({
               ...itemTA,
-              esCompleto: submoduloFind?.esCompleto || false,
-              tabla: submoduloFind?.tabla,
-            };
-          }
-        );
+              esCompleto: submoduloFilter.esCompleto || false,
+              tabla: submoduloFilter.tabla,
+            });
+          });
+        });
 
         const insertarNuevosPermisos = [];
         const actualizarNuevosPermisos = [];
