@@ -4364,7 +4364,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-]{1,4}$/,
         functions: ["calificacion"],
       },
       {
