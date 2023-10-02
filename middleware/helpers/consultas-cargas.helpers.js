@@ -57,7 +57,7 @@ async function insertarNuevaCargaArchivo(params) {
     const nuevaCarga = await EjecutarQuery(
       InsertarUtil(table, {
         body: whereCarga,
-        returnValue: ["id_carga_archivos, fecha_carga"],
+        returnValue: ["id_carga_archivos, fecha_carga, nro_carga"],
       })
     );
 

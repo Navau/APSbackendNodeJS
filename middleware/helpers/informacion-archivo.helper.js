@@ -3945,7 +3945,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "entidad_financiera",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9]{3,3}$/,
         functions: ["entidadFinanciera"],
       },
       {
@@ -4364,7 +4364,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9\-]{1,4}$/,
+        pattern: /^[A-Za-z0-9\-\+]{1,4}$/,
         functions: ["calificacion"],
       },
       {
@@ -4451,7 +4451,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "calificacion",
-        pattern: /^[A-Za-z0-9\-]{1,3}$/,
+        pattern: /^[A-Za-z0-9\-\+]{1,3}$/,
         functions: ["calificacion"],
       },
       {
@@ -4551,7 +4551,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "entidad_financiera",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9]{3,3}$/,
         functions: ["entidadFinanciera"],
       },
       {

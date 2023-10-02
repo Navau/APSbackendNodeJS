@@ -136,7 +136,7 @@ const funcionesValidacionesContenidoValores = {
       if (!includes(["AC", "NA"], tipoMarcacion))
         return `El campo monto_negociado es mayor o igual a monto_minimo por lo tanto el valor de tipo_marcacion debe estar entre [AC, NA]`;
     }
-    if (monto_negociado !== 0 && monto_negociado < monto_minimo) {
+    if (montoNegociado !== 0 && montoNegociado < monto_minimo) {
       if (!includes(["NM"], tipoMarcacion))
         return `El campo monto_negociado es menor a monto_minimo por lo tanto el valor de tipo_marcacion debe estar entre [NM]`;
     }
