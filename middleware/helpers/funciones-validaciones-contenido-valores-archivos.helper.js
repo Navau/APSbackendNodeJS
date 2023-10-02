@@ -537,7 +537,6 @@ const funcionesValidacionesContenidoValores = {
     );
   },
   tipoAmortizacion: (params) => {
-    // console.log(params?.paramsBD, params.row, params.functionName);
     return defaultValidationContentValues(
       params,
       "El contenido del archivo no coincide con algún tipo de amortizacion"
@@ -789,7 +788,6 @@ const funcionesValidacionesContenidoValores = {
       } = params;
       const { calificadoraDataDB, calificadoraConTipoInstrumentoDataDB } =
         paramsBD;
-      fileCode === "481" && console.log(paramsBD);
       const calificadora = value;
       const tipoInstrumento = row.tipo_instrumento;
       const calificadoraMap = map(calificadoraDataDB, "sigla");

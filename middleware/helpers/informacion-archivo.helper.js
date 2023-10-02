@@ -778,7 +778,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           where: [
             {
               key: "id_sector_economico",
-              valuesWhereIn: [6, 27],
+              valuesWhereIn: [6, 18, 22, 27],
               whereIn: true,
             },
             {

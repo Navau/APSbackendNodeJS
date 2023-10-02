@@ -301,6 +301,7 @@ async function CargarArchivo2(req, res) {
         cargado: true,
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         mensaje: `Envío satisfactorio`,
+        nro_carga: nuevaCarga.nro_carga,
         fecha_operacion,
         fecha_carga: DateTime.fromJSDate(nuevaCarga.fecha_carga, {
           zone: "America/La_Paz",
