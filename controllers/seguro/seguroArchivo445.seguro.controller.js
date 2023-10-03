@@ -4,6 +4,7 @@ const {
   EscogerCRUD,
   InsertarCRUD,
   ActualizarCRUD,
+  RealizarOperacionAvanzadaCRUD,
 } = require("../../utils/crud.utils");
 
 const nameTable = "APS_seguro_archivo_445";

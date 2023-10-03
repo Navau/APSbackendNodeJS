@@ -293,8 +293,10 @@ async function CargarArchivo2(req, res) {
           returnValue: [primaryKey],
         });
         // console.log(queryInsertFiles);
+        fileCode === "484" && console.log(queryInsertFiles);
         const fileInserted = await EjecutarQuery(queryInsertFiles);
       }
+      console.log({ message: `Archivo ${fileName} cargado` });
       //#endregion
       uploadedFilesResult.push({
         archivo: fileName,
