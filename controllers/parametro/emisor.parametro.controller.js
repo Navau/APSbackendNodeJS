@@ -36,7 +36,8 @@ async function ListarCompleto(req, res) {
       where: [
         {
           key: "id_clasificador_comun_grupo",
-          value: 7,
+          valuesWhereIn: [7, 8],
+          whereIn: true,
         },
         { key: "activo", value: true },
       ],
