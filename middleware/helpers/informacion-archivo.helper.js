@@ -1052,6 +1052,18 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
+      tipoValoracionConTipoInstrumentoANR: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "sigla",
+              value: "ANR",
+            },
+          ],
+        },
+      },
       tipoValoracion22: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
@@ -1090,6 +1102,18 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
             {
               key: "id_clasificador_comun",
               value: 210,
+            },
+          ],
+        },
+      },
+      tipoValoracionADQ: {
+        table: "APS_param_clasificador_comun",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "sigla",
+              value: "ADQ",
             },
           ],
         },

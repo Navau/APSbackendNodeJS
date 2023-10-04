@@ -825,9 +825,11 @@ const funcionesValidacionesContenidoValores = {
         tipoValoracionConTipoInstrumento135DataDB,
         tipoValoracionConTipoInstrumento1DataDB,
         tipoValoracionConTipoInstrumento25DataDB,
+        tipoValoracionConTipoInstrumentoANRDataDB,
         tipoValoracion22DataDB,
         tipoValoracion31DataDB,
         tipoValoracion210DataDB,
+        tipoValoracionADQDataDB,
       } = paramsBD;
       const tipoValoracion = value;
       const tipoInstrumento = row.tipo_instrumento;
@@ -843,9 +845,14 @@ const funcionesValidacionesContenidoValores = {
         tipoValoracionConTipoInstrumento25DataDB,
         "sigla"
       );
+      const instrumentoANRMap = map(
+        tipoValoracionConTipoInstrumentoANRDataDB,
+        "sigla"
+      );
       const tipoValoracion22Map = map(tipoValoracion22DataDB, "sigla");
       const tipoValoracion31Map = map(tipoValoracion31DataDB, "sigla");
       const tipoValoracion210Map = map(tipoValoracion210DataDB, "sigla");
+      const tipoValoracionADQMap = map(tipoValoracionADQDataDB, "sigla");
       if (includes(instrumento135Map, tipoInstrumento)) {
         if (!includes(tipoValoracion22Map, tipoValoracion))
           return "El tipo_valoracion no coincide con ninguna sigla válida";
@@ -854,6 +861,9 @@ const funcionesValidacionesContenidoValores = {
           return "El tipo_valoracion no coincide con ninguna sigla válida";
       } else if (includes(instrumento25Map, tipoInstrumento)) {
         if (!includes(tipoValoracion210Map, tipoValoracion))
+          return "El tipo_valoracion no coincide con ninguna sigla válida";
+      } else if (includes(instrumentoANRMap, tipoInstrumento)) {
+        if (!includes(tipoValoracionADQMap, tipoValoracion))
           return "El tipo_valoracion no coincide con ninguna sigla válida";
       } else
         return `El tipo_instrumento '${tipoInstrumento}' no se encuentra en ninguna sigla válida para poder validar el tipo_valoracion`;
