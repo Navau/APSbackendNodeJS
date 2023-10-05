@@ -1133,7 +1133,7 @@ const funcionesValidacionesContenidoValores = {
       const messages = OPERATION_OPTIONS.messageFields.join("");
       const operation = OPERATION_OPTIONS.operationWithValues.join("");
       if (err instanceof SyntaxError || err instanceof TypeError)
-        return `La expresión matemática de ${messages} tiene un formato incorrecto.`;
+        return `La expresión matemática de ${messages} tiene un formato incorrecto`;
       else if (err?.toString().includes("Cannot convert")) {
         const stringErr = err.toString();
         const valueErr = stringErr.replace(/[^0-9.]/g, "");
@@ -1402,32 +1402,53 @@ const funcionesValidacionesContenidoValores = {
       }
 
       if (
-        fileCode === "441" ||
-        fileCode === "443" ||
-        fileCode === "CR" ||
-        fileCode === "CV"
+        (fileCode === "441" ||
+          fileCode === "443" ||
+          fileCode === "CR" ||
+          fileCode === "CV") &&
+        rowIndex === size(fileContent) - 1 &&
+        columnCounter === size(row) - 1
       ) {
-        const instrumentoSerie = `${tipo_instrumento}${serie}`;
+        const serieID =
+          fileCode === "445" ? `tipo_activo+serie` : `tipo_instrumento+serie`;
         forEach(informacionEntreArchivos, (info) => {
           const { fileCodeFrom, value, rowInfoIndex, columnInfo } = info;
           if (
-            instrumentoSerie !== value?.instrumentoSerie &&
-            ((fileCodeFrom === "411" && fileCode === "441") ||
-              (fileCodeFrom === "413" && fileCode === "443") ||
-              (fileCodeFrom === "DM" && fileCode === "CR") ||
-              (fileCodeFrom === "DR" && fileCode === "CV"))
+            (fileCodeFrom === "411" && fileCode === "441") ||
+            (fileCodeFrom === "412" && fileCode === "443") ||
+            (fileCodeFrom === "DM" && fileCode === "CR") ||
+            (fileCodeFrom === "DR" && fileCode === "CV")
           ) {
-            errors.push({
-              id_carga_archivos: nuevaCarga.id_carga_archivos,
-              archivo: `${fileName}`,
-              tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-              descripcion: `El tipo_instrumento+serie del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' no debe ser igual a el tipo_instrumento+serie del archivo '${fileCode} (fila ${
-                rowIndex + 1
-              })', debido a que el tipo_operacion en el archivo ${fileCodeFrom} es igual a "COP".`,
-              valor: `${fileCode}: ${value.instrumentoSerie} - ${fileCodeFrom}: ${instrumentoSerie}`,
-              columna: columnInfo,
-              fila: rowIndex,
-            });
+            if (columnInfo === "serie") {
+              const { instrumentoSerie } = value;
+              const instrumentoSerieInfo = instrumentoSerie;
+              const fileContentFiltered = map(
+                fileContent,
+                (contentRow, contentRowIndex) => {
+                  const id = serieIDValue(fileCode, contentRow);
+                  if (instrumentoSerieInfo === id)
+                    return { ...contentRow, contentRowIndex };
+                  else return null;
+                }
+              ).filter((row) => !isNull(row));
+              forEach(fileContentFiltered, (contentRow) => {
+                const instrumentoSerieActual = serieIDValue(
+                  fileCode,
+                  contentRow
+                );
+                errors.push({
+                  id_carga_archivos: nuevaCarga.id_carga_archivos,
+                  archivo: `${fileName}`,
+                  tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
+                  descripcion: `El tipo_instrumento+serie del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' no debe ser igual a el tipo_instrumento+serie del archivo '${fileCode} (fila ${
+                    rowIndex + 1
+                  })', debido a que el tipo_operacion en el archivo '${fileCodeFrom}' es igual a 'COP'`,
+                  valor: `${instrumentoSerieActual}`,
+                  columna: serieID,
+                  fila: rowIndex,
+                });
+              });
+            }
           }
         });
       }
@@ -1449,9 +1470,9 @@ const funcionesValidacionesContenidoValores = {
             (fileCodeFrom === "TO" && fileCode === "CO")
           ) {
             const serieID =
-              fileCode === "444"
-                ? `tipoinstrumento+serie`
-                : `tipo_activo+serie`;
+              fileCode === "445"
+                ? `tipo_activo+serie`
+                : `tipo_instrumento+serie`;
             const { instrumentoSerie } = value;
             const instrumentoSerieInfo = instrumentoSerie;
             if (columnInfo === "nro_pago") {
@@ -1601,7 +1622,7 @@ const funcionesValidacionesContenidoValores = {
 };
 
 const serieIDValue = (fileCode, row) => {
-  return `${fileCode === "444" ? row.tipo_instrumento : row.tipo_activo}${
+  return `${fileCode === "445" ? row.tipo_activo : row.tipo_instrumento}${
     row.serie
   }`;
 };
