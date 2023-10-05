@@ -1422,32 +1422,23 @@ const funcionesValidacionesContenidoValores = {
             if (columnInfo === "serie") {
               const { instrumentoSerie } = value;
               const instrumentoSerieInfo = instrumentoSerie;
-              const fileContentFiltered = map(
-                fileContent,
-                (contentRow, contentRowIndex) => {
-                  const id = serieIDValue(fileCode, contentRow);
-                  if (instrumentoSerieInfo === id)
-                    return { ...contentRow, contentRowIndex };
-                  else return null;
-                }
-              ).filter((row) => !isNull(row));
-              forEach(fileContentFiltered, (contentRow) => {
-                const instrumentoSerieActual = serieIDValue(
-                  fileCode,
-                  contentRow
-                );
+              const fileContentFind = find(fileContent, (contentRow) => {
+                const id = serieIDValue(fileCode, contentRow);
+                return id === instrumentoSerieInfo;
+              });
+              if (isUndefined(fileContentFind)) {
                 errors.push({
                   id_carga_archivos: nuevaCarga.id_carga_archivos,
                   archivo: `${fileName}`,
                   tipo_error: `VALOR INCORRECTO DE ${fileCodeFrom} A ${fileCode}`,
-                  descripcion: `El tipo_instrumento+serie del archivo '${fileCodeFrom} (fila ${rowInfoIndex})' no debe ser igual a el tipo_instrumento+serie del archivo '${fileCode} (fila ${
-                    rowIndex + 1
-                  })', debido a que el tipo_operacion en el archivo '${fileCodeFrom}' es igual a 'COP'`,
-                  valor: `${instrumentoSerieActual}`,
+                  descripcion: `El ${serieID} del archivo '${fileCodeFrom} (fila ${
+                    rowInfoIndex + 1
+                  })' debe existir en el archivo '${fileCode}', debido a que el tipo_operacion en el archivo '${fileCodeFrom}' es igual a 'COP'`,
+                  valor: `${instrumentoSerieInfo}`,
                   columna: serieID,
                   fila: rowIndex,
                 });
-              });
+              }
             }
           }
         });
