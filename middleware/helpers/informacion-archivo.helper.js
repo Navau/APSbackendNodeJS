@@ -4393,7 +4393,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "calificadora",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z\&]{3,3}$/,
         functions: ["calificadora"],
       },
       {
