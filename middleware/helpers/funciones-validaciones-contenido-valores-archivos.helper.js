@@ -1199,7 +1199,7 @@ const funcionesValidacionesContenidoValores = {
         uniqueObjects[key][rowIndexes.join("+")] = map(
           valuesGroup,
           "value"
-        ).join("");
+        ).join("+");
       });
 
       // Inicializar un objeto para almacenar índices duplicados
