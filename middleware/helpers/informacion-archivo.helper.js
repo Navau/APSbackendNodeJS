@@ -4623,7 +4623,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "detalle_1",
-        pattern: /^[A-Za-z0-9]{3,25}$/,
+        pattern: /^[A-Za-z0-9À-ÿ\u00f1\u00d1\.\- ]{3,25}$/,
         functions: [],
       },
       {
