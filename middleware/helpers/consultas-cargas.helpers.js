@@ -33,6 +33,7 @@ async function insertarNuevaCargaArchivo(params) {
     const ultimaCarga = await obtenerUltimaCarga(params);
     const infoCarga = await EjecutarQuery(ObtenerColumnasDeTablaUtil(table));
     const columnasCarga = map(infoCarga, "column_name");
+    console.log({ ultimaCarga });
     // if (isUndefined(ultimaCarga))
     //   throw { myCode: 500, message: "La carga anterior no fue encontrada" };
     const maxCarga = ultimaCarga?.nro_carga || 0;
@@ -277,7 +278,7 @@ const obtenerUltimaCarga = async (params) => {
     if (id === "SEGUROS" || id === "PENSIONES") {
       where.push({
         key: "id_periodo",
-        value: tipo_periodo === "M" ? 155 : 154,
+        value: tipo_periodo,
       });
       where.push({ key: "cod_institucion", value: TABLE_INFO.codeInst });
     }
