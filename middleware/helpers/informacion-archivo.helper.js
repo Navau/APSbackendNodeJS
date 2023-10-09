@@ -3974,7 +3974,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "nro_cuenta",
-        pattern: /^[A-Za-z0-9\-]{8,20}$/,
+        pattern: /^[A-Za-z0-9\-]{5,20}$/,
         functions: [],
       },
       {
@@ -4255,7 +4255,12 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [
+            "tipo_activo",
+            "serie",
+            "entidad_emisora",
+            "fecha_adquisicion",
+          ],
           formatDateFields: {
             // fecha_adquisicion: "yyyy-MM-dd",
           },

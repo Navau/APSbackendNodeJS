@@ -1227,11 +1227,12 @@ const funcionesValidacionesContenidoValores = {
       forEach(duplicates, (values, key) => {
         forEach(values, (rows, value) => {
           forEach(rows, (row) => {
+            const descriptionMessage = `La combinación de los campos '${key}' debe ser único`;
             errors.push({
               id_carga_archivos: nuevaCarga.id_carga_archivos,
               archivo: fileName,
               tipo_error: "VALOR INCORRECTO",
-              descripcion: `La combinación de los campos '${key}' debe ser único`,
+              descripcion: descriptionMessage,
               valor: value,
               fila: row,
               columna: key,
