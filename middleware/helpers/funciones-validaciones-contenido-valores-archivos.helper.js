@@ -1389,8 +1389,16 @@ const funcionesValidacionesContenidoValores = {
         fileCode === "DR"
       ) {
         if (columnIndex === "serie") {
-          if (includes(["COP", "RVP"], tipo_operacion)) {
-            const instrumentoSerie = `${tipo_instrumento}${serie}`;
+          const instrumentoSerie = `${tipo_instrumento}${serie}`;
+          if (tipo_operacion === "COP") {
+            informacionEntreArchivos.push({
+              fileNameFrom: fileName,
+              fileCodeFrom: fileCode,
+              value: { instrumentoSerie },
+              rowInfoIndex: rowIndex,
+              columnInfo: columnIndex,
+            });
+          } else if (tipo_operacion === "RVP" && fileCode === "411") {
             informacionEntreArchivos.push({
               fileNameFrom: fileName,
               fileCodeFrom: fileCode,
