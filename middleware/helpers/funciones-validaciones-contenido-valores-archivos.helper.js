@@ -1389,7 +1389,7 @@ const funcionesValidacionesContenidoValores = {
         fileCode === "DR"
       ) {
         if (columnIndex === "serie") {
-          if (tipo_operacion === "COP") {
+          if (includes(["COP", "RVP"], tipo_operacion)) {
             const instrumentoSerie = `${tipo_instrumento}${serie}`;
             informacionEntreArchivos.push({
               fileNameFrom: fileName,
