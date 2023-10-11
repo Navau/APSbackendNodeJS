@@ -25,8 +25,10 @@ const validarArchivosNecesariosDeUsuario = (
   confArchivos,
   formatoArchivosRequeridos,
   nuevaCarga,
+  TABLE_INFO,
   errors = []
 ) => {
+  const { codeInst } = TABLE_INFO;
   if (size(confArchivos) === 0) {
     const newError = {
       id_carga_archivos: nuevaCarga.id_carga_archivos,
@@ -36,7 +38,7 @@ const validarArchivosNecesariosDeUsuario = (
     };
     agregarError(newError, errors);
   }
-  if (size(fileNames) !== size(confArchivos)) {
+  if (size(fileNames) !== size(confArchivos) && codeInst !== "CUSTODIO") {
     const newError = {
       id_carga_archivos: nuevaCarga.id_carga_archivos,
       archivo: "",
@@ -50,48 +52,68 @@ const validarArchivosNecesariosDeUsuario = (
     agregarError(newError, errors);
   }
   if (size(errors > 0)) return;
-  forEach(confArchivos, (confArchivo, index) => {
-    const fileNameFind = find(fileNames, (fileName) => {
-      return fileName?.includes(confArchivo.codigo);
-    });
-    const fileAux = fileNameFind || fileNames?.[index];
 
-    if (isUndefined(fileNameFind)) {
-      const newError = {
-        id_carga_archivos: nuevaCarga.id_carga_archivos,
-        archivo: fileAux,
-        tipo_error: "ARCHIVO FALTANTE",
-        descripcion: `El archivo ${fileAux} no fue encontrado en los archivos esperados (${map(
-          confArchivos,
-          "codigo"
-        )})`,
-      };
-      agregarError(newError, errors);
-      return;
-    }
-    const fileNameFormatFind = find(
-      formatoArchivosRequeridos,
-      (formatoArchivo) => {
-        return formatoArchivo.archivo === fileNameFind;
+  if (codeInst === "CUSTODIO") {
+    const confArchivo = confArchivos[0];
+    forEach(fileNames, (fileName) => {
+      if (!fileName.includes(confArchivo.codigo)) {
+        const newError = {
+          id_carga_archivos: nuevaCarga.id_carga_archivos,
+          archivo: fileName,
+          tipo_error: "ARCHIVO FALTANTE",
+          descripcion: `El archivo ${fileName} no fue encontrado en los archivos esperados (${map(
+            confArchivos,
+            "codigo"
+          )})`,
+        };
+        agregarError(newError, errors);
+        return;
       }
-    );
-    const formatoEsperadoFind = find(
-      formatoArchivosRequeridos,
-      (formatoArchivo) => {
-        return formatoArchivo.archivo?.includes(confArchivo.codigo);
+    });
+  } else {
+    forEach(confArchivos, (confArchivo, index) => {
+      const fileNameFind = find(fileNames, (fileName) => {
+        return fileName?.includes(confArchivo.codigo);
+      });
+      const fileAux = fileNameFind || fileNames?.[index];
+
+      if (isUndefined(fileNameFind)) {
+        const newError = {
+          id_carga_archivos: nuevaCarga.id_carga_archivos,
+          archivo: fileAux,
+          tipo_error: "ARCHIVO FALTANTE",
+          descripcion: `El archivo ${fileAux} no fue encontrado en los archivos esperados (${map(
+            confArchivos,
+            "codigo"
+          )})`,
+        };
+        agregarError(newError, errors);
+        return;
       }
-    );
-    if (isUndefined(fileNameFormatFind)) {
-      const newError = {
-        id_carga_archivos: nuevaCarga.id_carga_archivos,
-        archivo: fileAux,
-        tipo_error: "FORMATO DE ARCHIVO",
-        descripcion: `El archivo ${fileAux} no tiene el formato correcto (formato esperado: ${confArchivo.nombre}, ${formatoEsperadoFind.archivo})`,
-      };
-      agregarError(newError, errors);
-      return;
-    }
-  });
+      const fileNameFormatFind = find(
+        formatoArchivosRequeridos,
+        (formatoArchivo) => {
+          return formatoArchivo.archivo === fileNameFind;
+        }
+      );
+      const formatoEsperadoFind = find(
+        formatoArchivosRequeridos,
+        (formatoArchivo) => {
+          return formatoArchivo.archivo?.includes(confArchivo.codigo);
+        }
+      );
+      if (isUndefined(fileNameFormatFind)) {
+        const newError = {
+          id_carga_archivos: nuevaCarga.id_carga_archivos,
+          archivo: fileAux,
+          tipo_error: "FORMATO DE ARCHIVO",
+          descripcion: `El archivo ${fileAux} no tiene el formato correcto (formato esperado: ${confArchivo.nombre}, ${fileAux})`,
+        };
+        agregarError(newError, errors);
+        return;
+      }
+    });
+  }
 };
 
 module.exports = {

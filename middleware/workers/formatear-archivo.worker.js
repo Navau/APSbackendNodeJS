@@ -27,15 +27,28 @@ function formatearArchivo() {
   const errorsFormatFile = [];
   let formattedFiles = files;
   try {
+    const { codeInst } = TABLE_INFO;
     const fileNames = map(files, "originalname");
-    formattedFiles = map(confArchivos, (confArchivo) => {
-      return {
-        ...confArchivo,
-        nombre: find(fileNames, (fileName) => {
-          return fileName?.includes(confArchivo.codigo);
-        }),
-      };
-    });
+    if (size(confArchivos) === 0)
+      throw "No existen archivos para formatear en 'APS_param_archivos_pensiones_seguros'";
+    if (codeInst === "CUSTODIO") {
+      formattedFiles = map(fileNames, (fileName) => {
+        const confArchivo = confArchivos[0];
+        return {
+          ...confArchivo,
+          nombre: fileName,
+        };
+      });
+    } else {
+      formattedFiles = map(confArchivos, (confArchivo) => {
+        return {
+          ...confArchivo,
+          nombre: find(fileNames, (fileName) => {
+            return fileName?.includes(confArchivo.codigo);
+          }),
+        };
+      });
+    }
 
     validarFechaOperacionIgual(
       fileNames,
@@ -50,9 +63,11 @@ function formatearArchivo() {
       confArchivos,
       formatoArchivosRequeridos,
       nuevaCarga,
+      TABLE_INFO,
       errorsFormatFile
     );
   } catch (err) {
+    console.log(err);
     agregarError(
       {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
@@ -62,7 +77,7 @@ function formatearArchivo() {
           err?.message ? err.message : err
         }`,
       },
-      errorsContentValuesFile
+      errorsFormatFile
     );
   }
 

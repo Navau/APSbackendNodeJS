@@ -70,6 +70,7 @@ async function CargarArchivo2(req, res) {
     reproceso,
     formatoArchivosRequeridos,
   } = data;
+  console.log(Object.keys(objectArrayFilesContent));
   const { id, codeInst, table, tableErrors } = TABLE_INFO;
   const infoPreparedToInsertInDB = [];
   const uploadedFilesResult = [];
@@ -82,12 +83,13 @@ async function CargarArchivo2(req, res) {
       const fileName = formatoArchivosRequeridos[counter].archivo;
       let fileTableName = null;
       let primaryKey = null;
+      const newFileCodeAux = codeInst === "CUSTODIO" ? codeInst : fileCode;
       forEach(infoFile, (columnInfo) => {
         const { column_name, column_default, table_name } = columnInfo;
         if (
           column_default !== null &&
-          (column_name === `id_archivo_${fileCode}` ||
-            column_name === `id_archivo_${toLower(fileCode)}`)
+          (column_name === `id_archivo_${newFileCodeAux}` ||
+            column_name === `id_archivo_${toLower(newFileCodeAux)}`)
         ) {
           const regex = /"(.*?)"/g;
           const matches = column_default.match(regex);
@@ -100,8 +102,8 @@ async function CargarArchivo2(req, res) {
         }
         fileTableName = table_name;
         if (
-          column_name !== `id_archivo_${fileCode}` &&
-          column_name !== `id_archivo_${toLower(fileCode)}`
+          column_name !== `id_archivo_${newFileCodeAux}` &&
+          column_name !== `id_archivo_${toLower(newFileCodeAux)}`
         )
           auxColumns.push(column_name);
         else primaryKey = column_name;
@@ -118,6 +120,7 @@ async function CargarArchivo2(req, res) {
       });
       counter++;
     });
+    console.log(infoPreparedToInsertInDB);
 
     for await (const infoPrepared of infoPreparedToInsertInDB) {
       const {

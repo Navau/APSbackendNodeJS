@@ -14,15 +14,25 @@ const {
   EscogerInternoUtil,
 } = require("../../utils/consulta.utils");
 
-async function obtenerInformacionColumnasArchivosBD(confArchivos) {
+async function obtenerInformacionColumnasArchivosBD(
+  confArchivos,
+  TABLE_INFO,
+  formattedFiles
+) {
   try {
     const result = {};
+    const { codeInst } = TABLE_INFO;
     for await (const confArchivo of confArchivos) {
       const table = CONF_FILE_BY_CODE[confArchivo.codigo].table;
       const obtenerInfoColumnas = await EjecutarQuery(
         ObtenerColumnasDeTablaUtil(table)
       );
-      result[confArchivo.codigo] = obtenerInfoColumnas;
+      if (codeInst === "CUSTODIO") {
+        forEach(formattedFiles, (file) => {
+          result[`${file.nombre}_separador_${confArchivo.codigo}`] =
+            obtenerInfoColumnas;
+        });
+      } else result[confArchivo.codigo] = obtenerInfoColumnas;
     }
     return result;
   } catch (err) {
@@ -34,7 +44,11 @@ function camelToSnakeCase(inputString) {
   return inputString.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`);
 }
 
-async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
+async function obtenerValidacionesArchivos(
+  validatedContentFormatFiles,
+  TABLE_INFO
+) {
+  const { codeInst } = TABLE_INFO;
   try {
     const optionsValidationsFiles = {};
     const querysFiles = [];
@@ -58,7 +72,9 @@ async function obtenerValidacionesArchivos(validatedContentFormatFiles) {
       optionsValidationsFiles[fileCode] = fileValidations;
     });
     return await Promise.all(
-      map(querysFiles, (queryFile) => EjecutarQuery(queryFile))
+      codeInst === "CUSTODIO"
+        ? [EjecutarQuery(querysFiles?.[0])]
+        : map(querysFiles, (queryFile) => EjecutarQuery(queryFile))
     )
       .then((response) => {
         let counter = 0;
@@ -3024,7 +3040,7 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      custodio: {
+      custodia: {
         table: "APS_param_clasificador_comun",
         queryOptions: {
           select: ["sigla"],
@@ -6664,7 +6680,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "total_mercado_mo",
         pattern: /^(^-?(0|[1-9][0-9]{0,13}))(\.\d{2,2}){1,1}$/,
-        functions: ["precioMercadoMOMultiplicadoCantidadValores"],
+        functions: [],
         mathOperation: [
           { column: "precio_mercado_mo" },
           "*",
@@ -6674,7 +6690,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         columnName: "custodia",
         pattern: /^[A-Za-z]{3,3}$/,
-        functions: ["custodio"],
+        functions: ["custodia"],
       },
     ],
   };

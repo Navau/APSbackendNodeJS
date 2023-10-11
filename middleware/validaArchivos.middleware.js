@@ -147,12 +147,14 @@ exports.formatearArchivos = async (req, res, next) => {
     } = await obtenerInformacionInicial(dataInitial, req.user);
 
     let COD_INSTITUCION = null;
-    size(codigosSeguros) > 0
-      ? (COD_INSTITUCION = codigosSeguros[0].codigo)
-      : size(codigosPensiones) > 0
-      ? (COD_INSTITUCION = codigosPensiones[0].codigo)
-      : null;
-
+    if (size(codigosSeguros) > 0) COD_INSTITUCION = codigosSeguros[0].codigo;
+    if (size(codigosPensiones) > 0)
+      COD_INSTITUCION = codigosPensiones[0].codigo;
+    if (
+      tipo_carga === "CUSTODIO_SEGUROS" ||
+      tipo_carga === "CUSTODIO_PENSIONES"
+    )
+      COD_INSTITUCION = "CUSTODIO";
     if (tipo_carga === "BOLSA") COD_INSTITUCION = "BOLSA";
 
     if (COD_INSTITUCION === null)
@@ -255,11 +257,13 @@ exports.validarFormatoContenidoDeArchivos = async (req, res, next) => {
   try {
     const { WORKER_OPTIONS } = req;
     const { data, formattedFiles } = WORKER_OPTIONS;
-    const { confArchivos } = data;
+    const { confArchivos, TABLE_INFO } = data;
 
     const readedFiles = await obtenerArchivosSubidos(formattedFiles);
     const infoColumnasArchivos = await obtenerInformacionColumnasArchivosBD(
-      confArchivos
+      confArchivos,
+      TABLE_INFO,
+      formattedFiles
     );
     WORKER_OPTIONS.data.readedFiles = readedFiles;
     WORKER_OPTIONS.data.infoColumnasArchivos = infoColumnasArchivos;
@@ -316,10 +320,12 @@ exports.validarFormatoContenidoDeArchivos = async (req, res, next) => {
 exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
   try {
     const { WORKER_OPTIONS } = req;
-    const { validatedContentFormatFiles } = WORKER_OPTIONS;
+    const { validatedContentFormatFiles, data } = WORKER_OPTIONS;
+    const { TABLE_INFO } = data;
 
     const optionsValidationsFiles = await obtenerValidacionesArchivos(
-      validatedContentFormatFiles
+      validatedContentFormatFiles,
+      TABLE_INFO
     );
     // console.log("optionsValidationsFiles", optionsValidationsFiles);
 

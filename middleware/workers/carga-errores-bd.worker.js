@@ -17,6 +17,7 @@ const insertarErroresBD = () => {
   });
   const pool = new Pool(PARAMS_CONNECTION);
   pool.query(query, (err, res) => {
+    console.log(err);
     if (err) throw err;
   });
   return true;

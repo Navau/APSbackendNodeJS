@@ -14,10 +14,12 @@ function validarContenidoArchivo() {
   const errorsContentFormatFile = [];
   let validatedContentFormatFiles = readedFiles;
   const headers = {};
+  const { codeInst } = TABLE_INFO;
   const filesContentSplitByRow = {};
   forEach(infoColumnasArchivos, (infoColumnaArchivo, index) => {
     headers[index] = map(infoColumnaArchivo, (columna) => columna.column_name);
   });
+
   try {
     forEach(readedFiles, (file) => {
       const { fileContent, fileIsEmpty, fileName } = file;
@@ -56,7 +58,10 @@ function validarContenidoArchivo() {
     forEach(filesContentSplitByRow, (fileContentSplit, fileNameAndCode) => {
       const fileName = fileNameAndCode.split("_separador_")[0];
       const fileCode = fileNameAndCode.split("_separador_")[1];
-      const fileHeaders = headers[fileCode];
+      const fileHeaders =
+        codeInst === "CUSTODIO"
+          ? headers[`${fileName}_separador_${fileCode}`]
+          : headers[fileCode];
       const objectArrayFileContent = verificarCantidadColumnasArchivo(
         fileHeaders,
         fileContentSplit,
@@ -67,6 +72,7 @@ function validarContenidoArchivo() {
       validatedContentFormatFiles[fileNameAndCode] = objectArrayFileContent;
     });
   } catch (err) {
+    console.log(err);
     agregarError(
       {
         id_carga_archivos: nuevaCarga.id_carga_archivos,
@@ -76,7 +82,7 @@ function validarContenidoArchivo() {
           err?.message ? err.message : err
         }`,
       },
-      errorsContentValuesFile
+      errorsContentFormatFile
     );
   }
   return { validatedContentFormatFiles, errorsContentFormatFile };

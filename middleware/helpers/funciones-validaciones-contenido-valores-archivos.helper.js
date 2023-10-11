@@ -645,6 +645,12 @@ const funcionesValidacionesContenidoValores = {
       "El campo no corresponde a ninguna sigla de Custodio definida"
     );
   },
+  custodia: (params) => {
+    return defaultValidationContentValues(
+      params,
+      "El campo no corresponde a ninguna sigla de Custodia definida"
+    );
+  },
   pais: (params) => {
     return defaultValidationContentValues(
       params,

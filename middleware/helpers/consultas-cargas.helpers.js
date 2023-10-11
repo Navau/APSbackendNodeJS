@@ -33,10 +33,10 @@ async function insertarNuevaCargaArchivo(params) {
     const ultimaCarga = await obtenerUltimaCarga(params);
     const infoCarga = await EjecutarQuery(ObtenerColumnasDeTablaUtil(table));
     const columnasCarga = map(infoCarga, "column_name");
-    console.log({ ultimaCarga });
     // if (isUndefined(ultimaCarga))
     //   throw { myCode: 500, message: "La carga anterior no fue encontrada" };
     const maxCarga = ultimaCarga?.nro_carga || 0;
+    console.log({ ultimaCarga, maxCarga });
     const whereCarga = {
       id_rol,
       fecha_operacion,
