@@ -1738,7 +1738,12 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           where: [
             {
               key: "id_sector_economico",
-              value: 6,
+              valuesWhereIn: [6, 18, 22, 27],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
             },
           ],
         },

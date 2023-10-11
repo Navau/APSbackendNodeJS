@@ -70,7 +70,7 @@ async function CargarArchivo2(req, res) {
     reproceso,
     formatoArchivosRequeridos,
   } = data;
-  console.log(Object.keys(objectArrayFilesContent));
+  // console.log(Object.keys(objectArrayFilesContent));
   const { id, codeInst, table, tableErrors } = TABLE_INFO;
   const infoPreparedToInsertInDB = [];
   const uploadedFilesResult = [];
@@ -120,7 +120,7 @@ async function CargarArchivo2(req, res) {
       });
       counter++;
     });
-    console.log(infoPreparedToInsertInDB);
+    // console.log(infoPreparedToInsertInDB);
 
     for await (const infoPrepared of infoPreparedToInsertInDB) {
       const {
