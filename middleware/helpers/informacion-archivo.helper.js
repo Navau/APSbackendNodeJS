@@ -1528,6 +1528,19 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
+      moneda: {
+        table: "APS_param_moneda",
+        queryOptions: {
+          select: ["codigo_valoracion"],
+          where: [
+            {
+              key: "id_moneda",
+              valuesWhereIn: [1, 3],
+              whereIn: true,
+            },
+          ],
+        },
+      },
     },
     484: {
       tipoActivo: {
@@ -4355,18 +4368,23 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         functions: ["mayorACero"],
       },
       {
-        columnName: "precio",
+        columnName: "precio_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACero"],
       },
       {
-        columnName: "total_bs",
+        columnName: "total_mo",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
-        mathOperation: [{ column: "cantidad" }, "*", { column: "precio" }],
+        mathOperation: [{ column: "cantidad" }, "*", { column: "precio_mo" }],
       },
       {
-        columnName: "total_da",
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{1,1}$/,
+        functions: ["moneda"],
+      },
+      {
+        columnName: "total_bs",
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: ["mayorACero"],
       },
@@ -4380,9 +4398,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         pattern: /^(0|[1-9][0-9]{0,13})(\.\d{2,2}){1,1}$/,
         functions: [],
         mathOperation: [
-          { column: "total_bs" },
-          "-",
           { column: "prevision_inversiones_bs" },
+          "-",
+          { column: "total_bs" },
         ],
       },
     ],
