@@ -7,6 +7,7 @@ const {
   filter,
   isNull,
   includes,
+  uniq,
 } = require("lodash");
 const {
   EjecutarQuery,
@@ -23,7 +24,9 @@ async function obtenerInformacionColumnasArchivosBD(
     const result = {};
     const { codeInst } = TABLE_INFO;
     for await (const confArchivo of confArchivos) {
-      const table = CONF_FILE_BY_CODE[confArchivo.codigo].table;
+      const table =
+        CONF_FILE_BY_CODE[codeInst === "CUSTODIO" ? "CC" : confArchivo.codigo]
+          .table;
       const obtenerInfoColumnas = await EjecutarQuery(
         ObtenerColumnasDeTablaUtil(table)
       );
@@ -57,24 +60,26 @@ async function obtenerValidacionesArchivos(
     forEach(validatedContentFormatFiles, (fileContent, fileNameAndCode) => {
       const fileName = fileNameAndCode.split("_separador_")[0];
       const fileCode = fileNameAndCode.split("_separador_")[1];
-      const fileValidations = CONF_FILE_VALUE_VALIDATIONS(fileCode, fileName);
+      const newFileCode = codeInst === "CUSTODIO" ? fileNameAndCode : fileCode;
+      const fileValidations = CONF_FILE_VALUE_VALIDATIONS(
+        codeInst === "CUSTODIO" ? "CC" : fileCode,
+        fileName
+      );
       forEach(fileValidations, (validation) => {
         const { globalFileValidations } = validation;
         if (globalFileValidations?.queries) {
           const { queries } = globalFileValidations;
           const preparedQueries = queries();
-          keysFiles[fileCode] = preparedQueries.keys;
-          executedFilesQueries[fileCode] = {};
+          keysFiles[newFileCode] = preparedQueries.keys;
+          executedFilesQueries[newFileCode] = {};
           querysFiles.push(...preparedQueries.querys);
           delete globalFileValidations.queries;
         }
       });
-      optionsValidationsFiles[fileCode] = fileValidations;
+      optionsValidationsFiles[newFileCode] = fileValidations;
     });
     return await Promise.all(
-      codeInst === "CUSTODIO"
-        ? [EjecutarQuery(querysFiles?.[0])]
-        : map(querysFiles, (queryFile) => EjecutarQuery(queryFile))
+      map(querysFiles, (queryFile) => EjecutarQuery(queryFile))
     )
       .then((response) => {
         let counter = 0;
@@ -99,7 +104,7 @@ async function obtenerValidacionesArchivos(
                 [`${columnKeyQuery}DataDB`]: executedQuery,
               };
             });
-            // console.log(fileCode, validations);
+            // console.log({ fileCode, validations });
             // console.log(validations);
           });
         });

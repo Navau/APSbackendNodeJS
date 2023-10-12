@@ -28,7 +28,9 @@ function validarContenidoValoresArchivo() {
     objectArrayFilesContent,
     nuevaCarga,
     fecha_operacion,
+    TABLE_INFO,
   } = workerData;
+  const { codeInst } = TABLE_INFO;
   const informacionEntreArchivos = [];
   const errorsContentValuesFile = [];
   const validatedContentValuesFiles = optionsValidationsFiles;
@@ -37,7 +39,10 @@ function validarContenidoValoresArchivo() {
       const fileName = fileNameAndCode.split("_separador_")[0];
       const fileCode = fileNameAndCode.split("_separador_")[1];
 
-      const validations = optionsValidationsFiles[fileCode];
+      const validations =
+        optionsValidationsFiles[
+          codeInst === "CUSTODIO" ? fileNameAndCode : fileCode
+        ];
       const {
         fieldsUniqueBy,
         uniqueCombinationPerFile,

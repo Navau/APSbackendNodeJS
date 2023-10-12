@@ -243,10 +243,10 @@ async function funcionesSeguros(fecha, id_usuario, codInst) {
     ];
     return await Promise.all(map(querys, (query) => EjecutarQuery(query)))
       .then(async (response) => {
-        console.log("PRIMEROS QUERYS");
+        // console.log("PRIMEROS QUERYS");
         return await Promise.all(map(querys2, (query) => EjecutarQuery(query)))
           .then((response2) => {
-            console.log("SEGUNDOS QUERYS");
+            // console.log("SEGUNDOS QUERYS");
             return response2;
           })
           .catch((err) => {

@@ -70,7 +70,7 @@ async function CargarArchivo2(req, res) {
     reproceso,
     formatoArchivosRequeridos,
   } = data;
-  // console.log(Object.keys(objectArrayFilesContent));
+  console.log(formatoArchivosRequeridos);
   const { id, codeInst, table, tableErrors } = TABLE_INFO;
   const infoPreparedToInsertInDB = [];
   const uploadedFilesResult = [];
@@ -80,7 +80,9 @@ async function CargarArchivo2(req, res) {
     forEach(infoColumnasArchivos, (infoFile, fileCode) => {
       sequence = "";
       let auxColumns = [];
-      const fileName = formatoArchivosRequeridos[counter].archivo;
+      const fileName =
+        formatoArchivosRequeridos[counter]?.archivo ||
+        formatoArchivosRequeridos[counter]?.nombre;
       let fileTableName = null;
       let primaryKey = null;
       const newFileCodeAux = codeInst === "CUSTODIO" ? codeInst : fileCode;
@@ -221,7 +223,7 @@ async function CargarArchivo2(req, res) {
           const seriesUniqs = Object.keys(groupTiposInstrumentos);
           const tiposInstrumentosUniqs = Object.keys(groupSeries);
           const where = [
-            { key: uniquenessFields.date, value: fecha_operacion },
+            { key: uniquenessFields.fecha, value: fecha_operacion },
             { key: uniquenessFields.cod_institucion, value: codeInst },
           ];
           if (size(seriesUniqs) > 0)
@@ -296,7 +298,7 @@ async function CargarArchivo2(req, res) {
           returnValue: [primaryKey],
         });
         // console.log(queryInsertFiles);
-        fileCode === "484" && console.log(queryInsertFiles);
+        // fileCode === "484" && console.log(queryInsertFiles);
         const fileInserted = await EjecutarQuery(queryInsertFiles);
       }
       console.log({ message: `Archivo ${fileName} cargado` });
