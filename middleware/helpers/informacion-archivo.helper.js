@@ -787,14 +787,31 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      entidadFinanciera: {
+      entidadFinanciera1: {
         table: "APS_param_emisor",
         queryOptions: {
           select: ["codigo_rmv"],
           where: [
             {
               key: "id_sector_economico",
-              valuesWhereIn: [6, 18, 22, 27],
+              valuesWhereIn: [6, 22, 27],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      entidadFinanciera2: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_sector_economico",
+              valuesWhereIn: [18],
               whereIn: true,
             },
             {
@@ -1731,14 +1748,31 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
-      entidadFinanciera: {
+      entidadFinanciera1: {
         table: "APS_param_emisor",
         queryOptions: {
           select: ["codigo_rmv"],
           where: [
             {
               key: "id_sector_economico",
-              valuesWhereIn: [6, 18, 22, 27],
+              valuesWhereIn: [6, 22, 27],
+              whereIn: true,
+            },
+            {
+              key: "activo",
+              value: true,
+            },
+          ],
+        },
+      },
+      entidadFinanciera2: {
+        table: "APS_param_emisor",
+        queryOptions: {
+          select: ["codigo_rmv"],
+          where: [
+            {
+              key: "id_sector_economico",
+              valuesWhereIn: [18],
               whereIn: true,
             },
             {
@@ -3990,7 +4024,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "entidad_financiera",
-        pattern: /^[A-Za-z0-9]{3,3}$/,
+        pattern: /^[A-Za-z0-9]{3,6}$/,
         functions: ["entidadFinanciera"],
       },
       {
@@ -4601,7 +4635,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "entidad_financiera",
-        pattern: /^[A-Za-z0-9]{3,3}$/,
+        pattern: /^[A-Za-z0-9]{3,6}$/,
         functions: ["entidadFinanciera"],
       },
       {

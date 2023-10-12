@@ -267,10 +267,33 @@ const funcionesValidacionesContenidoValores = {
     );
   },
   entidadFinanciera: (params) => {
-    return defaultValidationContentValues(
-      params,
-      "El campo no corresponde a ninguna entidad financiera activa registrada en el RMV"
-    );
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+      } = params;
+      const { entidadFinanciera1DataDB, entidadFinanciera2DataDB } = paramsBD;
+      const entidadFinancieraValue = value;
+      const entidadFinanciera1Map = map(entidadFinanciera1DataDB, "codigo_rmv");
+      const entidadFinanciera2Map = map(entidadFinanciera2DataDB, "codigo_rmv");
+
+      if (
+        !includes(entidadFinanciera1Map, entidadFinancieraValue) &&
+        !includes(entidadFinanciera2Map, entidadFinancieraValue)
+      ) {
+        return `El campo no corresponde a ninguna entidad financiera activa`;
+      }
+
+      return true;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
   },
   tasaRelevanteConTipoInstrumento: (params) => {
     try {
@@ -982,13 +1005,24 @@ const funcionesValidacionesContenidoValores = {
   },
   plazoEmisionTiposDeDatos: (params) => {
     try {
-      const { value, pattern, row } = params;
+      const { value, pattern, row, OPTIONS_VALUES } = params;
+      if (OPTIONS_VALUES?.matchDataType === true) return true;
       const pattern1 = pattern[0];
       const pattern2 = pattern[1];
       const { serie } = row;
       const lastValue = serie?.[size(serie) - 1];
-      if (lastValue === "Q") return pattern2.test(value);
-      else return pattern1.test(value);
+      if (lastValue === "Q") {
+        if (pattern2.test(value)) {
+          OPTIONS_VALUES.matchDataType = true;
+          return true;
+        }
+      } else {
+        if (pattern1.test(value)) {
+          OPTIONS_VALUES.matchDataType = true;
+          return true;
+        }
+      }
+      return false;
     } catch (err) {
       throw err;
     }

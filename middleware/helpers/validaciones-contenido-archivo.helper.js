@@ -433,6 +433,7 @@ const validarTiposDeDatos = (params) => {
         messages,
         mayBeEmptyFields,
         pattern,
+        OPTIONS_VALUES,
       });
       if (functionResult !== true) {
         agregarError(
@@ -473,6 +474,7 @@ const validarFuncionesDeColumnas = (params) => {
   const { value, isLastColumn, isLastRow, isLastNroCupon } = OPTIONS_VALUES;
   forEach(functions, (functionName) => {
     functionResult = funcionesValidacionesContenidoValores[functionName]({
+      OPTIONS_VALUES,
       paramsBD,
       value,
       fecha_operacion,
