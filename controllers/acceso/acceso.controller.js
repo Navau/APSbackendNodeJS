@@ -226,7 +226,7 @@ async function loginConAPS(res, usuario, password, ip) {
 async function loginNormal(res, usuario, password, ip, usuarioObtenido) {
   try {
     await verificaCuentaBloqueada(usuarioObtenido);
-    await verificaContraseña(usuario, password, usuarioObtenido);
+    await verificaContraseñaYRoles(usuario, password, usuarioObtenido);
     await logearUsuario(res, usuario, password, ip, usuarioObtenido);
   } catch (err) {
     throw err;
@@ -309,6 +309,13 @@ const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
       throw {
         code: 404,
         message: "Usuario y/o Contraseña incorrecto",
+      };
+    }
+    if (usuarioLogeado?.activo !== true) {
+      throw {
+        code: 404,
+        message:
+          "Usuario no activo, contáctese con el Administrador del Sistema",
       };
     }
     // Esto se realiza porque anteriormente a esto ya se habia hecho en el LoginNormal el verificaCuentaBloqueada
@@ -435,7 +442,7 @@ const verificaCuentaBloqueada = async (usuario) => {
   }
 };
 
-const verificaContraseña = async (usuario, password, usuarioObtenido) => {
+const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => {
   try {
     const values = [usuario, password];
     const queryUsuario = formatearQuery(
@@ -446,16 +453,15 @@ const verificaContraseña = async (usuario, password, usuarioObtenido) => {
       (await EjecutarQuery(queryUsuario))?.[0] || undefined;
 
     //SI EL LOGEO ES INCORRECTO
-    if (isUndefined(usuarioLogeado)) {
-      const usuarioAPS = await verificarUsuarioAPS(usuario, password);
-      if (!isUndefined(usuarioAPS))
-        await actualizarContraseña(usuarioObtenido.id_usuario, password);
-      else
-        throw {
-          code: 500,
-          message: "Hubo un error al verificar el usuario",
-        };
-    }
+    const usuarioAPS = await verificarUsuarioAPS(usuario, password);
+    if (!isUndefined(usuarioAPS)) {
+      await actualizarContraseña(usuarioObtenido.id_usuario, password);
+      await actualizarRoles(usuarioObtenido, password);
+    } else
+      throw {
+        code: 500,
+        message: "Hubo un error al verificar el usuario",
+      };
   } catch (err) {
     throw err;
   }
@@ -484,6 +490,13 @@ const actualizarContraseña = async (id, password) => {
       returnValue: ["*"],
     });
     await EjecutarQuery(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const actualizarRoles = async (usuarioObtenido, password) => {
+  try {
   } catch (err) {
     throw err;
   }
