@@ -15,12 +15,12 @@ const IP_SERVER_API = "localhost";
 const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
 const PORT_SERVER = process.env.PORT || 3977; // 3977 || 5290
-const APP_GUID = "8cb2f01b-fa2a-44bb-9928-746530e7d53c";
+const APP_GUID = process.env.APP_GUID || "8cb2f01b-fa2a-44bb-9928-746530e7d53c";
 
 const PARAMS_CONNECTION = {
   host: IP_SERVER_DB,
   user: process.env.DATABASE_USER || "postgres",
-  password: process.env.DATABASE_PASS || "navau", //apsadmin2022
+  password: process.env.DATABASE_PASS || "apsadmin2022", //apsadmin2022
   database: process.env.DATABASE_NAME || "APS",
   port: PORT_DB,
 };
