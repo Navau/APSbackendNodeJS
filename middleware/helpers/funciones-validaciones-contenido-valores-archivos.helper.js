@@ -436,6 +436,49 @@ const funcionesValidacionesContenidoValores = {
       throw err;
     }
   },
+  serieTiposDeDatos: (params) => {
+    try {
+      if (isUndefined(params?.paramsBD))
+        throw "Consultas de campo no definidas";
+      const {
+        paramsBD,
+        value,
+        messages,
+        extraFunctionsParameters,
+        row,
+        mayBeEmptyFields,
+        OPTIONS_VALUES,
+        pattern,
+        columnIndex,
+      } = params;
+      if (OPTIONS_VALUES?.isMatchInFunction === true) return true;
+      const pattern1 = pattern[0];
+      const pattern2 = pattern[1];
+      const { serieConTipoInstrumentoDataDB } = paramsBD;
+      const serie = value;
+      const tipoInstrumento = row.tipo_instrumento || row.tipo_activo;
+      const tiposInstrumentosMap = map(serieConTipoInstrumentoDataDB, "sigla");
+      if (!includes(tiposInstrumentosMap, tipoInstrumento)) {
+        if (isEmpty(serie) && includes(mayBeEmptyFields, "serie")) {
+          OPTIONS_VALUES.matchDataType = true;
+          return true;
+        }
+        if (pattern1.test(value)) {
+          OPTIONS_VALUES.matchDataType = true;
+          return true;
+        }
+      } else {
+        if (pattern2.test(value)) {
+          OPTIONS_VALUES.matchDataType = true;
+          return true;
+        }
+      }
+
+      return false;
+    } catch (err) {
+      return `Error de servidor. ${err}`;
+    }
+  },
   tasaRendimientoConTipoInstrumento: (params) => {
     try {
       const {
@@ -447,7 +490,7 @@ const funcionesValidacionesContenidoValores = {
         mayBeEmptyFields,
       } = params;
       const tasaRendmiento = value;
-      const { tipo_instrumento } = row;
+      const tipoInstrumento = row?.tipo_instrumento || row?.tipo_activo;
       const {
         tasaRendimientoConTipoInstrumento139DataDB,
         tasaRendimientoConTipoInstrumento138DataDB,
@@ -460,12 +503,12 @@ const funcionesValidacionesContenidoValores = {
         tasaRendimientoConTipoInstrumento138DataDB,
         "sigla"
       );
-      if (includes(instrumentos139Map, tipo_instrumento)) {
+      if (includes(instrumentos139Map, tipoInstrumento)) {
         if (parseFloat(tasaRendmiento) > 0)
-          return `El valor de tasa_rendimiento debe ser 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
-      } else if (includes(instrumentos138Map, tipo_instrumento)) {
+          return `El valor de tasa_rendimiento debe ser 0, debido a que el tipo_instrumento es ${tipoInstrumento}`;
+      } else if (includes(instrumentos138Map, tipoInstrumento)) {
         if (parseFloat(tasaRendmiento) < 0)
-          return `El valor de tasa_rendimiento debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipo_instrumento}`;
+          return `El valor de tasa_rendimiento debe mayor o igual a 0, debido a que el tipo_instrumento es ${tipoInstrumento}`;
       }
       return true;
     } catch (err) {
@@ -1247,13 +1290,12 @@ const funcionesValidacionesContenidoValores = {
 
       // Recorrer objetos únicos y buscar duplicados
       forEach(uniqueObjects[key], (value, index) => {
-        if (!duplicateIndices[value]) {
+        if (!duplicateIndices.hasOwnProperty(value)) {
           duplicateIndices[value] = [index];
         } else {
           duplicateIndices[value].push(index);
         }
       });
-
       // Filtrar duplicados y almacenarlos
       duplicates[key] = pickBy(
         duplicateIndices,
