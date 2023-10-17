@@ -1,3 +1,41 @@
+const nodemailer = require("nodemailer");
+const jwt = require("../services/jwt.service");
+const pool = require("../database");
+const fs = require("fs");
+const {
+  forEach,
+  map,
+  size,
+  find,
+  includes,
+  isUndefined,
+  filter,
+  groupBy,
+  difference,
+  split,
+  sortBy,
+  toLower,
+  minBy,
+  maxBy,
+  isEmpty,
+  uniqBy,
+  isNull,
+  uniq,
+  join,
+  replace,
+  chain,
+  flatMap,
+  differenceBy,
+  differenceWith,
+  intersectionBy,
+  intersectionWith,
+  every,
+  take,
+  some,
+  mapValues,
+  merge,
+  isInteger,
+} = require("lodash");
 const {
   ListarUtil,
   ListarCamposDeTablaUtil,
@@ -53,40 +91,6 @@ const {
 } = require("./respuesta.utils");
 const { ValidarDatosValidacion } = require("./validacion.utils");
 const {
-  forEach,
-  map,
-  size,
-  find,
-  includes,
-  isUndefined,
-  filter,
-  groupBy,
-  difference,
-  split,
-  sortBy,
-  toLower,
-  minBy,
-  maxBy,
-  isEmpty,
-  uniqBy,
-  isNull,
-  uniq,
-  join,
-  replace,
-  chain,
-  flatMap,
-  differenceBy,
-  differenceWith,
-  intersectionBy,
-  intersectionWith,
-  every,
-  take,
-  some,
-  mapValues,
-} = require("lodash");
-const jwt = require("../services/jwt.service");
-const pool = require("../database");
-const {
   formatearFecha,
   tipoReporteControlEnvio,
   validateEmail,
@@ -94,12 +98,9 @@ const {
   agregarMeses,
 } = require("./formatearDatos");
 const { formatoArchivo } = require("./formatoCamposArchivos.utils");
-const { CAPTCHA_KEY } = require("../config");
-const nodemailer = require("nodemailer");
-const fs = require("fs");
-const { actualizarContraseñaUsuario } = require("../api/autenticacion.api.js");
 const dayjs = require("dayjs");
-const { group } = require("console");
+const { KEY_AUX } = require("../config");
+const { DateTime } = require("luxon");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -130,22 +131,29 @@ async function ListarCompletoCRUD(paramsF) {
     extraExecuteQueryOptions = {},
   } = paramsF;
   const action = "Listar";
+  const {
+    query: { key, limit, offset },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const querys = [];
+    let activoAuxMain = undefined;
     for await (item of queryOptions) {
       let query = "";
       const tableAux = item.table;
+      const queryUrl = item.main === true ? { limit, offset } : {};
       if (item?.where) {
         delete item.table;
         const queryParams = item;
@@ -153,8 +161,9 @@ async function ListarCompletoCRUD(paramsF) {
       } else {
         const activoAux = await CampoActivoAux(tableAux);
         query = isUndefined(activoAux)
-          ? ListarUtil(tableAux, { activo: null })
-          : ListarUtil(tableAux);
+          ? ListarUtil(tableAux, { activo: null, ...queryUrl })
+          : ListarUtil(tableAux, { ...queryUrl });
+        activoAuxMain = item.main === true ? activoAux : undefined;
       }
       querys.push(query);
     }
@@ -171,7 +180,17 @@ async function ListarCompletoCRUD(paramsF) {
       resultQuerys.result,
       tableOptions
     );
-    respResultadoCorrectoObjeto200(res, resultFinal);
+    const tableMain = find(queryOptions, (item) => item.main);
+    if (isUndefined(tableMain))
+      throw new Error("Error al ejecutar la consulta a la BD");
+    const queryTotal = isUndefined(activoAuxMain)
+      ? ListarUtil(tableMain.table, { activo: null })
+      : ListarUtil(tableMain.table);
+    const totalData = await EjecutarQuery(queryTotal);
+    respResultadoCorrectoObjeto200(res, {
+      result: resultFinal,
+      sizeData: size(totalData),
+    });
   } catch (err) {
     respErrorServidor500END(res, err);
   }
@@ -180,26 +199,40 @@ async function ListarCompletoCRUD(paramsF) {
 async function ListarCRUD(paramsF) {
   const { req, res, nameTable, nameView, id = undefined } = paramsF;
   const action = "Listar";
+  const {
+    query: { key, limit, offset },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const query = isUndefined(await CampoActivoAux(nameTable))
-      ? ListarUtil(nameView || nameTable, { activo: null })
-      : ListarUtil(nameView || nameTable);
+      ? ListarUtil(nameView || nameTable, { activo: null, limit, offset })
+      : ListarUtil(nameView || nameTable, { limit, offset });
+
+    const dataTotal = await EjecutarQuery(
+      isUndefined(await CampoActivoAux(nameTable))
+        ? ListarUtil(nameView || nameTable, { activo: null })
+        : ListarUtil(nameView || nameTable)
+    );
 
     await pool
       .query(query)
       .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
+        respResultadoCorrectoObjeto200(res, {
+          result: result.rows,
+          sizeData: size(dataTotal),
+        });
       })
       .catch((err) => {
         throw err;
@@ -220,17 +253,22 @@ async function ListarClasificadorCRUD(paramsF) {
     valueId,
   } = paramsF;
   const action = "Listar";
+  const {
+    query: { key, limit, offset },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const params = {
       clasificador: true,
@@ -239,7 +277,12 @@ async function ListarClasificadorCRUD(paramsF) {
     };
 
     const query = isUndefined(await CampoActivoAux(nameTable))
-      ? ListarUtil(nameView || nameTable, { ...params, activo: null })
+      ? ListarUtil(nameView || nameTable, {
+          ...params,
+          activo: null,
+          limit,
+          offset,
+        })
       : ListarUtil(nameView || nameTable, params);
 
     await pool
@@ -267,19 +310,26 @@ async function ListarClasificadorCRUD(paramsF) {
 async function BuscarCRUD(paramsF) {
   const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Buscar";
+  const {
+    body: { key },
+    query: { limit, offset },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const body = req.body;
+    delete body?.key;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
@@ -296,6 +346,8 @@ async function BuscarCRUD(paramsF) {
     const params = { body };
     const x = await CampoActivoAux(nameTable);
     if (isUndefined(x)) params.activo = null;
+    if (!isUndefined(limit)) params.limit = limit;
+    if (!isUndefined(offset)) params.offset = offset;
     const query = BuscarUtil(nameTable, params);
     await pool
       .query(query)
@@ -313,19 +365,26 @@ async function BuscarCRUD(paramsF) {
 async function BuscarDiferenteCRUD(paramsF) {
   const { req, res, nameTable, id = undefined } = paramsF;
   const action = "Buscar";
+  const {
+    body: { key },
+    query: { limit, offset },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const body = req.body;
+    delete body?.key;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
@@ -343,6 +402,8 @@ async function BuscarDiferenteCRUD(paramsF) {
     const params = { body };
     const x = await CampoActivoAux(nameTable);
     if (isUndefined(x)) params.activo = null;
+    if (!isUndefined(limit)) params.limit = limit;
+    if (!isUndefined(offset)) params.offset = offset;
     const query = BuscarDiferenteUtil(nameTable, params);
 
     await pool
@@ -361,22 +422,27 @@ async function BuscarDiferenteCRUD(paramsF) {
 async function EscogerCRUD(paramsF) {
   const { req, res, nameTable, id = undefined, login } = paramsF;
   const action = "Escoger";
+  const {
+    body: { key },
+    query: { limit, offset },
+  } = req;
   try {
-    if (isUndefined(login)) {
-      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-        table: nameTable,
-        action,
-        id,
-        req,
-        res,
-      });
-      if (permiso.ok === false) {
-        respUsuarioNoAutorizado200END(res, null, action, nameTable);
-        return;
-      }
+    if (isUndefined(login) && key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
     const body = req.body;
     delete body?.login;
+    delete body?.key;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
       return;
@@ -393,11 +459,27 @@ async function EscogerCRUD(paramsF) {
     const params = { body };
     const activoAux = await CampoActivoAux(nameTable);
     if (isUndefined(activoAux)) params.activo = null;
+    const totalData = await EjecutarQuery(EscogerUtil(nameTable, params));
+    if (!isUndefined(limit)) params.limit = limit;
+    if (!isUndefined(offset)) params.offset = offset;
     const query = EscogerUtil(nameTable, params);
     await pool
       .query(query)
       .then((result) => {
-        respResultadoCorrectoObjeto200(res, result.rows);
+        const newResult = map(result.rows, (row) => {
+          if (!isUndefined(row?.fecha_carga)) {
+            return {
+              ...row,
+              fecha_carga: DateTime.fromJSDate(row.fecha_carga).toFormat(
+                "yyyy-MM-dd HH:mm"
+              ),
+            };
+          } else return row;
+        });
+        respResultadoCorrectoObjeto200(res, {
+          result: newResult,
+          sizeData: size(totalData),
+        });
       })
       .catch((err) => {
         throw err;
@@ -418,18 +500,24 @@ async function EscogerClasificadorCRUD(paramsF) {
     nameTableGroup,
   } = paramsF;
   const action = "Escoger";
+  const {
+    body: { key },
+  } = req;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      // const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+      //   table: nameTable,
+      //   action,
+      //   id,
+      //   req,
+      //   res,
+      // });
+      // if (permiso.ok === false) {
+      //   respUsuarioNoAutorizado200END(res, null, action, nameTable);
+      //   return;
+      // }
     }
+    delete req.body?.key;
     const params = {
       clasificador: true,
       idClasificadorComunGrupo,
@@ -476,18 +564,22 @@ async function EscogerClasificadorCRUD(paramsF) {
 async function InsertarCRUD(paramsF) {
   const { req, res, nameTable, newID = undefined, id = undefined } = paramsF;
   const action = "Insertar";
+  const { key } = req.body;
   try {
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
+    delete req.body?.key;
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
@@ -508,6 +600,7 @@ async function InsertarCRUD(paramsF) {
       data: body,
       action,
     });
+
     if (validateData.ok === false) {
       respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
       return;
@@ -535,19 +628,23 @@ async function ActualizarCRUD(paramsF) {
   const { req, res, nameTable, id = undefined, newID } = paramsF;
   let registroAnterior = undefined;
   let idInfo = undefined;
+  const { key } = req.body;
   try {
     const action = "Actualizar";
-    const permiso = await VerificarPermisoTablaUsuarioAuditoria({
-      table: nameTable,
-      action,
-      id,
-      req,
-      res,
-    });
-    if (permiso.ok === false) {
-      respUsuarioNoAutorizado200END(res, null, action, nameTable);
-      return;
+    if (key !== KEY_AUX) {
+      const permiso = await VerificarPermisoTablaUsuarioAuditoria({
+        table: nameTable,
+        action,
+        id,
+        req,
+        res,
+      });
+      if (permiso.ok === false) {
+        respUsuarioNoAutorizado200END(res, null, action, nameTable);
+        return;
+      }
     }
+    delete req.body?.key;
     const body = req.body;
     if (size(body) === 0) {
       respDatosNoRecibidos200END(res);
@@ -735,8 +832,17 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
     methodName,
     action = undefined,
   } = paramsF;
+  let key = undefined;
+  if (!isUndefined(req.body.key)) key = req.body.key;
+  if (!isUndefined(req.query.key)) key = req.query.key;
   try {
-    if (!isUndefined(action) && (!isUndefined(nameTable) || !isUndefined(id))) {
+    if (
+      (!isUndefined(action) &&
+        (!isUndefined(nameTable) || !isUndefined(id)) &&
+        key !== KEY_AUX &&
+        action === "Insertar") ||
+      action === "Actualizar"
+    ) {
       const permiso = await VerificarPermisoTablaUsuarioAuditoria({
         table: nameTable,
         action,
@@ -749,7 +855,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         return;
       }
     }
-    //TO DO: Sanitizar las entradas de req.body, hay que crear una funcion en validacion.utils.js, que realize validaciones en yup basadas en las opciones que se le pase.
+    //TODO: Sanitizar las entradas de req.body, hay que crear una funcion en validacion.utils.js, que realize validaciones en yup basadas en las opciones que se le pase.
 
     const OPERATION = {
       InstitucionConIDUsuario_Usuario: async () => {
@@ -933,14 +1039,24 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
       },
       ObtenerMenuAng_Rol: async () => {
         const { id_rol } = req.user;
-        const menuQuerys = ObtenerMenuAngUtil(id_rol);
-        const menu = await EjecutarQuery(menuQuerys.query);
-        const menudet = await EjecutarQuery(menuQuerys.querydet);
-        const menuFinal = FormatearObtenerMenuAngUtil(menu, menudet);
+        const modulos = await EjecutarQuery(
+          EscogerInternoUtil("APS_view_modulos_menu", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          })
+        );
+        const submodulos = await EjecutarQuery(
+          EscogerInternoUtil("APS_view_submodulos_menu", {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          })
+        );
+        const menuFinal = FormatearObtenerMenuAngUtil(modulos, submodulos);
         respResultadoCorrectoObjeto200(res, menuFinal);
       },
       CambiarPermisos_Permiso: async () => {
         const { permisos, id_rol } = req.body;
+        //*#region INFORMACION INICIAL
         const permisosFiltrados = sortBy(
           filter(permisos, (permiso) => {
             return every(
@@ -951,140 +1067,230 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           }),
           "id_modulo"
         );
-
-        const resultPermisosActualizados = {
-          inserciones: [],
-          actualizaciones: [],
+        const submodulos = [];
+        const permisosFinales = {
+          insercionesMenus: [],
+          actualizacionesMenus: [],
+          insercionesPermisos: [],
+          actualizacionesPermisos: [],
         };
-        //#region PERMISOS ACTUALES DEL ID_ROL
+        //#endregion
+
+        //*#region ACTUALIZAR LOS PERMISOS DE LOS MENUS DE UN ID_ROL
+        forEach(permisosFiltrados, (permiso) =>
+          submodulos.push(...permiso.submodulos)
+        );
+        const queryPermisoMenu = EscogerInternoUtil(
+          "APS_seg_permiso_menu_rol",
+          {
+            select: ["*"],
+            where: [{ key: "id_rol", value: id_rol }],
+          }
+        );
+        const permisosMenus = await EjecutarQuery(queryPermisoMenu);
+        const diferenciasSubmodulosMenus = differenceBy(
+          submodulos,
+          permisosMenus,
+          "id_submodulo"
+        );
+        //? INSERTAR REGISTROS SI ES QUE NO EXISTEN EN LA TABLA APS_seg_permiso_menu_rol
+        if (size(diferenciasSubmodulosMenus) > 0) {
+          const queryInsertNuevosPermisosMenus = InsertarVariosUtil(
+            "APS_seg_permiso_menu_rol",
+            {
+              body: map(diferenciasSubmodulosMenus, (submodulo) => ({
+                id_rol,
+                id_submodulo: submodulo.id_submodulo,
+                permiso: submodulo.esCompleto,
+              })),
+              returnValue: ["*"],
+            }
+          );
+          const permisosNuevos = await EjecutarQuery(
+            queryInsertNuevosPermisosMenus
+          );
+          permisosFinales.insercionesMenus = permisosNuevos;
+        }
+
+        //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO EN LA TABLA APS_seg_permiso_menu_rol
+        const diferenciasPermisosMenus = differenceWith(
+          permisosMenus,
+          submodulos,
+          (value1, value2) => {
+            return (
+              value1.permiso === value2.esCompleto &&
+              value1.id_submodulo === value2.id_submodulo
+            );
+          }
+        );
+        const querysUpdate = map(diferenciasPermisosMenus, (permisoMenu) => {
+          return ActualizarUtil("APS_seg_permiso_menu_rol", {
+            body: { permiso: !permisoMenu.permiso },
+            idKey: "id_permiso_menu",
+            idValue: permisoMenu.id_permiso_menu,
+            returnValue: ["*"],
+          });
+        });
+        await Promise.all(
+          map(querysUpdate, async (query) => await EjecutarQuery(query))
+        )
+          .then((response) => {
+            permisosFinales.actualizacionesMenus = map(
+              response,
+              (item) => item[0]
+            );
+          })
+          .catch((err) => {
+            throw err;
+          });
+        //#endregion
+
+        //*#region INSERTAR REGISTROS EN LA TABLA APS_seg_tabla_accion
+        await EjecutarQuery(
+          EjecutarFuncionSQL("insertar_registros_tabla_accion")
+        );
+        //#endregion
+
+        //*#region CONSULTAS DE PERMISOS Y TABLAS ACCIONES
         const permisosBD = await EjecutarQuery(
           EscogerInternoUtil("APS_seg_permiso", {
             select: ["*"],
             where: [{ key: "id_rol", value: id_rol }],
           })
         );
+        const idsTablas = map(
+          flatMap(permisosFiltrados, "submodulos"),
+          (submodulo) => submodulo.id_tabla
+        );
+        const tablasAcciones = await EjecutarQuery(
+          EscogerInternoUtil("APS_view_tabla_accion_descripcion", {
+            select: ["*"],
+            where: [
+              { key: "id_tabla", valuesWhereIn: idsTablas, whereIn: true },
+            ],
+          })
+        );
         //#endregion
 
-        const nuevosPermisos = [];
-        forEach(flatMap(permisosFiltrados, "submodulos"), (submodulo) => {
-          forEach(submodulo.data_tabla_accion, (DTA) => {
-            if (
-              !isNull(submodulo?.id_submodulo) &&
-              !isNull(DTA?.id_tabla_accion)
-            )
-              nuevosPermisos.push({
-                id_tabla_accion: DTA?.id_tabla_accion,
-                accion: DTA?.accion,
-                submodulo: submodulo?.submodulo,
-                esCompleto: submodulo?.esCompleto,
-              });
+        //*#region ACTUALIZAR LOS PERMISOS DE LAS ACCIONES
+        const submodulosFlatMap = map(
+          flatMap(permisosFiltrados, "submodulos"),
+          (submodulo) => submodulo
+        );
+        const tablasAccionesConEspecificaciones = [];
+        forEach(tablasAcciones, (itemTA) => {
+          const submodulosFilter = filter(
+            submodulosFlatMap,
+            (submodulo) => submodulo.id_tabla === itemTA.id_tabla
+          );
+          // if (itemTA.id_tabla === 1)
+          //   console.log("submoduloFind", submoduloFind);
+          forEach(submodulosFilter, (submoduloFilter) => {
+            tablasAccionesConEspecificaciones.push({
+              ...itemTA,
+              esCompleto: submoduloFilter.esCompleto || false,
+              tabla: submoduloFilter.tabla,
+            });
           });
         });
-        const nuevosPermisosTrue = filter(
-          nuevosPermisos,
-          (nuevoPermiso) => nuevoPermiso.esCompleto === true
-        );
-        const diferenciaPermisosParaInsertar = filter(
-          nuevosPermisosTrue,
-          (nuevoPermiso) => {
-            const permisoBDFind = find(permisosBD, (permisoBD) => {
-              const permisoTextAux = `${nuevoPermiso.accion} ${nuevoPermiso.submodulo}`;
-              return (
-                permisoBD.id_tabla_accion === nuevoPermiso.id_tabla_accion &&
-                permisoBD.permiso === permisoTextAux
-              );
-            });
-            return isUndefined(permisoBDFind);
-          }
-        );
 
-        if (size(diferenciaPermisosParaInsertar) > 0) {
-          const queryInsertarPermisos = InsertarVariosUtil(nameTable, {
-            body: map(diferenciaPermisosParaInsertar, (itemInsert) => ({
-              id_rol,
-              id_tabla_accion: itemInsert.id_tabla_accion,
-              permiso: `${itemInsert.accion} ${itemInsert.submodulo}`,
-              activo: true,
-            })),
-            returnValue: ["*"],
-          });
-          resultPermisosActualizados.inserciones = await EjecutarQuery(
-            queryInsertarPermisos
+        const insertarNuevosPermisos = [];
+        const actualizarNuevosPermisos = [];
+
+        forEach(tablasAccionesConEspecificaciones, (itemTA) => {
+          const permiso = find(
+            permisosBD,
+            (permisoBD) => permisoBD.id_tabla_accion === itemTA.id_tabla_accion
           );
+
+          const objectToPush = {
+            id_rol,
+            id_tabla_accion: itemTA?.id_tabla_accion,
+            permiso: `${itemTA?.accion} ${itemTA?.tabla}`,
+            activo: itemTA?.esCompleto,
+          };
+
+          if (isUndefined(permiso)) {
+            if (itemTA.esCompleto === true) {
+              insertarNuevosPermisos.push(objectToPush);
+            }
+          } else {
+            if (itemTA.esCompleto !== permiso.activo) {
+              actualizarNuevosPermisos.push({
+                ...objectToPush,
+                id_permiso: permiso.id_permiso,
+              });
+            }
+          }
+        });
+        // console.log("insertarNuevosPermisos", insertarNuevosPermisos);
+        // console.log("actualizarNuevosPermisos", actualizarNuevosPermisos);
+        //? INSERTAR REGISTROS SI ES QUE NO EXISTEN EN LA TABLA APS_seg_permiso
+        if (size(insertarNuevosPermisos) > 0) {
+          const queryInsertNuevosPermisos = InsertarVariosUtil(
+            "APS_seg_permiso",
+            {
+              body: insertarNuevosPermisos,
+              returnValue: ["*"],
+            }
+          );
+          const permisosNuevos = await EjecutarQuery(queryInsertNuevosPermisos);
+          permisosFinales.insercionesPermisos = permisosNuevos;
         }
 
-        const diferenciaPermisos = intersectionWith(
-          permisosBD,
-          nuevosPermisos,
-          (value1, value2) => {
-            const permisoTextAux = `${value2.accion} ${value2.submodulo}`;
-            return (
-              value1.id_tabla_accion === value2.id_tabla_accion &&
-              value1.permiso === permisoTextAux &&
-              value1.activo !== value2.esCompleto
-            );
-          }
-        );
-
-        const diferenciasPermisosFinal = map(
-          diferenciaPermisos,
-          (diferenciaPermiso) => {
-            const nuevoPermisoItem = find(nuevosPermisos, (nuevoPermiso) => {
-              const permisoTextAux = `${nuevoPermiso.accion} ${nuevoPermiso.submodulo}`;
-              return (
-                nuevoPermiso.id_tabla_accion ===
-                  diferenciaPermiso.id_tabla_accion &&
-                permisoTextAux === diferenciaPermiso.permiso
+        //? ACTUALIZAR LOS REGISTROS DE PERMISOS SI ES QUE HAY DIFERENCIAS ENTRE LO QUE VIENE Y LO QUE ESTA REGISTRADO
+        if (size(actualizarNuevosPermisos) > 0) {
+          const queryActualizarPermisos = map(
+            actualizarNuevosPermisos,
+            (permiso) => {
+              return ActualizarUtil("APS_seg_permiso", {
+                body: permiso,
+                idKey: "id_permiso",
+                idValue: permiso.id_permiso,
+                returnValue: ["*"],
+              });
+            }
+          );
+          await Promise.all(
+            map(
+              queryActualizarPermisos,
+              async (query) => await EjecutarQuery(query)
+            )
+          )
+            .then((response) => {
+              permisosFinales.actualizacionesPermisos = map(
+                response,
+                (item) => item[0]
               );
+            })
+            .catch((err) => {
+              throw err;
             });
-            if (isUndefined(nuevoPermisoItem)) return null;
-            return {
-              ...diferenciaPermiso,
-              ...nuevoPermisoItem,
-            };
-          }
-        ).filter((value) => !isNull(value));
-
-        for await (const permiso of diferenciasPermisosFinal) {
-          const queryActualizarPermiso = ActualizarUtil(nameTable, {
-            body: {
-              id_rol,
-              id_tabla_accion: permiso.id_tabla_accion,
-              permiso: `${permiso.accion} ${permiso.submodulo}`,
-              activo: permiso.esCompleto,
-            },
-            idKey: "id_permiso",
-            idValue: permiso.id_permiso,
-            returnValue: ["*"],
-          });
-          const actualizacion =
-            (await EjecutarQuery(queryActualizarPermiso))?.[0] || undefined;
-          resultPermisosActualizados.actualizaciones.push(actualizacion);
         }
-        resultPermisosActualizados.actualizaciones = filter(
-          resultPermisosActualizados.actualizaciones,
-          (item) => !isUndefined(item)
-        );
+
+        //#endregion
 
         respResultadoCorrectoObjeto200(
           res,
-          resultPermisosActualizados,
+          permisosFinales,
           "Permisos actualizados correctamente"
         );
       },
       ListarPermisos_Permiso: async () => {
         const { id_rol } = req.body;
         const queryModulos = EscogerInternoUtil("APS_seg_view_listar_modulos");
-        const queryTablaAccion = EscogerInternoUtil(
-          "APS_seg_view_listar_tabla_accion"
+        const queryPermisoMenu = EscogerInternoUtil(
+          "APS_seg_permiso_menu_rol",
+          {
+            select: ["*"],
+            where: [
+              { key: "id_rol", value: id_rol },
+              { key: "permiso", value: true },
+            ],
+          }
         );
-        const queryPermisos = EscogerInternoUtil("APS_seg_permiso", {
-          select: ["*"],
-          where: [{ key: "activo", value: true }],
-        });
         const modulosPrincipales = await EjecutarQuery(queryModulos);
-        const tablaAccion = await EjecutarQuery(queryTablaAccion);
-        const permisos = await EjecutarQuery(queryPermisos);
+        const permisosMenus = await EjecutarQuery(queryPermisoMenu);
 
         const resultModulos = chain(modulosPrincipales)
           .groupBy("id_modulo")
@@ -1103,29 +1309,18 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 tabla: submodulos[0].tabla,
                 descripcion_tabla: submodulos[0].descripcion_tabla,
                 esCompleto: false,
-                data_tabla_accion: [],
               }))
               .value(),
           }))
           .value();
         forEach(resultModulos, (modulo) => {
           forEach(modulo.submodulos, (submodulo) => {
-            const resultTablaAccion = filter(
-              tablaAccion,
-              (itemTA) => itemTA.id_tabla === submodulo.id_tabla
-            ).map((itemTA) => ({
-              id_tabla_accion: itemTA?.id_tabla_accion,
-              id_tabla: itemTA?.id_tabla,
-              id_accion: itemTA?.id_accion,
-              accion: itemTA?.accion,
-            }));
-            submodulo.data_tabla_accion = resultTablaAccion;
-            const dataIntersection = intersectionBy(
-              permisos,
-              resultTablaAccion,
-              "id_tabla_accion"
-            ).filter((item) => item.id_rol === id_rol);
-            submodulo.esCompleto = size(dataIntersection) > 0;
+            const menuDataIntersection = find(
+              permisosMenus,
+              (permisoMenu) =>
+                permisoMenu.id_submodulo === submodulo.id_submodulo
+            );
+            submodulo.esCompleto = !isUndefined(menuDataIntersection);
           });
         });
         forEach(resultModulos, (modulo) => {
@@ -1148,59 +1343,20 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           respDatosNoRecibidos400(res, "ID usuario y ID rol requeridos");
           return;
         }
-        const values = [
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          periodicidad,
-          id_usuario,
-          id_rol,
-        ];
-        const query = formatearQuery(
-          `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
-            "APS_param_archivos_pensiones_seguros".nombre::text, 
-            'nnn'::text, "APS_seg_institucion".codigo::text),
-            'aaaa'::text, EXTRACT(year FROM TIMESTAMP %L)::text),
-            'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'AA'::text, substring(EXTRACT(year FROM TIMESTAMP %L)::text from 3 for 2)),
-            'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-            'nntt'::text, "APS_seg_institucion".codigo::text ||
-            "APS_param_archivos_pensiones_seguros".codigo::text),
-            'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
-            "APS_seg_usuario".id_usuario,
-            "APS_param_archivos_pensiones_seguros".archivo_vacio 
-            FROM "APS_param_archivos_pensiones_seguros" 
-            JOIN "APS_param_clasificador_comun" 
-            ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
-            JOIN "APS_seg_usuario_rol" 
-            ON "APS_seg_usuario_rol".id_rol = "APS_param_archivos_pensiones_seguros".id_rol 
-            JOIN "APS_seg_usuario" 
-            ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
-            JOIN "APS_seg_institucion" 
-            ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-            WHERE "APS_param_clasificador_comun".id_clasificador_comun = %L 
-            AND "APS_seg_usuario".id_usuario = %L 
-            AND "APS_seg_usuario_rol".id_rol = %L 
-            AND "APS_param_archivos_pensiones_seguros".activo = true;`,
-          values
-        );
-
-        await pool
-          .query(query)
-          .then((result) => {
-            const resultArray = sortBy(result.rows, (row) =>
-              toLower(row.archivo)
-            );
-            respResultadoCorrectoObjeto200(res, resultArray);
+        const archivosRequeridos = await EjecutarQuery(
+          EjecutarFuncionSQL("aps_fun_archivos_pensiones_seguros", {
+            body: {
+              fecha_operacion,
+              id_rol,
+              id_usuario,
+              periodicidad,
+            },
           })
-          .catch((err) => {
-            throw err;
-          });
+        );
+        const resultArray = sortBy(archivosRequeridos, (row) =>
+          toLower(row.archivo)
+        );
+        respResultadoCorrectoObjeto200(res, resultArray);
       },
       SeleccionarArchivosBolsa_ArchivosPensionesSeguros: async () => {
         const { fecha_operacion } = req.body;
@@ -1219,68 +1375,25 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         );
         const workingDay = await EjecutarQuery(queryFeriado);
 
-        let periodicidad = [154]; //VALOR POR DEFECTO
+        const periodicidad = [154]; //VALOR POR DEFECTO
 
-        if (parseInt(workingDay?.[0].case) === 0) {
-          periodicidad = [154]; // DIARIOS
-        } else {
-          periodicidad = [154, 219]; // DIAS HABILES
-        }
+        if (parseInt(workingDay?.[0].case) === 0) periodicidad; // DIARIOS
+        else periodicidad.push(219); // DIAS HABILES
 
-        const values = [
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          fecha_operacion,
-          periodicidad,
-          id_usuario,
-          id_rol,
-        ];
-
-        const query = formatearQuery(
-          `SELECT replace(replace(replace(replace(replace(replace(replace(replace(replace(
-          "APS_param_archivos_pensiones_seguros".nombre::text, 
-          'nnn'::text, "APS_seg_institucion".codigo::text),
-          'aaaa'::text, EXTRACT(year FROM TIMESTAMP %L)::text),
-          'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'AA'::text, substring(EXTRACT(year FROM TIMESTAMP %L)::text from 3 for 2)),
-          'MM'::text, lpad(EXTRACT(month FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'DD'::text, lpad(EXTRACT(day FROM TIMESTAMP %L)::text, 2, '0'::text)),
-          'nntt'::text, "APS_seg_institucion".codigo::text ||
-          "APS_param_archivos_pensiones_seguros".codigo::text),
-          'nn'::text, "APS_seg_institucion".codigo::text) AS archivo,
-          "APS_seg_usuario".id_usuario,
-          "APS_param_archivos_pensiones_seguros".archivo_vacio 
-          FROM "APS_param_archivos_pensiones_seguros" 
-          JOIN "APS_param_clasificador_comun" 
-          ON "APS_param_archivos_pensiones_seguros".id_periodicidad = "APS_param_clasificador_comun".id_clasificador_comun 
-          JOIN "APS_seg_usuario_rol" 
-          ON "APS_seg_usuario_rol".id_rol = "APS_param_archivos_pensiones_seguros".id_rol 
-          JOIN "APS_seg_usuario" 
-          ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
-          JOIN "APS_seg_institucion" 
-          ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-          WHERE "APS_param_clasificador_comun".id_clasificador_comun in (%L) 
-          AND "APS_seg_usuario".id_usuario = %L 
-          AND "APS_seg_usuario_rol".id_rol = %L 
-          AND "APS_param_archivos_pensiones_seguros".activo = true;`,
-          values
-        );
-
-        await pool
-          .query(query)
-          .then((result) => {
-            const resultArray = sortBy(result.rows, (row) =>
-              toLower(row.archivo)
-            );
-            respResultadoCorrectoObjeto200(res, resultArray);
+        const archivosRequeridos = await EjecutarQuery(
+          EjecutarFuncionSQL("aps_fun_archivos_bolsa", {
+            body: {
+              fecha_operacion,
+              id_rol,
+              id_usuario,
+              periodicidad: periodicidad.join(","),
+            },
           })
-          .catch((err) => {
-            throw err;
-          });
+        );
+        const resultArray = sortBy(archivosRequeridos, (row) =>
+          toLower(row.archivo)
+        );
+        respResultadoCorrectoObjeto200(res, resultArray);
       },
       SeleccionarArchivosCustodio_ArchivosPensionesSeguros: async () => {
         const { fecha_operacion, tipo } = req.body;
@@ -1719,7 +1832,10 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
 
               if (isUndefined(value)) {
                 respResultadoVacio404END(
-                  "No existe una fecha válida disponible"
+                  res,
+                  reproceso === true
+                    ? "No existe ninguna Fecha Habilitada para reprocesar"
+                    : "No existen registros iniciales"
                 );
                 return;
               }
@@ -1731,7 +1847,13 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               respResultadoCorrectoObjeto200(res, [
                 { max: value.fecha_operacion },
               ]);
-            } else respResultadoVacio404END(res);
+            } else
+              respResultadoVacio404END(
+                res,
+                reproceso === true
+                  ? "No existe ninguna Fecha Habilitada para reprocesar"
+                  : "No existen registros iniciales"
+              );
           })
           .catch((err) => {
             throw err;
@@ -1818,8 +1940,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               map(result.rows, (item) => {
                 return {
                   cod_institucion: "BBV",
-                  descripcion: "La información esta correcta",
+                  descripcion: "La información está correcta",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -2064,7 +2187,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             return;
           }
           // VALIDACION PRELIMINAR
-          const aux = map(instituciones.result, (item) => {
+          const aux = map(instituciones, (item) => {
             return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
               body: {
                 fecha,
@@ -2224,7 +2347,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             return;
           }
           // VALIDACION PRELIMINAR
-          const aux = map(instituciones.result, (item) => {
+          const aux = map(instituciones, (item) => {
             return EjecutarFuncionSQL("aps_reporte_validacion_preliminar", {
               body: {
                 fecha,
@@ -2595,7 +2718,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               cod_institucion: item.cod_institucion,
               fecha_operacion: item.fecha_operacion,
               nro_carga: item.nro_carga,
-              fecha_carga: dayjs(item.fecha_carga).format("YYYY-MM-DD HH:mm"),
+              fecha_carga: DateTime.fromJSDate(item.fecha_carga).toFormat(
+                "yyyy-MM-dd HH:mm"
+              ),
               usuario: find(
                 usuarios.data,
                 (itemF) => item.id_usuario === itemF.id_usuario
@@ -2630,6 +2755,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   cod_institucion: item.cod_institucion,
                   descripcion: "La información fue validada correctamente",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -2852,8 +2978,9 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
               map(result.rows, (item) => {
                 return {
                   cod_institucion: "EDV",
-                  descripcion: "La información esta correcta",
+                  descripcion: "La información está correcta",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -3058,7 +3185,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           auth: {
             user: "contactojosegutierrez10@gmail.com",
             // user: "admin-jose-aps",
-            pass: "svslrhedrsdtwlar",
+            pass: "vlkrtlywrworfckj",
           },
         });
 
@@ -3192,7 +3319,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             { key: "id_rol", value: id_rol },
             {
               key: "cod_institucion",
-              value: cod_institucion.codigo,
+              value: cod_institucion.result.codigo,
             },
             {
               key: "id_periodo",
@@ -3206,7 +3333,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             { key: "id_rol", value: id_rol },
             {
               key: "cod_institucion",
-              value: cod_institucion.codigo,
+              value: cod_institucion.result.codigo,
             },
             {
               key: "id_periodo",
@@ -3984,6 +4111,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                   cod_institucion: item.cod_institucion,
                   descripcion: "La información fue valorada correctamente",
                   fecha_carga: item.fecha_carga,
+                  fecha_operacion: item.fecha_operacion,
                 };
               })
             );
@@ -4343,12 +4471,69 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
         respResultadoCorrectoObjeto200(res, modalidadesArray);
       },
       CargarArchivo_Upload: async () => CargarArchivo_Upload(req, res, action),
+      ListarSubcuentas_PlanCuentas: async () => {
+        const cuentas = await EjecutarQuery(
+          isUndefined(await CampoActivoAux(nameTable))
+            ? ListarUtil(nameTable, { activo: null })
+            : ListarUtil(nameTable)
+        );
+        const estructuraJerarquica = crearJerarquiaCuentas(cuentas);
+        respResultadoCorrectoObjeto200(res, estructuraJerarquica);
+      },
+      EscogerSubcuentas_PlanCuentas: async () => {
+        const {
+          query: { limit, offset },
+        } = req;
+        const body = req.body;
+        const cuentaPadre = !isUndefined(body?.cuenta_padre)
+          ? body.cuenta_padre
+          : "1";
+        delete body?.login;
+        delete body?.key;
+        delete body?.cuenta_padre;
+        if (size(body) === 0) {
+          respDatosNoRecibidos200END(res);
+          return;
+        }
+        const validateData = await ValidarDatosValidacion({
+          nameTable,
+          data: body,
+          action,
+        });
+        if (validateData.ok === false) {
+          respResultadoIncorrectoObjeto200(res, null, [], validateData.errors);
+          return;
+        }
+        const params = { body };
+        const activoAux = await CampoActivoAux(nameTable);
+        if (isUndefined(activoAux)) params.activo = null;
+        if (!isUndefined(limit)) params.limit = limit;
+        if (!isUndefined(offset)) params.offset = offset;
+        const cuentas = await EjecutarQuery(EscogerUtil(nameTable, params));
+        const estructuraJerarquica = crearJerarquiaCuentas(cuentas);
+        respResultadoCorrectoObjeto200(res, estructuraJerarquica);
+      },
     };
 
     await OPERATION?.[methodName]();
   } catch (err) {
     respErrorServidor500END(res, err);
   }
+}
+
+function crearJerarquiaCuentas(cuentas, cuentaPadre = null, nivel = 1) {
+  const cuentasNivel = filter(cuentas, (cuenta) => {
+    if (isEmpty(cuenta.cuenta_padre)) return cuenta.id_nivel === nivel;
+    return cuenta.cuenta_padre === cuentaPadre && cuenta.id_nivel === nivel;
+  });
+  if (size(cuentasNivel) === 0) return [];
+  const jerarquia = {};
+  for (const cuenta of cuentasNivel) {
+    const subcuentas = crearJerarquiaCuentas(cuentas, cuenta.cuenta, nivel + 1);
+    if (subcuentas) cuenta.subcuentas = subcuentas;
+    jerarquia[cuenta.cuenta] = cuenta;
+  }
+  return map(jerarquia, (cuenta) => cuenta);
 }
 
 async function CargarArchivo_Upload(req, res, action, id = undefined) {
@@ -4680,13 +4865,13 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
           //#endregion
 
           //#region CONFIGURANDO LA INFORMACION DE OPTIONS_FILE
-          const columnsHeaders = await formatoArchivo(codeFile);
+          const columnsHeaders = await formatoArchivo(OPTIONS_FILE.codeFile);
           OPTIONS_FILE.detailsHeaders = await columnsHeaders.detailsHeaders;
           OPTIONS_FILE.headers = await columnsHeaders.headers;
           OPTIONS_FILE.idTable = OPTIONS_FILE.headers[0];
           OPTIONS_FILE.sequenceTableFile = {
-            table: tableFile,
-            id: idTable,
+            table: OPTIONS_FILE.tableFile,
+            id: OPTIONS_FILE.idTable,
           };
           const codInstitucionAux = INFO_TABLES.cod_institution;
           OPTIONS_FILE.headers?.splice(0, 1); // ELIMINAR ID DE TABLA
@@ -4823,33 +5008,33 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
                 },
               ];
               await eliminarInformacionDuplicada(
-                tableFile,
+                OPTIONS_FILE.tableFile,
                 whereDelete,
-                sequenceTableFile,
-                idTable
+                OPTIONS_FILE.sequenceTableFile,
+                OPTIONS_FILE.idTable
               );
             }
           } else {
-            if (!dateField || !institutionField) {
+            if (!OPTIONS_FILE.dateField || !OPTIONS_FILE.institutionField) {
               errorsFieldsArray.push({
-                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${tableFile}.`,
+                message: `No existe el campo cod_institucion y fecha para poder validar unicidad en la tabla ${OPTIONS_FILE.tableFile}.`,
               });
             } else {
               const whereDelete = [
                 {
-                  key: dateField,
+                  key: OPTIONS_FILE.dateField,
                   value: fechaInicialOperacion,
                 },
                 {
-                  key: institutionField,
+                  key: OPTIONS_FILE.institutionField,
                   value: codInstitucionAux,
                 },
               ];
               await eliminarInformacionDuplicada(
-                tableFile,
+                OPTIONS_FILE.tableFile,
                 whereDelete,
-                sequenceTableFile,
-                idTable
+                OPTIONS_FILE.sequenceTableFile,
+                OPTIONS_FILE.idTable
               );
             }
           }
@@ -4908,7 +5093,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             let dataObject = Object.assign({}, itemV1);
             partialData.push(dataObject);
           });
-          let partialHeaders = headers;
+          let partialHeaders = OPTIONS_FILE.headers;
           forEach(partialData, (itemV1) => {
             let x = {};
             forEach(itemV1, (itemV2, indexV2) => {
@@ -4946,7 +5131,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             .query(queryFiles)
             .then((resultFile) => {
               resultFinal.push({
-                message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
+                message: `El archivo fue insertado correctamente a la tabla '${OPTIONS_FILE.tableFile}'`,
                 result: {
                   rowsUpdate: resultFile.rows,
                   rowCount: resultFile.rowCount,
@@ -4956,7 +5141,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             .catch((err) => {
               errors.push({
                 type: "QUERY SQL ERROR",
-                message: `Hubo un error al insertar datos en la tabla ${tableFile} ERROR: ${err.message}`,
+                message: `Hubo un error al insertar datos en la tabla ${OPTIONS_FILE.tableFile} ERROR: ${err.message}`,
                 err,
               });
               // reject({ resultFinal, errors });
@@ -4987,7 +5172,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
         (req.body?.reproceso === true || req.body?.reproceso === "true")
       )
         bodyAux.reprocesado = reprocesado;
-      const queryUpdateForError = ActualizarUtil(infoTables.table, {
+      const queryUpdateForError = ActualizarUtil(INFO_TABLES.table, {
         body: bodyAux,
         idKey: "id_carga_archivos",
         idValue: idCargaArchivos,
@@ -4997,7 +5182,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
         codInst === "bolsa" &&
         (req.body?.reproceso === true || req.body?.reproceso === "true")
       ) {
-        const queryUltimaCarga = EscogerInternoUtil(infoTables.table, {
+        const queryUltimaCarga = EscogerInternoUtil(INFO_TABLES.table, {
           select: ["*"],
           where: [
             { key: "id_rol", value: req.user.id_rol },
@@ -5016,11 +5201,14 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
           fechaInicialOperacion !==
           dayjs(ultimaCarga.fecha_operacion).format("YYYY-MM-DD")
         ) {
-          const queryUpdateCargaReprocesado = ActualizarUtil(infoTables.table, {
-            body: { reprocesado: true },
-            idKey: "id_carga_archivos",
-            idValue: ultimaCarga.id_carga_archivos,
-          });
+          const queryUpdateCargaReprocesado = ActualizarUtil(
+            INFO_TABLES.table,
+            {
+              body: { reprocesado: true },
+              idKey: "id_carga_archivos",
+              idValue: ultimaCarga.id_carga_archivos,
+            }
+          );
           await EjecutarQuery(queryUpdateCargaReprocesado);
         }
       }
@@ -5035,6 +5223,21 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
         EjecutarFuncionSQL("aps_ins_otros_activos_to", params),
         EjecutarFuncionSQL("aps_ins_otros_activos_cupon_co", params),
         EjecutarFuncionSQL("aps_ins_renta_variable_tv", params),
+      ];
+      const results = await EjecutarVariosQuerys(querys);
+      if (results.ok === null) return { ok: null, result: results.result };
+      if (results.ok === false) return { ok: false, result: results.errors };
+      return { ok: true, result: results.result };
+    };
+
+    const funcionesSeguros = async (fechaS, id_usuarioS, codInst) => {
+      const params = { body: { fechaS, id_usuarioS, codInst } };
+      const querys = [
+        EjecutarFuncionSQL("aps_ins_renta_fija", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos", params),
+        EjecutarFuncionSQL("aps_ins_otros_activos_cupon", params),
+        EjecutarFuncionSQL("aps_ins_renta_fija_cupon", params),
+        EjecutarFuncionSQL("aps_ins_renta_variable", params),
       ];
       const results = await EjecutarVariosQuerys(querys);
       if (results.ok === null) return { ok: null, result: results.result };
@@ -5158,7 +5361,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               idCargaArchivos,
             }),
             false,
-            infoTables.cod_institution,
+            INFO_TABLES.cod_institution,
             false
           );
         } else {
@@ -5168,30 +5371,47 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
               archivo: item,
               cargado: true,
               id_carga_archivos: idCargaArchivos,
-              mensaje: `Envió satisfactorio`,
+              mensaje: `Envío satisfactorio`,
               fecha_operacion: fechaInicialOperacion,
             });
           });
-          if (infoTables.code === "02") {
+          // includes(map(codigosSeguros, "codigo"), INFO_TABLES.code)
+          if (includes(map(codigosSeguros, "codigo"), INFO_TABLES.code)) {
+            const funcionesSegurosAux = await funcionesSeguros(
+              fechaInicialOperacion,
+              req.user.id_usuario,
+              INFO_TABLES.cod_institution
+            );
+            if (funcionesSegurosAux.ok !== true)
+              throw funcionesSegurosAux.result;
+            else
+              actualizarCampoCargado(
+                respResultadoCorrectoObjeto200(res, finalRespArray),
+                true,
+                INFO_TABLES.cod_institution,
+                true
+              );
+          } else if (
+            includes(map(codigosPensiones, "codigo"), INFO_TABLES.code)
+          ) {
             const funcionesInversionesAux = await funcionesInversiones(
               fechaInicialOperacion,
               req.user.id_usuario
             );
-            if (funcionesInversionesAux.ok !== true) {
+            if (funcionesInversionesAux.ok !== true)
               throw funcionesInversionesAux.result;
-            } else {
+            else
               actualizarCampoCargado(
                 respResultadoCorrectoObjeto200(res, finalRespArray),
                 true,
-                infoTables.cod_institution,
+                INFO_TABLES.cod_institution,
                 true
               );
-            }
           } else {
             actualizarCampoCargado(
               respResultadoCorrectoObjeto200(res, finalRespArray),
               true,
-              infoTables.cod_institution,
+              INFO_TABLES.cod_institution,
               true
             );
           }
@@ -5214,7 +5434,7 @@ async function CargarArchivo_Upload(req, res, action, id = undefined) {
             },
             `Ocurrió un error inesperado. ERROR: ${err.message}`,
             false,
-            infoTables.cod_institution,
+            INFO_TABLES.cod_institution,
             false
           )
         );

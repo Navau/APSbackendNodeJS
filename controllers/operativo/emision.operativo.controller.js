@@ -16,7 +16,7 @@ const nameTableFK3 = "APS_param_tipo_instrumento";
 
 async function ListarCompleto(req, res) {
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     { table: nameTableFK1, select: ["*"] },
     { table: nameTableFK2, select: ["*"] },
     { table: nameTableFK3, select: ["*"] },
@@ -67,7 +67,7 @@ async function Insertar(req, res) {
     req,
     res,
     nameTable,
-    methodName: "Insertar_EmisorPatrimonio",
+    methodName: "Insertar_Emision",
     action: "Insertar",
   };
   await RealizarOperacionAvanzadaCRUD(params);

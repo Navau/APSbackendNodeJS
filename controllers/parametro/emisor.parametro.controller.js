@@ -17,7 +17,7 @@ const nameTableFK4 = "APS_param_sector_economico";
 // OBTENER TODOS LOS EMISOR DE PARAMETRO
 async function ListarCompleto(req, res) {
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     { table: nameTableFK1, select: ["*"] },
     {
       table: nameTableFK2,
@@ -36,7 +36,8 @@ async function ListarCompleto(req, res) {
       where: [
         {
           key: "id_clasificador_comun_grupo",
-          value: 7,
+          valuesWhereIn: [7, 8],
+          whereIn: true,
         },
         { key: "activo", value: true },
       ],

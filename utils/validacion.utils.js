@@ -197,9 +197,8 @@ async function ValidarDatosValidacion(params) {
             textMessage,
             (val, options) => {
               const { originalValue } = options;
-              if (val !== undefined) {
-                return typeof originalValue === "string";
-              }
+              if (isNull(val) && isNullable) return true;
+              if (val !== undefined) return typeof originalValue === "string";
               return true;
             }
           );
@@ -217,6 +216,7 @@ async function ValidarDatosValidacion(params) {
               decimalMessage,
               (val, options) => {
                 const { originalValue } = options;
+                if (isNull(val) && isNullable) return true;
                 if (val !== undefined) {
                   const intAux = "(0|[1-9][0-9]{0," + (precision - 1) + "})";
                   const decimalAux = "(\\.\\d{1," + scale + "})";
@@ -273,25 +273,55 @@ async function ValidarDatosValidacion(params) {
               getMessageTypeData(columnName, dataType) || defaultMessage
             );
         } else {
-          let tablaUsuario = validarCamposUsuario(
+          let validacionAvanzada = validarCamposAvanzados(
             nameTable,
             columnName,
             validationSchema,
             value,
             action,
             isNullable,
-            columnDefault
+            columnDefault,
+            data
           );
-          validationSchema = !isUndefined(tablaUsuario)
-            ? tablaUsuario(value, action, isNullable, columnDefault)
+          validationSchema = !isUndefined(validacionAvanzada)
+            ? validacionAvanzada(value, action, isNullable, columnDefault)
             : validationSchema;
-          // console.log({ columnName, columnDefault, isNullable });
-          if (isNullable) validationSchema = validationSchema.nullable();
           if (!isNullable && columnDefault === null && action === "Insertar") {
             validationSchema = validationSchema.required(requiredMessage);
             validationSchema = isUndefined(value)
               ? validationSchema.typeError(requiredMessage)
               : validationSchema;
+          }
+          if (
+            !isNullable &&
+            columnDefault === null &&
+            action === "Actualizar"
+          ) {
+            validationSchema = validationSchema.required(requiredMessage);
+            validationSchema = isUndefined(value)
+              ? validationSchema.typeError(requiredMessage)
+              : validationSchema;
+          }
+          if (
+            !isNullable &&
+            columnDefault &&
+            !value &&
+            action === "Actualizar"
+          ) {
+            validationSchema = isUndefined(value)
+              ? validationSchema.required(requiredMessage)
+              : validationSchema.required(defaultMessage);
+          }
+          if (isNullable) {
+            validationSchema = validationSchema.nullable();
+            console.log({
+              isNullable,
+              columnDefault,
+              action,
+              value,
+              columnName,
+              validationSchema,
+            });
           }
         }
       }
@@ -323,14 +353,15 @@ async function ValidarDatosValidacion(params) {
   }
 }
 
-const validarCamposUsuario = (
+const validarCamposAvanzados = (
   nameTable,
   columnName,
   schema = Yup,
   mainValue,
   action,
   isNullable,
-  columnDefault
+  columnDefault,
+  data
 ) => {
   const auxValidations = (value) => {
     if (isEmpty(value) && columnDefault !== null) return true;
@@ -565,9 +596,24 @@ const validarCamposUsuario = (
         );
       },
     },
+    APS_param_composicion_serie: {
+      fin: () => {
+        return schema.test(
+          `es fin mayor que inicio`,
+          `El valor de fin: '${data?.fin}' debe ser mayor que el valor de inicio: '${data?.inicio}'`,
+          (value) => {
+            if (isUndefined(value) && isUndefined(data.inicio)) return false;
+            if (Number(value) < Number(data.inicio)) return false;
+            return true;
+          }
+        );
+      },
+    },
   };
   return TABLES_VALIDATIONS?.[nameTable]?.[columnName] || undefined;
 };
+
+// APS_param_composicion_serie;
 
 module.exports = {
   ValidarDatosValidacion,

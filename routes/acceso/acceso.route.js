@@ -3,7 +3,7 @@ const controller = require("../../controllers/acceso/acceso.controller");
 
 const api = express.Router();
 
-api.post("/Login", controller.Login);
+api.post("/Login", controller.LoginApiExterna);
 api.post("/LoginApiExterna", controller.LoginApiExterna);
 api.post("/TokenConRol", controller.TokenConRol);
 api.get("/CaptchaKey", controller.CaptchaKey);

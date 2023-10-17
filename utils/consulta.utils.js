@@ -12,6 +12,7 @@ const {
   isArray,
   truncate,
   isNull,
+  isNumber,
 } = require("lodash");
 const pool = require("../database");
 const format = require("pg-format");
@@ -114,7 +115,8 @@ function ObtenerMenuAngUtil(id_rol) {
   //   where public."APS_seg_modulo".activo = true and id_rol = ${data.id_rol.toString()}
   //   order by "APS_seg_modulo".orden) as menu`;
 
-  // console.log(querydet);
+  console.log("querydet", querydet);
+  console.log("query", query);
   // console.log(query);
   // console.log("ID ROL OBTENER MENU ANGULAR", data.id_rol);
 
@@ -128,27 +130,25 @@ function ObtenerColumnasDeTablaUtil(table, params) {
   let query = "";
   query = `SELECT ${
     params?.select ? params.select : "*"
-  } FROM information_schema.columns 
-  WHERE table_schema = 'public' 
-  AND table_name  = '${table}'`;
+  } FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${table}'`;
 
   console.log(query);
 
   return query;
 }
 
-function FormatearObtenerMenuAngUtil(menu, menudet) {
-  const menuPartial = map(menu, (itemMenu, indexMenu) => {
-    let text = itemMenu.text;
+function FormatearObtenerMenuAngUtil(modulos, submodulos) {
+  const menuPartial = map(modulos, (modulo) => {
+    let text = modulo.text;
     text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     text = text.replace(/\s+/g, "");
     const arrayChildren = [];
-    forEach(menudet, (itemMenudet, indexMenudet) => {
-      if (itemMenudet.routerlink.split("/")[1] === text)
-        arrayChildren.push(itemMenudet);
+    forEach(submodulos, (submodulo) => {
+      if (submodulo.routerlink.split("/")[1] === text)
+        arrayChildren.push(submodulo);
     });
     return {
-      ...itemMenu,
+      ...modulo,
       children: arrayChildren,
     };
   });
@@ -156,8 +156,6 @@ function FormatearObtenerMenuAngUtil(menu, menudet) {
     menuPartial,
     (menuItem) => !isNull(menuItem.children) && size(menuItem.children) > 0
   );
-
-  console.log("menuFinal", menuFinal);
 
   return menuFinal;
 }
@@ -309,6 +307,9 @@ function ListarUtil(table, params) {
       });
       query = query + ` WHERE ${params.whereIn.key} in (${valuesAux.join()})`;
     }
+    if (params?.limit && params?.offset) {
+      query = query + `LIMIT ${params.limit} OFFSET ${params.offset};`;
+    }
     query && (query = query + ";");
   }
 
@@ -348,6 +349,9 @@ function BuscarUtil(table, params) {
         valuesWhereAuxArray = [];
       }
     });
+  if (params?.limit && params?.offset) {
+    query = query + ` LIMIT ${params.limit} OFFSET ${params.offset};`;
+  }
   params.body && (query = query = query + ";");
 
   if (!query.includes("WHERE") && query.includes("AND")) {
@@ -383,6 +387,9 @@ async function BuscarDiferenteUtil(table, params) {
         valuesWhereAuxArray = [];
       }
     });
+  if (params?.limit && params?.offset) {
+    query = query + ` LIMIT ${params.limit} OFFSET ${params.offset};`;
+  }
   params.body && (query = query = query + ";");
 
   console.log(query);
@@ -456,12 +463,12 @@ function EscogerUtil(table, params) {
     }
 
     query &&
-      map(params.body, (item, index) => {
+      forEach(params.body, (item, index) => {
         // index = ponerComillasACamposConMayuscula(index);
         if (item !== null && typeof item !== "undefined") {
           if (params?.whereIn) {
             let valuesAux = [];
-            map(params.whereIn.values, (itemV, indexV) => {
+            forEach(params.whereIn.values, (itemV, indexV) => {
               valuesAux.push(itemV);
             });
             query =
@@ -500,6 +507,9 @@ function EscogerUtil(table, params) {
       queryAux.splice(query.indexOf("AND"), 4);
       queryAux.join("");
       query = queryAux.join("");
+    }
+    if (params?.limit && params?.offset) {
+      query = query + ` LIMIT ${params.limit} OFFSET ${params.offset}`;
     }
 
     params.body && (query = query = query + ";");
@@ -590,6 +600,9 @@ function EscogerInternoUtil(table, params) {
     queryAux.join("");
     query = queryAux.join("");
   }
+  if (params?.limit && params?.offset) {
+    query = query + ` LIMIT ${params.limit} OFFSET ${params.offset}`;
+  }
   query && (query = query + ";");
   console.log(query);
   return query;
@@ -637,8 +650,7 @@ function EjecutarFuncionSQL(functionName, params) {
     query = format(query, ...valuesWhereAuxArray);
     valuesWhereAuxArray = [];
   };
-
-  map(params.body, (item, index) => {
+  forEach(params?.body, (item, index) => {
     if (item instanceof Date) {
       query += `'${moment(item).format("YYYY-MM-DD")}, '`;
     } else if (typeof item === "string") {
@@ -649,7 +661,9 @@ function EjecutarFuncionSQL(functionName, params) {
       query += `${item}, `;
     }
   });
-  query = query.substring(0, query.length - 2);
+  if(params?.body){
+    query = query.substring(0, query.length - 2);
+  }
   query && (query = query + ")");
 
   if (params?.innerjoin) {
@@ -945,7 +959,8 @@ function InsertarVariosUtil(table, params) {
   });
   query && (query = query.substring(0, query.length - 2));
 
-  params?.returnValue && (query = query = query + ` RETURNING `);
+  if (params?.returnValue) query = query + ` RETURNING `;
+  else query = query + ")";
 
   map(params.returnValue, (item, index) => {
     query = query + `${item},`;
@@ -1160,8 +1175,42 @@ function AlterarSequenciaMultiplesTablasUtil(sequences, params) {
   return queryFinal;
 }
 
+function AlterarSequenciaMultiplesTablasUtil2(sequences, params) {
+  let querys = [];
+  let queryFinal = "";
+
+  map(sequences, (sequence, index) => {
+    let query = `ALTER SEQUENCE "${sequence}"`;
+    if (params?.restartValue) {
+      query += ` RESTART WITH ${params.restartValue[index]}`;
+    }
+    query && (query = query + ";");
+    querys.push(query);
+  });
+
+  map(querys, (item, index) => {
+    queryFinal += `${item} \r\n`;
+  });
+
+  // console.log(querys);
+  console.log(queryFinal);
+  return queryFinal;
+}
+
 function AlterarSequenciaUtil(sequence, params) {
   let query = `ALTER SEQUENCE "${sequence.table}_${sequence.id}_seq"`;
+  if (params?.restartValue) {
+    query += ` RESTART WITH ${params.restartValue}`;
+  }
+  query && (query = query + ";");
+
+  // console.log(querys);
+  console.log(query);
+  return query;
+}
+
+function AlterarSequencia2Util(sequence, params) {
+  let query = `ALTER SEQUENCE "${sequence}"`;
   if (params?.restartValue) {
     query += ` RESTART WITH ${params.restartValue}`;
   }
@@ -1434,49 +1483,53 @@ async function EjecutarQuery(query) {
 }
 
 async function EjecutarVariosQuerys(querys = [], newID, newTable) {
-  if (size(querys) < 0) return null;
-  const resultFinal = [];
-  const errors = [];
-  let counterAux = 0;
-  for await (const query of querys) {
-    const table = query;
-    const y = table.indexOf("FROM");
-    const z = table.substring(y, table.indexOf(`"`));
-    const w = table.substring(
-      table.lastIndexOf(z[z.length - 1]) + 2,
-      table.length
-    );
-    const v = w.substring(0, w.indexOf(`"`));
-    await pool
-      .query(query)
-      .then((result) => {
-        resultFinal.push({
-          data: result.rows,
-          table: newTable?.[counterAux] ? newTable[counterAux] : v,
-          order: counterAux,
-          fields: map(result?.fields, (field) => field.name),
-          id:
-            newID?.order === counterAux
-              ? newID?.id
-              : ObtenerIDDeTabla(v, result.rows)?.idKey,
+  try {
+    if (size(querys) < 0) return null;
+    const resultFinal = [];
+    const errors = [];
+    let counterAux = 0;
+    for await (const query of querys) {
+      const table = query;
+      const y = table.indexOf("FROM");
+      const z = table.substring(y, table.indexOf(`"`));
+      const w = table.substring(
+        table.lastIndexOf(z[z.length - 1]) + 2,
+        table.length
+      );
+      const v = w.substring(0, w.indexOf(`"`));
+      await pool
+        .query(query)
+        .then((result) => {
+          resultFinal.push({
+            data: result.rows,
+            table: newTable?.[counterAux] ? newTable[counterAux] : v,
+            order: counterAux,
+            fields: map(result?.fields, (field) => field.name),
+            id:
+              newID?.order === counterAux
+                ? newID?.id
+                : ObtenerIDDeTabla(v, result.rows)?.idKey,
+          });
+        })
+        .catch((err) => {
+          errors.push({
+            err,
+            message: err?.message,
+            table: v,
+            order: counterAux,
+          });
+        })
+        .finally(() => {
+          counterAux += 1;
         });
-      })
-      .catch((err) => {
-        errors.push({
-          err,
-          message: err?.message,
-          table: v,
-          order: counterAux,
-        });
-      })
-      .finally(() => {
-        counterAux += 1;
-      });
+    }
+    // const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
+    if (size(errors) > 0) return { ok: false, errors };
+    if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
+    return { ok: null, result: [errors, resultFinal] };
+  } catch (err) {
+    throw err;
   }
-  // const groupByTableResultFinal = groupBy(resultFinal, (item) => item.table);
-  if (size(errors) > 0) return { ok: false, errors };
-  if (size(resultFinal) > 0) return { ok: true, result: resultFinal };
-  return { ok: null, result: [errors, resultFinal] };
 }
 
 async function EjecutarQuerysReportes(opciones = {}, tipoReporte) {
@@ -1647,6 +1700,7 @@ module.exports = {
   VerificarPermisoUtil,
   EliminarMultiplesTablasUtil,
   AlterarSequenciaMultiplesTablasUtil,
+  AlterarSequenciaMultiplesTablasUtil2,
   AlterarSequenciaUtil,
   ValorMaximoDeCampoMultiplesTablasUtil,
   ObtenerInstitucion,
@@ -1659,4 +1713,5 @@ module.exports = {
   EjecutarQuerysReportes,
   EjecutarQuery,
   VerificarUsuarioSegurosPensiones,
+  AlterarSequencia2Util,
 };

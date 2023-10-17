@@ -11,6 +11,7 @@ const {
   forEachRight,
   isArray,
   map,
+  isEmpty,
 } = require("lodash");
 
 const { nombreSeccionTabla } = require("./formatearDatos");
@@ -140,18 +141,23 @@ function respErrorServidor500END(res, err, msg, datos = null) {
 }
 
 function respErrorMulter500(res, err, msg) {
-  console.log(err);
   const errMessage = err?.message ? err?.message : "";
+  const limitSizeMessage =
+    err.code === "LIMIT_FILE_SIZE"
+      ? "El tamaño del archivo debe ser menor a 20MB"
+      : "";
   res
     .status(500)
     .send({
       resultado: 0,
       datos: null,
-      mensaje: msgFinalError(
-        msg,
-        "Se ha producido un error de Multer al cargar el archivo. ERROR:",
-        errMessage
-      ),
+      mensaje: isEmpty(limitSizeMessage)
+        ? msgFinalError(
+            msg,
+            "Se ha producido un error de Multer al cargar el archivo. ERROR:",
+            errMessage
+          )
+        : limitSizeMessage,
       err,
     })
     .end();
@@ -255,11 +261,13 @@ function respDemasiadasSolicitudes429(res, msg) {
 }
 
 function respResultadoCorrectoObjeto200(res, data, msg) {
+  const sizeData = !isUndefined(data?.sizeData) ? data.sizeData : undefined;
   res
     .status(200)
     .send({
       resultado: 1,
-      datos: data,
+      datos: isUndefined(sizeData) ? data : [...data.result],
+      sizeData,
       mensaje: msgFinal(msg, "La petición fue realizada correctamente"),
     })
     .end();
@@ -353,6 +361,7 @@ function respArchivoErroneo200(res, err, data, msg) {
       "El tipo de archivo que se ha recibido no cumple con el formato esperado"
     ),
     errores: err,
+    sizeData: size(err),
   });
 }
 

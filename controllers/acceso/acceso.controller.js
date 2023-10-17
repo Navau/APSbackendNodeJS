@@ -47,6 +47,10 @@ const {
   maxBy,
   isUndefined,
   isInteger,
+  difference,
+  forEach,
+  find,
+  isNull,
 } = require("lodash");
 
 function TipoAmbiente(req, res) {
@@ -226,7 +230,7 @@ async function loginConAPS(res, usuario, password, ip) {
 async function loginNormal(res, usuario, password, ip, usuarioObtenido) {
   try {
     await verificaCuentaBloqueada(usuarioObtenido);
-    await verificaContraseña(usuario, password, usuarioObtenido);
+    await verificaContraseñaYRoles(usuario, password, usuarioObtenido);
     await logearUsuario(res, usuario, password, ip, usuarioObtenido);
   } catch (err) {
     throw err;
@@ -309,6 +313,13 @@ const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
       throw {
         code: 404,
         message: "Usuario y/o Contraseña incorrecto",
+      };
+    }
+    if (usuarioLogeado?.activo !== true) {
+      throw {
+        code: 404,
+        message:
+          "Usuario no activo, contáctese con el Administrador del Sistema",
       };
     }
     // Esto se realiza porque anteriormente a esto ya se habia hecho en el LoginNormal el verificaCuentaBloqueada
@@ -435,7 +446,7 @@ const verificaCuentaBloqueada = async (usuario) => {
   }
 };
 
-const verificaContraseña = async (usuario, password, usuarioObtenido) => {
+const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => {
   try {
     const values = [usuario, password];
     const queryUsuario = formatearQuery(
@@ -446,16 +457,15 @@ const verificaContraseña = async (usuario, password, usuarioObtenido) => {
       (await EjecutarQuery(queryUsuario))?.[0] || undefined;
 
     //SI EL LOGEO ES INCORRECTO
-    if (isUndefined(usuarioLogeado)) {
-      const usuarioAPS = await verificarUsuarioAPS(usuario, password);
-      if (!isUndefined(usuarioAPS))
-        await actualizarContraseña(usuarioObtenido.id_usuario, password);
-      else
-        throw {
-          code: 500,
-          message: "Hubo un error al verificar el usuario",
-        };
-    }
+    const usuarioAPS = await verificarUsuarioAPS(usuario, password);
+    if (!isUndefined(usuarioAPS)) {
+      await actualizarContraseña(usuarioObtenido.id_usuario, password);
+      await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
+    } else
+      throw {
+        code: 500,
+        message: "Hubo un error al verificar el usuario",
+      };
   } catch (err) {
     throw err;
   }
@@ -484,6 +494,87 @@ const actualizarContraseña = async (id, password) => {
       returnValue: ["*"],
     });
     await EjecutarQuery(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const actualizarRoles = async (id_usuario, usuarioAPS) => {
+  try {
+    const nombresRolesUsuarioAPS = map(usuarioAPS.roles, "nombre");
+    const rolesActualesDeUsuario = await EjecutarQuery(
+      EscogerInternoUtil("APS_seg_view_informacion_usuario_rol", {
+        where: [
+          {
+            key: `codigo_rol`,
+            valuesWhereIn: nombresRolesUsuarioAPS,
+            whereIn: true,
+          },
+          {
+            key: `usuario`,
+            value: usuarioAPS.nombreUsuario,
+          },
+        ],
+      })
+    );
+    const insertarRoles = [];
+    const habilitarRoles = [];
+    forEach(nombresRolesUsuarioAPS, (nombreRolAPS => {
+      const rolActualFind = find(rolesActualesDeUsuario, (rol) => 
+      nombreRolAPS === rol.codigo_rol);
+
+      if(!isUndefined(rolActualFind)){
+        if(rolActualFind.activo_usuario_rol !== true){
+          habilitarRoles.push(rolActualFind);
+        }
+      } else {
+        insertarRoles.push(nombreRolAPS);
+      }
+    }));
+
+    const querysRolesDeshabilitados = map(rolesActualesDeUsuario, (rol) => {
+      const nombreRolAPSFind = find(nombresRolesUsuarioAPS, (nombreRolAPS) => 
+      nombreRolAPS === rol.codigo_rol);
+
+      if(isUndefined(nombreRolAPSFind)) return ActualizarUtil("APS_seg_usuario_rol", {
+          body: { activo: false, },
+          idKey: "id_usuario_rol",
+          idValue: rol.id_usuario_rol,
+          returnValue: ["*"],
+        });
+      else return null;
+    });
+    if(size(querysRolesDeshabilitados) > 0){
+      for await (const query of querysRolesDeshabilitados){
+        if(!isNull(query)) await EjecutarQuery(query);
+      }
+    }
+    if(size(habilitarRoles) > 0){
+      for await (const rol of habilitarRoles){
+        const query = ActualizarUtil("APS_seg_usuario_rol", {
+          body: { activo: true },
+          idKey: "id_usuario_rol",
+          idValue: rol.id_usuario_rol,
+          returnValue: ["*"],
+        });
+        await EjecutarQuery(query)
+      }
+    }
+    if(size(insertarRoles) > 0){
+      for await (const nombreRol of insertarRoles){
+        const query = InsertarUtil("APS_seg_rol", {
+          body: { 
+            rol: usuarioAPS.cargo,
+            descripcion: `${usuarioAPS.cargo} ${usuarioAPS.entidad.sigla}`,
+            activo: true,
+            id_usuario,
+            codigo: nombreRol
+          },
+          returnValue: ["*"],
+        });
+        await EjecutarQuery(query)
+      }
+    }
   } catch (err) {
     throw err;
   }
@@ -536,52 +627,19 @@ const registrarRolesDeUsuarioAPS = async (usuarioAPS, usuarioInsertado) => {
       })
     ); //SON LOS ROLES DE LA TABLA ASP_SEG_ROL QUE EXISTEN EN LA BASE DE DATOS, TAMBIEN ESTAN ENLAZADOS A LOS ROLES QUE LLEGAN DE LA API EXTERNA
     const rolesActualesDeUsuario = await EjecutarQuery(
-      EscogerInternoUtil("APS_seg_rol", {
-        select: [
-          `"APS_seg_rol".id_rol`,
-          `"APS_seg_usuario".id_usuario`,
-          `"APS_seg_institucion".id_institucion`,
-          `"APS_seg_usuario".usuario`,
-          `"APS_seg_institucion".codigo AS codigo_institucion`,
-          `"APS_seg_rol".rol`,
-          `"APS_seg_rol".codigo AS codigo_rol`,
-          `"APS_seg_rol".activo AS activo_rol`,
-        ],
-        innerjoin: [
-          {
-            table: "APS_seg_usuario_rol",
-            on: [
-              { table: "APS_seg_usuario_rol", key: "id_rol" },
-              { table: "APS_seg_rol", key: "id_rol" },
-            ],
-          },
-          {
-            table: "APS_seg_usuario",
-            on: [
-              { table: "APS_seg_usuario_rol", key: "id_usuario" },
-              { table: "APS_seg_usuario", key: "id_usuario" },
-            ],
-          },
-          {
-            table: "APS_seg_institucion",
-            on: [
-              { table: "APS_seg_usuario", key: "id_institucion" },
-              { table: "APS_seg_institucion", key: "id_institucion" },
-            ],
-          },
-        ],
+      EscogerInternoUtil("APS_seg_view_informacion_usuario_rol", {
         where: [
           {
-            key: `"APS_seg_rol".codigo`,
+            key: `codigo_rol`,
             valuesWhereIn: nombresRoles,
             whereIn: true,
           },
           {
-            key: `"APS_seg_usuario".usuario`,
+            key: `usuario`,
             value: usuarioAPS.nombreUsuario,
           },
           {
-            key: `"APS_seg_rol".activo`,
+            key: `activo_rol`,
             value: true,
           },
         ],

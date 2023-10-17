@@ -15,6 +15,8 @@ const {
   max,
   isUndefined,
   isNull,
+  maxBy,
+  isArray,
 } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
@@ -49,6 +51,12 @@ const {
   rango,
   agrupacion,
   unicoPor,
+  tasaEmision,
+  serieEmision,
+  calificacionConInstrumentoEstatico,
+  combinacionUnicaPorArchivo,
+  custodioConInstrumento,
+  calificadoraConCalificacion,
 } = require("../utils/formatoCamposArchivos.utils");
 
 const {
@@ -66,7 +74,6 @@ const {
   respArchivoErroneo200,
   respUsuarioNoAutorizado200END,
 } = require("../utils/respuesta.utils");
-const dayjs = require("dayjs");
 const {
   VerificarPermisoTablaUsuarioAuditoria,
 } = require("../utils/auditoria.utils");
@@ -76,7 +83,6 @@ var codeCurrentFile = "";
 var codeCurrentFilesArray = [];
 var nameTableErrors = "";
 var errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
-var errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
 var dependenciesArray = []; //DEPENDENCIAS Y RELACIONES ENTRE ARCHIVOS
 var dependenciesArrayEmptys = [];
 var lengthFilesObject = {}; //NUMERO DE FILAS DE CADA ARCHIVO
@@ -265,6 +271,7 @@ async function seleccionarTablas(params) {
         ? codPensiones
         : null;
     if (codPensionesSeguros === null) return result;
+    console.log(nameFile);
     const findSeguros = find(
       codigosSeguros,
       (itemF) => codSeguros === itemF.codigo
@@ -404,7 +411,7 @@ async function validarArchivosIteraciones(params) {
         //   resolve(errors);
         //   return;
         // }
-        console.log(isAllFiles);
+        // console.log(isAllFiles);
         for (let index = 0; index < isAllFiles.currentFiles.length; index++) {
           // console.log("codeCurrentFilesArray: ", codeCurrentFilesArray);
           // console.log("isAllFiles.currentFiles: ", isAllFiles.currentFiles);
@@ -1307,6 +1314,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
         notValidate,
         unique,
         uniqueBy,
+        uniqueCombinationPerFile,
         singleGroup,
         endSingleGroup,
         grouping,
@@ -1330,7 +1338,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             value?.slice(6);
           match = valueAux?.match(pattern);
         } else {
-          match = value?.match(pattern);
+          if (!item3?.pattern2) match = value?.match(pattern);
         }
 
         if (mayBeEmpty === true && !value) {
@@ -1445,11 +1453,14 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       dependencyInstrumentoSerie === currentInstrumentoSerie
                     ) {
                       if (tasa !== null) {
-                        if (tasaEmision !== itemArray.tasa_interes) {
+                        if (
+                          Number(tasaEmision) !== Number(itemArray.tasa_interes)
+                        ) {
                           errTasaArray.push({
                             value: itemArray.tasa_interes,
                             valuePrevious: tasaEmision,
                             column: "tasa_interes",
+                            seriePrevious: dependencyInstrumentoSerie,
                             serie: currentInstrumentoSerie,
                             row: indexArray,
                             message: `No es la misma Tasa que indica el archivo ${itemDP.code}`,
@@ -1465,29 +1476,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     parseInt(countCurrentInstrumentoSerie) !==
                     parseInt(cantidadNroPago)
                   ) {
+                    const valorMessageAux = `serie (${itemDP.code}): ${dependencyInstrumentoSerie} - serie (${codeCurrentFile}): ${currentInstrumentoSerieAux}, nro_pago (${itemDP.code}): ${cantidadNroPago}, registros (${codeCurrentFile}): ${countCurrentInstrumentoSerie}`;
                     errors.push({
                       archivo: `${itemDP.file}, ${item.archivo}`,
-                      tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
-                      descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                      valor: `${
-                        itemDP.code
-                      }: serie: ${dependencyInstrumentoSerie}, ${
-                        itemDP.column
-                      }: ${cantidadNroPago}, ${codeCurrentFile}: ${
-                        currentInstrumentoSerieAux &&
-                        `serie: ${currentInstrumentoSerieAux}, `
-                      }registros: ${countCurrentInstrumentoSerie}`,
+                      tipo_error: `VALOR INCORRECTO DE ${itemDP.code} A ${codeCurrentFile}`,
+                      descripcion: `El Archivo ${codeCurrentFile} tiene el valor de '${cantidadNroPago}' en '${itemDP.column}', por lo que el archivo ${itemDP.code} debe tener '${cantidadNroPago}' y no '${countCurrentInstrumentoSerie}' registros con la misma serie`,
+                      valor: valorMessageAux,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
                     });
                   }
                   if (errTasaArray.length >= 1) {
-                    map(errTasaArray, (itemErr, indexErr) => {
+                    map(errTasaArray, (itemErr) => {
                       errors.push({
                         archivo: item.archivo,
                         tipo_error: `VALOR INCORRECTO`,
                         descripcion: itemErr.message,
-                        valor: `serie: ${currentInstrumentoSerie} ${codeCurrentFile}: tasa_interes: ${itemErr.value}, ${itemDP.code}: tasa_emision: ${itemErr.valuePrevious}`,
+                        valor: `serie (${codeCurrentFile}): ${itemErr.serie} - serie (${itemDP.code}): ${itemErr.seriePrevious}, tasa_interes (${codeCurrentFile}): ${itemErr.value} - tasa_emision (${itemDP.code}): ${itemErr.valuePrevious}`,
                         columna: itemErr.column,
                         fila: itemErr.row,
                       });
@@ -1526,7 +1531,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                       dependencyInstrumentoSerie === currentInstrumentoSerie
                     ) {
                       if (tasa !== null) {
-                        if (tasaEmision !== itemArray.tasa_interes) {
+                        if (
+                          Number(tasaEmision) !== Number(itemArray.tasa_interes)
+                        ) {
                           errTasaArray.push({
                             value: itemArray.tasa_interes,
                             valuePrevious: tasaEmision,
@@ -1553,18 +1560,12 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     parseInt(countCurrentInstrumentoSerie) !==
                     parseInt(cantidadNroPago)
                   ) {
+                    const valorMessageAux = `serie (${itemDP.code}): ${dependencyInstrumentoSerie} - serie (${codeCurrentFile}): ${currentInstrumentoSerieAux}, nro_pago (${itemDP.code}): ${cantidadNroPago}, registros (${codeCurrentFile}): ${countCurrentInstrumentoSerie}`;
                     errors.push({
                       archivo: `${itemDP.file}, ${item.archivo}`,
                       tipo_error: `VALOR INCORRECTO de ${itemDP.code} a ${codeCurrentFile}`,
                       descripcion: `El Archivo ${codeCurrentFile} no tiene la cuponera de la Serie del Archivo ${itemDP.code}`,
-                      valor: `${
-                        itemDP.code
-                      }: serie: ${dependencyInstrumentoSerie}, ${
-                        itemDP.column
-                      }: ${cantidadNroPago}, ${codeCurrentFile}: ${
-                        currentInstrumentoSerieAux &&
-                        `serie: ${currentInstrumentoSerieAux}, `
-                      }registros: ${countCurrentInstrumentoSerie}`,
+                      valor: valorMessageAux,
                       columna: `${itemDP.code}: ${itemDP.column}`,
                       fila: itemDP.row,
                     });
@@ -1782,6 +1783,21 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
                   descripcion: `El contenido del archivo no coincide con alguna sigla de Tipo de Acción`,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
+            } else if (itemFunction === "serieEmision") {
+              const functionMessage = serieEmision(
+                item2?.tipo_instrumento,
+                value
+              );
+              if (functionMessage !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: functionMessage,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -2297,6 +2313,38 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
+            } else if (itemFunction === "plazoEmisionTipoDeDato") {
+              const pattern1 = pattern;
+              const pattern2 = item3?.pattern2;
+              const serieAux = item2?.serie;
+              const lastValue = serieAux?.[size(serieAux) - 1];
+              if (lastValue === "Q") {
+                if (value?.match(pattern2) === null)
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "TIPO DE DATO INCORRECTO",
+                    descripcion:
+                      typeError === "format"
+                        ? "El campo no cumple el formato establecido"
+                        : `El campo no cumple las especificaciones de Tipo de Dato`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  }); //FORMATO DE VALOR DE DOMINIO
+              } else {
+                if (value?.match(pattern1) === null)
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "TIPO DE DATO INCORRECTO",
+                    descripcion:
+                      typeError === "format"
+                        ? "El campo no cumple el formato establecido"
+                        : `El campo no cumple las especificaciones de Tipo de Dato`,
+                    valor: value,
+                    columna: columnName,
+                    fila: index2,
+                  }); //FORMATO DE VALOR DE DOMINIO
+              }
             } else if (itemFunction === "tasaUltimoHechoConInstrumento") {
               let _igualA = null;
               let _mayorIgualACeroDecimal = null;
@@ -2473,7 +2521,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
-                  descripcion: `El campo no corresponde a ninguno de los autorizados por el RMV`,
+                  descripcion: `Solicitar el Registro de Emisor a la APS (Autorización RMV)`,
                   valor: value,
                   columna: columnName,
                   fila: index2,
@@ -2547,6 +2595,18 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   fila: index2,
                 });
               }
+            } else if (itemFunction === "tasaEmision") {
+              const functionMessage = tasaEmision(item2?.tipo_interes, value);
+              if (functionMessage !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: functionMessage,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
+              }
             } else if (itemFunction === "prepago") {
               let errFunction = true;
               map(_prepago?.resultFinal, (item4, index4) => {
@@ -2602,10 +2662,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 }
               }
             } else if (itemFunction === "calificadora") {
-              if (mayBeEmpty === true && !value) {
+              if (mayBeEmpty === true && isEmpty(value)) {
               } else {
                 let errFunction = true;
-                map(_calificadora?.resultFinal, (item4, index4) => {
+                forEach(_calificadora?.resultFinal, (item4, index4) => {
                   if (value === item4.sigla) {
                     errFunction = false;
                   }
@@ -2620,6 +2680,23 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     fila: index2,
                   });
                 }
+              }
+            } else if (itemFunction === "calificadoraConCalificacion") {
+              const validacionCalificadora = calificadoraConCalificacion(
+                value,
+                item2.calificacion,
+                _calificadora.resultFinal,
+                mayBeEmpty
+              );
+              if (validacionCalificadora !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: validacionCalificadora,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
             } else if (itemFunction === "calificadoraConInstrumento") {
               let errFunction = true;
@@ -2660,50 +2737,25 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                   });
                 }
               }
-            } else if (itemFunction === "calificacionConInstrumento") {
-              let errFunction = true;
-              let errFunctionInstrumento = true;
-              let errFunctionVacio = true;
-              map(_calificacionConInstrumento?.resultFinal, (item4, index4) => {
-                if (item2.tipo_instrumento === item4.sigla) {
-                  errFunctionInstrumento = false;
-                }
-              });
-              if (!errFunctionInstrumento) {
-                map(_calificacionVacio?.resultFinal, (item4, index4) => {
-                  if (value === item4.descripcion) {
-                    errFunctionVacio = false;
-                  }
+            } else if (itemFunction === "calificacionConInstrumentoEstatico") {
+              const tiposInstrumentos = item3?.tiposInstrumentos;
+              const validacionCalificacion = calificacionConInstrumentoEstatico(
+                item2?.tipo_instrumento,
+                tiposInstrumentos,
+                value,
+                _calificacion?.resultFinal,
+                _calificacionVacio?.resultFinal,
+                mayBeEmpty
+              );
+              if (validacionCalificacion !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: validacionCalificacion,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
                 });
-                if (
-                  (value !== "" || value.length >= 1) &&
-                  errFunctionVacio === true
-                ) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
-                }
-              } else {
-                map(_calificacion?.resultFinal, (item4, index4) => {
-                  if (value === item4.descripcion) {
-                    errFunction = false;
-                  }
-                });
-                if (errFunction === true) {
-                  errors.push({
-                    archivo: item.archivo,
-                    tipo_error: "VALOR INCORRECTO",
-                    descripcion: `La calificación no se encuentra en ninguna calificación válida`,
-                    valor: value,
-                    columna: columnName,
-                    fila: index2,
-                  });
-                }
               }
             } else if (itemFunction === "custodio") {
               if (mayBeEmpty === true && !value) {
@@ -2724,6 +2776,26 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                     fila: index2,
                   });
                 }
+              }
+            } else if (itemFunction === "custodioConInstrumento") {
+              const tiposInstrumentos = item3?.tiposInstrumentos;
+              const custodioValidacion = custodioConInstrumento(
+                item2.tipo_instrumento,
+                tiposInstrumentos,
+                value,
+                _custodio?.resultFinal,
+                mayBeEmpty
+              );
+
+              if (custodioValidacion !== true) {
+                errors.push({
+                  archivo: item.archivo,
+                  tipo_error: "VALOR INCORRECTO",
+                  descripcion: custodioValidacion,
+                  valor: value,
+                  columna: columnName,
+                  fila: index2,
+                });
               }
             } else if (itemFunction === "codigoMercado") {
               let errFunction = true;
@@ -3049,6 +3121,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                         total: {
                           key: `${columnName} (fila actual: ${index2})`,
                           value: parseFloat(value),
+                          pattern,
                         },
                         fields: [
                           {
@@ -4274,13 +4347,11 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             !isEmpty(uniqueBy) &&
             index2 === arrayDataObject?.length - 1
           ) {
-            const _unicoPor = infoArchivo.paramsUnico
-              ? await unicoPor({
-                  fileArrayObject: arrayDataObject,
-                  field: columnName,
-                  validatedBy: uniqueBy,
-                })
-              : null;
+            const _unicoPor = await unicoPor({
+              fileArrayObject: arrayDataObject,
+              field: columnName,
+              validatedBy: uniqueBy,
+            });
 
             if (size(_unicoPor) >= 1) {
               forEach(_unicoPor, (errorUnicoPor) => {
@@ -4296,6 +4367,33 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             }
           }
           if (
+            !isNull(uniqueCombinationPerFile) &&
+            !isEmpty(uniqueCombinationPerFile) &&
+            index2 === arrayDataObject?.length - 1
+          ) {
+            const _combinacionUnicaPorArchivo =
+              await combinacionUnicaPorArchivo({
+                fileArrayObject: arrayDataObject,
+                field: columnName,
+              });
+
+            if (size(_combinacionUnicaPorArchivo) >= 1) {
+              forEach(
+                _combinacionUnicaPorArchivo,
+                (errorCombinacionUnicaPor) => {
+                  errors.push({
+                    archivo: item.archivo,
+                    tipo_error: "VALOR INCORRECTO",
+                    descripcion: errorCombinacionUnicaPor?.message,
+                    valor: errorCombinacionUnicaPor?.value,
+                    columna: columnName,
+                    fila: errorCombinacionUnicaPor?.row,
+                  });
+                }
+              );
+            }
+          }
+          if (
             endSingleGroup === true &&
             index2 === arrayDataObject?.length - 1
           ) {
@@ -4307,10 +4405,10 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
                 })
               : null;
 
-            // console.log(_unico);
+            // console.log({ _singleGroup });
 
             if (_singleGroup?.length >= 1) {
-              map(_singleGroup, (item4, index4) => {
+              forEach(_singleGroup, (item4, index4) => {
                 errors.push({
                   archivo: item.archivo,
                   tipo_error: "VALOR INCORRECTO",
@@ -4467,6 +4565,9 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
             item3?.notValidate === true ? item3.notValidate : null;
           let unique = item3?.unique === true ? item3.unique : null;
           let uniqueBy = item3?.uniqueBy ? item3.uniqueBy : null;
+          let uniqueCombinationPerFile = item3?.uniqueCombinationPerFile
+            ? item3.uniqueCombinationPerFile
+            : null;
           let singleGroup =
             item3?.singleGroup === true ? item3.singleGroup : null;
           let endSingleGroup =
@@ -4502,6 +4603,7 @@ async function validacionesCamposArchivosFragmentoCodigo(params) {
               notValidate,
               unique,
               uniqueBy,
+              uniqueCombinationPerFile,
               singleGroup,
               endSingleGroup,
               grouping,
@@ -4587,7 +4689,6 @@ exports.validarArchivo = async (req, res, next) => {
 
     const nroCargaPromise = new Promise(async (resolve, reject) => {
       let result = 1;
-      let nroCarga = 1;
       const whereAux = [
         { key: "id_rol", value: id_rol },
         { key: "fecha_operacion", value: fechaInicialOperacion },
@@ -4607,7 +4708,7 @@ exports.validarArchivo = async (req, res, next) => {
       await pool
         .query(queryNroCarga)
         .then((resultNroCarga) => {
-          result = max(resultNroCarga, "nro_carga") || 0;
+          result = maxBy(resultNroCarga.rows, "nro_carga")?.nro_carga || 0;
         })
         .catch((err) => {
           reject(err);
@@ -4622,11 +4723,6 @@ exports.validarArchivo = async (req, res, next) => {
         return response;
       })
       .catch((err) => {
-        errorsCode.push({
-          type: "QUERY SQL ERROR",
-          message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla "${nameTable}" del usuario con ID: "${req.user.id_usuario}". ERROR: ${err.message}`,
-          err,
-        });
         return undefined;
       });
 
@@ -4643,7 +4739,7 @@ exports.validarArchivo = async (req, res, next) => {
           let bodyQuery = [];
           let currentFiles = [];
           let resultsPromise = [];
-          map(req.files, (item, index) => {
+          forEach(req.files, (item) => {
             currentFiles.push(item.originalname);
           });
           process.env.TZ = "America/La_Paz";
@@ -4697,13 +4793,7 @@ exports.validarArchivo = async (req, res, next) => {
               });
             })
             .catch((err) => {
-              console.log("ERR CARGA", err);
-              errorsCode.push({
-                files: currentFiles,
-                type: "QUERY SQL ERROR",
-                message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                err,
-              });
+              reject(err);
             })
             .finally(() => {
               resolve({ resultsPromise, bodyQuery });
@@ -4712,14 +4802,14 @@ exports.validarArchivo = async (req, res, next) => {
 
         await insertFilesPromise
           .then(async (response) => {
-            if (errors.length >= 1 || errorsCode.length >= 1) {
+            if (errors.length >= 1) {
               const insertErrorsPromise = new Promise(
                 async (resolve, reject) => {
                   let queryFiles = "";
                   let bodyQuery = [];
                   let currentFiles = [];
                   let resultsPromise = [];
-                  map(errors, (item, index) => {
+                  forEach(errors, (item, index) => {
                     bodyQuery.push({
                       id_carga_archivos:
                         response.resultsPromise[0]?.result?.rowsUpdate[0]
@@ -4743,15 +4833,11 @@ exports.validarArchivo = async (req, res, next) => {
                         : 0,
                     });
                   });
-                  // console.log(errors);
-
-                  // console.log(nameTableErrors);
 
                   queryFiles = InsertarVariosUtil(nameTableErrors, {
                     body: bodyQuery,
                     returnValue: ["id_error_archivo"],
                   });
-                  // console.log("queryFiles", queryFiles);
 
                   await pool
                     .query(queryFiles)
@@ -4769,13 +4855,6 @@ exports.validarArchivo = async (req, res, next) => {
                       });
                     })
                     .catch((err) => {
-                      console.log("ERR CARGA ERRORES", err);
-                      errorsCode.push({
-                        files: currentFiles,
-                        type: "QUERY SQL ERROR",
-                        message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
-                        err,
-                      });
                       reject(err);
                     })
                     .finally(() => {
@@ -4785,24 +4864,14 @@ exports.validarArchivo = async (req, res, next) => {
               );
 
               await insertErrorsPromise
-                .then((response) => {
-                  // console.log(response);
-                })
                 .catch((err) => {
-                  console.log("ERR", err);
-                  respErrorServidor500END(
-                    res,
-                    err,
-                    "Ocurrió un error inesperado."
-                  );
+                  throw err;
                 })
                 .finally(() => {
                   respArchivoErroneo200(res, errors, response.resultsPromise);
                 });
             } else {
-              // console.log("PASE");
               req.errors = errors;
-              req.errorsCode = errorsCode;
               req.results = response.resultsPromise;
               req.returnsValues =
                 response.resultsPromise[0]?.result?.rowsUpdate;
@@ -4819,17 +4888,14 @@ exports.validarArchivo = async (req, res, next) => {
             }
           })
           .catch((err) => {
-            console.log({ err, errorsCode });
-            respErrorServidor500END(res, errorsCode);
-            return;
+            throw err;
           });
       })
       .catch((err) => {
-        console.log("ERR1", err);
-        respErrorServidor500END(res, { err, errorsCode });
+        throw err;
       });
   } catch (err) {
-    respErrorServidor500END(res, { err, errorsCode });
+    respErrorServidor500END(res, err);
   }
 };
 
@@ -4839,7 +4905,6 @@ exports.subirArchivo = async (req, res, next) => {
   codeCurrentFilesArray = [];
   nameTableErrors = "";
   errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
-  errorsCode = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
   dependenciesArray = [];
   dependenciesArrayEmptys = [];
 
@@ -4854,7 +4919,7 @@ exports.subirArchivo = async (req, res, next) => {
 
   const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
   }).any("archivos");
 
   upload(req, res, (err) => {

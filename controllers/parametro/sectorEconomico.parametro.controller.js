@@ -12,7 +12,7 @@ const nameTableFK1 = "APS_param_clasificador_comun";
 
 async function ListarCompleto(req, res) {
   const queryOptions = [
-    { table: nameTable, select: ["*"] },
+    { table: nameTable, select: ["*"], main: true },
     {
       table: nameTableFK1,
       select: ["*"],

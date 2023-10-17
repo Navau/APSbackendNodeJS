@@ -14,6 +14,12 @@ async function VerificarPermisoTablaUsuarioAuditoria(params) {
   try {
     const { table, action, id, req, res } = params;
     const { id_usuario } = req.user;
+    let newTable = table;
+    if (table === "APS_oper_renta_fija_cupon") newTable = "APS_oper_renta_fija";
+    if (table === "APS_oper_renta_variable_cupon")
+      newTable = "APS_oper_renta_variable";
+    if (table === "APS_oper_otros_activos_cupon")
+      newTable = "APS_oper_otros_activos";
 
     const paramsQuery = {
       where: [
@@ -23,8 +29,8 @@ async function VerificarPermisoTablaUsuarioAuditoria(params) {
     };
     if (!isUndefined(id))
       paramsQuery.where.push({ key: "id_tabla", value: id });
-    else if (!isUndefined(table))
-      paramsQuery.where.push({ key: "tabla", value: table });
+    else if (!isUndefined(newTable))
+      paramsQuery.where.push({ key: "tabla", value: newTable });
 
     const query = VerificarPermisoUtil(
       "APS_seg_view_permiso_usuario",

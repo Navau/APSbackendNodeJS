@@ -58,8 +58,7 @@ async function ReporteControlEnvioPorTipoReporte(req, res) {
     req,
     res,
     nameTable,
-    methodName:
-      "ReporteControlEnvioPorTipoReporte_CargaArchivoPensionesSeguros",
+    methodName: "ReporteControlEnvio_CargaArchivoPensionesSeguros",
     action: "Escoger",
   };
   await RealizarOperacionAvanzadaCRUD(params);
@@ -70,8 +69,7 @@ async function ReporteControlEnvioPorTipoReporteDescargas(req, res) {
     req,
     res,
     nameTable,
-    methodName:
-      "ReporteControlEnvioPorTipoReporte_CargaArchivoPensionesSeguros",
+    methodName: "ReporteControlEnvio_CargaArchivoPensionesSeguros",
     action: "Escoger",
   };
   await RealizarOperacionAvanzadaCRUD(params);
