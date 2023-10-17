@@ -278,7 +278,13 @@ const obtenerUsuario = async (usuario) => {
   }
 };
 
-const verificarUsuarioAPS = async (usuario, password) => {
+const verificarUsuarioAPS = async (
+  usuario,
+  password,
+  otherParams = undefined
+) => {
+  const usuarioLogeado = otherParams?.usuarioObtenido;
+  const usuarioObtenido = otherParams?.usuarioObtenido;
   try {
     const estado = await estadoJWTAPS(); //VERIFICAR ESTADO DE SERVICIO
     const payload = { usuario, password, app: APP_GUID };
@@ -289,8 +295,16 @@ const verificarUsuarioAPS = async (usuario, password) => {
     };
     const usuarioAPS = await obtenerInfoUsuarioAPS(token, payload); // OBTIENE INFO DE USUARIO
 
+    //? SI USUARIO EXISTE EN EL SISTEMA Y TAMBIEN EXISTE EN LA AUTENTICACION APS
+    if (!isUndefined(usuarioLogeado)) {
+      await actualizarContraseña(usuarioObtenido.id_usuario, password);
+      await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
+    }
+
     return usuarioAPS;
   } catch (err) {
+    //? SI USUARIO SOLAMENTE EXISTE EN EL SISTEMA Y NO EN LA AUTENTICACION APS
+    if (!isUndefined(usuarioLogeado)) return;
     throw err;
   }
 };
@@ -456,17 +470,10 @@ const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => 
     const usuarioLogeado =
       (await EjecutarQuery(queryUsuario))?.[0] || undefined;
 
-    // SI EL LOGEO ES INCORRECTO
-    const usuarioAPS = await verificarUsuarioAPS(usuario, password);
-    console.log({ usuarioAPS, usuarioLogeado });
-    if (isUndefined(usuarioAPS)) {
-      throw {
-        code: 500,
-        message: "Hubo un error al verificar el usuario",
-      };
-    }
-    await actualizarContraseña(usuarioObtenido.id_usuario, password);
-    await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
+    const usuarioAPS = await verificarUsuarioAPS(usuario, password, {
+      usuarioLogeado,
+      usuarioObtenido,
+    });
   } catch (err) {
     throw err;
   }
@@ -549,10 +556,10 @@ const actualizarRoles = async (id_usuario, usuarioAPS) => {
           returnValue: ["*"],
         });
       else return null;
-    });
+    }).filter((query) => !isNull(query));
     if (size(querysRolesDeshabilitados) > 0) {
       for await (const query of querysRolesDeshabilitados) {
-        if (!isNull(query)) await EjecutarQuery(query);
+        await EjecutarQuery(query);
       }
     }
     if (size(habilitarRoles) > 0) {
