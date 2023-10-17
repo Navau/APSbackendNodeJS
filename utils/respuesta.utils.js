@@ -144,20 +144,20 @@ function respErrorMulter500(res, err, msg) {
   const errMessage = err?.message ? err?.message : "";
   const limitSizeMessage =
     err.code === "LIMIT_FILE_SIZE"
-      ? "El tamaño del archivo debe ser menor a 20MB"
+      ? "Uno de los archivos excede el tamaño permitido (20MB). "
       : "";
   res
     .status(500)
     .send({
       resultado: 0,
       datos: null,
-      mensaje: isEmpty(limitSizeMessage)
-        ? msgFinalError(
-            msg,
-            "Se ha producido un error de Multer al cargar el archivo. ERROR:",
-            errMessage
-          )
-        : limitSizeMessage,
+      mensaje: msgFinalError(
+        msg,
+        isEmpty(limitSizeMessage)
+          ? "Se ha producido un error de Multer al cargar el archivo. ERROR:"
+          : limitSizeMessage,
+        errMessage
+      ),
       err,
     })
     .end();
