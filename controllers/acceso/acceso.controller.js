@@ -458,14 +458,15 @@ const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => 
 
     // SI EL LOGEO ES INCORRECTO
     const usuarioAPS = await verificarUsuarioAPS(usuario, password);
-    if (!isUndefined(usuarioAPS)) {
-      await actualizarContraseña(usuarioObtenido.id_usuario, password);
-      await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
-    } else
+    console.log({ usuarioAPS, usuarioLogeado });
+    if (isUndefined(usuarioAPS)) {
       throw {
         code: 500,
         message: "Hubo un error al verificar el usuario",
       };
+    }
+    await actualizarContraseña(usuarioObtenido.id_usuario, password);
+    await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
   } catch (err) {
     throw err;
   }
