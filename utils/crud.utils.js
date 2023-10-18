@@ -958,6 +958,23 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
             throw err;
           });
       },
+      ActualizarContraseñaAPS_Usuario: async () => {
+        const { id_usuario, password } = req.body;
+        const query = ActualizarUtil("APS_seg_usuario", {
+          body: { password },
+          idKey: "id_usuario",
+          idValue: id_usuario,
+          returnValue: ["*"],
+        });
+        await pool
+          .query(query)
+          .then((result) => {
+            respResultadoCorrectoObjeto200(res, result.rows);
+          })
+          .catch((err) => {
+            throw err;
+          });
+      },
       ObtenerRol_Rol: async () => {
         const token = req?.headers?.authorization;
         const dataToken = jwt.decodedToken(token);

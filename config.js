@@ -10,8 +10,13 @@ const CONFIG_PASSWORD = {
 };
 
 const TYPE_ENVIRONMENT = process.env.TYPE_ENVIRONMENT || "PROD";
-const CAPTCHA_KEY =
-  process.env.CAPTCHA_KEY || "6LfumzUUAAAAAArgQOK52eFc0svPnAE9kZ0mspWD";
+
+const SITE_KEY =
+  process.env.SITE_KEY || "6LfumzUUAAAAAArgQOK52eFc0svPnAE9kZ0mspWD";
+
+const SECRET_CAPTCHA_KEY =
+  process.env.SECRET_CAPTCHA_KEY || "6LfP1nAmAAAAAMuv_hZ_PqJQFh494BZxBk8lCC-u";
+
 const IP_SERVER_API = "localhost";
 const IP_SERVER_DB = process.env.DATABASE_HOST || "localhost";
 const PORT_DB = process.env.DATABASE_PORT || 5432;
@@ -38,7 +43,8 @@ module.exports = {
   APP_GUID,
   MAX_INTENTOS_LOGIN,
   CONFIG_PASSWORD,
-  CAPTCHA_KEY,
+  SITE_KEY,
+  SECRET_CAPTCHA_KEY,
   KEY_AUX,
   TYPE_ENVIRONMENT,
 };

@@ -8,15 +8,15 @@ const md_files2 = require("../../middleware/validaArchivos.middleware");
 
 const api = express.Router();
 
-api.post(
-  "/CargarArchivo",
-  [
-    md_auth.AsegurarAutenticacionConToken,
-    md_files.subirArchivo,
-    md_files.validarArchivo,
-  ],
-  controller.CargarArchivo
-);
+// api.post(
+//   "/CargarArchivo",
+//   [
+//     md_auth.AsegurarAutenticacionConToken,
+//     md_files.subirArchivo,
+//     md_files.validarArchivo,
+//   ],
+//   controller.CargarArchivo
+// );
 
 api.post(
   "/CargarArchivo2",
