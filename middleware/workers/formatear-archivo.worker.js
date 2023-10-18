@@ -3,6 +3,7 @@ const { parentPort, workerData } = require("worker_threads");
 const {
   validarFechaOperacionIgual,
   validarArchivosNecesariosDeUsuario,
+  validarErroresDeSubidaDeArchivos,
 } = require("../helpers/validaciones-formato-archivo.helper");
 const { agregarError } = require("../helpers/funciones-auxiliares.helper");
 
@@ -23,6 +24,7 @@ function formatearArchivo() {
     confArchivos,
     formatoArchivosRequeridos,
     nuevaCarga,
+    uploadErrors,
   } = workerData;
   const errorsFormatFile = [];
   let formattedFiles = files;
@@ -31,6 +33,7 @@ function formatearArchivo() {
     const fileNames = map(files, "originalname");
     if (size(confArchivos) === 0)
       throw "No existen archivos para formatear en 'APS_param_archivos_pensiones_seguros'";
+
     if (codeInst === "CUSTODIO") {
       formattedFiles = map(fileNames, (fileName) => {
         const confArchivo = confArchivos[0];
@@ -50,6 +53,13 @@ function formatearArchivo() {
       });
     }
 
+    validarErroresDeSubidaDeArchivos(
+      uploadErrors,
+      nuevaCarga,
+      errorsFormatFile
+    );
+    if (size(errorsFormatFile) > 0) return { formattedFiles, errorsFormatFile };
+
     validarFechaOperacionIgual(
       fileNames,
       fechaOperacionFormateada,
@@ -67,7 +77,6 @@ function formatearArchivo() {
       errorsFormatFile
     );
   } catch (err) {
-    console.log(err);
     agregarError(
       {
         id_carga_archivos: nuevaCarga.id_carga_archivos,

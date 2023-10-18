@@ -52,6 +52,9 @@ const {
   find,
   isNull,
 } = require("lodash");
+const {
+  verificarTokenRecaptcha,
+} = require("../../services/apsApiExterna.service");
 
 function TipoAmbiente(req, res) {
   respResultadoCorrectoObjeto200(res, TYPE_ENVIRONMENT);
@@ -311,6 +314,7 @@ const verificarUsuarioAPS = async (
 
 const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
   try {
+    await verificarTokenRecaptcha();
     //#region PREPARANDO QUERY DE LOGEO
     const values = [usuario, password];
     const queryUsuario = formatearQuery(
