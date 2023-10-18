@@ -108,6 +108,7 @@ exports.verificarTokenRecaptcha = async function (captchaToken) {
   const params = {
     secret: CAPTCHA_KEY,
     response:
+      captchaToken ||
       "09AHfSPUcGUPurtffdCz1OoV9xHHihXMaPmtIoU3cTFXbckewvafntA1SI_nUxLS-9-TmHiM8Sez8Q0JOkK67k1Vx1Y7ur4Ea2j6gFFw",
   };
 
