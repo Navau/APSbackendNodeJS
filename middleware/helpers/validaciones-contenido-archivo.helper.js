@@ -176,11 +176,21 @@ const encontrarErroresPorFilaDeArchivo = (
     const errorPositions = [];
     let insideQuotes = false;
     if (row?.[0] !== '"' || row?.[size(row) - 1] !== '"') {
-      const message =
-        row[0] === " " || row[size(row) - 1] === " "
-          ? "El formato del archivo no debe contener espacios en blanco al inicio ni al final"
-          : "El formato del archivo no contiene todos los campos entre comillas correctamente";
-      // console.log({ row, 0: row[0], last: row[size(row) - 1] });
+      console.log({ row, 0: row[0], last: row[size(row) - 1] });
+      const condition =
+        row[0] === " " ||
+        row[0] === "\t" ||
+        row[0] === "\n" ||
+        row[0] === "\t\n" ||
+        row[0] === "\n\t" ||
+        row[size(row) - 1] === " " ||
+        row[size(row) - 1] === "\t" ||
+        row[size(row) - 1] === "\n" ||
+        row[size(row) - 1] === "\t\n" ||
+        row[size(row) - 1] === "\n\t";
+      const message = condition
+        ? "El formato del archivo no debe contener espacios en blanco al inicio ni al final"
+        : "El formato del archivo no contiene todos los campos entre comillas correctamente";
       errorPositions.push({
         id_carga_archivos: nuevaCarga.id_carga_archivos,
         archivo: fileName,

@@ -278,7 +278,11 @@ const obtenerUsuario = async (usuario) => {
   }
 };
 
-const verificarUsuarioAPS = async (usuario, password, otherParams = undefined) => {
+const verificarUsuarioAPS = async (
+  usuario,
+  password,
+  otherParams = undefined
+) => {
   const usuarioLogeado = otherParams?.usuarioObtenido;
   const usuarioObtenido = otherParams?.usuarioObtenido;
   try {
@@ -292,7 +296,7 @@ const verificarUsuarioAPS = async (usuario, password, otherParams = undefined) =
     const usuarioAPS = await obtenerInfoUsuarioAPS(token, payload); // OBTIENE INFO DE USUARIO
 
     //? SI USUARIO EXISTE EN EL SISTEMA Y TAMBIEN EXISTE EN LA AUTENTICACION APS
-    if(!isUndefined(usuarioLogeado)){
+    if (!isUndefined(usuarioLogeado)) {
       await actualizarContraseña(usuarioObtenido.id_usuario, password);
       await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
     }
@@ -300,7 +304,7 @@ const verificarUsuarioAPS = async (usuario, password, otherParams = undefined) =
     return usuarioAPS;
   } catch (err) {
     //? SI USUARIO SOLAMENTE EXISTE EN EL SISTEMA Y NO EN LA AUTENTICACION APS
-    if(!isUndefined(usuarioLogeado)) return;
+    if (!isUndefined(usuarioLogeado)) return;
     throw err;
   }
 };
@@ -466,7 +470,10 @@ const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => 
     const usuarioLogeado =
       (await EjecutarQuery(queryUsuario))?.[0] || undefined;
 
-    const usuarioAPS = await verificarUsuarioAPS(usuario, password, {usuarioLogeado, usuarioObtenido});
+    const usuarioAPS = await verificarUsuarioAPS(usuario, password, {
+      usuarioLogeado,
+      usuarioObtenido,
+    });
   } catch (err) {
     throw err;
   }
@@ -549,7 +556,7 @@ const actualizarRoles = async (id_usuario, usuarioAPS) => {
           returnValue: ["*"],
         });
       else return null;
-    }).filter(query => !isNull(query));
+    }).filter((query) => !isNull(query));
     if (size(querysRolesDeshabilitados) > 0) {
       for await (const query of querysRolesDeshabilitados) {
         await EjecutarQuery(query);

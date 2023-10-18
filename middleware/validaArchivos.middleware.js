@@ -241,7 +241,7 @@ exports.formatearArchivos = async (req, res, next) => {
       else if (size(WORKER_OPTIONS.errorsFiles) > 0) {
         const type = "formatearArchivos";
         workerInsertarErrores(WORKER_OPTIONS, type);
-        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles);
+        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles, []);
       } else {
         WORKER_OPTIONS.isFormattedFiles = true;
         req.WORKER_OPTIONS = WORKER_OPTIONS;
@@ -305,7 +305,7 @@ exports.validarFormatoContenidoDeArchivos = async (req, res, next) => {
       } else if (size(WORKER_OPTIONS.errorsFiles) > 0) {
         const type = "validarFormatoContenidoDeArchivos";
         workerInsertarErrores(WORKER_OPTIONS, type);
-        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles);
+        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles, []);
       } else {
         WORKER_OPTIONS.isValidatedContentFormatFiles = true;
         req.WORKER_OPTIONS = WORKER_OPTIONS;
@@ -369,7 +369,7 @@ exports.validarValoresContenidoDeArchivos = async (req, res, next) => {
       } else if (size(WORKER_OPTIONS.errorsFiles) > 0) {
         const type = "validarValoresContenidoDeArchivos";
         workerInsertarErrores(WORKER_OPTIONS, type);
-        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles);
+        respArchivoErroneo200(res, WORKER_OPTIONS.errorsFiles, []);
         // WORKER_OPTIONS.isValidatedContentValuesFiles = true;
         // req.WORKER_OPTIONS = WORKER_OPTIONS;
         // next();
@@ -419,7 +419,8 @@ const workerInsertarErrores = (WORKER_OPTIONS, type) => {
 };
 
 const handleErrors = (err, res) => {
-  if (err?.type === "errores_archivos") respArchivoErroneo200(res, err.errors);
+  if (err?.type === "errores_archivos")
+    respArchivoErroneo200(res, err.errors, []);
   else if (err?.type === "unauthorized")
     respUsuarioNoAutorizado200END(res, null, err.action, err.table);
   else if (isNumber(err?.myCode))
