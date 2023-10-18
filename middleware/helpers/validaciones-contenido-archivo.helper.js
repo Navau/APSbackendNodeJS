@@ -257,7 +257,8 @@ const validarContenidoValoresDeArchivo = (params) => {
   } = params;
   const OPTIONS_VALUES = {
     value: undefined,
-    matchDataType,
+    matchDataType: false,
+    isMatchInFunction: false,
     isLastRow: false,
     isLastColumn: false,
     isLastNroCupon: false,
@@ -423,6 +424,7 @@ const validarTiposDeDatos = (params) => {
     }
   } else {
     const { value } = OPTIONS_VALUES;
+    OPTIONS_VALUES.isMatchInFunction = false;
     forEach(functions, (functionName) => {
       functionResult = funcionesValidacionesContenidoValores[functionName]({
         paramsBD,
@@ -450,6 +452,7 @@ const validarTiposDeDatos = (params) => {
         );
       }
     });
+    OPTIONS_VALUES.isMatchInFunction = true;
   }
 };
 

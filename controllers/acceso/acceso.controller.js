@@ -278,7 +278,9 @@ const obtenerUsuario = async (usuario) => {
   }
 };
 
-const verificarUsuarioAPS = async (usuario, password) => {
+const verificarUsuarioAPS = async (usuario, password, otherParams = undefined) => {
+  const usuarioLogeado = otherParams?.usuarioObtenido;
+  const usuarioObtenido = otherParams?.usuarioObtenido;
   try {
     const estado = await estadoJWTAPS(); //VERIFICAR ESTADO DE SERVICIO
     const payload = { usuario, password, app: APP_GUID };
@@ -289,8 +291,16 @@ const verificarUsuarioAPS = async (usuario, password) => {
     };
     const usuarioAPS = await obtenerInfoUsuarioAPS(token, payload); // OBTIENE INFO DE USUARIO
 
+    //? SI USUARIO EXISTE EN EL SISTEMA Y TAMBIEN EXISTE EN LA AUTENTICACION APS
+    if(!isUndefined(usuarioLogeado)){
+      await actualizarContraseña(usuarioObtenido.id_usuario, password);
+      await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
+    }
+
     return usuarioAPS;
   } catch (err) {
+    //? SI USUARIO SOLAMENTE EXISTE EN EL SISTEMA Y NO EN LA AUTENTICACION APS
+    if(!isUndefined(usuarioLogeado)) return;
     throw err;
   }
 };
@@ -456,16 +466,7 @@ const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => 
     const usuarioLogeado =
       (await EjecutarQuery(queryUsuario))?.[0] || undefined;
 
-    //SI EL LOGEO ES INCORRECTO
-    const usuarioAPS = await verificarUsuarioAPS(usuario, password);
-    if (!isUndefined(usuarioAPS)) {
-      await actualizarContraseña(usuarioObtenido.id_usuario, password);
-      await actualizarRoles(usuarioObtenido.id_usuario, usuarioAPS);
-    } else
-      throw {
-        code: 500,
-        message: "Hubo un error al verificar el usuario",
-      };
+    const usuarioAPS = await verificarUsuarioAPS(usuario, password, {usuarioLogeado, usuarioObtenido});
   } catch (err) {
     throw err;
   }
@@ -519,60 +520,65 @@ const actualizarRoles = async (id_usuario, usuarioAPS) => {
     );
     const insertarRoles = [];
     const habilitarRoles = [];
-    forEach(nombresRolesUsuarioAPS, (nombreRolAPS => {
-      const rolActualFind = find(rolesActualesDeUsuario, (rol) => 
-      nombreRolAPS === rol.codigo_rol);
+    forEach(nombresRolesUsuarioAPS, (nombreRolAPS) => {
+      const rolActualFind = find(
+        rolesActualesDeUsuario,
+        (rol) => nombreRolAPS === rol.codigo_rol
+      );
 
-      if(!isUndefined(rolActualFind)){
-        if(rolActualFind.activo_usuario_rol !== true){
+      if (!isUndefined(rolActualFind)) {
+        if (rolActualFind.activo_usuario_rol !== true) {
           habilitarRoles.push(rolActualFind);
         }
       } else {
         insertarRoles.push(nombreRolAPS);
       }
-    }));
+    });
 
     const querysRolesDeshabilitados = map(rolesActualesDeUsuario, (rol) => {
-      const nombreRolAPSFind = find(nombresRolesUsuarioAPS, (nombreRolAPS) => 
-      nombreRolAPS === rol.codigo_rol);
+      const nombreRolAPSFind = find(
+        nombresRolesUsuarioAPS,
+        (nombreRolAPS) => nombreRolAPS === rol.codigo_rol
+      );
 
-      if(isUndefined(nombreRolAPSFind)) return ActualizarUtil("APS_seg_usuario_rol", {
-          body: { activo: false, },
+      if (isUndefined(nombreRolAPSFind))
+        return ActualizarUtil("APS_seg_usuario_rol", {
+          body: { activo: false },
           idKey: "id_usuario_rol",
           idValue: rol.id_usuario_rol,
           returnValue: ["*"],
         });
       else return null;
-    });
-    if(size(querysRolesDeshabilitados) > 0){
-      for await (const query of querysRolesDeshabilitados){
-        if(!isNull(query)) await EjecutarQuery(query);
+    }).filter(query => !isNull(query));
+    if (size(querysRolesDeshabilitados) > 0) {
+      for await (const query of querysRolesDeshabilitados) {
+        await EjecutarQuery(query);
       }
     }
-    if(size(habilitarRoles) > 0){
-      for await (const rol of habilitarRoles){
+    if (size(habilitarRoles) > 0) {
+      for await (const rol of habilitarRoles) {
         const query = ActualizarUtil("APS_seg_usuario_rol", {
           body: { activo: true },
           idKey: "id_usuario_rol",
           idValue: rol.id_usuario_rol,
           returnValue: ["*"],
         });
-        await EjecutarQuery(query)
+        await EjecutarQuery(query);
       }
     }
-    if(size(insertarRoles) > 0){
-      for await (const nombreRol of insertarRoles){
+    if (size(insertarRoles) > 0) {
+      for await (const nombreRol of insertarRoles) {
         const query = InsertarUtil("APS_seg_rol", {
-          body: { 
+          body: {
             rol: usuarioAPS.cargo,
             descripcion: `${usuarioAPS.cargo} ${usuarioAPS.entidad.sigla}`,
             activo: true,
             id_usuario,
-            codigo: nombreRol
+            codigo: nombreRol,
           },
           returnValue: ["*"],
         });
-        await EjecutarQuery(query)
+        await EjecutarQuery(query);
       }
     }
   } catch (err) {

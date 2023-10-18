@@ -83,7 +83,7 @@ exports.subirArchivos = async (req, res, next) => {
 
   const upload = multer({
     storage: storage,
-    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+    limits: { fileSize: 20 * 1024 * 1024 }, //? 20MB
   }).any("archivos");
 
   upload(req, res, (err) => {

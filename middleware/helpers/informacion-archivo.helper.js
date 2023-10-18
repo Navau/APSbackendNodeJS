@@ -1541,6 +1541,19 @@ const CONF_FILE_QUERIES_DATABASE = (typeFile, fileName) => {
           ],
         },
       },
+      serieConTipoInstrumento: {
+        table: "APS_param_tipo_instrumento",
+        queryOptions: {
+          select: ["sigla"],
+          where: [
+            {
+              key: "id_tipo_instrumento",
+              valuesWhereIn: [45, 46],
+              whereIn: true,
+            },
+          ],
+        },
+      },
     },
     484: {
       tipoActivo: {
@@ -3134,7 +3147,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3194,7 +3207,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3241,7 +3254,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3279,7 +3292,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -3327,7 +3340,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { correlativo: [] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_operacion: "yyyy-MM-dd",
           },
@@ -3401,7 +3414,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { correlativo: [] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_operacion: "yyyy-MM-dd",
           },
@@ -3469,7 +3482,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_operacion: "yyyy-MM-dd",
           },
@@ -3851,7 +3864,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           validateFieldWithOperationDate: [],
           replaceFieldValue: {
             // fecha_pago: "yyyy-MM-dd"
@@ -3942,7 +3955,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           validateFieldWithOperationDate: [],
           replaceFieldValue: {
             // fecha_pago: "yyyy-MM-dd"
@@ -4029,7 +4042,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -4329,14 +4342,9 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
         globalFileValidations: {
           fieldsUniqueBy: {},
           uniqueCombinationPerFile: [
-            "tipo_activo",
-            "serie",
-            "entidad_emisora",
-            "fecha_adquisicion",
+            ["tipo_activo", "serie", "entidad_emisora", "fecha_adquisicion"],
           ],
-          formatDateFields: {
-            // fecha_adquisicion: "yyyy-MM-dd",
-          },
+          formatDateFields: {},
           mayBeEmptyFields: ["serie"],
           queries: () => resultQueries(),
         },
@@ -4348,8 +4356,8 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z0-9\-]{0,23}$/,
-        functions: [],
+        pattern: [/^[A-Za-z0-9\-]{0,23}$/, /^[A-Za-z0-9\-]{12,23}$/],
+        functions: ["serieTiposDeDatos"],
       },
       {
         columnName: "entidad_emisora",
@@ -4582,7 +4590,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -4645,7 +4653,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -4729,7 +4737,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_compra: "yyyy-MM-dd",
             // fecha_rev_tec: "yyyy-MM-dd",
@@ -4907,7 +4915,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_compra: "yyyy-MM-dd",
             // fecha_rev_tec: "yyyy-MM-dd",
@@ -5085,7 +5093,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -5126,7 +5134,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_compra: "yyyy-MM-dd",
           },
@@ -5230,7 +5238,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_prestamo: "yyyy-MM-dd",
             // fecha_inicio: "yyyy-MM-dd",
@@ -5323,7 +5331,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             // fecha_inicio_prestamo: "yyyy-MM-dd",
             // fecha_finalizacion_prestamo: "yyyy-MM-dd",
@@ -5422,7 +5430,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { correlativo: [] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             fecha_operacion: "yyyy-MM-dd",
           },
@@ -5496,7 +5504,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { correlativo: [] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             fecha_operacion: "yyyy-MM-dd",
           },
@@ -5565,7 +5573,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             fecha_vencimiento: "yyyy-MM-dd",
           },
@@ -5604,7 +5612,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             fecha_vencimiento: "yyyy-MM-dd",
           },
@@ -5769,7 +5777,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {},
           mayBeEmptyFields: [],
           queries: () => resultQueries(),
@@ -5800,7 +5808,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: { fecha_pago: "yyyy-MM-dd" },
           mayBeEmptyFields: ["serie", "calificacion", "calificadora"],
           queries: () => resultQueries(),
@@ -5879,7 +5887,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             fecha_vencimiento: "yyyy-MM-dd",
             fecha_emision: "yyyy-MM-dd",
@@ -5979,7 +5987,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: { nro_cupon: ["serie"] },
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: {
             fecha_pago: "yyyy-MM-dd",
           },
@@ -6064,7 +6072,7 @@ const CONF_FILE_VALUE_VALIDATIONS = (typeFile, fileName) => {
       {
         globalFileValidations: {
           fieldsUniqueBy: {},
-          uniqueCombinationPerFile: [],
+          uniqueCombinationPerFile: [[]],
           formatDateFields: { fecha_emision: "yyyy-MM-dd" },
           mayBeEmptyFields: ["serie", "calificacion", "calificadora"],
           queries: () => resultQueries(),
