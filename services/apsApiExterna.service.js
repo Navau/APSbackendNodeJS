@@ -1,4 +1,4 @@
-const { IP_SERVER_API_EXTERNA } = require("../config");
+const { IP_SERVER_API_EXTERNA, CAPTCHA_KEY } = require("../config");
 const axios = require("axios");
 
 exports.obtenerJwtEstadoApi = async function () {
@@ -100,5 +100,25 @@ exports.actualizarContraseñaUsuarioApi = async function (token, data) {
       });
   } catch (err) {
     throw err;
+  }
+};
+
+exports.verificarTokenRecaptcha = async function (captchaToken) {
+  const verificationURL = "https://www.google.com/recaptcha/api/siteverify";
+  const params = {
+    secret: CAPTCHA_KEY,
+    response:
+      "09AHfSPUcGUPurtffdCz1OoV9xHHihXMaPmtIoU3cTFXbckewvafntA1SI_nUxLS-9-TmHiM8Sez8Q0JOkK67k1Vx1Y7ur4Ea2j6gFFw",
+  };
+
+  try {
+    const response = await axios.post(verificationURL, null, { params });
+    console.log(params);
+    console.log(response.data);
+    return response.data.success;
+  } catch (error) {
+    console.log(err);
+    console.error("Error al verificar el token de reCAPTCHA:", error.message);
+    // throw error;
   }
 };

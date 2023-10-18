@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { Worker, isMainThread } = require("node:worker_threads");
 const multer = require("multer");
 const {
@@ -19,6 +20,7 @@ const {
   isNumber,
   forEach,
   find,
+  filter,
 } = require("lodash");
 
 const {
@@ -76,36 +78,62 @@ const TABLES_INFO_UPLOAD = (codInstitucion = undefined) => ({
 });
 
 exports.subirArchivos = async (req, res, next) => {
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, "./uploads/tmp"),
-    filename: (req, file, cb) => cb(null, file.originalname),
-  });
+  try {
+    const uploadErrors = [];
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => cb(null, "./uploads/tmp"),
+      filename: (req, file, cb) => cb(null, file.originalname),
+    });
 
-  const upload = multer({
-    storage: storage,
-    limits: { fileSize: 20 * 1024 * 1024 }, //? 20MB
-  }).any("archivos");
+    const upload = multer({
+      storage: storage,
+      // limits: { fileSize: 20 * 1024 * 1024 }, //? 20MB
+    }).any("archivos");
 
-  upload(req, res, (err) => {
-    if (err instanceof multer.MulterError) respErrorMulter500(res, err);
-    else if (err) {
-      if (err.name == "ExtensionError") respErrorExtensionError403(res, err);
-      else respErrorServidor500END(res, err);
-    } else {
+    upload(req, res, (err) => {
       const files = req?.files;
-      if (!files || size(files) === 0) {
-        respDatosNoRecibidos400(
-          res,
-          "No se encontro ningún archivo para subir."
-        );
-      } else next();
-    }
-  });
+      if (err instanceof multer.MulterError)
+        uploadErrors.push({ data: err, message: err.message });
+      else if (err) uploadErrors.push({ data: err, message: err.message });
+      else {
+        if (!files || size(files) === 0) {
+          uploadErrors.push({
+            data: {},
+            message: `No se encontraron archivos para subir`,
+          });
+        }
+        forEach(files, (file) => {
+          if (file.size > 20 * 1024 * 1024)
+            uploadErrors.push({
+              data: file,
+              message: `El archivo '${file.originalname}' excede el tamaño permitido de 20MB`,
+            });
+        });
+      }
+      if (size(uploadErrors) > 0) {
+        forEach(files, (file) => {
+          const filePath = file.path;
+          fs.unlink(filePath, (err) => {
+            if (err) throw err;
+            else
+              console.log(
+                `El archivo ${file.originalname} fue eliminado del directorio`
+              );
+          });
+        });
+      }
+      req.uploadErrors = uploadErrors;
+      next();
+    });
+  } catch (err) {
+    respErrorServidor500END(res, err);
+  }
 };
 
 exports.formatearArchivos = async (req, res, next) => {
   try {
     const files = sortBy(req?.files, "originalname");
+
     const {
       fecha_operacion,
       tipo_periodo,
@@ -113,6 +141,9 @@ exports.formatearArchivos = async (req, res, next) => {
       tipo_carga,
       reproceso,
     } = req?.body;
+
+    const { uploadErrors } = req;
+
     const dataInitial = {
       fecha_operacion,
       tipo_periodo,
@@ -120,6 +151,7 @@ exports.formatearArchivos = async (req, res, next) => {
       files,
       tipo_carga,
       reproceso,
+      uploadErrors,
     };
     const { id_rol, id_usuario } = req.user;
 
@@ -139,6 +171,7 @@ exports.formatearArchivos = async (req, res, next) => {
         table: TABLES_INFO_UPLOAD()[tipo_carga].table,
         action: "Insertar",
       };
+
     const {
       codigosSeguros,
       codigosPensiones,

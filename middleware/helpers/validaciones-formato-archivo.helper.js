@@ -116,7 +116,21 @@ const validarArchivosNecesariosDeUsuario = (
   }
 };
 
+const validarErroresDeSubidaDeArchivos = (files, nuevaCarga, errors = []) => {
+  forEach(files, (file) => {
+    const { data, message } = file;
+    const newError = {
+      id_carga_archivos: nuevaCarga.id_carga_archivos,
+      archivo: data?.originalname,
+      tipo_error: "ERROR DE SUBIDA DE ARCHIVO",
+      descripcion: message,
+    };
+    agregarError(newError, errors);
+  });
+};
+
 module.exports = {
   validarFechaOperacionIgual,
   validarArchivosNecesariosDeUsuario,
+  validarErroresDeSubidaDeArchivos,
 };

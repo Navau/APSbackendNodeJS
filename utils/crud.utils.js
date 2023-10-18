@@ -1941,6 +1941,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 return {
                   cod_institucion: "BBV",
                   descripcion: "La información está correcta",
+                  nro_carga: item?.nro_carga,
                   fecha_carga: item.fecha_carga,
                   fecha_operacion: item.fecha_operacion,
                 };
@@ -2754,6 +2755,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 return {
                   cod_institucion: item.cod_institucion,
                   descripcion: "La información fue validada correctamente",
+                  nro_carga: item?.nro_carga,
                   fecha_carga: item.fecha_carga,
                   fecha_operacion: item.fecha_operacion,
                 };
@@ -2979,6 +2981,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 return {
                   cod_institucion: "EDV",
                   descripcion: "La información está correcta",
+                  nro_carga: item?.nro_carga,
                   fecha_carga: item.fecha_carga,
                   fecha_operacion: item.fecha_operacion,
                 };
@@ -4110,6 +4113,7 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
                 return {
                   cod_institucion: item.cod_institucion,
                   descripcion: "La información fue valorada correctamente",
+                  nro_carga: item?.nro_carga,
                   fecha_carga: item.fecha_carga,
                   fecha_operacion: item.fecha_operacion,
                 };
