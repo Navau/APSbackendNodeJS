@@ -314,7 +314,6 @@ const verificarUsuarioAPS = async (
 
 const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
   try {
-    await verificarTokenRecaptcha();
     //#region PREPARANDO QUERY DE LOGEO
     const values = [usuario, password];
     const queryUsuario = formatearQuery(
@@ -368,11 +367,11 @@ const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
       id_usuario: usuarioLogeado.id_usuario,
       id_rol: rolesUsuarioLogeado[0].id_rol,
     };
-
+    const sucessCaptcha = await verificarTokenRecaptcha();
     respLoginResultadoCorrectoObjeto200(
       res,
       jwt.createAccessTokenWithRol(resultFinal),
-      { rol: rolesUsuarioLogeado, usuario: usuarioLogeado },
+      { rol: rolesUsuarioLogeado, usuario: usuarioLogeado, sucessCaptcha },
       messageFinal
     );
     //#endregion
