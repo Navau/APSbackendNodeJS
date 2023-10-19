@@ -88,6 +88,7 @@ const {
   respArchivoErroneo415,
   respArchivoErroneo200,
   respIDNoRecibido400,
+  respDatosNoRecibidos400END,
 } = require("./respuesta.utils");
 const { ValidarDatosValidacion } = require("./validacion.utils");
 const {
@@ -99,8 +100,11 @@ const {
 } = require("./formatearDatos");
 const { formatoArchivo } = require("./formatoCamposArchivos.utils");
 const dayjs = require("dayjs");
-const { KEY_AUX } = require("../config");
+const { KEY_AUX, APP_GUID } = require("../config");
 const { DateTime } = require("luxon");
+const { actualizarContraseñaUsuarioAPS } = require("../api/autenticacion.api");
+const { verificarUsuarioAPS } = require("../controllers/acceso/acceso.controller");
+const yup = require("yup");
 require("dayjs/locale/es");
 
 async function CampoActivoAux(nameTable) {
@@ -705,26 +709,6 @@ async function ActualizarCRUD(paramsF) {
     const actualizacion = (await EjecutarQuery(query))?.[0] || undefined;
     if (isUndefined(registroAnterior))
       throw new Error("Error al obtener el registro anterior");
-
-    if (
-      (!isUndefined(body?.password) ||
-        !isNull(body?.password) ||
-        !isEmpty(body?.password)) &&
-      !isUndefined(req.user?.token_api)
-    ) {
-      const { token_api } = req.user;
-      const token = {
-        token_value: token_api.access_token,
-        token_type: token_api.token_type,
-      };
-      const data = {
-        usuario: registroAnterior.usuario,
-        app: APP_GUID,
-        // oldPassword: old_password,
-        // newPassword: new_password,
-      };
-      // await actualizarContraseñaUsuario(token, data);
-    }
     //#endregion
 
     //#region REGISTRANDO EN LAS TABLAS DE LOG Y LOGDET
@@ -957,6 +941,49 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
           .catch((err) => {
             throw err;
           });
+      },
+      ActualizarContraseñaAPS_Usuario: async () => {
+        const { id_usuario, usuario, oldPassword, newPassword } = req.body;
+        const isTypeString = (mensajeError) => {
+  return yup.mixed().test('esTipoString', mensajeError, function (valor) {
+    if (valor !== undefined && typeof valor !== 'string') {
+      return this.createError({ path: this.path, message: mensajeError });
+    }
+    return true;
+  });
+};
+        const schema = yup.object().shape({
+          id_usuario: yup.number().typeError("El valor de id_usuario debe ser un número válido").required(),
+          usuario: isTypeString("El valor de usuario debe ser un texto válido").required(),
+            oldPassword: isTypeString("El valor de oldPassword debe ser un texto válido").required(),
+            newPassword: isTypeString("El valor de newPassword debe ser un texto válido").required(),
+        });
+        await schema.validate({
+          id_usuario,
+          usuario,
+          oldPassword,
+          newPassword,
+        }, { abortEarly: false, stripUnknown: true }).catch((err) => {
+          console.log(err.errors);
+          throw {fieldValidations: err.errors};
+        });
+        const usuarioAPS = await verificarUsuarioAPS(usuario, oldPassword);
+        const updateData = {
+          usuario,
+          app: APP_GUID,
+          oldPassword,
+          newPassword,
+        };
+        const token = usuarioAPS.token;
+        const contraseñaActualizada = await actualizarContraseñaUsuarioAPS(token, updateData);
+        const query = ActualizarUtil("APS_seg_usuario", {
+          body: { password: newPassword },
+          idKey: "id_usuario",
+          idValue: id_usuario,
+          returnValue: ["*"],
+        });
+        const usuarioActualizado = await EjecutarQuery(query);
+        respResultadoCorrectoObjeto200(res, usuarioActualizado, contraseñaActualizada.message);
       },
       ObtenerRol_Rol: async () => {
         const token = req?.headers?.authorization;
@@ -4521,7 +4548,8 @@ async function RealizarOperacionAvanzadaCRUD(paramsF) {
 
     await OPERATION?.[methodName]();
   } catch (err) {
-    respErrorServidor500END(res, err);
+    if(!isUndefined(err?.fieldValidations)) respDatosNoRecibidos400END(res, err.fieldValidations);
+    else respErrorServidor500END(res, err);
   }
 }
 

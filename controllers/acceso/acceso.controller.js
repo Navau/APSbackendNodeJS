@@ -37,7 +37,7 @@ const {
 const {
   APP_GUID,
   MAX_INTENTOS_LOGIN,
-  CAPTCHA_KEY,
+  SITE_KEY,
   TYPE_ENVIRONMENT,
 } = require("../../config");
 const {
@@ -61,7 +61,7 @@ function TipoAmbiente(req, res) {
 }
 
 function CaptchaKey(req, res) {
-  respResultadoCorrectoObjeto200(res, CAPTCHA_KEY);
+  respResultadoCorrectoObjeto200(res, SITE_KEY);
 }
 
 async function Login(req, res) {
@@ -192,14 +192,14 @@ function TokenConRol(req, res) {
 
 async function LoginApiExterna(req, res) {
   try {
-    const { usuario, password } = req.body;
+    const { usuario, password, captcha } = req.body;
     const ip = req.header("x-forwarded-for") || req.connection.remoteAddress;
     await validarLoginConYup(req.body);
     const usuarioObtenido = await obtenerUsuario(usuario); //VERIFICA SI EL USUARIO EXISTE EN EL SISTEMA
     if (isUndefined(usuarioObtenido)) {
-      await loginConAPS(res, usuario, password, ip);
+      await loginConAPS(res, usuario, password, ip, captcha);
     } else {
-      await loginNormal(res, usuario, password, ip, usuarioObtenido);
+      await loginNormal(res, usuario, password, ip, usuarioObtenido, captcha);
     }
   } catch (err) {
     if (!isUndefined(err?.code) && isInteger(err?.code))
@@ -214,7 +214,7 @@ async function LoginApiExterna(req, res) {
   }
 }
 
-async function loginConAPS(res, usuario, password, ip) {
+async function loginConAPS(res, usuario, password, ip, captcha) {
   try {
     const usuarioAPS = await verificarUsuarioAPS(usuario, password);
     const usuarioInsertado = await insertarUsuarioAPSaSistema(
@@ -224,17 +224,36 @@ async function loginConAPS(res, usuario, password, ip) {
     await registrarRolesDeUsuarioAPS(usuarioAPS, usuarioInsertado);
 
     await verificaCuentaBloqueada(usuarioInsertado);
-    await logearUsuario(res, usuario, password, ip);
+    await logearUsuario(res, usuario, password, ip, captcha, usuarioAPS);
   } catch (err) {
     throw err;
   }
 }
 
-async function loginNormal(res, usuario, password, ip, usuarioObtenido) {
+async function loginNormal(
+  res,
+  usuario,
+  password,
+  ip,
+  usuarioObtenido,
+  captcha
+) {
   try {
     await verificaCuentaBloqueada(usuarioObtenido);
-    await verificaContraseñaYRoles(usuario, password, usuarioObtenido);
-    await logearUsuario(res, usuario, password, ip, usuarioObtenido);
+    const usuarioAPS = await verificaContraseñaYRoles(
+      usuario,
+      password,
+      usuarioObtenido
+    );
+    await logearUsuario(
+      res,
+      usuario,
+      password,
+      ip,
+      usuarioObtenido,
+      captcha,
+      usuarioAPS
+    );
   } catch (err) {
     throw err;
   }
@@ -288,16 +307,24 @@ const verificarUsuarioAPS = async (
 ) => {
   const usuarioLogeado = otherParams?.usuarioObtenido;
   const usuarioObtenido = otherParams?.usuarioObtenido;
+  const ERROR_MANAGER = {
+    estado: false,
+    tokenInfo: false,
+    usuarioAPS: false,
+  };
   try {
     const estado = await estadoJWTAPS(); //VERIFICAR ESTADO DE SERVICIO
+    ERROR_MANAGER.estado = true;
     const payload = { usuario, password, app: APP_GUID };
     const tokenInfo = await obtenerTokenAPS(payload); //OBTENER TOKEN
+    ERROR_MANAGER.tokenInfo = true;
     const token = {
       token_value: tokenInfo?.access_token,
       token_type: tokenInfo?.token_type,
     };
     const usuarioAPS = await obtenerInfoUsuarioAPS(token, payload); // OBTIENE INFO DE USUARIO
-
+    ERROR_MANAGER.usuarioAPS = true;
+    usuarioAPS.token = token;
     //? SI USUARIO EXISTE EN EL SISTEMA Y TAMBIEN EXISTE EN LA AUTENTICACION APS
     if (!isUndefined(usuarioLogeado)) {
       await actualizarContraseña(usuarioObtenido.id_usuario, password);
@@ -306,13 +333,22 @@ const verificarUsuarioAPS = async (
 
     return usuarioAPS;
   } catch (err) {
+    // console.log(err);
     //? SI USUARIO SOLAMENTE EXISTE EN EL SISTEMA Y NO EN LA AUTENTICACION APS
-    if (!isUndefined(usuarioLogeado)) return;
+    if (!isUndefined(usuarioLogeado) && ERROR_MANAGER.estado === false) return;
     throw err;
   }
 };
 
-const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
+const logearUsuario = async (
+  res,
+  usuario,
+  password,
+  ip,
+  usuarioObtenido,
+  captcha,
+  usuarioAPS
+) => {
   try {
     //#region PREPARANDO QUERY DE LOGEO
     const values = [usuario, password];
@@ -366,8 +402,10 @@ const logearUsuario = async (res, usuario, password, ip, usuarioObtenido) => {
     const resultFinal = {
       id_usuario: usuarioLogeado.id_usuario,
       id_rol: rolesUsuarioLogeado[0].id_rol,
+      usuarioAPS
     };
-    const sucessCaptcha = await verificarTokenRecaptcha();
+    const sucessCaptcha = await verificarTokenRecaptcha(captcha);
+
     respLoginResultadoCorrectoObjeto200(
       res,
       jwt.createAccessTokenWithRol(resultFinal),
@@ -477,6 +515,7 @@ const verificaContraseñaYRoles = async (usuario, password, usuarioObtenido) => 
       usuarioLogeado,
       usuarioObtenido,
     });
+    return usuarioAPS;
   } catch (err) {
     throw err;
   }
@@ -751,4 +790,5 @@ module.exports = {
   TokenConRol,
   TipoAmbiente,
   CaptchaKey,
+  verificarUsuarioAPS,
 };

@@ -1,4 +1,9 @@
-const { IP_SERVER_API_EXTERNA, CAPTCHA_KEY } = require("../config");
+const {
+  IP_SERVER_API_EXTERNA,
+  SITE_KEY,
+  IP_SERVER_API,
+  SECRET_CAPTCHA_KEY,
+} = require("../config");
 const axios = require("axios");
 
 exports.obtenerJwtEstadoApi = async function () {
@@ -104,22 +109,26 @@ exports.actualizarContraseñaUsuarioApi = async function (token, data) {
 };
 
 exports.verificarTokenRecaptcha = async function (captchaToken) {
-  const verificationURL = "https://www.google.com/recaptcha/api/siteverify";
-  const params = {
-    secret: CAPTCHA_KEY,
-    response:
-      captchaToken ||
-      "09AHfSPUcGUPurtffdCz1OoV9xHHihXMaPmtIoU3cTFXbckewvafntA1SI_nUxLS-9-TmHiM8Sez8Q0JOkK67k1Vx1Y7ur4Ea2j6gFFw",
+  const verificationURL = `https://www.google.com/recaptcha/api/siteverify?secret=${SECRET_CAPTCHA_KEY}&response=${captchaToken}`;
+
+  const options = {
+    headers: {
+      "Content-Type": "application/json",
+    },
   };
+  // console.log({
+  //   verificationURL,
+  //   key: "6LfP1nAmAAAAAJm0KfX7KfCohmp4Vf4XaMrN4TdU",
+  //   captchaToken,
+  // });
 
   try {
-    const response = await axios.post(verificationURL, null, { params });
-    console.log(params);
+    const response = await axios.post(verificationURL, null, options);
     console.log(response.data);
     return response.data.success;
-  } catch (error) {
+  } catch (err) {
     console.log(err);
-    console.error("Error al verificar el token de reCAPTCHA:", error.message);
+    console.error("Error al verificar el token de reCAPTCHA:", err.message);
     // throw error;
   }
 };

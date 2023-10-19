@@ -56,6 +56,18 @@ async function Actualizar(req, res) {
   await ActualizarCRUD(params);
 }
 
+//ACTUALIZAR UN CONTRASEÑA DE USUARIO CON APS
+async function ActualizarContraseñaAPS(req, res) {
+  const params = {
+    req,
+    res,
+    nameTable,
+    methodName: "ActualizarContraseñaAPS_Usuario",
+    action: "Actualizar",
+  };
+  await RealizarOperacionAvanzadaCRUD(params);
+}
+
 //TO DO: CREAR PERMISO, CREAR LA ACCION DESBLOQUEAR
 async function Desbloquear(req, res) {
   const params = {
@@ -76,4 +88,5 @@ module.exports = {
   Actualizar,
   InstitucionConIDUsuario,
   Desbloquear,
+  ActualizarContraseñaAPS
 };

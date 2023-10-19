@@ -33,5 +33,10 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Actualizar
 );
+api.post(
+  "/ActualizarContraseniaAPS",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.ActualizarContraseñaAPS
+);
 
 module.exports = api;
